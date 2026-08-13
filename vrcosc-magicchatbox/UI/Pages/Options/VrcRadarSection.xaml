@@ -63,7 +63,7 @@
                         </LinearGradientBrush>
                     </Border.Background>
                     <TextBlock
-                        FontFamily="Albert Sans Thin"
+                        FontFamily="/Fonts/#Albert Sans"
                         FontSize="13"
                         Foreground="{StaticResource StatusWarningBrush}"
                         TextWrapping="Wrap">
@@ -660,7 +660,7 @@
                             Text="LIVE PREVIEW" />
                         <TextBlock
                             Margin="0,2,0,0"
-                            FontFamily="Comfortaa Light"
+                            FontFamily="/Fonts/#Comfortaa"
                             FontSize="13"
                             Foreground="{StaticResource TextBodyBrush}"
                             Text="{Binding Modules.VrcRadar.CurrentOutputPreview, FallbackValue='(start radar to see preview)'}"

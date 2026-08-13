@@ -54,7 +54,7 @@
                 HorizontalAlignment="Left"
                 VerticalAlignment="Center"
                 Cursor="Hand"
-                FontFamily="Albert Sans Thin"
+                FontFamily="/Fonts/#Albert Sans"
                 FontSize="12"
                 Foreground="{StaticResource AccentTealBrush}"
                 MouseUp="LearnMoreAboutTTSbtn_MouseUp"
@@ -73,7 +73,7 @@
                     BorderThickness="1"
                     Style="{StaticResource OptionCardStyle}">
                     <TextBlock
-                        FontFamily="Albert Sans Thin"
+                        FontFamily="/Fonts/#Albert Sans"
                         FontSize="13"
                         Foreground="{StaticResource StatusWarningBrush}"
                         Text="Heads up: The TikTok TTS endpoint this feature uses may be unavailable, so playback could fail."
@@ -115,7 +115,7 @@
                             <TextBlock
                                 Width="85"
                                 VerticalAlignment="Center"
-                                FontFamily="Albert Sans Thin"
+                                FontFamily="/Fonts/#Albert Sans"
                                 FontSize="15"
                                 Foreground="{StaticResource TextLabelBrush}"
                                 Text="TTS voice" />
@@ -132,7 +132,7 @@
                             <TextBlock
                                 Width="85"
                                 VerticalAlignment="Center"
-                                FontFamily="Albert Sans Thin"
+                                FontFamily="/Fonts/#Albert Sans"
                                 FontSize="15"
                                 Foreground="{StaticResource TextLabelBrush}"
                                 Text="TTS output" />

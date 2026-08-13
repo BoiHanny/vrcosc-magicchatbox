@@ -1,10 +1,12 @@
 ﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
+    <FontFamily x:Key="FontPrimary">/Fonts/#Albert Sans</FontFamily>
+    <FontFamily x:Key="FontSecondary">/Fonts/#Comfortaa</FontFamily>
 
-    <SolidColorBrush x:Key="TextLabelBrush" Color="#FF9983AD" />
+    <SolidColorBrush x:Key="TextLabelBrush" Color="#FFA997BA" />
     <SolidColorBrush x:Key="TextPrimaryBrush" Color="#FFB9B5C1" />
     <SolidColorBrush x:Key="TextBodyBrush" Color="#FFB9B5C1" />
-    <SolidColorBrush x:Key="TextMutedBrush" Color="#FF7B7195" />
+    <SolidColorBrush x:Key="TextMutedBrush" Color="#FFA29BB5" />
     <SolidColorBrush x:Key="TextAccentBrush" Color="#BDAEE2" />
     <SolidColorBrush x:Key="TextDarkBrush" Color="#FF240E54" />
 
@@ -23,8 +25,8 @@
     <SolidColorBrush x:Key="AccentTealBrush" Color="#FF31B7B4" />
     <SolidColorBrush x:Key="AccentDeepPurpleBrush" Color="#FF302573" />
     <SolidColorBrush x:Key="AccentLightPurpleBrush" Color="#FFC3A9FF" />
-    <SolidColorBrush x:Key="TextSecondaryBrush" Color="#FF8D7DB9" />
-    <SolidColorBrush x:Key="TextSubtleBrush" Color="#FF7F759A" />
+    <SolidColorBrush x:Key="TextSecondaryBrush" Color="#FFA498C7" />
+    <SolidColorBrush x:Key="TextSubtleBrush" Color="#FFA39BB6" />
     <SolidColorBrush x:Key="SurfaceVariantBrush" Color="#FF493F65" />
 
     <SolidColorBrush x:Key="StatusSuccessBrush" Color="#FF4CAF50" />
@@ -36,7 +38,7 @@
     <Color x:Key="GradientNavyBlueColor">#FF10178C</Color>
     <Color x:Key="GradientTransparentDarkColor">#00240E54</Color>
 
-    <Color x:Key="TextSubtleColor">#FF7F759A</Color>
+    <Color x:Key="TextSubtleColor">#FFA39BB6</Color>
     <Color x:Key="SurfaceDarkColor">#FF240E54</Color>
     <Color x:Key="AccentDeepPurpleColor">#FF302573</Color>
     <Color x:Key="AccentLightPurpleColor">#FFC3A9FF</Color>
@@ -48,9 +50,9 @@
     <SolidColorBrush x:Key="ButtonHighlightBrush" Color="#FFAEA7ED" />
     <SolidColorBrush x:Key="SurfaceButtonDarkBrush" Color="#FF3A1F73" />
     <SolidColorBrush x:Key="TextAccentBlueBrush" Color="#FF9AA1FF" />
-    <SolidColorBrush x:Key="TextLabelLightBrush" Color="#FF9D91D2" />
+    <SolidColorBrush x:Key="TextLabelLightBrush" Color="#FFA296D4" />
     <SolidColorBrush x:Key="TextSuccessLightBrush" Color="#FF9DDAA8" />
-    <SolidColorBrush x:Key="TextDarkMutedBrush" Color="#FF7A6FAA" />
+    <SolidColorBrush x:Key="TextDarkMutedBrush" Color="#FFA199C3" />
     <SolidColorBrush x:Key="SurfaceMidPurpleBrush" Color="#FF41375C" />
     <SolidColorBrush x:Key="SurfaceDarkPurpleBrush" Color="#FF3B2075" />
     <SolidColorBrush x:Key="SurfaceMidGradientBrush" Color="#FF403670" />
@@ -64,12 +66,12 @@
     <SolidColorBrush x:Key="TextSoftPurpleBrush" Color="#FFB5ABC9" />
     <SolidColorBrush x:Key="TextLightPurpleBrush" Color="#FFD4CEE2" />
     <Color x:Key="AccentBlueGradientColor">#FF63A8F9</Color>
-    <SolidColorBrush x:Key="TextDimLabelBrush" Color="#FF8F86A9" />
+    <SolidColorBrush x:Key="TextDimLabelBrush" Color="#FFA29BB8" />
     <SolidColorBrush x:Key="TextHighlightCyanBrush" Color="#FF7ED6FF" />
     <SolidColorBrush x:Key="TextDangerRedBrush" Color="#FFFF6B6B" />
     <SolidColorBrush x:Key="SurfaceCardDarkBrush" Color="#FF3A2F54" />
     <SolidColorBrush x:Key="BorderAccentPurpleBrush" Color="#FF7169B7" />
-    <SolidColorBrush x:Key="TextSubtlePurpleBrush" Color="#FF9B90D1" />
+    <SolidColorBrush x:Key="TextSubtlePurpleBrush" Color="#FFA197D4" />
     <SolidColorBrush x:Key="StatusErrorDarkerBrush" Color="#FF8A0000" />
     <Color x:Key="AccentPulsoidColor">#FF05B4A8</Color>
     <Color x:Key="AccentDiscordColor">#FF5865F2</Color>
@@ -410,7 +412,7 @@
         <Setter Property="BorderThickness" Value="1" />
         <Setter Property="Padding" Value="6,4" />
         <Setter Property="MinHeight" Value="28" />
-        <Setter Property="FontFamily" Value="Albert Sans Thin" />
+        <Setter Property="FontFamily" Value="{StaticResource FontPrimary}" />
         <Setter Property="CaretBrush" Value="#FF9B90D1" />
         <Setter Property="SelectionBrush" Value="#552FD1C5" />
         <Setter Property="VerticalContentAlignment" Value="Center" />
@@ -559,7 +561,7 @@
 
     <Style TargetType="{x:Type CheckBox}">
         <Setter Property="Foreground" Value="#FFB9B5C1" />
-        <Setter Property="FontFamily" Value="Comfortaa Light" />
+        <Setter Property="FontFamily" Value="{StaticResource FontSecondary}" />
         <Setter Property="FontSize" Value="13" />
         <Setter Property="Margin" Value="0,0,0,6" />
         <Setter Property="Cursor" Value="Hand" />
@@ -650,7 +652,7 @@
 
     <Style x:Key="OptionSubsectionHeaderStyle" TargetType="{x:Type TextBlock}">
         <Setter Property="Margin" Value="2,8,0,5" />
-        <Setter Property="FontFamily" Value="Albert Sans Thin" />
+        <Setter Property="FontFamily" Value="{StaticResource FontPrimary}" />
         <Setter Property="FontSize" Value="15" />
         <Setter Property="FontWeight" Value="SemiBold" />
         <Setter Property="Foreground" Value="{StaticResource TextSectionHeaderBrush}" />
@@ -659,7 +661,7 @@
 
     <Style x:Key="OptionFieldLabelStyle" TargetType="{x:Type TextBlock}">
         <Setter Property="Margin" Value="0,0,0,3" />
-        <Setter Property="FontFamily" Value="Albert Sans Thin" />
+        <Setter Property="FontFamily" Value="{StaticResource FontPrimary}" />
         <Setter Property="FontSize" Value="13" />
         <Setter Property="Foreground" Value="{StaticResource TextLabelBrush}" />
         <Setter Property="TextWrapping" Value="Wrap" />
@@ -667,12 +669,11 @@
 
     <Style x:Key="OptionHelpTextStyle" TargetType="{x:Type TextBlock}">
         <Setter Property="Margin" Value="2,3,0,6" />
-        <Setter Property="FontFamily" Value="Albert Sans Thin" />
+        <Setter Property="FontFamily" Value="{StaticResource FontPrimary}" />
         <Setter Property="FontSize" Value="12" />
         <Setter Property="FontStyle" Value="Italic" />
         <Setter Property="Foreground" Value="{StaticResource TextMutedBrush}" />
         <Setter Property="TextWrapping" Value="Wrap" />
-        <Setter Property="Opacity" Value="0.88" />
     </Style>
 
     <Style x:Key="OptionActionRowStyle" TargetType="{x:Type StackPanel}">
@@ -761,7 +762,7 @@
         <Setter Property="BorderThickness" Value="0" />
         <Setter Property="Cursor" Value="Hand" />
         <Setter Property="FontSize" Value="11" />
-        <Setter Property="FontFamily" Value="Albert Sans Thin" />
+        <Setter Property="FontFamily" Value="{StaticResource FontPrimary}" />
         <Setter Property="Content" Value="Customize ›" />
         <Setter Property="Padding" Value="10,3,8,3" />
         <Setter Property="Template">
@@ -815,7 +816,7 @@
         <Setter Property="Foreground" Value="#D6C9F2" />
         <Setter Property="Cursor" Value="Hand" />
         <Setter Property="FontSize" Value="10" />
-        <Setter Property="FontFamily" Value="Albert Sans Thin" />
+        <Setter Property="FontFamily" Value="{StaticResource FontPrimary}" />
         <Setter Property="Padding" Value="8,3" />
         <Setter Property="Margin" Value="0,2,5,2" />
         <Setter Property="Template">
@@ -862,7 +863,7 @@
         slightly muddy; this keeps the same violet family but adds depth across the diagonal and lets
         the title stay the brightest thing on the tile.
     -->
-    <SolidColorBrush x:Key="TileDescriptionBrush" Color="#FFAEA1D6" />
+    <SolidColorBrush x:Key="TileDescriptionBrush" Color="#FFBCB1DD" />
     <SolidColorBrush x:Key="TileIconFrameBrush" Color="#26A98CFF" />
     <SolidColorBrush x:Key="TileIconFrameBorderBrush" Color="#33C3A9FF" />
 
@@ -881,7 +882,7 @@
         <Setter Property="VerticalAlignment" Value="Center" />
         <Setter Property="Margin" Value="9,1,0,0" />
         <Setter Property="Padding" Value="7,2" />
-        <Setter Property="FontFamily" Value="Albert Sans Thin" />
+        <Setter Property="FontFamily" Value="{StaticResource FontPrimary}" />
         <Setter Property="FontSize" Value="11" />
         <Setter Property="Foreground" Value="#C6B9E8" />
         <Setter Property="TextTrimming" Value="CharacterEllipsis" />
@@ -894,7 +895,7 @@
         <Setter Property="BorderThickness" Value="0" />
         <Setter Property="Cursor" Value="Hand" />
         <Setter Property="FontSize" Value="10" />
-        <Setter Property="FontFamily" Value="Comfortaa Light" />
+        <Setter Property="FontFamily" Value="{StaticResource FontSecondary}" />
         <Setter Property="Padding" Value="6,2" />
         <Setter Property="Margin" Value="0,2,6,2" />
         <Setter Property="Template">
@@ -923,7 +924,7 @@
         <Setter Property="BorderThickness" Value="0" />
         <Setter Property="Cursor" Value="Hand" />
         <Setter Property="FontSize" Value="10" />
-        <Setter Property="FontFamily" Value="Albert Sans Thin" />
+        <Setter Property="FontFamily" Value="{StaticResource FontPrimary}" />
         <Setter Property="Padding" Value="6,2" />
         <Setter Property="Margin" Value="4,2,0,2" />
         <Setter Property="Template">

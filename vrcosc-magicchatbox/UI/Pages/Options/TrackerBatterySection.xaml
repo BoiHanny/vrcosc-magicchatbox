@@ -60,20 +60,20 @@
                 </Grid.ColumnDefinitions>
                 <StackPanel VerticalAlignment="Center">
                     <TextBlock
-                        FontFamily="Albert Sans Thin"
+                        FontFamily="/Fonts/#Albert Sans"
                         FontSize="18"
                         Foreground="{StaticResource TextSectionHeaderBrush}"
                         Style="{StaticResource OptionSubsectionHeaderStyle}"
                         Text="VR Battery Monitor" />
                     <StackPanel Margin="0,2,0,0" Orientation="Horizontal">
                         <TextBlock
-                            FontFamily="Albert Sans Thin"
+                            FontFamily="/Fonts/#Albert Sans"
                             FontSize="12"
                             Foreground="{StaticResource BorderMutedBrush}"
                             Text="{Binding IntegrationDisplay.TrackerBatteryDeviceSummary}" />
                         <TextBlock
                             Margin="10,0,0,0"
-                            FontFamily="Albert Sans Thin"
+                            FontFamily="/Fonts/#Albert Sans"
                             FontSize="12"
                             Foreground="{StaticResource BorderMutedBrush}"
                             Text="{Binding IntegrationDisplay.TrackerBatteryLastScanDisplay}" />
@@ -119,7 +119,7 @@
                                 <TextBlock
                                     Padding="2,0,0,0"
                                     VerticalAlignment="Center"
-                                    FontFamily="Albert Sans Thin"
+                                    FontFamily="/Fonts/#Albert Sans"
                                     FontSize="20"
                                     Foreground="{StaticResource TextLabelBrush}"
                                     Style="{StaticResource OptionSubsectionHeaderStyle}"
@@ -127,7 +127,7 @@
                                 <TextBlock
                                     Width="auto"
                                     Margin="2,0,0,2"
-                                    FontFamily="Albert Sans Thin"
+                                    FontFamily="/Fonts/#Albert Sans"
                                     FontSize="13"
                                     FontStyle="Italic"
                                     Foreground="{StaticResource TextLabelBrush}"
@@ -137,7 +137,7 @@
 
                                 <TextBlock
                                     Margin="8,8,8,0"
-                                    FontFamily="Albert Sans Thin"
+                                    FontFamily="/Fonts/#Albert Sans"
                                     FontSize="11">
                                     <Run Foreground="{StaticResource TextDimLabelBrush}" Text="Available Tokens: " />
                                     <Run Foreground="#2FD1C5" Text="{}{icon} " />
@@ -213,7 +213,7 @@
                                     <TextBlock
                                         Width="auto"
                                         Margin="4,3,0,0"
-                                        FontFamily="Albert Sans Thin"
+                                        FontFamily="/Fonts/#Albert Sans"
                                         FontSize="15"
                                         FontStyle="Italic"
                                         Foreground="{StaticResource TextLabelBrush}"
@@ -238,7 +238,7 @@
                                             <TextBlock
                                                 Width="auto"
                                                 VerticalAlignment="Center"
-                                                FontFamily="Albert Sans Thin"
+                                                FontFamily="/Fonts/#Albert Sans"
                                                 FontSize="14"
                                                 FontStyle="Italic"
                                                 Foreground="{StaticResource TextLabelBrush}"
@@ -294,14 +294,14 @@
                         </Grid.ColumnDefinitions>
                         <TextBlock
                             VerticalAlignment="Center"
-                            FontFamily="Comfortaa Light"
+                            FontFamily="/Fonts/#Comfortaa"
                             FontSize="12"
                             Foreground="{StaticResource TextDimLabelBrush}"
                             Text="PREVIEW" />
                         <TextBlock
                             Grid.Column="1"
                             HorizontalAlignment="Center"
-                            FontFamily="Albert Sans Thin"
+                            FontFamily="/Fonts/#Albert Sans"
                             FontSize="14"
                             Foreground="#E7E2F5"
                             Text="{Binding IntegrationDisplay.TrackerBatteryPreview}"
@@ -522,7 +522,7 @@
                                 <TextBlock
                                     Padding="2,0,0,0"
                                     VerticalAlignment="Center"
-                                    FontFamily="Albert Sans Thin"
+                                    FontFamily="/Fonts/#Albert Sans"
                                     FontSize="20"
                                     Foreground="{StaticResource TextLabelBrush}"
                                     Style="{StaticResource OptionSubsectionHeaderStyle}"
@@ -538,7 +538,7 @@
                                             <TextBlock
                                                 Width="auto"
                                                 VerticalAlignment="Center"
-                                                FontFamily="Albert Sans Thin"
+                                                FontFamily="/Fonts/#Albert Sans"
                                                 FontSize="14"
                                                 FontStyle="Italic"
                                                 Foreground="{StaticResource TextLabelBrush}"
@@ -563,7 +563,7 @@
                                                 Visibility="{Binding Modules.TrackerBattery.Settings.RotateOverflow, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
                                                 <TextBlock
                                                     VerticalAlignment="Center"
-                                                    FontFamily="Albert Sans Thin"
+                                                    FontFamily="/Fonts/#Albert Sans"
                                                     FontSize="14"
                                                     FontStyle="Italic"
                                                     Foreground="{StaticResource TextLabelBrush}"
@@ -571,7 +571,7 @@
                                                 <TextBox Margin="4,0" Text="{Binding Modules.TrackerBattery.Settings.RotationIntervalSeconds, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                                                 <TextBlock
                                                     VerticalAlignment="Center"
-                                                    FontFamily="Albert Sans Thin"
+                                                    FontFamily="/Fonts/#Albert Sans"
                                                     FontSize="14"
                                                     FontStyle="Italic"
                                                     Foreground="{StaticResource TextLabelBrush}"
@@ -585,7 +585,7 @@
                                             <TextBlock
                                                 Width="auto"
                                                 VerticalAlignment="Center"
-                                                FontFamily="Albert Sans Thin"
+                                                FontFamily="/Fonts/#Albert Sans"
                                                 FontSize="14"
                                                 FontStyle="Italic"
                                                 Foreground="{StaticResource TextLabelBrush}"
@@ -599,7 +599,7 @@
                                             <TextBlock
                                                 Width="auto"
                                                 VerticalAlignment="Center"
-                                                FontFamily="Albert Sans Thin"
+                                                FontFamily="/Fonts/#Albert Sans"
                                                 FontSize="14"
                                                 FontStyle="Italic"
                                                 Foreground="{StaticResource TextLabelBrush}"
@@ -614,7 +614,7 @@
                                     <TextBlock
                                         Margin="0,0,0,8"
                                         VerticalAlignment="Center"
-                                        FontFamily="Albert Sans Thin"
+                                        FontFamily="/Fonts/#Albert Sans"
                                         FontSize="14"
                                         Foreground="{StaticResource TextLabelBrush}"
                                         Style="{StaticResource OptionSubsectionHeaderStyle}"
@@ -623,7 +623,7 @@
                                         <StackPanel Margin="0,0,15,12">
                                             <TextBlock
                                                 VerticalAlignment="Center"
-                                                FontFamily="Albert Sans Thin"
+                                                FontFamily="/Fonts/#Albert Sans"
                                                 FontSize="14"
                                                 FontStyle="Italic"
                                                 Foreground="{StaticResource TextLabelBrush}"
@@ -636,7 +636,7 @@
                                         <StackPanel Margin="0,0,15,12">
                                             <TextBlock
                                                 VerticalAlignment="Center"
-                                                FontFamily="Albert Sans Thin"
+                                                FontFamily="/Fonts/#Albert Sans"
                                                 FontSize="14"
                                                 FontStyle="Italic"
                                                 Foreground="{StaticResource TextLabelBrush}"
@@ -649,7 +649,7 @@
                                         <StackPanel Margin="0,0,15,12">
                                             <TextBlock
                                                 VerticalAlignment="Center"
-                                                FontFamily="Albert Sans Thin"
+                                                FontFamily="/Fonts/#Albert Sans"
                                                 FontSize="14"
                                                 FontStyle="Italic"
                                                 Foreground="{StaticResource TextLabelBrush}"
@@ -662,7 +662,7 @@
                                         <StackPanel Margin="0,0,15,12">
                                             <TextBlock
                                                 VerticalAlignment="Center"
-                                                FontFamily="Albert Sans Thin"
+                                                FontFamily="/Fonts/#Albert Sans"
                                                 FontSize="14"
                                                 FontStyle="Italic"
                                                 Foreground="{StaticResource TextLabelBrush}"

@@ -126,7 +126,7 @@
                             <StackPanel Margin="0,0,0,4" Orientation="Horizontal">
                                 <TextBlock
                                     VerticalAlignment="Center"
-                                    FontFamily="Comfortaa Light"
+                                    FontFamily="/Fonts/#Comfortaa"
                                     FontSize="12.5"
                                     FontWeight="DemiBold"
                                     Foreground="White"
@@ -135,7 +135,7 @@
                             </StackPanel>
 
                             <TextBlock
-                                FontFamily="Albert Sans Thin"
+                                FontFamily="/Fonts/#Albert Sans"
                                 FontSize="11"
                                 Foreground="#FFB5ABC9"
                                 LineHeight="16"
@@ -150,7 +150,7 @@
                                 Command="{Binding ExecuteActionCommand}"
                                 Content="{Binding Action.Label}"
                                 Cursor="Hand"
-                                FontFamily="Comfortaa Light"
+                                FontFamily="/Fonts/#Comfortaa"
                                 FontSize="11"
                                 Foreground="#FFC3A9FF"
                                 Visibility="{Binding HasAction, Converter={StaticResource BoolVis}}">

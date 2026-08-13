@@ -46,7 +46,7 @@
                         <StackPanel Grid.Column="1" VerticalAlignment="Center">
                             <TextBlock
                                 d:Text="It's because"
-                                FontFamily="Comfortaa Light"
+                                FontFamily="/Fonts/#Comfortaa"
                                 FontSize="14"
                                 Foreground="White"
                                 Text="{Binding LyricsDisplay.CurrentLine}"
@@ -55,7 +55,7 @@
                             <TextBlock
                                 Margin="0,2,0,0"
                                 d:Text="56 lines from LRCLIB"
-                                FontFamily="Albert Sans Thin"
+                                FontFamily="/Fonts/#Albert Sans"
                                 FontSize="11"
                                 Foreground="{StaticResource TextMutedBrush}"
                                 Text="{Binding LyricsDisplay.StatusText}"
@@ -103,7 +103,7 @@
                     <TextBlock
                         VerticalAlignment="Center"
                         d:Text="Enabled but not shown in VR mode: Network Statistics."
-                        FontFamily="Albert Sans Thin"
+                        FontFamily="/Fonts/#Albert Sans"
                         FontSize="11"
                         Foreground="{StaticResource DeckTextBrush}"
                         Text="{Binding ModeVisibilityWarning, UpdateSourceTrigger=PropertyChanged}"
@@ -129,7 +129,7 @@
                     <TextBlock
                         VerticalAlignment="Center"
                         d:Text="No room in the 144 characters for Discord and Weather."
-                        FontFamily="Albert Sans Thin"
+                        FontFamily="/Fonts/#Albert Sans"
                         FontSize="11"
                         Foreground="#FFFFD79A"
                         Text="{Binding TrimmedWarning, UpdateSourceTrigger=PropertyChanged}"
@@ -410,7 +410,7 @@
                                 <TextBlock
                                     VerticalAlignment="Center"
                                     Effect="{StaticResource TextBlockShadowEffect}"
-                                    FontFamily="Comfortaa Light"
+                                    FontFamily="/Fonts/#Comfortaa"
                                     FontSize="20"
                                     Foreground="White"
                                     RenderOptions.BitmapScalingMode="NearestNeighbor"
@@ -421,7 +421,7 @@
                             <TextBlock
                                 Margin="0,3,0,0"
                                 Effect="{StaticResource TextBlockShadowEffect}"
-                                FontFamily="Comfortaa Light"
+                                FontFamily="/Fonts/#Comfortaa"
                                 FontSize="13"
                                 Foreground="{StaticResource TileDescriptionBrush}"
                                 RenderOptions.BitmapScalingMode="NearestNeighbor"
@@ -537,7 +537,7 @@
                                 <TextBlock
                                     VerticalAlignment="Center"
                                     Effect="{StaticResource TextBlockShadowEffect}"
-                                    FontFamily="Comfortaa Light"
+                                    FontFamily="/Fonts/#Comfortaa"
                                     FontSize="20"
                                     Foreground="White"
                                     RenderOptions.BitmapScalingMode="NearestNeighbor"
@@ -548,7 +548,7 @@
                             <TextBlock
                                 Margin="0,3,0,0"
                                 Effect="{StaticResource TextBlockShadowEffect}"
-                                FontFamily="Comfortaa Light"
+                                FontFamily="/Fonts/#Comfortaa"
                                 FontSize="13"
                                 Foreground="{StaticResource TileDescriptionBrush}"
                                 RenderTransformOrigin="0.5,0.5"
@@ -672,7 +672,7 @@
                                     Grid.Column="0"
                                     VerticalAlignment="Center"
                                     Effect="{StaticResource TextBlockShadowEffect}"
-                                    FontFamily="Comfortaa Light"
+                                    FontFamily="/Fonts/#Comfortaa"
                                     FontSize="20"
                                     Foreground="White"
                                     RenderOptions.BitmapScalingMode="NearestNeighbor"
@@ -687,7 +687,7 @@
                                             Margin="5,0,0,0"
                                             VerticalAlignment="Center"
                                             Effect="{StaticResource TextBlockShadowEffect}"
-                                            FontFamily="Comfortaa Light"
+                                            FontFamily="/Fonts/#Comfortaa"
                                             FontSize="12"
                                             FontWeight="Bold"
                                             Foreground="LightSeaGreen"
@@ -699,7 +699,7 @@
                                         Margin="5,0,0,0"
                                         VerticalAlignment="Center"
                                         Effect="{StaticResource TextBlockShadowEffect}"
-                                        FontFamily="Comfortaa Light"
+                                        FontFamily="/Fonts/#Comfortaa"
                                         FontSize="12"
                                         Foreground="PaleVioletRed"
                                         RenderOptions.BitmapScalingMode="NearestNeighbor"
@@ -710,7 +710,7 @@
                                             Margin="5,0,0,0"
                                             VerticalAlignment="Center"
                                             Effect="{StaticResource TextBlockShadowEffect}"
-                                            FontFamily="Comfortaa Light"
+                                            FontFamily="/Fonts/#Comfortaa"
                                             FontSize="12"
                                             Foreground="#ABA4B8"
                                             RenderOptions.BitmapScalingMode="NearestNeighbor"
@@ -840,7 +840,7 @@
                             <TextBlock
                                 Margin="0,3,0,0"
                                 Effect="{StaticResource TextBlockShadowEffect}"
-                                FontFamily="Comfortaa Light"
+                                FontFamily="/Fonts/#Comfortaa"
                                 FontSize="13"
                                 Foreground="{StaticResource TileDescriptionBrush}"
                                 RenderOptions.BitmapScalingMode="NearestNeighbor"
@@ -910,7 +910,7 @@
                                 <StackPanel Orientation="Horizontal">
                                     <TextBlock
                                         VerticalAlignment="Center"
-                                        FontFamily="Comfortaa Light"
+                                        FontFamily="/Fonts/#Comfortaa"
                                         FontSize="13"
                                         Foreground="{StaticResource TextSectionHeaderBrush}"
                                         Text="Active devices" />
@@ -918,7 +918,7 @@
                                     <TextBlock
                                         Margin="10,0,0,0"
                                         VerticalAlignment="Center"
-                                        FontFamily="Albert Sans Thin"
+                                        FontFamily="/Fonts/#Albert Sans"
                                         FontSize="13"
                                         Foreground="{StaticResource BorderMutedBrush}"
                                         Text="{Binding TrackerBattery_LastScanDisplay}" />
@@ -1040,7 +1040,7 @@
                                     <TextBlock
                                         VerticalAlignment="Center"
                                         Effect="{StaticResource TextBlockShadowEffect}"
-                                        FontFamily="Comfortaa Light"
+                                        FontFamily="/Fonts/#Comfortaa"
                                         FontSize="20"
                                         Foreground="White"
                                         RenderOptions.BitmapScalingMode="NearestNeighbor"
@@ -1050,7 +1050,7 @@
                                 <TextBlock
                                     Margin="0,3,0,0"
                                     Effect="{StaticResource TextBlockShadowEffect}"
-                                    FontFamily="Comfortaa Light"
+                                    FontFamily="/Fonts/#Comfortaa"
                                     FontSize="13"
                                     Foreground="{StaticResource TileDescriptionBrush}"
                                     RenderOptions.BitmapScalingMode="NearestNeighbor"
@@ -1115,14 +1115,14 @@
                                 <StackPanel Margin="3,0,0,4" Orientation="Horizontal">
                                     <TextBlock
                                         VerticalAlignment="Center"
-                                        FontFamily="Comfortaa Light"
+                                        FontFamily="/Fonts/#Comfortaa"
                                         FontSize="13"
                                         Foreground="{StaticResource TextSectionHeaderBrush}"
                                         Text="Live" />
                                     <TextBlock
                                         Margin="10,0,0,0"
                                         VerticalAlignment="Center"
-                                        FontFamily="Albert Sans Thin"
+                                        FontFamily="/Fonts/#Albert Sans"
                                         FontSize="14"
                                         Foreground="{StaticResource BorderMutedBrush}"
                                         Text="{Binding IntegrationDisplay.VrPerformanceCombined}" />
@@ -1198,7 +1198,7 @@
                                 <StackPanel Margin="3,6,0,0" Orientation="Horizontal">
                                     <TextBlock
                                         VerticalAlignment="Center"
-                                        FontFamily="Albert Sans Thin"
+                                        FontFamily="/Fonts/#Albert Sans"
                                         FontSize="12"
                                         Foreground="{StaticResource TextMutedBrush}"
                                         Text="Show" />
@@ -1299,7 +1299,7 @@
                                     <TextBlock
                                         VerticalAlignment="Center"
                                         Effect="{StaticResource TextBlockShadowEffect}"
-                                        FontFamily="Comfortaa Light"
+                                        FontFamily="/Fonts/#Comfortaa"
                                         FontSize="20"
                                         Foreground="White"
                                         RenderOptions.BitmapScalingMode="NearestNeighbor"
@@ -1309,7 +1309,7 @@
                                 <TextBlock
                                     Margin="0,3,0,0"
                                     Effect="{StaticResource TextBlockShadowEffect}"
-                                    FontFamily="Comfortaa Light"
+                                    FontFamily="/Fonts/#Comfortaa"
                                     FontSize="13"
                                     Foreground="{StaticResource TileDescriptionBrush}"
                                     RenderOptions.BitmapScalingMode="NearestNeighbor"
@@ -1406,7 +1406,7 @@
                                         VerticalAlignment="Center"
                                         d:Text=":( sorry"
                                         d:Visibility="Visible"
-                                        FontFamily="Comfortaa Light"
+                                        FontFamily="/Fonts/#Comfortaa"
                                         FontSize="12"
                                         Foreground="#9B7FD9"
                                         RenderOptions.BitmapScalingMode="NearestNeighbor"
@@ -1534,7 +1534,7 @@
                                     <TextBlock
                                         VerticalAlignment="Center"
                                         Effect="{StaticResource TextBlockShadowEffect}"
-                                        FontFamily="Comfortaa Light"
+                                        FontFamily="/Fonts/#Comfortaa"
                                         FontSize="20"
                                         Foreground="White"
                                         RenderOptions.BitmapScalingMode="NearestNeighbor"
@@ -1549,7 +1549,7 @@
                                         Margin="5,0,0,0"
                                         VerticalAlignment="Center"
                                         Effect="{StaticResource TextBlockShadowEffect}"
-                                        FontFamily="Comfortaa Light"
+                                        FontFamily="/Fonts/#Comfortaa"
                                         FontSize="12"
                                         Foreground="#ABA4B8"
                                         RenderOptions.BitmapScalingMode="NearestNeighbor"
@@ -1569,7 +1569,7 @@
                                 <TextBlock
                                     Margin="0,3,0,0"
                                     Effect="{StaticResource TextBlockShadowEffect}"
-                                    FontFamily="Comfortaa Light"
+                                    FontFamily="/Fonts/#Comfortaa"
                                     FontSize="13"
                                     Foreground="{StaticResource TileDescriptionBrush}"
                                     RenderOptions.BitmapScalingMode="NearestNeighbor"
@@ -1688,7 +1688,7 @@
                                 <TextBlock
                                     VerticalAlignment="Center"
                                     Effect="{StaticResource TextBlockShadowEffect}"
-                                    FontFamily="Comfortaa Light"
+                                    FontFamily="/Fonts/#Comfortaa"
                                     FontSize="20"
                                     Foreground="White"
                                     RenderOptions.BitmapScalingMode="NearestNeighbor"
@@ -1699,7 +1699,7 @@
                             <TextBlock
                                 Margin="0,3,0,0"
                                 Effect="{StaticResource TextBlockShadowEffect}"
-                                FontFamily="Comfortaa Light"
+                                FontFamily="/Fonts/#Comfortaa"
                                 FontSize="13"
                                 Foreground="{StaticResource TileDescriptionBrush}"
                                 RenderOptions.BitmapScalingMode="NearestNeighbor"
@@ -1815,7 +1815,7 @@
                                 <TextBlock
                                     VerticalAlignment="Center"
                                     Effect="{StaticResource TextBlockShadowEffect}"
-                                    FontFamily="Comfortaa Light"
+                                    FontFamily="/Fonts/#Comfortaa"
                                     FontSize="20"
                                     Foreground="White"
                                     RenderOptions.BitmapScalingMode="NearestNeighbor"
@@ -1827,7 +1827,7 @@
                             <TextBlock
                                 Margin="0,3,0,0"
                                 Effect="{StaticResource TextBlockShadowEffect}"
-                                FontFamily="Comfortaa Light"
+                                FontFamily="/Fonts/#Comfortaa"
                                 FontSize="13"
                                 Foreground="{StaticResource TileDescriptionBrush}"
                                 RenderOptions.BitmapScalingMode="NearestNeighbor"
@@ -1943,7 +1943,7 @@
                                 <TextBlock
                                     VerticalAlignment="Center"
                                     Effect="{StaticResource TextBlockShadowEffect}"
-                                    FontFamily="Comfortaa Light"
+                                    FontFamily="/Fonts/#Comfortaa"
                                     FontSize="20"
                                     Foreground="White"
                                     RenderOptions.BitmapScalingMode="NearestNeighbor"
@@ -1953,7 +1953,7 @@
                                     Margin="6,0,0,0"
                                     VerticalAlignment="Center"
                                     Effect="{StaticResource TextBlockShadowEffect}"
-                                    FontFamily="Comfortaa Light"
+                                    FontFamily="/Fonts/#Comfortaa"
                                     FontSize="12"
                                     Foreground="#D4D0E1"
                                     RenderOptions.BitmapScalingMode="NearestNeighbor"
@@ -1963,7 +1963,7 @@
                             <TextBlock
                                 Margin="0,3,0,0"
                                 Effect="{StaticResource TextBlockShadowEffect}"
-                                FontFamily="Comfortaa Light"
+                                FontFamily="/Fonts/#Comfortaa"
                                 FontSize="13"
                                 Foreground="{StaticResource TileDescriptionBrush}"
                                 RenderOptions.BitmapScalingMode="NearestNeighbor"
@@ -2079,7 +2079,7 @@
                                 <TextBlock
                                     VerticalAlignment="Center"
                                     Effect="{StaticResource TextBlockShadowEffect}"
-                                    FontFamily="Comfortaa Light"
+                                    FontFamily="/Fonts/#Comfortaa"
                                     FontSize="20"
                                     Foreground="White"
                                     RenderOptions.BitmapScalingMode="NearestNeighbor"
@@ -2127,7 +2127,7 @@
                                         Margin="8,0"
                                         VerticalAlignment="Center"
                                         Effect="{StaticResource TextBlockShadowEffect}"
-                                        FontFamily="Comfortaa Light"
+                                        FontFamily="/Fonts/#Comfortaa"
                                         FontSize="11"
                                         Foreground="#D1C6E6"
                                         Text="{Binding Modules.Twitch.LastSyncDisplay}" />
@@ -2136,7 +2136,7 @@
                             <TextBlock
                                 Margin="0,3,0,0"
                                 Effect="{StaticResource TextBlockShadowEffect}"
-                                FontFamily="Comfortaa Light"
+                                FontFamily="/Fonts/#Comfortaa"
                                 FontSize="13"
                                 Foreground="{StaticResource TileDescriptionBrush}"
                                 RenderOptions.BitmapScalingMode="NearestNeighbor"
@@ -2255,7 +2255,7 @@
                                     Margin="0,3,0,0"
                                     VerticalAlignment="Center"
                                     Effect="{StaticResource TextBlockShadowEffect}"
-                                    FontFamily="Comfortaa Light"
+                                    FontFamily="/Fonts/#Comfortaa"
                                     FontSize="20"
                                     Foreground="White"
                                     Text="TikTok"
@@ -2270,7 +2270,7 @@
                                 <TextBlock
                                     Margin="0,3,0,0"
                                     Effect="{StaticResource TextBlockShadowEffect}"
-                                    FontFamily="Comfortaa Light"
+                                    FontFamily="/Fonts/#Comfortaa"
                                     FontSize="13"
                                     Foreground="{StaticResource TileDescriptionBrush}"
                                     RenderOptions.BitmapScalingMode="NearestNeighbor"
@@ -2280,14 +2280,14 @@
 
                                 <StackPanel Margin="0,4,0,0" Orientation="Horizontal">
                                     <TextBlock
-                                        FontFamily="Albert Sans Thin"
+                                        FontFamily="/Fonts/#Albert Sans"
                                         FontSize="11"
                                         Foreground="{StaticResource AccentTealBrush}"
                                         Text="{Binding Modules.TikTokLive.FollowerCountDisplay, StringFormat='Followers: {0}', FallbackValue='Followers: -'}"
                                         Visibility="{Binding Modules.TikTokLive.Settings.ShowProfileSummary, Converter={StaticResource BoolToVisibilityConverter}, UpdateSourceTrigger=PropertyChanged}" />
                                     <TextBlock
                                         Margin="12,0,0,0"
-                                        FontFamily="Albert Sans Thin"
+                                        FontFamily="/Fonts/#Albert Sans"
                                         FontSize="11"
                                         Foreground="{StaticResource TextMutedBrush}"
                                         Text="{Binding Modules.TikTokLive.StatusText, StringFormat='LIVE: {0}', FallbackValue='LIVE: off'}"
@@ -2297,7 +2297,7 @@
 
                                 <TextBlock
                                     Margin="0,4,0,0"
-                                    FontFamily="Albert Sans Thin"
+                                    FontFamily="/Fonts/#Albert Sans"
                                     FontSize="11"
                                     Foreground="{StaticResource TextPrimaryBrush}"
                                     Text="{Binding Modules.TikTokLive.OutputPreview, StringFormat='Preview: {0}', FallbackValue='Preview: -'}"
@@ -2421,7 +2421,7 @@
                                 <TextBlock
                                     VerticalAlignment="Center"
                                     Effect="{StaticResource TextBlockShadowEffect}"
-                                    FontFamily="Comfortaa Light"
+                                    FontFamily="/Fonts/#Comfortaa"
                                     FontSize="20"
                                     Foreground="White"
                                     RenderOptions.BitmapScalingMode="NearestNeighbor"
@@ -2462,7 +2462,7 @@
                             <TextBlock
                                 Margin="0,3,0,0"
                                 Effect="{StaticResource TextBlockShadowEffect}"
-                                FontFamily="Comfortaa Light"
+                                FontFamily="/Fonts/#Comfortaa"
                                 FontSize="13"
                                 Foreground="{StaticResource TileDescriptionBrush}"
                                 RenderOptions.BitmapScalingMode="NearestNeighbor"
@@ -2583,7 +2583,7 @@
                                 <TextBlock
                                     VerticalAlignment="Center"
                                     Effect="{StaticResource TextBlockShadowEffect}"
-                                    FontFamily="Comfortaa Light"
+                                    FontFamily="/Fonts/#Comfortaa"
                                     FontSize="20"
                                     Foreground="White"
                                     RenderOptions.BitmapScalingMode="NearestNeighbor"
@@ -2624,7 +2624,7 @@
                             <TextBlock
                                 Margin="0,3,0,0"
                                 Effect="{StaticResource TextBlockShadowEffect}"
-                                FontFamily="Comfortaa Light"
+                                FontFamily="/Fonts/#Comfortaa"
                                 FontSize="13"
                                 Foreground="{StaticResource TileDescriptionBrush}"
                                 RenderOptions.BitmapScalingMode="NearestNeighbor"
@@ -2776,7 +2776,7 @@
                                         VerticalAlignment="Center"
                                         d:Text=":( sorry"
                                         d:Visibility="Visible"
-                                        FontFamily="Comfortaa Light"
+                                        FontFamily="/Fonts/#Comfortaa"
                                         FontSize="12"
                                         Foreground="#9B7FD9"
                                         RenderOptions.BitmapScalingMode="NearestNeighbor"
@@ -2877,7 +2877,7 @@
                                     <TextBlock
                                         VerticalAlignment="Center"
                                         Effect="{StaticResource TextBlockShadowEffect}"
-                                        FontFamily="Comfortaa Light"
+                                        FontFamily="/Fonts/#Comfortaa"
                                         FontSize="20"
                                         Foreground="White"
                                         RenderOptions.BitmapScalingMode="NearestNeighbor"
@@ -2888,7 +2888,7 @@
                                 <TextBlock
                                     Margin="0,3,0,0"
                                     Effect="{StaticResource TextBlockShadowEffect}"
-                                    FontFamily="Comfortaa Light"
+                                    FontFamily="/Fonts/#Comfortaa"
                                     FontSize="13"
                                     Foreground="{StaticResource TileDescriptionBrush}"
                                     RenderOptions.BitmapScalingMode="NearestNeighbor"
@@ -3013,7 +3013,7 @@
                                         Margin="0,3,0,0"
                                         VerticalAlignment="Center"
                                         Effect="{StaticResource TextBlockShadowEffect}"
-                                        FontFamily="Comfortaa Light"
+                                        FontFamily="/Fonts/#Comfortaa"
                                         FontSize="20"
                                         Foreground="White"
                                         Text="Spotify"
@@ -3027,7 +3027,7 @@
                                 <TextBlock
                                     Margin="0,3,0,0"
                                     Effect="{StaticResource TextBlockShadowEffect}"
-                                    FontFamily="Comfortaa Light"
+                                    FontFamily="/Fonts/#Comfortaa"
                                     FontSize="13"
                                     Foreground="{StaticResource TileDescriptionBrush}"
                                     RenderOptions.BitmapScalingMode="NearestNeighbor"
@@ -3101,19 +3101,19 @@
 
                             <StackPanel Grid.Row="0" Grid.Column="0">
                                 <TextBlock
-                                    FontFamily="Comfortaa Light"
+                                    FontFamily="/Fonts/#Comfortaa"
                                     FontSize="16"
                                     Foreground="White"
                                     Text="{Binding SpotifyWidgetTitle, UpdateSourceTrigger=PropertyChanged}" />
                                 <TextBlock
                                     Margin="0,2,0,0"
-                                    FontFamily="Albert Sans Thin"
+                                    FontFamily="/Fonts/#Albert Sans"
                                     FontSize="13"
                                     Foreground="{StaticResource TextLabelBrush}"
                                     Text="{Binding SpotifyWidgetArtist, UpdateSourceTrigger=PropertyChanged}" />
                                 <TextBlock
                                     Margin="0,2,0,0"
-                                    FontFamily="Albert Sans Thin"
+                                    FontFamily="/Fonts/#Albert Sans"
                                     FontSize="12"
                                     Foreground="{StaticResource TextLabelBrush}"
                                     Opacity="0.7"
@@ -3155,7 +3155,7 @@
                                     Value="{Binding SpotifyDisplay.ProgressPercent, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}" />
                                 <TextBlock
                                     Margin="0,3,0,0"
-                                    FontFamily="Albert Sans Thin"
+                                    FontFamily="/Fonts/#Albert Sans"
                                     FontSize="12"
                                     Foreground="{StaticResource TextLabelBrush}"
                                     Text="{Binding SpotifyDisplay.ProgressDisplay}" />
@@ -3234,7 +3234,7 @@
                                     Visibility="{Binding SpotifySettings.ShowWidgetVolume, Converter={StaticResource InverseBoolToHiddenConverter}}">
                                     <TextBlock
                                         VerticalAlignment="Center"
-                                        FontFamily="Albert Sans Thin"
+                                        FontFamily="/Fonts/#Albert Sans"
                                         Foreground="{StaticResource TextLabelBrush}"
                                         Text="Vol" />
                                     <Slider
@@ -3343,7 +3343,7 @@
                                     <TextBlock
                                         VerticalAlignment="Center"
                                         Effect="{StaticResource TextBlockShadowEffect}"
-                                        FontFamily="Comfortaa Light"
+                                        FontFamily="/Fonts/#Comfortaa"
                                         FontSize="20"
                                         Foreground="White"
                                         RenderOptions.BitmapScalingMode="NearestNeighbor"
@@ -3354,7 +3354,7 @@
                                 <TextBlock
                                     Margin="0,3,0,0"
                                     Effect="{StaticResource TextBlockShadowEffect}"
-                                    FontFamily="Comfortaa Light"
+                                    FontFamily="/Fonts/#Comfortaa"
                                     FontSize="13"
                                     Foreground="{StaticResource TileDescriptionBrush}"
                                     RenderOptions.BitmapScalingMode="NearestNeighbor"
@@ -3621,7 +3621,7 @@
                                                             Background="Transparent"
                                                             BorderThickness="0"
                                                             Focusable="False"
-                                                            FontFamily="Albert Sans Thin"
+                                                            FontFamily="/Fonts/#Albert Sans"
                                                             FontSize="17"
                                                             FontWeight="Bold"
                                                             Foreground="#26FFFE"

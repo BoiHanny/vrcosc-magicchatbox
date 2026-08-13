@@ -96,7 +96,7 @@
                     <TextBlock
                         Margin="5,1,0,0"
                         VerticalAlignment="Center"
-                        FontFamily="Albert Sans Thin"
+                        FontFamily="/Fonts/#Albert Sans"
                         FontSize="12"
                         Foreground="{StaticResource TextLabelLightBrush}"
                         RenderOptions.BitmapScalingMode="NearestNeighbor"
@@ -115,7 +115,7 @@
                         Margin="5,0,0,0"
                         VerticalAlignment="Center"
                         Cursor="Hand"
-                        FontFamily="Albert Sans Thin"
+                        FontFamily="/Fonts/#Albert Sans"
                         FontSize="12"
                         Foreground="{Binding UpdateState.VersionTxtColor}"
                         MouseUp="NewVersion_MouseUp"
@@ -182,7 +182,7 @@
                     Margin="6,1,0,0"
                     HorizontalAlignment="Center"
                     VerticalAlignment="Center"
-                    FontFamily="Albert Sans Thin"
+                    FontFamily="/Fonts/#Albert Sans"
                     FontSize="14"
                     Foreground="#FFFFBBA5"
                     RenderOptions.BitmapScalingMode="NearestNeighbor"
@@ -214,7 +214,7 @@
                 Margin="10,18,10,0"
                 HorizontalAlignment="Center"
                 VerticalAlignment="Top"
-                FontFamily="Comfortaa Light"
+                FontFamily="/Fonts/#Comfortaa"
                 FontSize="25"
                 FontWeight="DemiBold"
                 Foreground="Yellow"
@@ -242,7 +242,7 @@
                 BorderThickness="1"
                 CornerRadius="8">
                 <TextBlock
-                    FontFamily="Albert Sans Thin"
+                    FontFamily="/Fonts/#Albert Sans"
                     FontSize="13"
                     Foreground="LightYellow"
                     TextWrapping="Wrap">
@@ -415,7 +415,7 @@
                 BorderThickness="1"
                 CornerRadius="8">
                 <TextBlock
-                    FontFamily="Albert Sans Thin"
+                    FontFamily="/Fonts/#Albert Sans"
                     FontSize="13"
                     Foreground="{StaticResource TextPrimaryBrush}"
                     TextWrapping="Wrap">

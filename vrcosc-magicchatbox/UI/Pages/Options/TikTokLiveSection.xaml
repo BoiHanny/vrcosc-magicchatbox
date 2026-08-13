@@ -64,7 +64,7 @@
                         <StackPanel Margin="0,8,0,0" Orientation="Horizontal">
                             <StackPanel>
                                 <TextBlock
-                                    FontFamily="Albert Sans Thin"
+                                    FontFamily="/Fonts/#Albert Sans"
                                     FontSize="15"
                                     Foreground="{StaticResource TextLabelBrush}"
                                     Text="Profile username" />
@@ -87,7 +87,7 @@
                                 Style="{StaticResource Status_Button_style}" />
                             <StackPanel Margin="12,0,0,0">
                                 <TextBlock
-                                    FontFamily="Albert Sans Thin"
+                                    FontFamily="/Fonts/#Albert Sans"
                                     FontSize="15"
                                     Foreground="{StaticResource TextLabelBrush}"
                                     Text="Refresh every (min)" />
@@ -119,14 +119,14 @@
                                 CornerRadius="5">
                                 <StackPanel>
                                     <TextBlock
-                                        FontFamily="Albert Sans"
+                                        FontFamily="/Fonts/#Albert Sans"
                                         FontSize="12"
                                         FontWeight="SemiBold"
                                         Foreground="{StaticResource AccentTealBrush}"
                                         Text="{Binding Modules.TikTokLive.FollowerCountDisplay, StringFormat='Followers: {0}', FallbackValue='Followers: -'}" />
                                     <TextBlock
                                         Margin="0,4,0,0"
-                                        FontFamily="Albert Sans Thin"
+                                        FontFamily="/Fonts/#Albert Sans"
                                         FontSize="11"
                                         Foreground="{StaticResource TextPrimaryBrush}"
                                         Text="{Binding Modules.TikTokLive.ProfileStatusText, FallbackValue='Set a TikTok profile username.'}"
@@ -140,14 +140,14 @@
                                 CornerRadius="5">
                                 <StackPanel>
                                     <TextBlock
-                                        FontFamily="Albert Sans"
+                                        FontFamily="/Fonts/#Albert Sans"
                                         FontSize="12"
                                         FontWeight="SemiBold"
                                         Foreground="{StaticResource AccentLightPurpleBrush}"
                                         Text="Profile preview" />
                                     <TextBlock
                                         Margin="0,4,0,0"
-                                        FontFamily="Albert Sans Thin"
+                                        FontFamily="/Fonts/#Albert Sans"
                                         FontSize="11"
                                         Foreground="{StaticResource TextPrimaryBrush}"
                                         Text="{Binding Modules.TikTokLive.ProfilePreview, FallbackValue='No profile output yet.'}"
@@ -158,7 +158,7 @@
 
                         <TextBlock
                             Margin="0,10,0,0"
-                            FontFamily="Albert Sans Thin"
+                            FontFamily="/Fonts/#Albert Sans"
                             FontSize="15"
                             Foreground="{StaticResource TextLabelBrush}"
                             Text="Profile template" />
@@ -237,7 +237,7 @@
                             <StackPanel Orientation="Horizontal">
                                 <StackPanel>
                                     <TextBlock
-                                        FontFamily="Albert Sans Thin"
+                                        FontFamily="/Fonts/#Albert Sans"
                                         FontSize="15"
                                         Foreground="{StaticResource TextLabelBrush}"
                                         Text="Order" />
@@ -256,7 +256,7 @@
                                 </StackPanel>
                                 <StackPanel Margin="12,0,0,0">
                                     <TextBlock
-                                        FontFamily="Albert Sans Thin"
+                                        FontFamily="/Fonts/#Albert Sans"
                                         FontSize="15"
                                         Foreground="{StaticResource TextLabelBrush}"
                                         Text="Separator" />
@@ -304,7 +304,7 @@
                                 Style="{StaticResource OptionCardStyle}">
                                 <StackPanel>
                                     <TextBlock
-                                        FontFamily="Albert Sans Thin"
+                                        FontFamily="/Fonts/#Albert Sans"
                                         FontSize="13"
                                         Foreground="{StaticResource StatusWarningBrush}"
                                         Text="Experimental: TikTok LIVE uses an unofficial live-room connector. No TikTok credentials are stored; only the public host username is used."
@@ -380,7 +380,7 @@
                             <StackPanel Orientation="Horizontal">
                                 <StackPanel>
                                     <TextBlock
-                                        FontFamily="Albert Sans Thin"
+                                        FontFamily="/Fonts/#Albert Sans"
                                         FontSize="15"
                                         Foreground="{StaticResource TextLabelBrush}"
                                         Text="LIVE host username" />
@@ -394,7 +394,7 @@
                                 </StackPanel>
                                 <StackPanel Margin="12,0,0,0">
                                     <TextBlock
-                                        FontFamily="Albert Sans Thin"
+                                        FontFamily="/Fonts/#Albert Sans"
                                         FontSize="15"
                                         Foreground="{StaticResource TextLabelBrush}"
                                         Text="Timeout (s)" />
@@ -408,7 +408,7 @@
                                 </StackPanel>
                                 <StackPanel Margin="12,0,0,0">
                                     <TextBlock
-                                        FontFamily="Albert Sans Thin"
+                                        FontFamily="/Fonts/#Albert Sans"
                                         FontSize="15"
                                         Foreground="{StaticResource TextLabelBrush}"
                                         Text="Reconnect (s)" />
@@ -456,7 +456,7 @@
 
                             <TextBlock
                                 Margin="0,8,0,0"
-                                FontFamily="Albert Sans Thin"
+                                FontFamily="/Fonts/#Albert Sans"
                                 FontSize="15"
                                 Foreground="{StaticResource TextLabelBrush}"
                                 Text="LIVE summary template" />
@@ -481,7 +481,7 @@
                             <TextBlock Style="{StaticResource OptionSubsectionHeaderStyle}" Text="LIVE event overlays" />
                             <StackPanel Margin="0,0,0,6">
                                 <TextBlock
-                                    FontFamily="Albert Sans Thin"
+                                    FontFamily="/Fonts/#Albert Sans"
                                     FontSize="15"
                                     Foreground="{StaticResource TextLabelBrush}"
                                     Text="Default duration (seconds)" />

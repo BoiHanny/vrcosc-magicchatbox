@@ -2146,13 +2146,13 @@
                 <Setter Property="Padding" Value="8,4,8,0" />
             </Style>
             <Style x:Key="TrackerHeaderText" TargetType="TextBlock">
-                <Setter Property="FontFamily" Value="Albert Sans Thin" />
+                <Setter Property="FontFamily" Value="/Fonts/#Albert Sans" />
                 <Setter Property="FontSize" Value="14" />
                 <Setter Property="FontWeight" Value="SemiBold" />
                 <Setter Property="Foreground" Value="#E6DFF7" />
             </Style>
             <Style x:Key="TrackerLabelText" TargetType="TextBlock">
-                <Setter Property="FontFamily" Value="Albert Sans Thin" />
+                <Setter Property="FontFamily" Value="/Fonts/#Albert Sans" />
                 <Setter Property="FontSize" Value="12" />
                 <Setter Property="Foreground" Value="#C9C1DE" />
             </Style>
@@ -2170,7 +2170,7 @@
                 </Style.Triggers>
             </Style>
             <Style x:Key="WeatherOverrideFieldLabel" TargetType="TextBlock">
-                <Setter Property="FontFamily" Value="Albert Sans Thin" />
+                <Setter Property="FontFamily" Value="/Fonts/#Albert Sans" />
                 <Setter Property="FontSize" Value="10" />
                 <Setter Property="Foreground" Value="#FFE9E2F4" />
                 <Setter Property="Opacity" Value="0.75" />

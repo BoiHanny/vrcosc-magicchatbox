@@ -177,7 +177,7 @@
             <TextBlock
                 Margin="12,14,12,8"
                 HorizontalAlignment="Center"
-                FontFamily="Albert Sans Thin"
+                FontFamily="/Fonts/#Albert Sans"
                 FontSize="11"
                 Foreground="{StaticResource TextMutedBrush}"
                 TextAlignment="Center"

@@ -62,7 +62,7 @@
                     Width="auto"
                     Padding="0,10,0,0"
                     VerticalAlignment="Center"
-                    FontFamily="Albert Sans Thin"
+                    FontFamily="/Fonts/#Albert Sans"
                     FontSize="15"
                     Foreground="{StaticResource TextDangerRedBrush}"
                     Text="{Binding WindowActivity.ErrorInWindowActivityMsg, UpdateSourceTrigger=PropertyChanged}"
@@ -108,7 +108,7 @@
                         <TextBlock
                             Grid.Column="0"
                             Padding="0,0,0,0"
-                            FontFamily="Albert Sans Thin"
+                            FontFamily="/Fonts/#Albert Sans"
                             FontSize="15"
                             Foreground="{StaticResource TextLabelBrush}"
                             Text="max title length" />
@@ -168,7 +168,7 @@
                     <StackPanel Margin="24,4,0,0" Visibility="{Binding WindowActivitySettings.EnableTitleFilters, Converter={StaticResource BoolToVisibilityConverter}}">
                         <TextBlock
                             Margin="0,0,0,4"
-                            FontFamily="Albert Sans Thin"
+                            FontFamily="/Fonts/#Albert Sans"
                             FontSize="12"
                             Foreground="{StaticResource TextMutedBrush}"
                             Text="Set per-app filters in the 'Content filter' column below. Use the global rules here for patterns that apply to ALL apps."
@@ -256,7 +256,7 @@
                     <TextBlock
                         Width="auto"
                         Padding="0,10,0,0"
-                        FontFamily="Albert Sans Thin"
+                        FontFamily="/Fonts/#Albert Sans"
                         FontSize="15"
                         Foreground="{StaticResource TextLabelBrush}"
                         Text="Desktop mode style" />
@@ -301,7 +301,7 @@
                     <TextBlock
                         Width="auto"
                         Padding="0,10,0,0"
-                        FontFamily="Albert Sans Thin"
+                        FontFamily="/Fonts/#Albert Sans"
                         FontSize="15"
                         Foreground="{StaticResource TextLabelBrush}"
                         Text="VR mode style" />
@@ -343,7 +343,7 @@
             <TextBlock
                 Grid.Row="1"
                 Margin="0,15,0,5"
-                FontFamily="Albert Sans Thin"
+                FontFamily="/Fonts/#Albert Sans"
                 FontSize="15"
                 Foreground="{StaticResource TextLabelBrush}"
                 Text="Cleanup action" />
@@ -378,7 +378,7 @@
                 <TextBlock
                     Grid.Column="0"
                     Margin="0,3,0,0"
-                    FontFamily="Albert Sans Thin"
+                    FontFamily="/Fonts/#Albert Sans"
                     FontSize="16"
                     Foreground="{StaticResource TextLabelBrush}"
                     Text="{Binding WindowActivity.DeletedAppslabel, UpdateSourceTrigger=PropertyChanged}" />
@@ -390,7 +390,7 @@
                 <TextBlock
                     Margin="0,0,8,0"
                     VerticalAlignment="Center"
-                    FontFamily="Albert Sans Thin"
+                    FontFamily="/Fonts/#Albert Sans"
                     FontSize="14"
                     Foreground="{StaticResource TextLabelBrush}"
                     Text="Filter apps" />
@@ -413,7 +413,7 @@
                 <TextBlock
                     Margin="0,0,4,0"
                     VerticalAlignment="Center"
-                    FontFamily="Albert Sans Thin"
+                    FontFamily="/Fonts/#Albert Sans"
                     FontSize="14"
                     Foreground="{StaticResource TextLabelBrush}"
                     Text="Min focused" />
@@ -427,7 +427,7 @@
                     ToolTip="Show apps focused at least this many times" />
                 <TextBlock
                     VerticalAlignment="Center"
-                    FontFamily="Albert Sans Thin"
+                    FontFamily="/Fonts/#Albert Sans"
                     FontSize="14"
                     Foreground="{StaticResource TextMutedBrush}"
                     Text="{Binding WindowActivity.FilteredAppsSummary, UpdateSourceTrigger=PropertyChanged}" />
@@ -465,7 +465,7 @@
                         <TextBlock
                             Padding="5"
                             VerticalAlignment="Center"
-                            FontFamily="Albert Sans Thin"
+                            FontFamily="/Fonts/#Albert Sans"
                             FontSize="14"
                             Text="App" />
                     </Button>
@@ -478,7 +478,7 @@
                             Padding="5"
                             HorizontalAlignment="Center"
                             VerticalAlignment="Center"
-                            FontFamily="Albert Sans Thin"
+                            FontFamily="/Fonts/#Albert Sans"
                             FontSize="14"
                             Text="Focused" />
                     </Button>
@@ -489,7 +489,7 @@
                         Style="{StaticResource Sort_Button_style}">
                         <TextBlock
                             HorizontalAlignment="Center"
-                            FontFamily="Albert Sans Thin"
+                            FontFamily="/Fonts/#Albert Sans"
                             FontSize="14"
                             Text="Enhanced hook" />
                     </Button>
@@ -500,7 +500,7 @@
                         Style="{StaticResource Sort_Button_style}">
                         <TextBlock
                             HorizontalAlignment="Center"
-                            FontFamily="Albert Sans Thin"
+                            FontFamily="/Fonts/#Albert Sans"
                             FontSize="14"
                             Text="Show info" />
                     </Button>
@@ -511,7 +511,7 @@
                         Style="{StaticResource Sort_Button_style}">
                         <TextBlock
                             HorizontalAlignment="Center"
-                            FontFamily="Albert Sans Thin"
+                            FontFamily="/Fonts/#Albert Sans"
                             FontSize="14"
                             Text="Private" />
                     </Button>
@@ -522,7 +522,7 @@
                         Style="{StaticResource Sort_Button_style}">
                         <TextBlock
                             HorizontalAlignment="Center"
-                            FontFamily="Albert Sans Thin"
+                            FontFamily="/Fonts/#Albert Sans"
                             FontSize="14"
                             Text="Custom app name" />
                     </Button>
@@ -536,7 +536,7 @@
                         Visibility="{Binding WindowActivitySettings.EnableTitleFilters, Converter={StaticResource BoolToVisibilityConverter}}">
                         <TextBlock
                             HorizontalAlignment="Center"
-                            FontFamily="Albert Sans Thin"
+                            FontFamily="/Fonts/#Albert Sans"
                             FontSize="14"
                             Text="Content filter" />
                     </Button>
@@ -548,7 +548,7 @@
                         Visibility="{Binding WindowActivitySettings.ShowRegexColumn, Converter={StaticResource BoolToVisibilityConverter}}">
                         <TextBlock
                             HorizontalAlignment="Center"
-                            FontFamily="Albert Sans Thin"
+                            FontFamily="/Fonts/#Albert Sans"
                             FontSize="14"
                             Text="Custom reg…"
                             TextTrimming="CharacterEllipsis"
@@ -594,7 +594,7 @@
                                 </Grid.ColumnDefinitions>
                                 <TextBlock
                                     Grid.Column="0"
-                                    FontFamily="Albert Sans Thin"
+                                    FontFamily="/Fonts/#Albert Sans"
                                     FontSize="16"
                                     Foreground="{StaticResource TextPrimaryBrush}"
                                     Text="{Binding ProcessName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
@@ -603,7 +603,7 @@
                                     Grid.Column="1"
                                     HorizontalAlignment="Center"
                                     VerticalAlignment="Center"
-                                    FontFamily="Albert Sans Thin"
+                                    FontFamily="/Fonts/#Albert Sans"
                                     FontSize="16"
                                     Foreground="{StaticResource TextPrimaryBrush}"
                                     Text="{Binding FocusCount, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
@@ -611,7 +611,7 @@
                                     Grid.Column="2"
                                     HorizontalAlignment="Center"
                                     VerticalAlignment="Center"
-                                    FontFamily="Albert Sans Thin"
+                                    FontFamily="/Fonts/#Albert Sans"
                                     FontSize="16"
                                     Foreground="{StaticResource TextPrimaryBrush}"
                                     Text="{Binding UsedNewMethod, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />

@@ -51,7 +51,7 @@
                     Margin="6,1,0,0"
                     HorizontalAlignment="Center"
                     VerticalAlignment="Center"
-                    FontFamily="Albert Sans Thin"
+                    FontFamily="/Fonts/#Albert Sans"
                     FontSize="14"
                     Foreground="White"
                     RenderOptions.BitmapScalingMode="NearestNeighbor"
@@ -76,7 +76,7 @@
             </Grid.RowDefinitions>
 
             <TextBlock
-                FontFamily="Comfortaa Light"
+                FontFamily="/Fonts/#Comfortaa"
                 FontSize="14"
                 Foreground="LightYellow"
                 Text="Order affects the integrations list and OSC message priority." />

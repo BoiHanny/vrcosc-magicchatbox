@@ -52,7 +52,7 @@
                 <StackPanel>
                     <TextBlock
                         Margin="0,0,0,8"
-                        FontFamily="Comfortaa Light"
+                        FontFamily="/Fonts/#Comfortaa"
                         FontSize="13"
                         Foreground="{StaticResource TextSectionHeaderBrush}"
                         Text="Preview" />
@@ -66,7 +66,7 @@
                         <TextBlock
                             Grid.Column="0"
                             VerticalAlignment="Center"
-                            FontFamily="Albert Sans Thin"
+                            FontFamily="/Fonts/#Albert Sans"
                             FontSize="11"
                             Foreground="{StaticResource TextMutedBrush}"
                             Text="Healthy" />
@@ -76,7 +76,7 @@
                             Background="{StaticResource AccentDeepPurpleBrush}"
                             CornerRadius="4">
                             <TextBlock
-                                FontFamily="Comfortaa Light"
+                                FontFamily="/Fonts/#Comfortaa"
                                 FontSize="15"
                                 Foreground="White"
                                 Text="{Binding HealthyPreview}"
@@ -86,7 +86,7 @@
                             Grid.Column="2"
                             Margin="8,0,0,0"
                             VerticalAlignment="Center"
-                            FontFamily="Albert Sans Thin"
+                            FontFamily="/Fonts/#Albert Sans"
                             FontSize="11"
                             Foreground="{StaticResource TextMutedBrush}"
                             Text="{Binding HealthyPreviewLength}" />
@@ -101,7 +101,7 @@
                         <TextBlock
                             Grid.Column="0"
                             VerticalAlignment="Center"
-                            FontFamily="Albert Sans Thin"
+                            FontFamily="/Fonts/#Albert Sans"
                             FontSize="11"
                             Foreground="{StaticResource TextMutedBrush}"
                             Text="Struggling" />
@@ -111,7 +111,7 @@
                             Background="{StaticResource AccentDeepPurpleBrush}"
                             CornerRadius="4">
                             <TextBlock
-                                FontFamily="Comfortaa Light"
+                                FontFamily="/Fonts/#Comfortaa"
                                 FontSize="15"
                                 Foreground="White"
                                 Text="{Binding DegradedPreview}"
@@ -121,7 +121,7 @@
                             Grid.Column="2"
                             Margin="8,0,0,0"
                             VerticalAlignment="Center"
-                            FontFamily="Albert Sans Thin"
+                            FontFamily="/Fonts/#Albert Sans"
                             FontSize="11"
                             Foreground="{StaticResource TextMutedBrush}"
                             Text="{Binding DegradedPreviewLength}" />
@@ -133,7 +133,7 @@
                 <StackPanel>
                     <TextBlock
                         Margin="0,0,0,6"
-                        FontFamily="Comfortaa Light"
+                        FontFamily="/Fonts/#Comfortaa"
                         FontSize="13"
                         Foreground="{StaticResource TextSectionHeaderBrush}"
                         Text="What to show" />
@@ -179,7 +179,7 @@
 
                     <TextBlock
                         Margin="0,6,0,0"
-                        FontFamily="Albert Sans Thin"
+                        FontFamily="/Fonts/#Albert Sans"
                         FontSize="11"
                         Foreground="{StaticResource TextMutedBrush}"
                         Text="The chatbox is limited to 144 characters and shared with every other integration. Turning all of these on costs roughly 55–70 of them, which pushes lower-priority integrations out."
@@ -191,7 +191,7 @@
                 <StackPanel>
                     <TextBlock
                         Margin="0,0,0,6"
-                        FontFamily="Comfortaa Light"
+                        FontFamily="/Fonts/#Comfortaa"
                         FontSize="13"
                         Foreground="{StaticResource TextSectionHeaderBrush}"
                         Text="When to show it" />
@@ -211,7 +211,7 @@
 
                     <TextBlock
                         Margin="0,6,0,0"
-                        FontFamily="Albert Sans Thin"
+                        FontFamily="/Fonts/#Albert Sans"
                         FontSize="11"
                         Foreground="{StaticResource TextMutedBrush}"
                         Text="'Only when frames drop' costs no characters while performance is healthy, so it never pushes another integration out unless something is actually wrong."
@@ -223,7 +223,7 @@
                 <StackPanel>
                     <TextBlock
                         Margin="0,0,0,6"
-                        FontFamily="Comfortaa Light"
+                        FontFamily="/Fonts/#Comfortaa"
                         FontSize="13"
                         Foreground="{StaticResource TextSectionHeaderBrush}"
                         Text="What counts as a problem" />
@@ -232,7 +232,7 @@
                         <TextBlock
                             Width="200"
                             VerticalAlignment="Center"
-                            FontFamily="Albert Sans Thin"
+                            FontFamily="/Fonts/#Albert Sans"
                             FontSize="12"
                             Foreground="{StaticResource TextMutedBrush}"
                             Text="Reprojection at or above (%)" />
@@ -245,7 +245,7 @@
                         <TextBlock
                             Width="200"
                             VerticalAlignment="Center"
-                            FontFamily="Albert Sans Thin"
+                            FontFamily="/Fonts/#Albert Sans"
                             FontSize="12"
                             Foreground="{StaticResource TextMutedBrush}"
                             Text="Dropped frames per minute" />
@@ -258,7 +258,7 @@
                         <TextBlock
                             Width="200"
                             VerticalAlignment="Center"
-                            FontFamily="Albert Sans Thin"
+                            FontFamily="/Fonts/#Albert Sans"
                             FontSize="12"
                             Foreground="{StaticResource TextMutedBrush}"
                             Text="Frame rate below (% of target)" />
@@ -271,7 +271,7 @@
                         <TextBlock
                             Width="200"
                             VerticalAlignment="Center"
-                            FontFamily="Albert Sans Thin"
+                            FontFamily="/Fonts/#Albert Sans"
                             FontSize="12"
                             Foreground="{StaticResource TextMutedBrush}"
                             Text="Seconds healthy before clearing" />
@@ -282,7 +282,7 @@
 
                     <TextBlock
                         Margin="0,6,0,0"
-                        FontFamily="Albert Sans Thin"
+                        FontFamily="/Fonts/#Albert Sans"
                         FontSize="11"
                         Foreground="{StaticResource TextMutedBrush}"
                         Text="The last one stops the warning flickering on and off when a value sits right on a threshold."
@@ -294,7 +294,7 @@
                 <StackPanel>
                     <TextBlock
                         Margin="0,0,0,6"
-                        FontFamily="Comfortaa Light"
+                        FontFamily="/Fonts/#Comfortaa"
                         FontSize="13"
                         Foreground="{StaticResource TextSectionHeaderBrush}"
                         Text="Formatting" />
@@ -316,7 +316,7 @@
                         <TextBlock
                             Width="200"
                             VerticalAlignment="Center"
-                            FontFamily="Albert Sans Thin"
+                            FontFamily="/Fonts/#Albert Sans"
                             FontSize="12"
                             Foreground="{StaticResource TextMutedBrush}"
                             Text="Separator between values" />
@@ -331,13 +331,13 @@
                 <StackPanel>
                     <TextBlock
                         Margin="0,0,0,6"
-                        FontFamily="Comfortaa Light"
+                        FontFamily="/Fonts/#Comfortaa"
                         FontSize="13"
                         Foreground="{StaticResource TextSectionHeaderBrush}"
                         Text="Status" />
 
                     <TextBlock
-                        FontFamily="Albert Sans Thin"
+                        FontFamily="/Fonts/#Albert Sans"
                         FontSize="12"
                         Foreground="{StaticResource BorderMutedBrush}"
                         Text="{Binding StatusText}"

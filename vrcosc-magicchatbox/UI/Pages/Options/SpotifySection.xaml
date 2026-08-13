@@ -60,7 +60,7 @@
                         </LinearGradientBrush>
                     </Border.Background>
                     <TextBlock
-                        FontFamily="Albert Sans Thin"
+                        FontFamily="/Fonts/#Albert Sans"
                         FontSize="13"
                         Foreground="{StaticResource StatusWarningBrush}"
                         TextWrapping="Wrap">
@@ -151,7 +151,7 @@
                             CornerRadius="6">
                             <StackPanel>
                                 <TextBlock
-                                    FontFamily="Albert Sans Thin"
+                                    FontFamily="/Fonts/#Albert Sans"
                                     FontSize="12"
                                     Foreground="{StaticResource StatusWarningBrush}"
                                     Text="★ Spotify Premium and an active device are required for playback controls." />
@@ -162,7 +162,7 @@
                                     Text="If playback buttons do nothing, open Spotify on your phone, desktop app, or web player first. MagicChatbox can only control a live Spotify device." />
                                 <TextBlock
                                     Margin="0,6,0,0"
-                                    FontFamily="Albert Sans Thin"
+                                    FontFamily="/Fonts/#Albert Sans"
                                     Foreground="{StaticResource TextPrimaryBrush}"
                                     Text="{Binding Display.ErrorText}"
                                     Visibility="{Binding HasDisplayError, Converter={StaticResource BoolToVisibilityConverter}}" />
@@ -182,7 +182,7 @@
                             <TextBlock
                                 Width="76"
                                 VerticalAlignment="Center"
-                                FontFamily="Albert Sans Thin"
+                                FontFamily="/Fonts/#Albert Sans"
                                 Foreground="{StaticResource TextLabelBrush}"
                                 Text="Redirect URI" />
                             <TextBox
@@ -303,7 +303,7 @@
                                         Source="/Img/Icons/spotify_ico.png" />
                                     <TextBlock
                                         VerticalAlignment="Center"
-                                        FontFamily="Albert Sans Thin"
+                                        FontFamily="/Fonts/#Albert Sans"
                                         FontSize="11"
                                         Foreground="{StaticResource AccentSpotifyBrush}"
                                         Text="CHATBOX OUTPUT PREVIEW" />
@@ -316,7 +316,7 @@
                                 <StackPanel Margin="0,6,0,0" Orientation="Horizontal">
                                     <TextBlock
                                         VerticalAlignment="Center"
-                                        FontFamily="Albert Sans Thin"
+                                        FontFamily="/Fonts/#Albert Sans"
                                         FontSize="11"
                                         Foreground="{StaticResource TextMutedBrush}"
                                         Text="{Binding PreviewLengthText, StringFormat='Characters: {0}'}" />
@@ -552,7 +552,7 @@
                             <TextBlock
                                 Margin="0,0,5,0"
                                 VerticalAlignment="Center"
-                                FontFamily="Albert Sans Thin"
+                                FontFamily="/Fonts/#Albert Sans"
                                 FontSize="15"
                                 Foreground="{StaticResource TextLabelBrush}"
                                 Text="Hide after:" />
@@ -565,7 +565,7 @@
                             <TextBlock
                                 Margin="5,0,0,0"
                                 VerticalAlignment="Center"
-                                FontFamily="Albert Sans Thin"
+                                FontFamily="/Fonts/#Albert Sans"
                                 FontSize="15"
                                 Foreground="{StaticResource TextLabelBrush}"
                                 Text="seconds" />

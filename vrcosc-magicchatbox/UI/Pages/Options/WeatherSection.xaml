@@ -55,7 +55,7 @@
                     HorizontalAlignment="Left">
                     <TextBlock
                         Padding="0,0,0,0"
-                        FontFamily="Albert Sans Thin"
+                        FontFamily="/Fonts/#Albert Sans"
                         FontSize="15"
                         Foreground="{StaticResource TextLabelBrush}"
                         Text="Weather refresh (minutes)" />
@@ -81,7 +81,7 @@
                         <TextBlock
                             Margin="8,3,0,0"
                             VerticalAlignment="Center"
-                            FontFamily="Albert Sans Thin"
+                            FontFamily="/Fonts/#Albert Sans"
                             FontSize="13"
                             Foreground="{StaticResource TextLabelBrush}"
                             Text="{Binding IntegrationDisplay.WeatherLastSyncDisplay}" />
@@ -89,7 +89,7 @@
                     <TextBlock
                         Margin="0,6,0,0"
                         Padding="0,0,0,0"
-                        FontFamily="Albert Sans Thin"
+                        FontFamily="/Fonts/#Albert Sans"
                         FontSize="15"
                         Foreground="{StaticResource TextLabelBrush}"
                         Text="Location mode" />
@@ -122,14 +122,14 @@
                     <StackPanel Margin="0,6,0,0" Visibility="{Binding WeatherSettings.WeatherLocationModeUsesCity, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
                         <TextBlock
                             Padding="0,0,0,0"
-                            FontFamily="Albert Sans Thin"
+                            FontFamily="/Fonts/#Albert Sans"
                             FontSize="15"
                             Foreground="{StaticResource TextLabelBrush}"
                             Text="Custom city"
                             Visibility="{Binding WeatherSettings.WeatherLocationModeIsCustomCity, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}" />
                         <TextBlock
                             Padding="0,0,0,0"
-                            FontFamily="Albert Sans Thin"
+                            FontFamily="/Fonts/#Albert Sans"
                             FontSize="15"
                             Foreground="{StaticResource TextLabelBrush}"
                             Text="Fallback city"
@@ -200,7 +200,7 @@
                     <StackPanel Margin="0,6,0,0" Visibility="{Binding WeatherSettings.WeatherLocationModeIsCustomCoordinates, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
                         <TextBlock
                             Padding="0,0,0,0"
-                            FontFamily="Albert Sans Thin"
+                            FontFamily="/Fonts/#Albert Sans"
                             FontSize="15"
                             Foreground="{StaticResource TextLabelBrush}"
                             Text="Coordinates (lat, lon)" />
@@ -232,7 +232,7 @@
                     <TextBlock
                         Margin="0,6,0,0"
                         Padding="0,0,0,0"
-                        FontFamily="Albert Sans Thin"
+                        FontFamily="/Fonts/#Albert Sans"
                         FontSize="15"
                         Foreground="{StaticResource TextLabelBrush}"
                         Text="Layout mode" />
@@ -252,7 +252,7 @@
                         <TextBlock
                             Margin="0,6,0,0"
                             Padding="0,0,0,0"
-                            FontFamily="Albert Sans Thin"
+                            FontFamily="/Fonts/#Albert Sans"
                             FontSize="15"
                             Foreground="{StaticResource TextLabelBrush}"
                             Text="Weather stats separator" />
@@ -307,7 +307,7 @@
                     </CheckBox>
                     <TextBlock
                         Margin="0,2,0,0"
-                        FontFamily="Albert Sans Thin"
+                        FontFamily="/Fonts/#Albert Sans"
                         FontSize="13"
                         Foreground="{StaticResource TextLabelBrush}"
                         Text="Custom condition text"
@@ -343,7 +343,7 @@
                                     <StackPanel>
                                         <TextBlock
                                             Margin="0,0,0,4"
-                                            FontFamily="Albert Sans Thin"
+                                            FontFamily="/Fonts/#Albert Sans"
                                             FontSize="15"
                                             Foreground="{StaticResource TextLabelBrush}"
                                             Text="{Binding DisplayLabel}" />
@@ -414,7 +414,7 @@
                     <TextBlock
                         Margin="0,8,0,0"
                         Padding="0,0,0,0"
-                        FontFamily="Albert Sans Thin"
+                        FontFamily="/Fonts/#Albert Sans"
                         FontSize="15"
                         Foreground="{StaticResource TextLabelBrush}"
                         Text="Unit override" />
@@ -433,7 +433,7 @@
                     <TextBlock
                         Margin="0,6,0,0"
                         Padding="0,0,0,0"
-                        FontFamily="Albert Sans Thin"
+                        FontFamily="/Fonts/#Albert Sans"
                         FontSize="15"
                         Foreground="{StaticResource TextLabelBrush}"
                         Text="Wind unit" />

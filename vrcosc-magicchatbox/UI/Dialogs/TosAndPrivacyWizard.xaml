@@ -55,7 +55,7 @@
                     Margin="6,1,0,0"
                     HorizontalAlignment="Center"
                     VerticalAlignment="Center"
-                    FontFamily="Albert Sans Thin"
+                    FontFamily="/Fonts/#Albert Sans"
                     FontSize="14"
                     Foreground="White"
                     Text="Data Access &amp; Permissions">
@@ -79,7 +79,7 @@
 
                 <TextBlock
                     HorizontalAlignment="Center"
-                    FontFamily="Comfortaa Light"
+                    FontFamily="/Fonts/#Comfortaa"
                     FontSize="17"
                     Foreground="LightYellow"
                     TextAlignment="Center"
@@ -135,7 +135,7 @@
                                     <TextBlock
                                         Grid.Row="0"
                                         Grid.Column="0"
-                                        FontFamily="Comfortaa Light"
+                                        FontFamily="/Fonts/#Comfortaa"
                                         FontSize="15"
                                         FontWeight="DemiBold"
                                         Foreground="White"
@@ -145,7 +145,7 @@
                                         Grid.Row="1"
                                         Grid.Column="0"
                                         Margin="0,4,0,0"
-                                        FontFamily="Albert Sans Thin"
+                                        FontFamily="/Fonts/#Albert Sans"
                                         FontSize="12"
                                         Foreground="#BBBBBB"
                                         Text="{Binding Description}"
@@ -155,7 +155,7 @@
                                         Grid.Row="2"
                                         Grid.Column="0"
                                         Margin="0,6,0,0"
-                                        FontFamily="Albert Sans Thin"
+                                        FontFamily="/Fonts/#Albert Sans"
                                         FontSize="11"
                                         Foreground="#FF8C8C"
                                         Text="{Binding Warning}"
@@ -194,7 +194,7 @@
                     Orientation="Horizontal">
                     <TextBlock
                         VerticalAlignment="Center"
-                        FontFamily="Albert Sans Thin"
+                        FontFamily="/Fonts/#Albert Sans"
                         FontSize="11"
                         Foreground="#666666"
                         Text="By continuing you agree to our  " />
@@ -204,7 +204,7 @@
                             Click="TosLink_Click"
                             Foreground="#7B5EA7">
                             <Run
-                                FontFamily="Albert Sans Thin"
+                                FontFamily="/Fonts/#Albert Sans"
                                 FontSize="11"
                                 Text="Terms of Service" />
                         </Hyperlink>
@@ -212,7 +212,7 @@
                     <TextBlock
                         Margin="4,0"
                         VerticalAlignment="Center"
-                        FontFamily="Albert Sans Thin"
+                        FontFamily="/Fonts/#Albert Sans"
                         FontSize="11"
                         Foreground="#666666"
                         Text="&amp;" />
@@ -222,7 +222,7 @@
                             Click="SlaLink_Click"
                             Foreground="#7B5EA7">
                             <Run
-                                FontFamily="Albert Sans Thin"
+                                FontFamily="/Fonts/#Albert Sans"
                                 FontSize="11"
                                 Text="Software License" />
                         </Hyperlink>

@@ -56,7 +56,7 @@
                 HorizontalAlignment="Left"
                 VerticalAlignment="Center"
                 Cursor="Hand"
-                FontFamily="Albert Sans Thin"
+                FontFamily="/Fonts/#Albert Sans"
                 FontSize="12"
                 Foreground="{StaticResource AccentTealBrush}"
                 MouseUp="LearnMoreAboutHeartbtn_MouseUp"
@@ -175,7 +175,7 @@
                                     HorizontalAlignment="Stretch"
                                     VerticalAlignment="Top"
                                     Background="Transparent"
-                                    FontFamily="Albert Sans Thin"
+                                    FontFamily="/Fonts/#Albert Sans"
                                     FontSize="20"
                                     FontWeight="Bold"
                                     Foreground="#12002E"
@@ -189,7 +189,7 @@
                                     HorizontalAlignment="Stretch"
                                     VerticalAlignment="Top"
                                     Background="Transparent"
-                                    FontFamily="Albert Sans Thin"
+                                    FontFamily="/Fonts/#Albert Sans"
                                     FontSize="20"
                                     FontWeight="Bold"
                                     Foreground="#2A1650"
@@ -203,7 +203,7 @@
                                     HorizontalAlignment="Stretch"
                                     VerticalAlignment="Top"
                                     Background="Transparent"
-                                    FontFamily="Albert Sans Thin"
+                                    FontFamily="/Fonts/#Albert Sans"
                                     FontSize="20"
                                     FontWeight="Bold"
                                     Foreground="#12002E"
@@ -218,7 +218,7 @@
                                 HorizontalAlignment="Stretch"
                                 VerticalAlignment="Top"
                                 Background="Transparent"
-                                FontFamily="Albert Sans Thin"
+                                FontFamily="/Fonts/#Albert Sans"
                                 FontSize="13"
                                 FontStyle="Italic"
                                 FontWeight="Medium"
@@ -356,7 +356,7 @@
                                 Margin="5,0,0,0"
                                 VerticalAlignment="Center"
                                 Effect="{StaticResource TextBlockShadowEffect}"
-                                FontFamily="Comfortaa Light"
+                                FontFamily="/Fonts/#Comfortaa"
                                 FontSize="12"
                                 FontWeight="Bold"
                                 Foreground="LightSeaGreen"
@@ -368,7 +368,7 @@
                             Width="400"
                             Padding="10,4,0,4"
                             VerticalAlignment="Center"
-                            FontFamily="Albert Sans Thin"
+                            FontFamily="/Fonts/#Albert Sans"
                             FontSize="14"
                             Foreground="PaleVioletRed"
                             Text="{Binding Modules.Pulsoid.PulsoidAccessErrorTxt, UpdateSourceTrigger=PropertyChanged}"
@@ -388,7 +388,7 @@
                             Padding="0,0,9,0"
                             VerticalAlignment="Center"
                             Cursor="Hand"
-                            FontFamily="Albert Sans Thin"
+                            FontFamily="/Fonts/#Albert Sans"
                             FontSize="15"
                             Foreground="{StaticResource TextLabelBrush}"
                             MouseUp="ManualPulsoidAuthBtn_MouseUp"
@@ -610,7 +610,7 @@
                                     Orientation="Horizontal">
                                     <TextBlock
                                         VerticalAlignment="Center"
-                                        FontFamily="Albert Sans Thin"
+                                        FontFamily="/Fonts/#Albert Sans"
                                         FontSize="15"
                                         Foreground="{StaticResource TextLabelBrush}"
                                         Text="Use last" />
@@ -625,7 +625,7 @@
                                         Text="{Binding Modules.Pulsoid.Settings.SmoothOSCHeartRateTimeSpan, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                                     <TextBlock
                                         VerticalAlignment="Center"
-                                        FontFamily="Albert Sans Thin"
+                                        FontFamily="/Fonts/#Albert Sans"
                                         FontSize="15"
                                         Foreground="{StaticResource TextLabelBrush}"
                                         Text="received heart rate updates from the network to show smooth heart rate changes." />
@@ -667,7 +667,7 @@
                                 <TextBlock
                                     Padding="0,0,9,0"
                                     VerticalAlignment="Center"
-                                    FontFamily="Albert Sans Thin"
+                                    FontFamily="/Fonts/#Albert Sans"
                                     FontSize="15"
                                     Foreground="{StaticResource TextLabelBrush}"
                                     Text="Lower than" />
@@ -684,7 +684,7 @@
                                 <TextBlock
                                     Padding="5,0,5,0"
                                     VerticalAlignment="Center"
-                                    FontFamily="Albert Sans Thin"
+                                    FontFamily="/Fonts/#Albert Sans"
                                     FontSize="15"
                                     Foreground="{StaticResource TextLabelBrush}"
                                     Text="show" />
@@ -702,7 +702,7 @@
                                 <TextBlock
                                     Padding="0,0,5,0"
                                     VerticalAlignment="Center"
-                                    FontFamily="Albert Sans Thin"
+                                    FontFamily="/Fonts/#Albert Sans"
                                     FontSize="15"
                                     Foreground="{StaticResource TextLabelBrush}"
                                     Text="Higher than" />
@@ -718,7 +718,7 @@
                                 <TextBlock
                                     Padding="5,0,4,0"
                                     VerticalAlignment="Center"
-                                    FontFamily="Albert Sans Thin"
+                                    FontFamily="/Fonts/#Albert Sans"
                                     FontSize="15"
                                     Foreground="{StaticResource TextLabelBrush}"
                                     Text="show" />
@@ -754,7 +754,7 @@
                             <TextBlock
                                 Margin="4,0"
                                 VerticalAlignment="Center"
-                                FontFamily="Albert Sans Thin"
+                                FontFamily="/Fonts/#Albert Sans"
                                 FontSize="15"
                                 Foreground="{StaticResource TextLabelBrush}"
                                 Text="Trend symbols" />
@@ -776,7 +776,7 @@
                                 Orientation="Horizontal">
                                 <TextBlock
                                     VerticalAlignment="Center"
-                                    FontFamily="Albert Sans Thin"
+                                    FontFamily="/Fonts/#Albert Sans"
                                     FontSize="15"
                                     Foreground="{StaticResource TextLabelBrush}"
                                     Text="Use last" />
@@ -791,7 +791,7 @@
                                     Text="{Binding Modules.Pulsoid.Settings.HeartRateTrendIndicatorSampleRate, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                                 <TextBlock
                                     VerticalAlignment="Center"
-                                    FontFamily="Albert Sans Thin"
+                                    FontFamily="/Fonts/#Albert Sans"
                                     FontSize="15"
                                     Foreground="{StaticResource TextLabelBrush}"
                                     Text="heart rate scans to identify trends." />
@@ -802,7 +802,7 @@
                                 Width="auto"
                                 Padding="4,0"
                                 VerticalAlignment="Center"
-                                FontFamily="Albert Sans Thin"
+                                FontFamily="/Fonts/#Albert Sans"
                                 FontSize="15"
                                 Foreground="{StaticResource TextLabelBrush}"
                                 Text="Trend sensitivity" />
@@ -812,7 +812,7 @@
                                     Width="auto"
                                     Padding="2,5,5,5"
                                     VerticalAlignment="Center"
-                                    FontFamily="Albert Sans Thin"
+                                    FontFamily="/Fonts/#Albert Sans"
                                     FontSize="13"
                                     Foreground="{StaticResource BorderMutedBrush}"
                                     Text="Quick" />
@@ -829,7 +829,7 @@
                                     Width="auto"
                                     Padding="5,0"
                                     VerticalAlignment="Center"
-                                    FontFamily="Albert Sans Thin"
+                                    FontFamily="/Fonts/#Albert Sans"
                                     FontSize="13"
                                     Foreground="{StaticResource BorderMutedBrush}"
                                     Text="Slow" />
@@ -858,7 +858,7 @@
                                 Orientation="Horizontal">
                                 <TextBlock
                                     VerticalAlignment="Center"
-                                    FontFamily="Albert Sans Thin"
+                                    FontFamily="/Fonts/#Albert Sans"
                                     FontSize="15"
                                     Foreground="{StaticResource TextLabelBrush}"
                                     Text="Use last" />
@@ -873,7 +873,7 @@
                                     Text="{Binding Modules.Pulsoid.Settings.SmoothHeartRateTimeSpan, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                                 <TextBlock
                                     VerticalAlignment="Center"
-                                    FontFamily="Albert Sans Thin"
+                                    FontFamily="/Fonts/#Albert Sans"
                                     FontSize="15"
                                     Foreground="{StaticResource TextLabelBrush}"
                                     Text="heart rate scans to show smooth heart rate changes." />
@@ -909,7 +909,7 @@
 
                                 <TextBlock
                                     VerticalAlignment="Center"
-                                    FontFamily="Albert Sans Thin"
+                                    FontFamily="/Fonts/#Albert Sans"
                                     FontSize="15"
                                     Foreground="{StaticResource TextLabelBrush}"
                                     Text="Max Heart Rate:" />
@@ -924,7 +924,7 @@
                                     Text="{Binding Modules.Pulsoid.Settings.ThrottleHRMax, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                                 <TextBlock
                                     VerticalAlignment="Center"
-                                    FontFamily="Albert Sans Thin"
+                                    FontFamily="/Fonts/#Albert Sans"
                                     FontSize="15"
                                     Foreground="{StaticResource TextLabelBrush}"
                                     Text="BPM" />
@@ -937,7 +937,7 @@
                                 Orientation="Horizontal">
                                 <TextBlock
                                     VerticalAlignment="Center"
-                                    FontFamily="Albert Sans Thin"
+                                    FontFamily="/Fonts/#Albert Sans"
                                     FontSize="15"
                                     Foreground="{StaticResource TextLabelBrush}"
                                     Text="Max Overflow:" />
@@ -953,7 +953,7 @@
                                     Text="{Binding Modules.Pulsoid.Settings.ThrottleMaxAdditional, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                                 <TextBlock
                                     VerticalAlignment="Center"
-                                    FontFamily="Albert Sans Thin"
+                                    FontFamily="/Fonts/#Albert Sans"
                                     FontSize="15"
                                     Foreground="{StaticResource TextLabelBrush}"
                                     Text="BPM" />
@@ -992,7 +992,7 @@
                                 Orientation="Horizontal">
                                 <TextBlock
                                     VerticalAlignment="Center"
-                                    FontFamily="Albert Sans Thin"
+                                    FontFamily="/Fonts/#Albert Sans"
                                     FontSize="15"
                                     Foreground="{StaticResource TextLabelBrush}"
                                     Text="Adjust heart-rate by" />
@@ -1007,7 +1007,7 @@
                                     Text="{Binding Modules.Pulsoid.Settings.HeartRateAdjustment, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                                 <TextBlock
                                     VerticalAlignment="Center"
-                                    FontFamily="Albert Sans Thin"
+                                    FontFamily="/Fonts/#Albert Sans"
                                     FontSize="15"
                                     Foreground="{StaticResource TextLabelBrush}"
                                     Text="BPM" />
@@ -1038,7 +1038,7 @@
                                 Orientation="Horizontal">
                                 <TextBlock
                                     VerticalAlignment="Center"
-                                    FontFamily="Albert Sans Thin"
+                                    FontFamily="/Fonts/#Albert Sans"
                                     FontSize="15"
                                     Foreground="{StaticResource TextLabelBrush}"
                                     Text="If the heart rate is unchanged for" />
@@ -1053,7 +1053,7 @@
                                     Text="{Binding Modules.Pulsoid.Settings.UnchangedHeartRateTimeoutInSec, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                                 <TextBlock
                                     VerticalAlignment="Center"
-                                    FontFamily="Albert Sans Thin"
+                                    FontFamily="/Fonts/#Albert Sans"
                                     FontSize="15"
                                     Foreground="{StaticResource TextLabelBrush}"
                                     Text="seconds, then the heart rate is considered offline." />
@@ -1112,7 +1112,7 @@
                             <TextBlock
                                 Margin="4,0"
                                 VerticalAlignment="Center"
-                                FontFamily="Albert Sans Thin"
+                                FontFamily="/Fonts/#Albert Sans"
                                 FontSize="15"
                                 Foreground="{StaticResource TextLabelBrush}"
                                 Text="The title is shown above/before the heart rate." />
@@ -1122,7 +1122,7 @@
                                 Orientation="Horizontal">
                                 <TextBlock
                                     VerticalAlignment="Center"
-                                    FontFamily="Albert Sans Thin"
+                                    FontFamily="/Fonts/#Albert Sans"
                                     FontSize="15"
                                     Foreground="{StaticResource TextLabelBrush}"
                                     Text="Show off as:" />

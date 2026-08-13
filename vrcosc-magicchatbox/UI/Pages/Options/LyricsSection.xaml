@@ -52,13 +52,13 @@
                 <StackPanel>
                     <TextBlock
                         Margin="0,0,0,4"
-                        FontFamily="Comfortaa Light"
+                        FontFamily="/Fonts/#Comfortaa"
                         FontSize="13"
                         Foreground="{StaticResource TextSectionHeaderBrush}"
                         Text="Which players to follow" />
                     <TextBlock
                         Margin="0,0,0,10"
-                        FontFamily="Albert Sans Thin"
+                        FontFamily="/Fonts/#Albert Sans"
                         FontSize="11"
                         Foreground="{StaticResource TextMutedBrush}"
                         Text="Lyrics ride along with the music you are already showing, and each player has its own switch. The same two switches sit on the Spotify and Media link cards on the Integrations page."
@@ -86,7 +86,7 @@
 
                     <TextBlock
                         Margin="0,14,0,6"
-                        FontFamily="Albert Sans Thin"
+                        FontFamily="/Fonts/#Albert Sans"
                         FontSize="11"
                         Foreground="{StaticResource TextMutedBrush}"
                         Text="Show the words while I am on"
@@ -112,7 +112,7 @@
 
                     <TextBlock
                         Margin="0,12,0,0"
-                        FontFamily="Albert Sans Thin"
+                        FontFamily="/Fonts/#Albert Sans"
                         FontSize="11"
                         Foreground="{StaticResource BorderMutedBrush}"
                         Text="{Binding HostSummary}"
@@ -124,13 +124,13 @@
                 <StackPanel>
                     <TextBlock
                         Margin="0,0,0,8"
-                        FontFamily="Comfortaa Light"
+                        FontFamily="/Fonts/#Comfortaa"
                         FontSize="13"
                         Foreground="{StaticResource TextSectionHeaderBrush}"
                         Text="Now playing" />
 
                     <TextBlock
-                        FontFamily="Albert Sans Thin"
+                        FontFamily="/Fonts/#Albert Sans"
                         FontSize="13"
                         Foreground="{StaticResource BorderMutedBrush}"
                         Text="{Binding Display.NowPlaying}"
@@ -142,7 +142,7 @@
                         Background="{StaticResource AccentDeepPurpleBrush}"
                         CornerRadius="4">
                         <TextBlock
-                            FontFamily="Comfortaa Light"
+                            FontFamily="/Fonts/#Comfortaa"
                             FontSize="15"
                             Foreground="White"
                             Text="{Binding Display.CurrentLine}"
@@ -151,13 +151,13 @@
 
                     <TextBlock
                         Margin="0,8,0,0"
-                        FontFamily="Albert Sans Thin"
+                        FontFamily="/Fonts/#Albert Sans"
                         FontSize="11"
                         Foreground="{StaticResource TextMutedBrush}"
                         Text="{Binding Display.StatusText}"
                         TextWrapping="Wrap" />
                     <TextBlock
-                        FontFamily="Albert Sans Thin"
+                        FontFamily="/Fonts/#Albert Sans"
                         FontSize="11"
                         Foreground="{StaticResource TextMutedBrush}"
                         Text="{Binding Display.PositionSource, StringFormat='Position from {0}'}" />
@@ -168,13 +168,13 @@
                 <StackPanel>
                     <TextBlock
                         Margin="0,0,0,4"
-                        FontFamily="Comfortaa Light"
+                        FontFamily="/Fonts/#Comfortaa"
                         FontSize="13"
                         Foreground="{StaticResource TextSectionHeaderBrush}"
                         Text="Timing" />
                     <TextBlock
                         Margin="0,0,0,8"
-                        FontFamily="Albert Sans Thin"
+                        FontFamily="/Fonts/#Albert Sans"
                         FontSize="11"
                         Foreground="{StaticResource TextMutedBrush}"
                         Text="Community timings vary between tracks. Nudge until the words land with the music."
@@ -222,7 +222,7 @@
                             Style="{StaticResource Status_Button_style}" />
                         <TextBlock
                             VerticalAlignment="Center"
-                            FontFamily="Albert Sans Thin"
+                            FontFamily="/Fonts/#Albert Sans"
                             FontSize="12"
                             Foreground="{StaticResource BorderMutedBrush}"
                             Text="{Binding OffsetSummary}" />
@@ -234,13 +234,13 @@
                 <StackPanel>
                     <TextBlock
                         Margin="0,0,0,4"
-                        FontFamily="Comfortaa Light"
+                        FontFamily="/Fonts/#Comfortaa"
                         FontSize="13"
                         Foreground="{StaticResource TextSectionHeaderBrush}"
                         Text="How it looks" />
                     <TextBlock
                         Margin="0,0,0,8"
-                        FontFamily="Albert Sans Thin"
+                        FontFamily="/Fonts/#Albert Sans"
                         FontSize="11"
                         Foreground="{StaticResource TextMutedBrush}"
                         Text="Long lines scroll across the space that is left. These previews show a roomy line and a cramped one."
@@ -254,7 +254,7 @@
                         <TextBlock
                             Grid.Column="0"
                             VerticalAlignment="Center"
-                            FontFamily="Albert Sans Thin"
+                            FontFamily="/Fonts/#Albert Sans"
                             FontSize="11"
                             Foreground="{StaticResource TextMutedBrush}"
                             Text="Roomy" />
@@ -264,7 +264,7 @@
                             Background="{StaticResource AccentDeepPurpleBrush}"
                             CornerRadius="4">
                             <TextBlock
-                                FontFamily="Comfortaa Light"
+                                FontFamily="/Fonts/#Comfortaa"
                                 FontSize="14"
                                 Foreground="White"
                                 Text="{Binding RoomyPreview}"
@@ -280,7 +280,7 @@
                         <TextBlock
                             Grid.Column="0"
                             VerticalAlignment="Center"
-                            FontFamily="Albert Sans Thin"
+                            FontFamily="/Fonts/#Albert Sans"
                             FontSize="11"
                             Foreground="{StaticResource TextMutedBrush}"
                             Text="Cramped" />
@@ -290,7 +290,7 @@
                             Background="{StaticResource AccentDeepPurpleBrush}"
                             CornerRadius="4">
                             <TextBlock
-                                FontFamily="Comfortaa Light"
+                                FontFamily="/Fonts/#Comfortaa"
                                 FontSize="14"
                                 Foreground="White"
                                 Text="{Binding TightPreview}"
@@ -311,7 +311,7 @@
                         <TextBlock
                             Width="210"
                             VerticalAlignment="Center"
-                            FontFamily="Albert Sans Thin"
+                            FontFamily="/Fonts/#Albert Sans"
                             FontSize="12"
                             Foreground="{StaticResource TextMutedBrush}"
                             Text="Hide the lyric below this many characters" />
@@ -326,13 +326,13 @@
                 <StackPanel>
                     <TextBlock
                         Margin="0,0,0,4"
-                        FontFamily="Comfortaa Light"
+                        FontFamily="/Fonts/#Comfortaa"
                         FontSize="13"
                         Foreground="{StaticResource TextSectionHeaderBrush}"
                         Text="Sharing space with the song title" />
                     <TextBlock
                         Margin="0,0,0,8"
-                        FontFamily="Albert Sans Thin"
+                        FontFamily="/Fonts/#Albert Sans"
                         FontSize="11"
                         Foreground="{StaticResource TextMutedBrush}"
                         Text="The chatbox holds 144 characters for every integration together. Hiding the title while a lyric shows roughly doubles the room the words get."
@@ -357,13 +357,13 @@
                 <StackPanel>
                     <TextBlock
                         Margin="0,0,0,4"
-                        FontFamily="Comfortaa Light"
+                        FontFamily="/Fonts/#Comfortaa"
                         FontSize="13"
                         Foreground="{StaticResource TextSectionHeaderBrush}"
                         Text="Where lyrics come from" />
                     <TextBlock
                         Margin="0,0,0,8"
-                        FontFamily="Albert Sans Thin"
+                        FontFamily="/Fonts/#Albert Sans"
                         FontSize="11"
                         Foreground="{StaticResource TextMutedBrush}"
                         Text="Your own .lrc files are used first when a folder is set. Anything not found there is looked up on LRCLIB, a free community lyrics database. Lyrics are contributed by its users and MagicChatBox does not own them."

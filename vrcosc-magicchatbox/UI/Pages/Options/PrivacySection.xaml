@@ -68,7 +68,7 @@
                         </LinearGradientBrush>
                     </Border.Background>
                     <TextBlock
-                        FontFamily="Albert Sans Thin"
+                        FontFamily="/Fonts/#Albert Sans"
                         FontSize="13"
                         Foreground="{StaticResource StatusWarningBrush}"
                         TextWrapping="Wrap">
@@ -92,7 +92,7 @@
 
                 <TextBlock
                     Padding="0,0,0,10"
-                    FontFamily="Albert Sans Thin"
+                    FontFamily="/Fonts/#Albert Sans"
                     FontSize="13"
                     Foreground="{StaticResource TextLabelBrush}"
                     Style="{StaticResource OptionHelpTextStyle}"
@@ -111,12 +111,12 @@
 
                             <StackPanel Grid.Column="0" VerticalAlignment="Center">
                                 <TextBlock
-                                    FontFamily="Comfortaa Light"
+                                    FontFamily="/Fonts/#Comfortaa"
                                     FontSize="13"
                                     Foreground="{StaticResource TextSectionHeaderBrush}"
                                     Text="🖥️  Hardware Monitor" />
                                 <TextBlock
-                                    FontFamily="Albert Sans Thin"
+                                    FontFamily="/Fonts/#Albert Sans"
                                     FontSize="11"
                                     Foreground="{StaticResource TextMutedBrush}"
                                     Text="CPU, RAM, GPU, and VRAM stats — no kernel driver. Denying this disables Component Stats."
@@ -129,7 +129,7 @@
                                 Background="{StaticResource AccentDeepPurpleBrush}"
                                 Style="{StaticResource StateBadgeStyle}">
                                 <TextBlock
-                                    FontFamily="Albert Sans Thin"
+                                    FontFamily="/Fonts/#Albert Sans"
                                     FontSize="11"
                                     Foreground="{StaticResource TextSectionHeaderBrush}"
                                     Text="{Binding HardwareMonitorState}" />
@@ -165,12 +165,12 @@
 
                             <StackPanel Grid.Column="0" VerticalAlignment="Center">
                                 <TextBlock
-                                    FontFamily="Comfortaa Light"
+                                    FontFamily="/Fonts/#Comfortaa"
                                     FontSize="13"
                                     Foreground="{StaticResource TextSectionHeaderBrush}"
                                     Text="📋  Window Activity" />
                                 <TextBlock
-                                    FontFamily="Albert Sans Thin"
+                                    FontFamily="/Fonts/#Albert Sans"
                                     FontSize="11"
                                     Foreground="{StaticResource TextMutedBrush}"
                                     Text="Active app name + window title (UIAutomation)" />
@@ -182,7 +182,7 @@
                                 Background="{StaticResource AccentDeepPurpleBrush}"
                                 Style="{StaticResource StateBadgeStyle}">
                                 <TextBlock
-                                    FontFamily="Albert Sans Thin"
+                                    FontFamily="/Fonts/#Albert Sans"
                                     FontSize="11"
                                     Foreground="{StaticResource TextSectionHeaderBrush}"
                                     Text="{Binding WindowActivityState}" />
@@ -218,12 +218,12 @@
 
                             <StackPanel Grid.Column="0" VerticalAlignment="Center">
                                 <TextBlock
-                                    FontFamily="Comfortaa Light"
+                                    FontFamily="/Fonts/#Comfortaa"
                                     FontSize="13"
                                     Foreground="{StaticResource TextSectionHeaderBrush}"
                                     Text="🎵  Media Session" />
                                 <TextBlock
-                                    FontFamily="Albert Sans Thin"
+                                    FontFamily="/Fonts/#Albert Sans"
                                     FontSize="11"
                                     Foreground="{StaticResource TextMutedBrush}"
                                     Text="Song title · artist · playback state (Windows SMTC)" />
@@ -235,7 +235,7 @@
                                 Background="{StaticResource AccentDeepPurpleBrush}"
                                 Style="{StaticResource StateBadgeStyle}">
                                 <TextBlock
-                                    FontFamily="Albert Sans Thin"
+                                    FontFamily="/Fonts/#Albert Sans"
                                     FontSize="11"
                                     Foreground="{StaticResource TextSectionHeaderBrush}"
                                     Text="{Binding MediaSessionState}" />
@@ -271,12 +271,12 @@
 
                             <StackPanel Grid.Column="0" VerticalAlignment="Center">
                                 <TextBlock
-                                    FontFamily="Comfortaa Light"
+                                    FontFamily="/Fonts/#Comfortaa"
                                     FontSize="13"
                                     Foreground="{StaticResource TextSectionHeaderBrush}"
                                     Text="💤  AFK Sensor" />
                                 <TextBlock
-                                    FontFamily="Albert Sans Thin"
+                                    FontFamily="/Fonts/#Albert Sans"
                                     FontSize="11"
                                     Foreground="{StaticResource TextMutedBrush}"
                                     Text="Last input timestamp (GetLastInputInfo — no keylogging)" />
@@ -288,7 +288,7 @@
                                 Background="{StaticResource AccentDeepPurpleBrush}"
                                 Style="{StaticResource StateBadgeStyle}">
                                 <TextBlock
-                                    FontFamily="Albert Sans Thin"
+                                    FontFamily="/Fonts/#Albert Sans"
                                     FontSize="11"
                                     Foreground="{StaticResource TextSectionHeaderBrush}"
                                     Text="{Binding AfkSensorState}" />
@@ -324,12 +324,12 @@
 
                             <StackPanel Grid.Column="0" VerticalAlignment="Center">
                                 <TextBlock
-                                    FontFamily="Comfortaa Light"
+                                    FontFamily="/Fonts/#Comfortaa"
                                     FontSize="13"
                                     Foreground="{StaticResource TextSectionHeaderBrush}"
                                     Text="🌐  Internet Access" />
                                 <TextBlock
-                                    FontFamily="Albert Sans Thin"
+                                    FontFamily="/Fonts/#Albert Sans"
                                     FontSize="11"
                                     Foreground="{StaticResource TextMutedBrush}"
                                     Text="Outbound HTTP — Twitch API, Pulsoid heart-rate, Weather, OpenAI, TTS, Speech detection" />
@@ -341,7 +341,7 @@
                                 Background="{StaticResource AccentDeepPurpleBrush}"
                                 Style="{StaticResource StateBadgeStyle}">
                                 <TextBlock
-                                    FontFamily="Albert Sans Thin"
+                                    FontFamily="/Fonts/#Albert Sans"
                                     FontSize="11"
                                     Foreground="{StaticResource TextSectionHeaderBrush}"
                                     Text="{Binding InternetAccessState}" />
@@ -377,12 +377,12 @@
 
                             <StackPanel Grid.Column="0" VerticalAlignment="Center">
                                 <TextBlock
-                                    FontFamily="Comfortaa Light"
+                                    FontFamily="/Fonts/#Comfortaa"
                                     FontSize="13"
                                     Foreground="{StaticResource TextSectionHeaderBrush}"
                                     Text="🎮  VR Tracker Battery" />
                                 <TextBlock
-                                    FontFamily="Albert Sans Thin"
+                                    FontFamily="/Fonts/#Albert Sans"
                                     FontSize="11"
                                     Foreground="{StaticResource TextMutedBrush}"
                                     Text="SteamVR / OpenVR — reads HMD, controller &amp; tracker battery levels" />
@@ -394,7 +394,7 @@
                                 Background="{StaticResource AccentDeepPurpleBrush}"
                                 Style="{StaticResource StateBadgeStyle}">
                                 <TextBlock
-                                    FontFamily="Albert Sans Thin"
+                                    FontFamily="/Fonts/#Albert Sans"
                                     FontSize="11"
                                     Foreground="{StaticResource TextSectionHeaderBrush}"
                                     Text="{Binding VrTrackerBatteryState}" />
@@ -430,12 +430,12 @@
 
                             <StackPanel Grid.Column="0" VerticalAlignment="Center">
                                 <TextBlock
-                                    FontFamily="Comfortaa Light"
+                                    FontFamily="/Fonts/#Comfortaa"
                                     FontSize="13"
                                     Foreground="{StaticResource TextSectionHeaderBrush}"
                                     Text="📶  Network Statistics" />
                                 <TextBlock
-                                    FontFamily="Albert Sans Thin"
+                                    FontFamily="/Fonts/#Albert Sans"
                                     FontSize="11"
                                     Foreground="{StaticResource TextMutedBrush}"
                                     Text="System.Net.NetworkInformation — reads interface byte counters for throughput display" />
@@ -447,7 +447,7 @@
                                 Background="{StaticResource AccentDeepPurpleBrush}"
                                 Style="{StaticResource StateBadgeStyle}">
                                 <TextBlock
-                                    FontFamily="Albert Sans Thin"
+                                    FontFamily="/Fonts/#Albert Sans"
                                     FontSize="11"
                                     Foreground="{StaticResource TextSectionHeaderBrush}"
                                     Text="{Binding NetworkStatsState}" />
@@ -483,12 +483,12 @@
 
                             <StackPanel Grid.Column="0" VerticalAlignment="Center">
                                 <TextBlock
-                                    FontFamily="Comfortaa Light"
+                                    FontFamily="/Fonts/#Comfortaa"
                                     FontSize="13"
                                     Foreground="{StaticResource TextSectionHeaderBrush}"
                                     Text="🔊  Soundpad Bridge" />
                                 <TextBlock
-                                    FontFamily="Albert Sans Thin"
+                                    FontFamily="/Fonts/#Albert Sans"
                                     FontSize="11"
                                     Foreground="{StaticResource TextMutedBrush}"
                                     Text="Named-pipe IPC — connects to the Soundpad desktop application for playback control" />
@@ -500,7 +500,7 @@
                                 Background="{StaticResource AccentDeepPurpleBrush}"
                                 Style="{StaticResource StateBadgeStyle}">
                                 <TextBlock
-                                    FontFamily="Albert Sans Thin"
+                                    FontFamily="/Fonts/#Albert Sans"
                                     FontSize="11"
                                     Foreground="{StaticResource TextSectionHeaderBrush}"
                                     Text="{Binding SoundpadBridgeState}" />
@@ -536,12 +536,12 @@
 
                             <StackPanel Grid.Column="0" VerticalAlignment="Center">
                                 <TextBlock
-                                    FontFamily="Comfortaa Light"
+                                    FontFamily="/Fonts/#Comfortaa"
                                     FontSize="13"
                                     Foreground="{StaticResource TextSectionHeaderBrush}"
                                     Text="📡  VRChat Log Reader" />
                                 <TextBlock
-                                    FontFamily="Albert Sans Thin"
+                                    FontFamily="/Fonts/#Albert Sans"
                                     FontSize="11"
                                     Foreground="{StaticResource TextMutedBrush}"
                                     Text="File read — parses VRChat output_log.txt for world info, player events, and session stats" />
@@ -553,7 +553,7 @@
                                 Background="{StaticResource AccentDeepPurpleBrush}"
                                 Style="{StaticResource StateBadgeStyle}">
                                 <TextBlock
-                                    FontFamily="Albert Sans Thin"
+                                    FontFamily="/Fonts/#Albert Sans"
                                     FontSize="11"
                                     Foreground="{StaticResource TextSectionHeaderBrush}"
                                     Text="{Binding VrcLogReaderState}" />
@@ -589,12 +589,12 @@
 
                             <StackPanel Grid.Column="0" VerticalAlignment="Center">
                                 <TextBlock
-                                    FontFamily="Comfortaa Light"
+                                    FontFamily="/Fonts/#Comfortaa"
                                     FontSize="13"
                                     Foreground="{StaticResource TextSectionHeaderBrush}"
                                     Text="🎯  VR Performance" />
                                 <TextBlock
-                                    FontFamily="Albert Sans Thin"
+                                    FontFamily="/Fonts/#Albert Sans"
                                     FontSize="11"
                                     Foreground="{StaticResource TextMutedBrush}"
                                     Text="SteamVR compositor — frame rate, reprojection, dropped frames and GPU frame time. Requires SteamVR"
@@ -607,7 +607,7 @@
                                 Background="{StaticResource AccentDeepPurpleBrush}"
                                 Style="{StaticResource StateBadgeStyle}">
                                 <TextBlock
-                                    FontFamily="Albert Sans Thin"
+                                    FontFamily="/Fonts/#Albert Sans"
                                     FontSize="11"
                                     Foreground="{StaticResource TextSectionHeaderBrush}"
                                     Text="{Binding VrPerformanceState}" />

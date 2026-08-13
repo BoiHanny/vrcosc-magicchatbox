@@ -132,13 +132,13 @@
                         Margin="10,0,0,0"
                         VerticalAlignment="Center">
                         <TextBlock
-                            FontFamily="Albert Sans"
+                            FontFamily="/Fonts/#Albert Sans"
                             FontSize="15"
                             FontWeight="SemiBold"
                             Foreground="{StaticResource TextSectionHeaderBrush}"
                             Text="MagicChatbox" />
                         <TextBlock
-                            FontFamily="Albert Sans"
+                            FontFamily="/Fonts/#Albert Sans"
                             FontSize="11"
                             Foreground="{StaticResource TextMutedBrush}"
                             Text="Quick actions" />
@@ -159,7 +159,7 @@
 
                 <TextBlock
                     Margin="8,0,8,4"
-                    FontFamily="Albert Sans"
+                    FontFamily="/Fonts/#Albert Sans"
                     FontSize="10"
                     Foreground="{StaticResource TextMutedBrush}"
                     Text="Use the compact sections below, or open the full page from each section."
@@ -183,14 +183,14 @@
                             <StackPanel>
                                 <TextBlock
                                     x:Name="WindowsMediaTitle"
-                                    FontFamily="Albert Sans"
+                                    FontFamily="/Fonts/#Albert Sans"
                                     FontSize="12"
                                     FontWeight="SemiBold"
                                     Foreground="{StaticResource TextPrimaryBrush}"
                                     TextTrimming="CharacterEllipsis" />
                                 <TextBlock
                                     x:Name="WindowsMediaSubtitle"
-                                    FontFamily="Albert Sans"
+                                    FontFamily="/Fonts/#Albert Sans"
                                     FontSize="10"
                                     Foreground="{StaticResource TextMutedBrush}"
                                     TextTrimming="CharacterEllipsis" />
@@ -215,7 +215,7 @@
                                 x:Name="WindowsMediaProgressText"
                                 Margin="0,12,0,0"
                                 HorizontalAlignment="Right"
-                                FontFamily="Albert Sans"
+                                FontFamily="/Fonts/#Albert Sans"
                                 FontSize="10"
                                 Foreground="{StaticResource TextMutedBrush}" />
                         </Grid>
@@ -264,20 +264,20 @@
                             <StackPanel>
                                 <TextBlock
                                     x:Name="SpotifyTitle"
-                                    FontFamily="Albert Sans"
+                                    FontFamily="/Fonts/#Albert Sans"
                                     FontSize="12"
                                     FontWeight="SemiBold"
                                     Foreground="{StaticResource TextPrimaryBrush}"
                                     TextTrimming="CharacterEllipsis" />
                                 <TextBlock
                                     x:Name="SpotifySubtitle"
-                                    FontFamily="Albert Sans"
+                                    FontFamily="/Fonts/#Albert Sans"
                                     FontSize="10"
                                     Foreground="{StaticResource TextMutedBrush}"
                                     TextTrimming="CharacterEllipsis" />
                                 <TextBlock
                                     x:Name="SpotifyProgress"
-                                    FontFamily="Albert Sans"
+                                    FontFamily="/Fonts/#Albert Sans"
                                     FontSize="10"
                                     Foreground="{StaticResource AccentTealBrush}"
                                     TextTrimming="CharacterEllipsis" />
@@ -345,7 +345,7 @@
                             </Grid.ColumnDefinitions>
                             <StackPanel>
                                 <TextBlock
-                                    FontFamily="Albert Sans"
+                                    FontFamily="/Fonts/#Albert Sans"
                                     FontSize="12"
                                     FontWeight="SemiBold"
                                     Foreground="{StaticResource TextPrimaryBrush}"
@@ -353,7 +353,7 @@
                                 <TextBlock
                                     x:Name="TrayChatHelp"
                                     Margin="0,2,10,0"
-                                    FontFamily="Albert Sans"
+                                    FontFamily="/Fonts/#Albert Sans"
                                     FontSize="10"
                                     Foreground="{StaticResource TextMutedBrush}"
                                     Text="Type here or open the full chat page." />
@@ -375,7 +375,7 @@
                                 Padding="4,0,74,0"
                                 HorizontalContentAlignment="Left"
                                 VerticalContentAlignment="Center"
-                                FontFamily="Albert Sans"
+                                FontFamily="/Fonts/#Albert Sans"
                                 FontSize="13"
                                 GotKeyboardFocus="TrayChatText_GotKeyboardFocus"
                                 KeyDown="TrayChatText_KeyDown"
@@ -386,7 +386,7 @@
                             <TextBlock
                                 Padding="12,0,78,0"
                                 VerticalAlignment="Center"
-                                FontFamily="Albert Sans"
+                                FontFamily="/Fonts/#Albert Sans"
                                 FontSize="13"
                                 Foreground="{StaticResource TextDarkMutedBrush}"
                                 IsHitTestVisible="False"
@@ -411,7 +411,7 @@
                                 Margin="0,0,8,0"
                                 HorizontalAlignment="Right"
                                 VerticalAlignment="Center"
-                                FontFamily="Albert Sans"
+                                FontFamily="/Fonts/#Albert Sans"
                                 FontSize="10"
                                 Foreground="{StaticResource TextMutedBrush}"
                                 IsHitTestVisible="False"
@@ -536,7 +536,7 @@
                         </ToggleButton>
                         <TextBlock
                             Margin="8,6,8,2"
-                            FontFamily="Albert Sans"
+                            FontFamily="/Fonts/#Albert Sans"
                             FontSize="10"
                             Foreground="{StaticResource TextMutedBrush}"
                             Text="Pick the group shown on the Status page. When cycle source is set to selected group, cycling only pulls from that group."
