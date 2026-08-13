@@ -64,25 +64,30 @@ public sealed class OscSenderService : IOscSender, IDisposable
     private AppSettings AS => _appSettings;
     private TtsSettings TTS => _ttsSettings;
 
-    public async Task<bool> SendOSCMessage(bool fx, int delay = 0, bool force = false)
+    public async Task<bool> SendOSCMessage(bool fx, int delay = 0, bool force = false, string? explicitText = null)
     {
-        if (!_appState.MasterSwitch || _oscDisplay.OscToSent.Length > Core.Constants.OscMaxMessageLength)
+        string textToSend = explicitText ?? _oscDisplay.OscToSent;
+
+        if (!_appState.MasterSwitch || textToSend.Length > Core.Constants.OscMaxMessageLength)
             return false;
 
         await DeactivateTypingIndicatorAsync();
 
-        if (string.IsNullOrEmpty(_oscDisplay.OscToSent))
+        if (explicitText is null && !string.Equals(_oscDisplay.OscToSent, textToSend, StringComparison.Ordinal))
+            return false;
+
+        if (string.IsNullOrEmpty(textToSend))
         {
             if (_lastChatboxHadContent)
                 return await SentClearMessageCore(0);
             return false;
         }
 
-        string messageSignature = CreateMessageSignature(fx);
+        string messageSignature = CreateMessageSignature(fx, textToSend);
         if (!force && ShouldSkipDuplicateMessage(messageSignature))
             return false;
 
-        if (!await SendMessageAsync(PrepareMessage(fx), delay))
+        if (!await SendMessageAsync(PrepareMessage(fx, textToSend), delay))
             return false;
 
         _lastChatboxHadContent = true;
@@ -198,25 +203,25 @@ public sealed class OscSenderService : IOscSender, IDisposable
 
     #region Private helpers
 
-    private OscMessage PrepareMessage(bool fx)
+    private OscMessage PrepareMessage(bool fx, string text)
     {
-        return new OscMessage(CHATBOX_INPUT, GetPreparedChatboxText(), true, fx);
+        return new OscMessage(CHATBOX_INPUT, GetPreparedChatboxText(text), true, fx);
     }
 
-    private string GetPreparedChatboxText()
+    private string GetPreparedChatboxText(string text)
     {
         string blankEgg = "\u0003\u001f";
-        string combinedText = _oscDisplay.OscToSent + blankEgg;
+        string combinedText = text + blankEgg;
 
         if (combinedText.Length < 145 && _appState.Egg_Dev && AS.BlankEgg)
             return combinedText;
 
-        return _oscDisplay.OscToSent;
+        return text;
     }
 
-    private string CreateMessageSignature(bool fx)
+    private string CreateMessageSignature(bool fx, string text)
     {
-        return string.Join('\u001e', fx, GetPreparedChatboxText());
+        return string.Join('\u001e', fx, GetPreparedChatboxText(text));
     }
 
     private bool ShouldSkipDuplicateMessage(string messageSignature)
