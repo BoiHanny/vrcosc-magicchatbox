@@ -81,6 +81,7 @@ public partial class IntegrationSettings : VersionedSettings
     [ObservableProperty] private bool _intgrVrcRadar_DESKTOP = true;
 
     [ObservableProperty]
+    [property: JsonProperty(ObjectCreationHandling = ObjectCreationHandling.Replace)]
     private ObservableCollection<string> _savedSortOrder = new(IntegrationDisplayState.DefaultSortOrder);
 
     // Tiles the user has hidden from the Integrations page. Purely visual: nothing here starts or stops an

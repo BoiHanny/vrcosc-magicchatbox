@@ -12,6 +12,16 @@ using vrcosc_magicchatbox.Services;
 
 namespace vrcosc_magicchatbox.Core.Configuration;
 
+public static class JsonSettingsSerialization
+{
+    // Collections pre-populated with defaults (e.g. IntegrationSettings.SavedSortOrder) must be
+    // replaced by the saved values on load, not appended to - Json.NET's default is to append.
+    public static readonly JsonSerializerSettings DeserializerSettings = new()
+    {
+        ObjectCreationHandling = ObjectCreationHandling.Replace
+    };
+}
+
 public sealed class JsonSettingsProvider<T> : ISettingsProvider<T>, IDisposable where T : class, new()
 {
     private T _settings;
@@ -69,7 +79,7 @@ public sealed class JsonSettingsProvider<T> : ISettingsProvider<T>, IDisposable 
                     var json = ReadFileWithRetry(_filePath);
                     if (!string.IsNullOrWhiteSpace(json) && !json.All(c => c == '\0'))
                     {
-                        var loaded = JsonConvert.DeserializeObject<T>(json);
+                        var loaded = JsonConvert.DeserializeObject<T>(json, JsonSettingsSerialization.DeserializerSettings);
                         if (loaded is null)
                             Logging.WriteInfo($"Settings file for {typeof(T).Name} deserialized to null (damaged content?); falling back to defaults.");
                         _settings = loaded ?? new T();
