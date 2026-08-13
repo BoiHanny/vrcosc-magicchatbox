@@ -18,7 +18,31 @@ public class ModelTypeInfoAttribute : Attribute
 }
 
 [AttributeUsage(AttributeTargets.Field)]
-public class ReasoningModelAttribute : Attribute { }
+public class ModelCapabilitiesAttribute : Attribute
+{
+    public ModelCapabilitiesAttribute(bool supportsSamplingParams, int minOutputTokens)
+    {
+        SupportsSamplingParams = supportsSamplingParams;
+        MinOutputTokens = minOutputTokens;
+    }
+
+    public bool SupportsSamplingParams { get; }
+
+    public int MinOutputTokens { get; }
+
+    public static readonly ModelCapabilitiesAttribute Default = new(supportsSamplingParams: true, minOutputTokens: 0);
+}
+
+/// <summary>
+/// Reasoning models reject sampling parameters (temperature, top-p, penalties) and spend output
+/// tokens on hidden reasoning before any visible text appears, so a budget sized for a classic
+/// sampling model gets consumed entirely by reasoning and the reply comes back empty.
+/// </summary>
+[AttributeUsage(AttributeTargets.Field)]
+public class ReasoningModelAttribute : ModelCapabilitiesAttribute
+{
+    public ReasoningModelAttribute() : base(supportsSamplingParams: false, minOutputTokens: 1000) { }
+}
 
 /// <summary>
 /// Every value here is written out explicitly and must never be reused or renumbered. The selected
@@ -29,19 +53,19 @@ public class ReasoningModelAttribute : Attribute { }
 /// </summary>
 public enum IntelliGPTModel
 {
-    [Description("gpt-5.2"), ModelTypeInfo("Chat")]
+    [Description("gpt-5.2"), ModelTypeInfo("Chat"), ReasoningModel]
     gpt5_2 = 0,
 
-    [Description("gpt-5.1"), ModelTypeInfo("Chat")]
+    [Description("gpt-5.1"), ModelTypeInfo("Chat"), ReasoningModel]
     gpt5_1 = 1,
 
-    [Description("gpt-5"), ModelTypeInfo("Chat")]
+    [Description("gpt-5"), ModelTypeInfo("Chat"), ReasoningModel]
     gpt5 = 2,
 
-    [Description("gpt-5-mini"), ModelTypeInfo("Chat")]
+    [Description("gpt-5-mini"), ModelTypeInfo("Chat"), ReasoningModel]
     gpt5_mini = 3,
 
-    [Description("gpt-5-nano"), ModelTypeInfo("Chat")]
+    [Description("gpt-5-nano"), ModelTypeInfo("Chat"), ReasoningModel]
     gpt5_nano = 4,
 
     [Description("gpt-4.1"), ModelTypeInfo("Chat")]
