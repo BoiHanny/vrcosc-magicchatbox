@@ -83,6 +83,10 @@ public partial class AppSettings : VersionedSettings
     [ObservableProperty] private bool _settings_VrPerformance = false;
     [ObservableProperty] private bool _settings_Lyrics = false;
 
+    // Privacy was the one section whose expander lived on a view-model field instead of here, so it
+    // was the one section that forgot whether you had it open.
+    [ObservableProperty] private bool _settings_Privacy = false;
+
     // Remembered main-window placement. NaN means "never saved", so a fresh install still centres.
     [ObservableProperty] private double _windowLeft = double.NaN;
     [ObservableProperty] private double _windowTop = double.NaN;

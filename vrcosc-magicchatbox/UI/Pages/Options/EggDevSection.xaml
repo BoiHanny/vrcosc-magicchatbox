@@ -49,10 +49,7 @@
             Visibility="{Binding AppSettings.SettingsDev, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
             <Border>
                 <StackPanel>
-                    <CheckBox
-                        x:Name="BlankEgg_checkbox"
-                        IsChecked="{Binding AppSettings.BlankEgg, Mode=TwoWay}"
-                        Style="{DynamicResource SettingsCheckbox}">
+                    <CheckBox x:Name="BlankEgg_checkbox" IsChecked="{Binding AppSettings.BlankEgg, Mode=TwoWay}">
                         ItsByMe MODE
                     </CheckBox>
                 </StackPanel>

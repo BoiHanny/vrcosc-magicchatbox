@@ -46,6 +46,9 @@ public sealed class MenuNavigationService : IMenuNavigationService
             { "Settings_HeartRate", v => appSettings.Settings_HeartRate = v },
             { "Settings_Status", v => appSettings.Settings_Status = v },
             { "Settings_VrcRadar", v => appSettings.Settings_VrcRadar = v },
+            // Privacy is in the sweep so activating another section closes it like any other, but
+            // it keeps its own entry point below because it also has a row to scroll to.
+            { "Settings_Privacy", v => appSettings.Settings_Privacy = v },
             { "Settings_EggDev", v => appSettings.SettingsDev = v }
         };
     }

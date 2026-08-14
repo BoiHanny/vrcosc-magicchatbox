@@ -7,6 +7,7 @@ using System.Net.Http;
 using vrcosc_magicchatbox.Classes.DataAndSecurity;
 using vrcosc_magicchatbox.Classes.Modules;
 using vrcosc_magicchatbox.Core.Configuration;
+using vrcosc_magicchatbox.Core.Osc;
 using vrcosc_magicchatbox.Core.Services;
 using vrcosc_magicchatbox.Core.State;
 using vrcosc_magicchatbox.Core.Toast;
@@ -25,6 +26,9 @@ public partial class AppOptionsSectionViewModel : ObservableObject
     private readonly Lazy<IStatusListService> _statusListSvc;
     private readonly IMenuNavigationService _menuNav;
     private readonly INavigationService _nav;
+
+    /// <summary>The sample line shown under the prefix, suffix and separator boxes.</summary>
+    [ObservableProperty] private string _linePreview = string.Empty;
 
     public AppSettings AppSettings { get; }
     public TtsSettings TtsSettings { get; }
@@ -59,7 +63,31 @@ public partial class AppOptionsSectionViewModel : ObservableObject
         _statusListSvc = statusListSvc;
         _menuNav = menuNav;
         _nav = nav;
+
+        AppSettings.PropertyChanged += OnAppSettingChanged;
+        RefreshLinePreview();
     }
+
+    private static readonly string[] LineShapingSettings =
+    [
+        nameof(AppSettings.OscMessagePrefix),
+        nameof(AppSettings.OscMessageSuffix),
+        nameof(AppSettings.OscMessageSeparator),
+        nameof(AppSettings.SeperateWithENTERS)
+    ];
+
+    private void OnAppSettingChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName != null && System.Array.IndexOf(LineShapingSettings, e.PropertyName) >= 0)
+            RefreshLinePreview();
+    }
+
+    private void RefreshLinePreview()
+        => LinePreview = OscLinePreview.Build(
+            AppSettings.OscMessagePrefix,
+            AppSettings.OscMessageSuffix,
+            AppSettings.OscMessageSeparator,
+            AppSettings.SeperateWithENTERS);
 
     [RelayCommand]
     private void ResetOscIp() => OscSettings.OscIP = "127.0.0.1";
