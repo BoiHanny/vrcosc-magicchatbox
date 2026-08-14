@@ -402,7 +402,7 @@
                     FontSize="13"
                     Foreground="{StaticResource TextLabelBrush}"
                     Style="{StaticResource OptionHelpTextStyle}"
-                    Text="Tip: use /n for a new line." />
+                    Text="Tip: use \n for a new line." />
 
                 <CheckBox
                     x:Name="ToggleVoiceWithV"

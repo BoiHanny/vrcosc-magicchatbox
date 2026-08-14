@@ -80,7 +80,8 @@
                 FontFamily="/Fonts/#Comfortaa"
                 FontSize="14"
                 Foreground="LightYellow"
-                Text="Order affects the integrations list and OSC message priority." />
+                Text="Order sets the integrations list and where each part sits in the chatbox line. It does not decide what gets dropped when the line runs out of room."
+                TextWrapping="Wrap" />
 
             <Grid Grid.Row="1" Margin="0,10,0,10">
                 <Grid.ColumnDefinitions>
