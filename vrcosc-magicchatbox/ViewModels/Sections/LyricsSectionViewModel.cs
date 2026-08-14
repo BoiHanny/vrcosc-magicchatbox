@@ -115,19 +115,27 @@ public partial class LyricsSectionViewModel : ObservableObject
 
     public string TightPreview => Preview(40);
 
-    public string OffsetSummary => Settings.OffsetMs == 0
-        ? "In sync"
-        : Settings.OffsetMs > 0
-            ? $"Lyrics run {Settings.OffsetMs} ms early"
-            : $"Lyrics run {Math.Abs(Settings.OffsetMs)} ms late";
+    public string OffsetSummary => LyricsTuning.FormatOffsetSummary(Settings.OffsetMs);
+
+    /// <summary>
+    /// Compact form for the Integrations ribbon pill; <see cref="OffsetSummary" /> stays the long
+    /// form for the Options page, which has a whole card to spend on it.
+    /// </summary>
+    public string OffsetChip => LyricsTuning.FormatOffsetChip(Settings.OffsetMs);
+
+    /// <summary>Non-null when the hold silently disables the ♪ break marker.</summary>
+    public string? TimingWarning
+        => LyricsTuning.DescribeTimingConflict(Settings.GapThresholdSeconds, Settings.LineHoldSeconds);
+
+    public bool HasTimingWarning => TimingWarning != null;
 
     [RelayCommand]
     private void NudgeOffset(string amount)
     {
-        if (!int.TryParse(amount, out int delta))
+        if (!LyricsTuning.TryParseDelta(amount, out int delta))
             return;
 
-        Settings.OffsetMs = Math.Clamp(Settings.OffsetMs + delta, -10000, 10000);
+        Settings.OffsetMs = LyricsTuning.NudgeOffsetMs(Settings.OffsetMs, delta);
         _settingsProvider.Save();
     }
 
@@ -135,6 +143,26 @@ public partial class LyricsSectionViewModel : ObservableObject
     private void ResetOffset()
     {
         Settings.OffsetMs = 0;
+        _settingsProvider.Save();
+    }
+
+    [RelayCommand]
+    private void NudgeGapThreshold(string amount)
+    {
+        if (!LyricsTuning.TryParseDelta(amount, out int delta))
+            return;
+
+        Settings.GapThresholdSeconds = LyricsTuning.NudgeGapThresholdSeconds(Settings.GapThresholdSeconds, delta);
+        _settingsProvider.Save();
+    }
+
+    [RelayCommand]
+    private void NudgeLineHold(string amount)
+    {
+        if (!LyricsTuning.TryParseDelta(amount, out int delta))
+            return;
+
+        Settings.LineHoldSeconds = LyricsTuning.NudgeLineHoldSeconds(Settings.LineHoldSeconds, delta);
         _settingsProvider.Save();
     }
 
@@ -162,6 +190,9 @@ public partial class LyricsSectionViewModel : ObservableObject
         OnPropertyChanged(nameof(RoomyPreview));
         OnPropertyChanged(nameof(TightPreview));
         OnPropertyChanged(nameof(OffsetSummary));
+        OnPropertyChanged(nameof(OffsetChip));
+        OnPropertyChanged(nameof(TimingWarning));
+        OnPropertyChanged(nameof(HasTimingWarning));
     }
 
     private string Preview(int budget)

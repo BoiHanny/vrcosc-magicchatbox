@@ -238,6 +238,23 @@ namespace vrcosc_magicchatbox.UI.Pages
         private void SoundPadRandon_Click(object sender, RoutedEventArgs e)
             => VM?.SoundpadRandomCommand.Execute(null);
 
+        /// <summary>
+        /// The lyrics ribbon hops between the Spotify and Media link cards, and the losing card's copy
+        /// of the template just collapses. WPF hides the popup along with it, but the toggle would stay
+        /// latched, so the next click on it would only untick and open nothing.
+        /// </summary>
+        /// <remarks>
+        /// A style trigger on IsVisible cannot do this: a user click sets IsChecked as a local value,
+        /// which outranks any style setter.
+        /// </remarks>
+        private void LyricsRibbonRoot_IsVisibleChanged(object sender, DependencyPropertyChangedEventArgs e)
+        {
+            if (e.NewValue is true) return;
+
+            if (sender is FrameworkElement root && root.FindName("LyricsSyncToggle") is ToggleButton toggle)
+                toggle.IsChecked = false;
+        }
+
         private void SpotifyVolume_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
         {
             if (sender is Slider slider)
