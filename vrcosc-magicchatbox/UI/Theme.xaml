@@ -32,9 +32,12 @@
     <sys:Double x:Key="FontSizeHeading">18</sys:Double>
     <sys:Double x:Key="FontSizeSubheading">16</sys:Double>
     <sys:Double x:Key="FontSizeBody">15</sys:Double>
+    <!--  14 and 10 are the two steps the pages actually reach for that the scale could not express.  -->
+    <sys:Double x:Key="FontSizeCompact">14</sys:Double>
     <sys:Double x:Key="FontSizeSecondary">13</sys:Double>
     <sys:Double x:Key="FontSizeCaption">12</sys:Double>
     <sys:Double x:Key="FontSizeMicro">11</sys:Double>
+    <sys:Double x:Key="FontSizeFine">10</sys:Double>
 
     <!--
         Lifted from #FFA997BA, which measured exactly 4.50:1 on cards (#FF3B3054) and only
