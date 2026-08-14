@@ -1,0 +1,61 @@
+<UserControl
+    x:Class="vrcosc_magicchatbox.UI.Controls.SegmentPreview"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    x:Name="Root"
+    d:DesignWidth="420"
+    mc:Ignorable="d">
+
+    <StackPanel Margin="0,8,0,0">
+        <TextBlock
+            Margin="2,0,0,4"
+            FontFamily="{StaticResource FontPrimary}"
+            FontSize="{StaticResource FontSizeCaption}"
+            Foreground="{StaticResource TextMutedBrush}"
+            Text="{Binding Caption, ElementName=Root}"
+            Visibility="{Binding HasCaption, ElementName=Root, Converter={StaticResource BoolToVisibilityConverter}}" />
+
+        <Border
+            Padding="10,7"
+            Background="{StaticResource SurfaceDarkBrush}"
+            BorderBrush="{StaticResource DeckEdgeBrush}"
+            BorderThickness="1"
+            CornerRadius="8"
+            SnapsToDevicePixels="True">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+
+                <!--  The line as the chatbox would receive it, wrapping rather than clipping so a
+                      preview never hides the part that would have overflowed.  -->
+                <TextBlock
+                    Grid.Column="0"
+                    Margin="0,0,8,0"
+                    VerticalAlignment="Center"
+                    FontFamily="{StaticResource FontPrimary}"
+                    FontSize="{StaticResource FontSizeBody}"
+                    Foreground="{StaticResource TextLightPurpleBrush}"
+                    Text="{Binding Line, ElementName=Root}"
+                    TextWrapping="Wrap" />
+
+                <Border
+                    x:Name="CostChip"
+                    Grid.Column="1"
+                    Padding="7,2"
+                    VerticalAlignment="Center"
+                    CornerRadius="5"
+                    SnapsToDevicePixels="True">
+                    <TextBlock
+                        FontFamily="{StaticResource FontPrimary}"
+                        FontSize="{StaticResource FontSizeMicro}"
+                        Foreground="{StaticResource TextSectionHeaderBrush}"
+                        Text="{Binding CostText, ElementName=Root}" />
+                </Border>
+            </Grid>
+        </Border>
+    </StackPanel>
+</UserControl>
