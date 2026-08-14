@@ -69,7 +69,9 @@ public class MediaLinkShorteningTests
         string artist,
         bool shortenToFit,
         bool withSeekbar = true,
-        bool tidyTitles = false)
+        bool tidyTitles = false,
+        bool showTitle = true,
+        bool showArtist = true)
     {
         var integrations = new IntegrationSettings
         {
@@ -99,8 +101,8 @@ public class MediaLinkShorteningTests
         {
             IsActive = true,
             PlaybackStatus = GlobalSystemMediaTransportControlsSessionPlaybackStatus.Playing,
-            ShowTitle = true,
-            ShowArtist = true,
+            ShowTitle = showTitle,
+            ShowArtist = showArtist,
             Title = title,
             Artist = artist,
             TimePeekEnabled = withSeekbar,
@@ -199,6 +201,34 @@ public class MediaLinkShorteningTests
         Assert.True(text.Length <= OscBuildContext.MaxOscLength,
             $"expected the line to fit, but it was {text.Length} characters");
         Assert.Contains("TTTTTTTTTT", text);
+    }
+
+    [Theory]
+    [InlineData(false, false)]
+    [InlineData(true, false)]
+    [InlineData(false, true)]
+    public void Switching_off_the_title_and_the_artist_does_not_throw(bool showTitle, bool showArtist)
+    {
+        // Both off leaves the ladder with no rungs at all. It used to index into the empty list,
+        // which threw, and the fault tracker then disabled MediaLink for a minute at a time.
+        var harness = Build(
+            "Blinding Lights",
+            "The Weeknd",
+            shortenToFit: true,
+            showTitle: showTitle,
+            showArtist: showArtist);
+
+        string text = harness.Build();
+
+        Assert.True(text.Length <= OscBuildContext.MaxOscLength);
+    }
+
+    [Fact]
+    public void A_session_with_no_metadata_at_all_falls_back_to_the_action_text()
+    {
+        string text = Build(string.Empty, string.Empty, shortenToFit: true).Build();
+
+        Assert.Contains("Listening to", text);
     }
 
     private const string YoutubeUpload = "Rick Astley - Never Gonna Give You Up (Official Music Video) [4K]";

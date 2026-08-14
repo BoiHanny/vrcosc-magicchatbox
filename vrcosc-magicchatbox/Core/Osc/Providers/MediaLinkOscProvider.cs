@@ -219,8 +219,12 @@ public sealed class MediaLinkOscProvider : IOscProvider
         // Last rung before cutting mid-word: the title on its own still names the song.
         Add(plainTitle);
 
+        // Nothing to say about the track - both switched off, or a session with no metadata. Add()
+        // rejects empty strings, so the list has to be given its one empty rung directly; Line()
+        // turns that into the action text on its own. The ladder must never come back empty,
+        // because the callers index into it.
         if (bodies.Count == 0)
-            Add(Join(title, artist));
+            bodies.Add(string.Empty);
 
         return bodies;
     }
