@@ -2,7 +2,9 @@
 using System.Linq;
 using vrcosc_magicchatbox.Classes.DataAndSecurity;
 using vrcosc_magicchatbox.Classes.Modules;
+using vrcosc_magicchatbox.Classes.Modules.Status;
 using vrcosc_magicchatbox.Core.Configuration;
+using vrcosc_magicchatbox.Core.Osc.Text;
 using vrcosc_magicchatbox.Core.Services;
 using vrcosc_magicchatbox.Core.State;
 using vrcosc_magicchatbox.Services;
@@ -58,10 +60,12 @@ public sealed class StatusOscProvider : IOscProvider
     public OscSegment? TryBuild(OscBuildContext context)
     {
         var afk = _modules.Value.Afk;
+        int budget = ResolveBudget(context);
 
         if (afk != null && afk.IsAfk && afk.Settings.EnableAfkDetection)
         {
-            string afkText = afk.GenerateAFKString();
+            // The AFK styles lay out their own spacing, so this only cuts - it does not tidy.
+            string afkText = SegmentWriter.Truncate(afk.GenerateAFKString(), budget);
             if (!string.IsNullOrEmpty(afkText))
                 return new OscSegment { Text = afkText };
         }
@@ -76,9 +80,24 @@ public sealed class StatusOscProvider : IOscProvider
         if (active == null) return null;
 
         string icon = _emojis.GetNextEmoji();
-        string text = _app.PrefixIconStatus ? $"{icon} {active.msg}" : active.msg;
+        string text = StatusLine.Compose(active.msg, icon, _app.PrefixIconStatus, budget);
 
         return string.IsNullOrEmpty(text) ? null : new OscSegment { Text = text };
+    }
+
+    /// <summary>
+    /// The room the line has left. Status is first in the default order, so that is normally the
+    /// whole line - but when nothing is left it takes a line's worth anyway rather than standing
+    /// aside for segments it outranks. Status has the lowest Priority number in the app; deciding
+    /// who goes when the line is full is the builder's job, not this one's.
+    /// </summary>
+    private static int ResolveBudget(OscBuildContext context)
+    {
+        int room = context.RemainingCharsIf(string.Empty);
+
+        return room > 0
+            ? room
+            : OscBuildContext.MaxOscLength - context.Prefix.Length - context.Suffix.Length;
     }
 
     #region Status Cycling (moved from OSCController)

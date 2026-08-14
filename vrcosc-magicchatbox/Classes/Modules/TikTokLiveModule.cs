@@ -15,6 +15,7 @@ using TikTokLiveSharp.Events.Objects;
 using vrcosc_magicchatbox.Classes.DataAndSecurity;
 using vrcosc_magicchatbox.Core;
 using vrcosc_magicchatbox.Core.Configuration;
+using vrcosc_magicchatbox.Core.Osc.Text;
 using vrcosc_magicchatbox.Core.Privacy;
 using vrcosc_magicchatbox.Core.State;
 using vrcosc_magicchatbox.Services;
@@ -23,14 +24,13 @@ namespace vrcosc_magicchatbox.Classes.Modules;
 
 public sealed partial class TikTokLiveModule : ObservableObject, IModule
 {
-    private static readonly Regex MultiSpaceRegex = new("[ \t]{2,}", RegexOptions.Compiled);
     private static readonly Regex TikTokUserNameRegex = new("^[A-Za-z0-9._]{2,24}$", RegexOptions.Compiled | RegexOptions.CultureInvariant);
     private static readonly Regex FollowerCountRegex = new("\"followerCount\"\\s*:\\s*(?<value>\\d+)", RegexOptions.Compiled | RegexOptions.CultureInvariant);
     private static readonly Regex NicknameRegex = new("\"nickname\"\\s*:\\s*\"(?<value>(?:\\\\.|[^\"])*)\"", RegexOptions.Compiled | RegexOptions.CultureInvariant);
     private static readonly Regex UniqueIdRegex = new("\"uniqueId\"\\s*:\\s*\"(?<value>(?:\\\\.|[^\"])*)\"", RegexOptions.Compiled | RegexOptions.CultureInvariant);
 
-    private const int CommentPreviewLength = 60;
-    private const int UserPreviewLength = 24;
+    private const int CommentPreviewLength = TikTokLiveOutput.CommentPreviewLength;
+    private const int UserPreviewLength = TikTokLiveOutput.UserPreviewLength;
     private const int PriorityLike = 1;
     private const int PriorityComment = 2;
     private const int PriorityFollow = 3;
@@ -285,11 +285,12 @@ public sealed partial class TikTokLiveModule : ObservableObject, IModule
         return !string.IsNullOrWhiteSpace(ResolveLiveHostUserName());
     }
 
-    public string GetOutputString()
+    /// <summary>The segment, cut to the room the line has left rather than handed over oversized.</summary>
+    public string GetOutputString(int budget)
     {
         lock (_stateLock)
         {
-            return BuildOutput_NoLock();
+            return BuildOutput_NoLock(budget);
         }
     }
 
@@ -886,7 +887,8 @@ public sealed partial class TikTokLiveModule : ObservableObject, IModule
                 BuildEventTokens(
                     user: ExtractUserName(gift.User),
                     uniqueId: ExtractUniqueId(gift.User),
-                    giftName: gift.Gift?.Name,
+                    // A gift name comes off the wire with no length at all attached to it.
+                    giftName: Truncate(gift.Gift?.Name, TikTokLiveOutput.GiftNameLength),
                     count: count.ToString(CultureInfo.InvariantCulture),
                     amount: gift.Amount.ToString(CultureInfo.InvariantCulture)));
 
@@ -1002,7 +1004,14 @@ public sealed partial class TikTokLiveModule : ObservableObject, IModule
         string liveSummary = BuildLiveSummary_NoLock();
         string profileOutput = BuildProfileOutput_NoLock(profileSummary);
         string liveOutput = Settings.EnableLiveConnector && _live ? BuildLiveOutput_NoLock(liveSummary) : string.Empty;
-        string output = BuildOutput_NoLock(profileOutput, liveOutput);
+
+        // The preview is shown with no other integration on the line, so it gets the whole line -
+        // it still never shows a length the chatbox would refuse.
+        string output = TikTokLiveOutput.Fit(
+            Constants.OscMaxMessageLength,
+            BuildOutput_NoLock(profileOutput, liveOutput),
+            profileOutput,
+            liveOutput);
 
         return new UiSnapshot(
             _moduleRunning,
@@ -1036,7 +1045,7 @@ public sealed partial class TikTokLiveModule : ObservableObject, IModule
             BuildEventTokens(
                 profile: _activeProfileUserName,
                 displayName: _profileDisplayName,
-                followers: FormatCount(_profileFollowerCount, Settings.CompactViewerCount),
+                followers: FormatChatCount(_profileFollowerCount, Settings.CompactViewerCount),
                 followerCount: _profileFollowerCount.ToString(CultureInfo.InvariantCulture),
                 updated: _profileFetchedAtUtc == DateTime.MinValue ? string.Empty : _profileFetchedAtUtc.ToLocalTime().ToString("HH:mm", CultureInfo.CurrentCulture)));
     }
@@ -1050,21 +1059,21 @@ public sealed partial class TikTokLiveModule : ObservableObject, IModule
             Settings.SummaryTemplate,
             BuildEventTokens(
                 host: _activeHostUserName,
-                viewers: FormatCount(_viewerCount, Settings.CompactViewerCount),
+                viewers: FormatChatCount(_viewerCount, Settings.CompactViewerCount),
                 viewerCount: _viewerCount.ToString(CultureInfo.InvariantCulture),
-                likes: FormatCount(_likeTotal, Settings.CompactLikeCount),
+                likes: FormatChatCount(_likeTotal, Settings.CompactLikeCount),
                 likeCount: _likeTotal.ToString(CultureInfo.InvariantCulture),
                 roomId: _roomId));
     }
 
-    private string BuildOutput_NoLock()
+    private string BuildOutput_NoLock(int budget)
     {
         string profileSummary = BuildProfileSummary_NoLock();
         string profileOutput = BuildProfileOutput_NoLock(profileSummary);
         string liveSummary = BuildLiveSummary_NoLock();
         string liveOutput = Settings.EnableLiveConnector && _live ? BuildLiveOutput_NoLock(liveSummary) : string.Empty;
 
-        return BuildOutput_NoLock(profileOutput, liveOutput);
+        return TikTokLiveOutput.Fit(budget, BuildOutput_NoLock(profileOutput, liveOutput), profileOutput, liveOutput);
     }
 
     private string BuildProfileOutput_NoLock(string profileSummary)
@@ -1138,7 +1147,7 @@ public sealed partial class TikTokLiveModule : ObservableObject, IModule
         string message = RenderTemplate(
             Settings.ViewerMilestoneTemplate,
             BuildEventTokens(
-                viewers: FormatCount(bucket * step, Settings.CompactViewerCount),
+                viewers: FormatChatCount(bucket * step, Settings.CompactViewerCount),
                 viewerCount: (bucket * step).ToString(CultureInfo.InvariantCulture),
                 host: _activeHostUserName));
 
@@ -1170,9 +1179,9 @@ public sealed partial class TikTokLiveModule : ObservableObject, IModule
             BuildEventTokens(
                 profile: profile.UniqueId,
                 displayName: profile.DisplayName,
-                followers: FormatCount(profile.FollowerCount, Settings.CompactViewerCount),
+                followers: FormatChatCount(profile.FollowerCount, Settings.CompactViewerCount),
                 followerCount: profile.FollowerCount.ToString(CultureInfo.InvariantCulture),
-                change: FormatCount(followerIncrease, Settings.CompactViewerCount),
+                change: FormatChatCount(followerIncrease, Settings.CompactViewerCount),
                 changeCount: followerIncrease.ToString(CultureInfo.InvariantCulture),
                 updated: _profileFetchedAtUtc == DateTime.MinValue ? string.Empty : _profileFetchedAtUtc.ToLocalTime().ToString("HH:mm", CultureInfo.CurrentCulture)));
 
@@ -1412,14 +1421,14 @@ public sealed partial class TikTokLiveModule : ObservableObject, IModule
             ["amount"] = amount ?? string.Empty,
             ["total"] = total ?? string.Empty,
             ["host"] = host ?? _activeHostUserName,
-            ["viewers"] = viewers ?? FormatCount(_viewerCount, Settings.CompactViewerCount),
+            ["viewers"] = viewers ?? FormatChatCount(_viewerCount, Settings.CompactViewerCount),
             ["viewer_count"] = viewerCount ?? _viewerCount.ToString(CultureInfo.InvariantCulture),
-            ["likes"] = likes ?? FormatCount(_likeTotal, Settings.CompactLikeCount),
+            ["likes"] = likes ?? FormatChatCount(_likeTotal, Settings.CompactLikeCount),
             ["like_count"] = likeCount ?? _likeTotal.ToString(CultureInfo.InvariantCulture),
             ["room"] = roomId ?? _roomId,
             ["profile"] = profile ?? _activeProfileUserName,
             ["display_name"] = displayName ?? _profileDisplayName,
-            ["followers"] = followers ?? (_profileFollowerCount >= 0 ? FormatCount(_profileFollowerCount, Settings.CompactViewerCount) : string.Empty),
+            ["followers"] = followers ?? (_profileFollowerCount >= 0 ? FormatChatCount(_profileFollowerCount, Settings.CompactViewerCount) : string.Empty),
             ["follower_count"] = followerCount ?? (_profileFollowerCount >= 0 ? _profileFollowerCount.ToString(CultureInfo.InvariantCulture) : string.Empty),
             ["change"] = change ?? string.Empty,
             ["change_count"] = changeCount ?? string.Empty,
@@ -1465,43 +1474,22 @@ public sealed partial class TikTokLiveModule : ObservableObject, IModule
     }
 
     private static string RenderTemplate(string? template, IReadOnlyDictionary<string, string> tokens)
-    {
-        string rendered = template ?? string.Empty;
+        => TikTokLiveOutput.Render(template, tokens);
 
-        foreach (var token in tokens)
-            rendered = rendered.Replace($"{{{token.Key}}}", token.Value ?? string.Empty, StringComparison.OrdinalIgnoreCase);
-
-        rendered = rendered.Replace("\\n", "\n", StringComparison.Ordinal);
-        rendered = MultiSpaceRegex.Replace(rendered, " ");
-        return rendered.Trim();
-    }
-
+    /// <summary>
+    /// The shared cut: one character for the mark instead of three, and it will not slice through a
+    /// surrogate pair, which the old copy did to any nickname that ended on an emoji.
+    /// </summary>
     private static string Truncate(string? value, int maxLength)
-    {
-        string text = (value ?? string.Empty).Trim();
-        if (text.Length <= maxLength)
-            return text;
+        => SegmentWriter.Truncate((value ?? string.Empty).Trim(), maxLength);
 
-        if (maxLength <= 3)
-            return text.Substring(0, maxLength);
-
-        return $"{text.Substring(0, maxLength - 3)}...";
-    }
-
+    /// <summary>The count for a settings panel.</summary>
     private static string FormatCount(long value, bool compact)
-    {
-        if (!compact)
-            return value.ToString(CultureInfo.InvariantCulture);
+        => TikTokLiveOutput.Count(value, compact);
 
-        if (value >= 1_000_000_000)
-            return $"{value / 1_000_000_000d:0.#}B";
-        if (value >= 1_000_000)
-            return $"{value / 1_000_000d:0.#}M";
-        if (value >= 1_000)
-            return $"{value / 1_000d:0.#}K";
-
-        return value.ToString(CultureInfo.InvariantCulture);
-    }
+    /// <summary>The count for the chatbox, where the compact suffix is a unit and gets raised.</summary>
+    private static string FormatChatCount(long value, bool compact)
+        => TikTokLiveOutput.ChatCount(value, compact);
 
     private static string SummarizeExceptionMessage(Exception exception)
     {
@@ -1534,4 +1522,89 @@ public sealed partial class TikTokLiveModule : ObservableObject, IModule
         string LastEventDisplay,
         string SummaryPreview,
         string OutputPreview);
+}
+
+/// <summary>
+/// The decisions a TikTok segment makes about its own text: how a count is styled, how a template
+/// is filled, and what it gives up when the line runs out of room.
+/// </summary>
+/// <remarks>
+/// Kept out of the module because the module needs a live client behind it and none of this does.
+/// The lengths this integration can reach are the thing worth measuring, and until now nothing
+/// measured them - the segment could hand the builder more than the whole 144 on its own.
+/// </remarks>
+public static class TikTokLiveOutput
+{
+    /// <summary>How much of a name or a nickname an event line shows.</summary>
+    public const int UserPreviewLength = 24;
+
+    /// <summary>How much of a comment an event line shows.</summary>
+    public const int CommentPreviewLength = 60;
+
+    /// <summary>A gift name arrives from TikTok unbounded, so it gets the same room as a name.</summary>
+    public const int GiftNameLength = 24;
+
+    private static readonly Regex MultiSpaceRegex = new("[ \t]{2,}", RegexOptions.Compiled);
+
+    /// <summary>The count as a settings panel shows it - every digit, or a compact suffix.</summary>
+    public static string Count(long value, bool compact)
+    {
+        if (!compact)
+            return value.ToString(CultureInfo.InvariantCulture);
+
+        // Invariant, like the plain branch below it. These three used the current culture, so a
+        // Dutch machine printed "2,4M" beside a "7.2" from every other integration on the line.
+        if (value >= 1_000_000_000)
+            return string.Create(CultureInfo.InvariantCulture, $"{value / 1_000_000_000d:0.#}B");
+        if (value >= 1_000_000)
+            return string.Create(CultureInfo.InvariantCulture, $"{value / 1_000_000d:0.#}M");
+        if (value >= 1_000)
+            return string.Create(CultureInfo.InvariantCulture, $"{value / 1_000d:0.#}K");
+
+        return value.ToString(CultureInfo.InvariantCulture);
+    }
+
+    /// <summary>
+    /// The same count for the chatbox: the number at full size and the compact suffix raised, because
+    /// the K is the unit and the number is what the reader is there for.
+    /// </summary>
+    public static string ChatCount(long value, bool compact)
+    {
+        string text = Count(value, compact);
+
+        // Only the compact form carries a suffix, and it is always one letter.
+        if (text.Length < 2 || !char.IsLetter(text[^1]))
+            return text;
+
+        return new SegmentWriter()
+            .Field(OscText.Value(text[..^1]), OscText.Unit(text[^1..]))
+            .Text;
+    }
+
+    /// <summary>Fills a user template. The tokens are values, so nothing here restyles them.</summary>
+    public static string Render(string? template, IReadOnlyDictionary<string, string> tokens)
+    {
+        string rendered = template ?? string.Empty;
+
+        foreach (var token in tokens)
+            rendered = rendered.Replace($"{{{token.Key}}}", token.Value ?? string.Empty, StringComparison.OrdinalIgnoreCase);
+
+        rendered = rendered.Replace("\\n", "\n", StringComparison.Ordinal);
+        rendered = MultiSpaceRegex.Replace(rendered, " ");
+        return rendered.Trim();
+    }
+
+    /// <summary>
+    /// Both halves when they fit, otherwise the live half on its own - it is the one that changes.
+    /// What is left over is cut, not dropped: the segment disappearing whole is what made the readout
+    /// blink out every time a comment arrived.
+    /// </summary>
+    public static string Fit(int budget, string? combined, string? profileOutput, string? liveOutput)
+    {
+        string essential = string.IsNullOrWhiteSpace(liveOutput)
+            ? profileOutput ?? string.Empty
+            : liveOutput;
+
+        return SegmentWriter.Fit(budget, combined ?? string.Empty, essential);
+    }
 }
