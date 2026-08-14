@@ -1,23 +1,73 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.Win32;
 using System;
+using System.ComponentModel;
 using System.Windows;
 using vrcosc_magicchatbox.Classes.Modules;
+using vrcosc_magicchatbox.Classes.Utilities;
 using vrcosc_magicchatbox.Core.Configuration;
 using vrcosc_magicchatbox.Core.Services;
 using vrcosc_magicchatbox.Core.Toast;
 using vrcosc_magicchatbox.Services;
 using vrcosc_magicchatbox.ViewModels.State;
+using static vrcosc_magicchatbox.Classes.Modules.MediaLinkModule;
 
 namespace vrcosc_magicchatbox.ViewModels.Sections;
+
+/// <summary>
+/// Draws a progress bar from a style without needing a song to be playing.
+/// </summary>
+/// <remarks>
+/// Every knob in the editor - the three characters, the width, the marks, the raised digits - only
+/// shows its effect in the finished bar, and until this existed the only way to see that effect was
+/// to start some music, join a world and read your own chatbox.
+/// </remarks>
+public static class SeekbarPreviewBuilder
+{
+    /// <summary>Far enough in that the filled and empty halves are both clearly visible.</summary>
+    public static readonly TimeSpan SampleElapsed = TimeSpan.FromSeconds(83);
+
+    public static readonly TimeSpan SampleLength = TimeSpan.FromSeconds(225);
+
+    /// <summary>Empty when the style cannot be drawn, which happens while a character box is blank.</summary>
+    public static string Build(MediaLinkStyle? style)
+    {
+        if (style == null)
+            return string.Empty;
+
+        double percent = SampleElapsed.TotalSeconds / SampleLength.TotalSeconds * 100;
+
+        return SeekbarUtilities.CreateProgressBar(percent, SampleElapsed, SampleLength, new SeekbarStyleOptions
+        {
+            DisplayTime = style.DisplayTime,
+            FilledCharacter = style.FilledCharacter,
+            MiddleCharacter = style.MiddleCharacter,
+            NonFilledCharacter = style.NonFilledCharacter,
+            ProgressBarLength = style.ProgressBarLength,
+            ShowTimeInSuperscript = style.ShowTimeInSuperscript,
+            SpaceAgainObjects = style.SpaceAgainObjects,
+            SpaceBetweenPreSuffixAndTime = style.SpaceBetweenPreSuffixAndTime,
+            TimePrefix = style.TimePrefix,
+            TimePreSuffixOnTheInside = style.TimePreSuffixOnTheInside,
+            TimeSuffix = style.TimeSuffix,
+        });
+    }
+
+    /// <summary>Says which moment is being drawn, or why nothing is.</summary>
+    public static string Caption(string bar)
+        => string.IsNullOrEmpty(bar)
+            ? "Fill in all three characters below to see the bar"
+            : $"At {SeekbarUtilities.FormatTimeSpan(SampleElapsed)} of a {SeekbarUtilities.FormatTimeSpan(SampleLength)} song";
+}
 
 public partial class MediaLinkSectionViewModel : ObservableObject
 {
     private readonly Lazy<IMediaLinkPersistenceService> _mediaLinkSvc;
-    private readonly IMenuNavigationService _menuNav;
     private readonly INavigationService _nav;
     private readonly IToastService _toast;
+
+    private MediaLinkStyle? _watchedStyle;
 
     public AppSettings AppSettings { get; }
     public MediaLinkSettings MediaLinkSettings { get; }
@@ -36,9 +86,48 @@ public partial class MediaLinkSectionViewModel : ObservableObject
         AppSettings = appSettingsProvider.Value;
         MediaLinkSettings = mediaLinkSettingsProvider.Value;
         MediaLink = mediaLinkDisplay;
-        _menuNav = menuNav;
         _nav = nav;
         _toast = toast;
+
+        MediaLink.PropertyChanged += OnDisplayChanged;
+        WatchSelectedStyle();
+    }
+
+    /// <summary>The selected progress bar as the chatbox would draw it, at a fixed sample position.</summary>
+    public string SeekbarPreview => SeekbarPreviewBuilder.Build(MediaLink.SelectedMediaLinkSeekbarStyle);
+
+    public string SeekbarPreviewCaption => SeekbarPreviewBuilder.Caption(SeekbarPreview);
+
+    private void OnDisplayChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName != nameof(MediaLinkDisplayState.SelectedMediaLinkSeekbarStyle))
+            return;
+
+        WatchSelectedStyle();
+        RefreshSeekbarPreview();
+    }
+
+    /// <summary>
+    /// The style object raises its own changes, so the preview has to follow whichever one is
+    /// selected rather than the collection it came from.
+    /// </summary>
+    private void WatchSelectedStyle()
+    {
+        if (_watchedStyle != null)
+            _watchedStyle.PropertyChanged -= OnSelectedStyleChanged;
+
+        _watchedStyle = MediaLink.SelectedMediaLinkSeekbarStyle;
+
+        if (_watchedStyle != null)
+            _watchedStyle.PropertyChanged += OnSelectedStyleChanged;
+    }
+
+    private void OnSelectedStyleChanged(object? sender, PropertyChangedEventArgs e) => RefreshSeekbarPreview();
+
+    private void RefreshSeekbarPreview()
+    {
+        OnPropertyChanged(nameof(SeekbarPreview));
+        OnPropertyChanged(nameof(SeekbarPreviewCaption));
     }
 
     [RelayCommand]
@@ -127,8 +216,4 @@ public partial class MediaLinkSectionViewModel : ObservableObject
     [RelayCommand]
     private void LearnMoreMediaLink()
         => _nav.OpenUrl(Core.Constants.WikiMusicDisplayUrl);
-
-    [RelayCommand]
-    private void OpenSpotifyCoexistenceSettings()
-        => _menuNav.ActivateSetting(nameof(AppSettings.Settings_Spotify));
 }

@@ -75,9 +75,9 @@ public partial class ChatSettings : VersionedSettings
 
 public enum ChatAutocompleteMode
 {
-    [Description("Local history")]
+    [Description("Words you have typed before")]
     LocalHistory,
 
-    [Description("OpenAI next words")]
+    [Description("OpenAI guesses the next words")]
     OpenAI
 }

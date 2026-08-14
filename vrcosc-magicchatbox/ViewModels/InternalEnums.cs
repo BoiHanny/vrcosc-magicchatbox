@@ -141,11 +141,11 @@ namespace vrcosc_magicchatbox.ViewModels
 
     public enum MediaLinkTimeSeekbar
     {
-        [Description("Small numbers")]
+        [Description("Just the times, in small raised digits")]
         SmallNumbers,
-        [Description("Custom")]
+        [Description("A progress bar")]
         NumbersAndSeekBar,
-        [Description("None")]
+        [Description("Nothing")]
         None
     }
 }

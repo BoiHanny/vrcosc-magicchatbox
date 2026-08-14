@@ -9,6 +9,14 @@
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary Source="UI/Theme.xaml" />
+                <!--
+                    The converters have to be app-level, not per-page. A UserControl's own XAML is
+                    parsed before it is attached to any parent, so a StaticResource inside it can
+                    only reach the application dictionary - a page merging this further down the
+                    tree is already too late. SegmentPreview asked for BoolToVisibilityConverter
+                    and threw on construction until this line existed.
+                -->
+                <ResourceDictionary Source="UI/Resources/SharedConverters.xaml" />
             </ResourceDictionary.MergedDictionaries>
 
             <DropShadowEffect

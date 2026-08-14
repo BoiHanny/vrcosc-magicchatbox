@@ -16,11 +16,11 @@ public enum SpotifyPauseOutputMode
 
 public enum SpotifyMediaLinkCoexistence
 {
-    [Description("Ask me once")]
+    [Description("Ask me the first time it happens")]
     Ask,
-    [Description("Prefer dedicated Spotify")]
+    [Description("Show Spotify only")]
     PreferSpotify,
-    [Description("Allow both outputs")]
+    [Description("Show both, even if that repeats the song")]
     AllowBoth
 }
 
@@ -32,13 +32,13 @@ public enum SpotifyWidgetMode
 
 public enum SpotifyProgressDisplayMode
 {
-    [Description("None")]
+    [Description("Nothing")]
     None,
-    [Description("Text only")]
+    [Description("Just the times, as plain text")]
     Text,
-    [Description("Small numbers")]
+    [Description("Just the times, in small raised digits")]
     SmallNumbers,
-    [Description("Seekbar")]
+    [Description("A progress bar")]
     Seekbar
 }
 

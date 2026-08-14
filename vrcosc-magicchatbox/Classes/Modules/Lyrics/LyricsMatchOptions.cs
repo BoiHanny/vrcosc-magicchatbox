@@ -7,7 +7,7 @@ public enum LyricsMatchStrictness
     [Description("Relaxed - more songs, more wrong guesses")]
     Relaxed,
 
-    [Description("Balanced")]
+    [Description("Balanced - the usual choice")]
     Balanced,
 
     [Description("Strict - only confident matches")]

@@ -1,11 +1,44 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.ComponentModel;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
+using System.Linq;
 using vrcosc_magicchatbox.Classes.Modules;
 using vrcosc_magicchatbox.Core.Configuration;
 using vrcosc_magicchatbox.Core.Services;
 
 namespace vrcosc_magicchatbox.ViewModels.Sections;
+
+/// <summary>
+/// Shows what a sent message will look like, without sending one.
+/// </summary>
+/// <remarks>
+/// This mirrors the decision <see cref="Services.EmojiService.GetNextEmoji" /> makes, minus the
+/// randomness: a preview that changed every time the page redrew would tell the reader nothing
+/// about their settings. When a shuffle is on, the first icon they typed stands in for the run.
+/// </remarks>
+public static class ChatLinePreview
+{
+    /// <summary>The icon the app falls back to whenever a shuffle is not in play.</summary>
+    public const string DefaultIcon = "💬";
+
+    /// <summary>Ordinary words, no punctuation tricks, so the count is easy to reason about.</summary>
+    public const string SampleMessage = "anyone up for a world hop?";
+
+    public static string Build(bool prefixIcon, bool shuffleEnabled, bool shuffleInChats, IEnumerable<string>? icons, string message)
+        => prefixIcon
+            ? ResolveIcon(shuffleEnabled, shuffleInChats, icons) + " " + message
+            : message;
+
+    public static string ResolveIcon(bool shuffleEnabled, bool shuffleInChats, IEnumerable<string>? icons)
+    {
+        if (!shuffleEnabled || !shuffleInChats)
+            return DefaultIcon;
+
+        string? first = icons?.FirstOrDefault(icon => !string.IsNullOrWhiteSpace(icon));
+        return string.IsNullOrWhiteSpace(first) ? DefaultIcon : first.Trim();
+    }
+}
 
 public partial class ChattingOptionsSectionViewModel : ObservableObject
 {
@@ -25,5 +58,32 @@ public partial class ChattingOptionsSectionViewModel : ObservableObject
         _modules = modules;
         AppSettings = appSettingsProvider.Value;
         ChatSettings = chatSettingsProvider.Value;
+
+        ChatSettings.PropertyChanged += OnChatSettingChanged;
+        AppSettings.PropertyChanged += OnAppSettingChanged;
+
+        // Adding an icon changes the collection, not the property that holds it, so nothing else
+        // would tell the preview that the icon it is showing has just been replaced.
+        AppSettings.EmojiCollection.CollectionChanged += (_, _) => OnPropertyChanged(nameof(ChatPreview));
+    }
+
+    /// <summary>A sample message dressed exactly as the real one will be.</summary>
+    public string ChatPreview => ChatLinePreview.Build(
+        ChatSettings.PrefixChat,
+        AppSettings.EnableEmojiShuffle,
+        AppSettings.EnableEmojiShuffleInChats,
+        AppSettings.EmojiCollection,
+        ChatLinePreview.SampleMessage);
+
+    private void OnChatSettingChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName == nameof(ChatSettings.PrefixChat))
+            OnPropertyChanged(nameof(ChatPreview));
+    }
+
+    private void OnAppSettingChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName is nameof(AppSettings.EnableEmojiShuffle) or nameof(AppSettings.EnableEmojiShuffleInChats))
+            OnPropertyChanged(nameof(ChatPreview));
     }
 }
