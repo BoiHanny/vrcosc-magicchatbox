@@ -620,7 +620,10 @@ public static class ServiceRegistration
             sp.GetRequiredService<ISettingsProvider<IntegrationSettings>>(),
             sp.GetRequiredService<ISettingsProvider<Classes.Modules.Lyrics.LyricsSettings>>(),
             sp.GetRequiredService<LyricsDisplayState>()));
-        services.AddSingleton<IOscProvider, ComponentStatsOscProvider>();
+        services.AddSingleton<IOscProvider>(sp => new ComponentStatsOscProvider(
+            new Lazy<IModuleHost>(() => sp.GetRequiredService<IModuleHost>()),
+            sp.GetRequiredService<ISettingsProvider<IntegrationSettings>>(),
+            sp.GetRequiredService<IntegrationDisplayState>()));
         services.AddSingleton<IOscProvider>(sp => new NetworkStatsOscProvider(
             new Lazy<NetworkStatisticsModule>(() => sp.GetRequiredService<NetworkStatisticsModule>()),
             sp.GetRequiredService<ISettingsProvider<IntegrationSettings>>()));
