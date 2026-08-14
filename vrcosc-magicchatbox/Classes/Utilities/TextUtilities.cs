@@ -1,31 +1,35 @@
-﻿using System.Collections.Generic;
-using System.Linq;
+using System.Text;
 
 namespace vrcosc_magicchatbox.Classes.Utilities;
 
 public static class TextUtilities
 {
-    private static readonly Dictionary<char, string> SuperscriptMapping = new()
-    {
-        {'/', "·"}, {':', "'"}, {'a', "ᵃ"}, {'b', "ᵇ"}, {'c', "ᶜ"}, {'d', "ᵈ"}, {'e', "ᵉ"},
-        {'f', "ᶠ"}, {'g', "ᵍ"}, {'h', "ʰ"}, {'i', "ⁱ"}, {'j', "ʲ"},
-        {'k', "ᵏ"}, {'l', "ˡ"}, {'m', "ᵐ"}, {'n', "ⁿ"}, {'o', "ᵒ"},
-        {'p', "ᵖ"}, {'q', "ᵒ"}, {'r', "ʳ"}, {'s', "ˢ"}, {'t', "ᵗ"},
-        {'u', "ᵘ"}, {'v', "ᵛ"}, {'w', "ʷ"}, {'x', "ˣ"}, {'y', "ʸ"},
-        {'z', "ᶻ"}, {'0', "⁰"}, {'1', "¹"}, {'2', "²"}, {'3', "³"},
-        {'4', "⁴"}, {'5', "⁵"}, {'6', "⁶"}, {'7', "⁷"}, {'8', "⁸"},
-        {'9', "⁹"}, {',', "'"}, {'.', "'"}, {'%', "⁒"}
-    };
-
+    /// <summary>
+    /// Raises what can be raised and leaves the rest at full size.
+    /// </summary>
+    /// <remarks>
+    /// Characters without a raised form pass through instead of being deleted, which is what the
+    /// previous table did to degree signs, hyphens and brackets. The table itself is
+    /// <see cref="SuperscriptText"/>, limited to glyphs known to draw in the chatbox.
+    /// </remarks>
     public static string TransformToSuperscript(string input)
     {
         if (string.IsNullOrEmpty(input))
             return string.Empty;
 
-        return new string(input.ToLowerInvariant()
-            .Where(c => char.IsLetterOrDigit(c) || char.IsWhiteSpace(c) || c == '/' || c == ':' || c == ',' || c == '.' || c == '%')
-            .Select(c => char.IsWhiteSpace(c) ? " " : (SuperscriptMapping.TryGetValue(c, out var mapped) ? mapped : c.ToString()))
-            .SelectMany(s => s)
-            .ToArray());
+        var builder = new StringBuilder(input.Length);
+
+        foreach (char c in input)
+        {
+            if (char.IsWhiteSpace(c))
+            {
+                builder.Append(' ');
+                continue;
+            }
+
+            builder.Append(SuperscriptText.TryMap(char.ToLowerInvariant(c), out char raised) ? raised : c);
+        }
+
+        return builder.ToString();
     }
 }
