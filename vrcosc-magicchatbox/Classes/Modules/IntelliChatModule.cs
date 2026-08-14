@@ -30,6 +30,9 @@ public partial class IntelliChatModule : ObservableObject, IModule, IRecipient<I
 
     private const string IntelliChatSettingsFileName = "IntelliChatSettings.json";
 
+    /// <summary>Single BMP glyph, so a trim marker costs one character instead of three.</summary>
+    private const string Ellipsis = "…";
+
     private CancellationTokenSource? _cancellationTokenSource;
     private bool _isInitialized = false;
 
@@ -92,12 +95,6 @@ public partial class IntelliChatModule : ObservableObject, IModule, IRecipient<I
         }
     }
 
-    private string AddEmojiToText(string text)
-    {
-        return text;
-    }
-
-
     private bool EnsureInitialized()
     {
         if (!_isInitialized)
@@ -126,13 +123,6 @@ public partial class IntelliChatModule : ObservableObject, IModule, IRecipient<I
         }
 
         return true;
-    }
-
-    private string FormatTextForVRChat(string text)
-    {
-        text = AddEmojiToText(text);
-        text = LimitTextLength(text, 100);
-        return text;
     }
 
     private List<SupportedIntelliChatLanguage> GetDefaultLanguages()
@@ -234,15 +224,6 @@ public partial class IntelliChatModule : ObservableObject, IModule, IRecipient<I
         _isInitialized = true;
     }
 
-    private string LimitTextLength(string text, int maxLength)
-    {
-        if (text.Length > maxLength)
-        {
-            text = text.Substring(0, maxLength - 3) + "...";
-        }
-        return text;
-    }
-
     private void MergeOrUpdateBuiltInStylesAndLanguages()
     {
         var defaultLanguages = GetDefaultLanguages();
@@ -315,7 +296,7 @@ public partial class IntelliChatModule : ObservableObject, IModule, IRecipient<I
         ProcessUsedTokens(completion);
     }
 
-    private string RemoveQuotationMarkAroundResponse(string response)
+    private static string RemoveQuotationMarkAroundResponse(string response)
     {
         if (!string.IsNullOrEmpty(response))
         {
@@ -335,19 +316,31 @@ public partial class IntelliChatModule : ObservableObject, IModule, IRecipient<I
         return response;
     }
 
-    private string SanitizeShortenedText(string response)
+    private static string SanitizeShortenedText(string response)
     {
         if (string.IsNullOrEmpty(response))
             return string.Empty;
 
-        response = RemoveQuotationMarkAroundResponse(response);
+        return FitToChatLimit(RemoveQuotationMarkAroundResponse(response));
+    }
 
-        if (response.Length > 140)
-        {
-            response = response.Substring(0, 140).TrimEnd('.') + "...";
-        }
+    /// <summary>
+    /// Fits a suggestion inside the length the chat send gate accepts. The gate refuses anything
+    /// longer without a word of feedback, so the marker has to come out of the budget rather than
+    /// be added on top of it.
+    /// </summary>
+    public static string FitToChatLimit(string? text)
+    {
+        if (string.IsNullOrEmpty(text) || text.Length <= Core.Constants.MaxChatMessageLength)
+            return text ?? string.Empty;
 
-        return response;
+        int keep = Core.Constants.MaxChatMessageLength - Ellipsis.Length;
+
+        // Cutting between the halves of a surrogate pair leaves a replacement box in the chatbox.
+        if (char.IsHighSurrogate(text[keep - 1]))
+            keep--;
+
+        return text.Substring(0, keep).TrimEnd(' ', '.') + Ellipsis;
     }
 
 
@@ -372,11 +365,19 @@ public partial class IntelliChatModule : ObservableObject, IModule, IRecipient<I
 
     public void AcceptIntelliChatSuggestion()
     {
-        _chatStatus.NewChattingTxt = Settings.IntelliChatTxt;
+        string suggestion = Settings.IntelliChatTxt ?? string.Empty;
+        string accepted = FitToChatLimit(suggestion);
+
+        // Last line of defence: the send gate drops an over-long message in silence, so if
+        // anything still arrives here too long, trim it and say so rather than let it vanish.
+        if (accepted.Length != suggestion.Length)
+        {
+            UpdateErrorState(true, $"The suggestion was {suggestion.Length} characters and has been trimmed to the {Core.Constants.MaxChatMessageLength} the chatbox accepts.");
+        }
+
+        _chatStatus.NewChattingTxt = accepted;
         Settings.IntelliChatTxt = string.Empty;
         Settings.IntelliChatWaitingToAccept = false;
-
-
     }
     public void AddWritingStyle(string styleName, string styleDescription, double temperature)
     {
@@ -483,10 +484,10 @@ public partial class IntelliChatModule : ObservableObject, IModule, IRecipient<I
 
 
             var writingStyle = Settings.SelectedWritingStyle;
-            var promptMessage = isNextWordPrediction ? "Predict the next chat message word." : $"Complete the following chat message, max {Core.Constants.OscMaxMessageLength} characters";
+            var promptMessage = isNextWordPrediction ? "Predict the next chat message word." : $"Complete the following chat message, max {Core.Constants.MaxChatMessageLength} characters.";
             var messages = new List<ChatMessage>
     {
-        new SystemChatMessage(promptMessage +  $"Use a {writingStyle.StyleName} writing style."),
+        new SystemChatMessage(promptMessage + $" Use a {writingStyle.StyleName} writing style."),
         new UserChatMessage(inputText)
     };
 
@@ -517,9 +518,9 @@ public partial class IntelliChatModule : ObservableObject, IModule, IRecipient<I
                         var words = generatedText.Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries);
                         generatedText = words.Length > 0 ? words[0] : string.Empty;
                     }
-                    else if (generatedText.Length > Core.Constants.OscMaxMessageLength)
+                    else
                     {
-                        generatedText = generatedText.Substring(0, Core.Constants.OscMaxMessageLength);
+                        generatedText = FitToChatLimit(generatedText);
                     }
                 }
 
@@ -563,7 +564,7 @@ public partial class IntelliChatModule : ObservableObject, IModule, IRecipient<I
             Settings.IntelliChatUILabel = true;
             Settings.IntelliChatUILabelTxt = "Waiting for OpenAI to respond";
 
-            var prompt = "You are an imaginative conversationalist specializing all directions. Generate a creative and engaging conversation starter that is 140 characters or fewer, incorporating subtle lewdness or double entendres without being explicit.";
+            var prompt = $"You are an imaginative conversationalist specializing all directions. Generate a creative and engaging conversation starter that is {Core.Constants.MaxChatMessageLength} characters or fewer, incorporating subtle lewdness or double entendres without being explicit.";
 
             requestCts = ResetCancellationToken(Settings.IntelliChatTimeout);
 
@@ -1039,9 +1040,10 @@ public partial class IntelliChatModule : ObservableObject, IModule, IRecipient<I
             Settings.IntelliChatUILabel = true;
             Settings.IntelliChatUILabelTxt = "Waiting for OpenAI to respond";
 
+            int limit = Core.Constants.MaxChatMessageLength;
             string prompt = retryCount == 0
-                ? $"You are an expert at condensing text. Please shorten the following text to **140 characters or fewer** without adding, removing, or altering any information:\n\n{text}"
-                : $"The previous attempt did not meet the 140-character limit. Please shorten the following text to **140 characters or fewer** without adding, removing, or altering any information:\n\n{text}";
+                ? $"You are an expert at condensing text. Please shorten the following text to **{limit} characters or fewer** without adding, removing, or altering any information:\n\n{text}"
+                : $"The previous attempt did not meet the {limit}-character limit. Please shorten the following text to **{limit} characters or fewer** without adding, removing, or altering any information:\n\n{text}";
 
             var modelName = GetModelDescription(Settings.PerformShortenTextModel);
 
@@ -1071,11 +1073,12 @@ public partial class IntelliChatModule : ObservableObject, IModule, IRecipient<I
                 ? completion.Content[0].Text ?? string.Empty
                 : string.Empty;
 
-            string sanitizedShortenedText = SanitizeShortenedText(shortenedText);
-
-            if (sanitizedShortenedText.Length > 140 && retryCount < 2)
+            // Judge the model's own output, not the fitted one: the fitter is a hard clamp, so
+            // retrying on its result would just ask the model to re-shorten a truncation.
+            if (shortenedText.Length > limit && retryCount < 2)
             {
-                await ShortenTextAsync(sanitizedShortenedText, retryCount + 1);
+                ProcessUsedTokens(completion);
+                await ShortenTextAsync(shortenedText, retryCount + 1);
             }
             else
             {
