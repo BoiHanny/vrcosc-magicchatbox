@@ -55,6 +55,12 @@ public partial class PulsoidSectionViewModel : ObservableObject
         set => _appState.PulsoidAuthConnected = value;
     }
 
+    public PulsoidAuthState PulsoidAuthState
+    {
+        get => _appState.PulsoidAuthState;
+        set => _appState.PulsoidAuthState = value;
+    }
+
     [RelayCommand]
     private async Task ConnectPulsoidAsync()
     {
@@ -93,15 +99,31 @@ public partial class PulsoidSectionViewModel : ObservableObject
             var fragment = PulsoidOAuthHandler.ParseQueryString(fragmentString);
             if (fragment.TryGetValue("access_token", out string accessToken) && !string.IsNullOrEmpty(accessToken))
             {
-                if (await oAuth.ValidateTokenAsync(accessToken))
+                var validation = await oAuth.ValidateTokenAsync(accessToken);
+                if (validation == PulsoidTokenValidation.Invalid)
                 {
-                    pulsoid.Settings.AccessTokenOAuth = accessToken;
-                    pulsoid.SaveSettings();
-                    PulsoidAuthConnected = true;
+                    _toast.Show("Pulsoid", "Pulsoid rejected the token or it is missing the heart-rate scope. Please reconnect.", ToastType.Error, key: "pulsoid-token-invalid");
+                    return;
+                }
+
+                // Valid, or unverifiable because Pulsoid is unreachable — either way the user just
+                // completed a live sign-in, so keep the token rather than throwing it away.
+                pulsoid.Settings.AccessTokenOAuth = accessToken;
+                pulsoid.SaveSettings();
+
+                if (pulsoid.Settings.TokenProtectionFailed)
+                {
+                    PulsoidAuthState = PulsoidAuthState.Unreadable;
+                    _toast.Show("Pulsoid", "Signed in, but Windows could not encrypt the token for storage — it will not survive a restart.", ToastType.Error, key: "pulsoid-token-protect-failed");
+                }
+                else if (validation == PulsoidTokenValidation.Unknown)
+                {
+                    PulsoidAuthState = PulsoidAuthState.Unreachable;
+                    _toast.Show("Pulsoid", "Signed in, but Pulsoid could not be reached to confirm the token. It has been saved and will be retried.", ToastType.Warning, key: "pulsoid-token-unverified");
                 }
                 else
                 {
-                    _toast.Show("Pulsoid", "Pulsoid rejected the token or it is missing the required scopes. Please reconnect.", ToastType.Error, key: "pulsoid-token-invalid");
+                    PulsoidAuthState = PulsoidAuthState.Authenticated;
                 }
             }
             else
@@ -127,7 +149,7 @@ public partial class PulsoidSectionViewModel : ObservableObject
         if (pulsoid == null) return;
         pulsoid.Settings.AccessTokenOAuth = string.Empty;
         pulsoid.SaveSettings();
-        PulsoidAuthConnected = false;
+        PulsoidAuthState = PulsoidAuthState.NoToken;
         await pulsoid.DisconnectSession();
     }
 

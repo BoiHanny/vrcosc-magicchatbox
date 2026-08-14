@@ -2,6 +2,7 @@
 using Newtonsoft.Json.Linq;
 using System;
 using System.IO;
+using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Net.WebSockets;
@@ -15,8 +16,16 @@ namespace vrcosc_magicchatbox.Services;
 
 public sealed class PulsoidApiClient : IPulsoidClient
 {
+    // The docs specify no ping/pong and no idle timeout, so the old 5s keepalive was six times
+    // the .NET default for no documented reason. Liveness is tracked at the application layer.
+    private static readonly TimeSpan KeepAliveInterval = TimeSpan.FromSeconds(30);
+    private const int MinRetryDelayMs = 2_000;
+    private const int MaxRetryDelayMs = 10_000;
+    private const int MaxAttemptsBeforeNotice = 10;
+
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly IPulsoidTokenValidator _tokenValidator;
+    private readonly Random _jitter = new();
     private ClientWebSocket _webSocket;
     private HttpClient _statsClient;
     private bool _disposed;
@@ -35,63 +44,136 @@ public sealed class PulsoidApiClient : IPulsoidClient
         _tokenValidator = tokenValidator;
     }
 
+    /// <summary>
+    /// Owns the whole connection lifetime: one flat loop that handles handshake failures and
+    /// mid-stream drops alike. It used to re-enter itself from the receive loop's finally, which
+    /// nested an async frame per reconnect and reset the backoff counter every time.
+    /// It only ever returns on cancellation or on a definitive auth rejection; a transient
+    /// outage keeps retrying forever rather than latching into a dead session.
+    /// </summary>
     public async Task ConnectAsync(string accessToken, CancellationToken ct)
     {
         int attempt = 0;
-        const int maxAttempts = 10;
+        bool exhaustedReported = false;
 
         while (!ct.IsCancellationRequested)
         {
+            bool handshakeSucceeded = false;
+            bool stop = false;
+
             try
             {
                 _webSocket = new ClientWebSocket();
-                _webSocket.Options.KeepAliveInterval = TimeSpan.FromSeconds(5);
+                _webSocket.Options.KeepAliveInterval = KeepAliveInterval;
+                // Without this the handshake's HTTP status is thrown away, leaving a 401 rejection
+                // indistinguishable from the router being unplugged.
+                _webSocket.Options.CollectHttpResponseDetails = true;
 
                 var wsUri = new Uri(
                     $"wss://dev.pulsoid.net/api/v1/data/real_time?access_token={Uri.EscapeDataString(accessToken)}");
                 await _webSocket.ConnectAsync(wsUri, ct).ConfigureAwait(false);
 
+                handshakeSucceeded = true;
+                attempt = 0;
+                exhaustedReported = false;
                 ConnectionStateChanged?.Invoke(true);
 
-                await ReceiveLoopAsync(accessToken, ct).ConfigureAwait(false);
-                break;
+                await ReceiveLoopAsync(ct).ConfigureAwait(false);
             }
             catch (OperationCanceledException)
             {
-                break;
+                stop = true;
             }
             catch (WebSocketException ex)
             {
-                attempt++;
-                Logging.WriteInfo($"WebSocket connection attempt {attempt} failed: {ex.Message}");
-                DisposeWebSocket();
-
-                bool tokenValid = await _tokenValidator.ValidateTokenAsync(accessToken).ConfigureAwait(false);
-                if (!tokenValid)
-                {
-                    ConnectionFailed?.Invoke(PulsoidConnectionError.TokenInvalid,
-                        "Access token invalid or revoked. Please reconnect.");
-                    return;
-                }
-
-                if (attempt >= maxAttempts)
-                {
-                    ConnectionFailed?.Invoke(PulsoidConnectionError.MaxRetriesExhausted,
-                        "Failed to connect after multiple attempts.");
-                    return;
-                }
-
-                int delayMs = Math.Min(10_000, 2000 * (int)Math.Pow(2, attempt));
-                Logging.WriteInfo($"Retrying connection in {delayMs}ms...");
-                await Task.Delay(delayMs, ct).ConfigureAwait(false);
+                var status = TryGetHandshakeStatus();
+                Logging.WriteInfo($"Pulsoid WebSocket failure (HTTP {(int)status}): {ex.Message}");
+                if (!handshakeSucceeded)
+                    stop = await ReportIfAuthRejectionAsync(status, accessToken).ConfigureAwait(false);
             }
             catch (Exception ex)
             {
-                Logging.WriteException(ex);
-                DisposeWebSocket();
+                Logging.WriteException(ex, MSGBox: false);
                 ConnectionFailed?.Invoke(PulsoidConnectionError.UnexpectedError, ex.Message);
+            }
+            finally
+            {
+                if (handshakeSucceeded)
+                    ConnectionStateChanged?.Invoke(false);
+                DisposeWebSocket();
+            }
+
+            if (stop || ct.IsCancellationRequested)
+                return;
+
+            attempt++;
+            if (attempt >= MaxAttemptsBeforeNotice && !exhaustedReported)
+            {
+                exhaustedReported = true;
+                ConnectionFailed?.Invoke(PulsoidConnectionError.MaxRetriesExhausted,
+                    "Can't reach Pulsoid right now — your sign-in is kept and reconnection keeps retrying.");
+            }
+
+            int delayMs = Math.Min(MaxRetryDelayMs, MinRetryDelayMs * (int)Math.Pow(2, Math.Min(attempt, 4)));
+            delayMs += _jitter.Next(-delayMs / 5, delayMs / 5 + 1);
+            Logging.WriteInfo($"Retrying Pulsoid connection in {delayMs}ms (attempt {attempt}).");
+
+            try
+            {
+                await Task.Delay(delayMs, ct).ConfigureAwait(false);
+            }
+            catch (OperationCanceledException)
+            {
                 return;
             }
+        }
+    }
+
+    private HttpStatusCode TryGetHandshakeStatus()
+    {
+        try
+        {
+            return _webSocket?.HttpStatusCode ?? 0;
+        }
+        catch
+        {
+            return 0;
+        }
+    }
+
+    /// <summary>
+    /// Returns true only when the handshake was refused for a reason that re-authentication fixes.
+    /// 403/429/5xx are request-shaping or availability problems per
+    /// https://docs.pulsoid.net/error-code-format and must not sign the user out.
+    /// </summary>
+    private async Task<bool> ReportIfAuthRejectionAsync(HttpStatusCode status, string accessToken)
+    {
+        switch ((int)status)
+        {
+            case 401:
+                ConnectionFailed?.Invoke(PulsoidConnectionError.TokenInvalid,
+                    "Pulsoid rejected the saved token. Please reconnect.");
+                return true;
+
+            case 402:
+                ConnectionFailed?.Invoke(PulsoidConnectionError.SubscriptionRequired,
+                    "Pulsoid reports that this feature needs a paid plan.");
+                return true;
+
+            case 0:
+                // No HTTP answer at all: offline, DNS, TLS. Ask the validate endpoint, and stop
+                // only if it says the token is definitively dead.
+                var validation = await _tokenValidator.ValidateTokenAsync(accessToken).ConfigureAwait(false);
+                if (validation == PulsoidTokenValidation.Invalid)
+                {
+                    ConnectionFailed?.Invoke(PulsoidConnectionError.TokenInvalid,
+                        "Pulsoid rejected the saved token. Please reconnect.");
+                    return true;
+                }
+                return false;
+
+            default:
+                return false;
         }
     }
 
@@ -131,6 +213,16 @@ public sealed class PulsoidApiClient : IPulsoidClient
             {
                 string errorContent = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
                 Logging.WriteInfo($"Error fetching Pulsoid statistics: {response.StatusCode}, Content: {errorContent}");
+
+                // A 401 here is the same authoritative rejection as anywhere else and used to be
+                // swallowed, leaving stale statistics being broadcast over OSC forever.
+                if (response.StatusCode == HttpStatusCode.Unauthorized)
+                    ConnectionFailed?.Invoke(PulsoidConnectionError.TokenInvalid,
+                        "Pulsoid rejected the saved token. Please reconnect.");
+                else if (response.StatusCode == HttpStatusCode.PaymentRequired)
+                    ConnectionFailed?.Invoke(PulsoidConnectionError.SubscriptionRequired,
+                        "Pulsoid statistics need a paid plan.");
+
                 return null;
             }
 
@@ -156,91 +248,63 @@ public sealed class PulsoidApiClient : IPulsoidClient
         DisposeWebSocket();
     }
 
-    private async Task ReceiveLoopAsync(string accessToken, CancellationToken ct)
+    /// <summary>
+    /// Pumps messages until the socket closes or drops. Reconnection and connection-state
+    /// notification are the caller's job, so this can simply return.
+    /// </summary>
+    private async Task ReceiveLoopAsync(CancellationToken ct)
     {
         var buffer = new byte[1024];
-        bool shouldAttemptReconnect = true;
 
-        try
+        while (_webSocket != null &&
+               _webSocket.State == WebSocketState.Open &&
+               !ct.IsCancellationRequested)
         {
-            while (_webSocket != null &&
-                   _webSocket.State == WebSocketState.Open &&
-                   !ct.IsCancellationRequested)
+            WebSocketReceiveResult result;
+            using var messageStream = new MemoryStream();
+            try
             {
-                WebSocketReceiveResult result;
-                using var messageStream = new MemoryStream();
-                try
+                do
                 {
-                    do
-                    {
-                        result = await _webSocket.ReceiveAsync(
-                            new ArraySegment<byte>(buffer), ct).ConfigureAwait(false);
+                    result = await _webSocket.ReceiveAsync(
+                        new ArraySegment<byte>(buffer), ct).ConfigureAwait(false);
 
-                        if (result.MessageType == WebSocketMessageType.Close)
-                        {
-                            await _webSocket.CloseAsync(
-                                WebSocketCloseStatus.NormalClosure, "Closing", ct).ConfigureAwait(false);
-                            return;
-                        }
-
-                        if (result.Count > 0)
-                            messageStream.Write(buffer, 0, result.Count);
-                    }
-                    while (!result.EndOfMessage);
-                }
-                catch (WebSocketException wex)
-                {
-                    Logging.WriteInfo($"WebSocket exception during receive: {wex.Message}");
-                    bool tokenValid = await _tokenValidator.ValidateTokenAsync(accessToken).ConfigureAwait(false);
-                    if (!tokenValid)
+                    if (result.MessageType == WebSocketMessageType.Close)
                     {
-                        ConnectionFailed?.Invoke(PulsoidConnectionError.TokenInvalid,
-                            "Access token invalid or revoked. Please reconnect.");
-                        shouldAttemptReconnect = false;
+                        await _webSocket.CloseAsync(
+                            WebSocketCloseStatus.NormalClosure, "Closing", ct).ConfigureAwait(false);
                         return;
                     }
-                    break;                }
-                catch (OperationCanceledException)
-                {
-                    shouldAttemptReconnect = false;
-                    break;
-                }
-                catch (IOException ioex)
-                {
-                    Logging.WriteInfo($"IO exception during receive: {ioex.Message}");
-                    break;
-                }
 
-                if (result.MessageType != WebSocketMessageType.Text)
-                    continue;
-
-                string message = Encoding.UTF8.GetString(messageStream.ToArray());
-                if (!string.IsNullOrWhiteSpace(message))
-                {
-                    int hr = ParseHeartRate(message);
-                    if (hr >= 0)
-                        HeartRateReceived?.Invoke(hr);
+                    if (result.Count > 0)
+                        messageStream.Write(buffer, 0, result.Count);
                 }
+                while (!result.EndOfMessage);
             }
-        }
-        finally
-        {
-            ConnectionStateChanged?.Invoke(false);
-
-            if (shouldAttemptReconnect && !ct.IsCancellationRequested)
+            catch (OperationCanceledException)
             {
-                bool valid = await _tokenValidator.ValidateTokenAsync(accessToken).ConfigureAwait(false);
-                if (valid)
-                {
-                    Logging.WriteInfo("WebSocket connection lost, attempting reconnection...");
-                    await Task.Delay(5000, ct).ConfigureAwait(false);
-                    await ConnectAsync(accessToken, ct).ConfigureAwait(false);
-                }
-                else
-                {
-                    ConnectionFailed?.Invoke(PulsoidConnectionError.TokenInvalid,
-                        "Access token invalid or revoked. Please reconnect.");
-                }
+                throw;
+            }
+            catch (WebSocketException wex)
+            {
+                Logging.WriteInfo($"Pulsoid WebSocket dropped during receive: {wex.Message}");
+                return;
+            }
+            catch (IOException ioex)
+            {
+                Logging.WriteInfo($"Pulsoid IO error during receive: {ioex.Message}");
+                return;
+            }
+
+            if (result.MessageType != WebSocketMessageType.Text)
+                continue;
+
+            string message = Encoding.UTF8.GetString(messageStream.ToArray());
+            if (!string.IsNullOrWhiteSpace(message))
+            {
+                int hr = ParseHeartRate(message);
+                if (hr >= 0)
+                    HeartRateReceived?.Invoke(hr);
             }
         }
     }

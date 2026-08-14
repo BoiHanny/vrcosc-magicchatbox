@@ -7,8 +7,16 @@ namespace vrcosc_magicchatbox.Services;
 
 public enum PulsoidConnectionError
 {
+    /// <summary>Pulsoid unambiguously refused the credential (HTTP 401 on the handshake or on validate).</summary>
     TokenInvalid,
+
+    /// <summary>Repeated connection failures. Transient: the client keeps retrying in the background.</summary>
     MaxRetriesExhausted,
+
+    /// <summary>Pulsoid answered HTTP 402 — the account's plan does not cover this.</summary>
+    SubscriptionRequired,
+
+    /// <summary>Anything else. Transient by default; never a reason to sign the user out.</summary>
     UnexpectedError
 }
 

@@ -35,7 +35,19 @@ public static class Constants
     public const string PulsoidOAuthCallbackUri = "http://localhost:7385/";
 
     public const string PulsoidClientId = "1d0717d2-6c8c-47c6-9097-e289cb02a92d";
+
+    /// <summary>Scopes we ask Pulsoid for. Statistics is optional, so a narrowed grant is survivable.</summary>
     public const string PulsoidOAuthScope = "data:heart_rate:read,profile:read,data:statistics:read";
+
+    /// <summary>
+    /// The only scope the heart-rate feature actually needs
+    /// (https://docs.pulsoid.net/read-heart-rate/read-heart-rate-via-websocket). A token missing
+    /// any of the optional scopes is still a working token and must not be declared dead.
+    /// </summary>
+    public const string PulsoidRequiredScope = "data:heart_rate:read";
+
+    /// <summary>Scope for the optional statistics call; absence only disables statistics.</summary>
+    public const string PulsoidStatisticsScope = "data:statistics:read";
 
     public const string DiscordClientId = "1495716413980278814";
     public const string DiscordOAuthRedirectUri = "http://localhost:7386/";

@@ -3,6 +3,7 @@ using System.Windows;
 using vrcosc_magicchatbox.Classes.DataAndSecurity;
 using vrcosc_magicchatbox.Classes.Modules;
 using vrcosc_magicchatbox.Services;
+using vrcosc_magicchatbox.ViewModels.State;
 
 namespace vrcosc_magicchatbox.UI.Dialogs
 {
@@ -10,14 +11,14 @@ namespace vrcosc_magicchatbox.UI.Dialogs
     {
         private readonly PulsoidOAuthHandler _oauthHandler;
         private readonly PulsoidModule _heartRateConnector;
-        private readonly Action<bool> _setPulsoidAuth;
+        private readonly Action<PulsoidAuthState> _setPulsoidAuthState;
         private readonly INavigationService _nav;
 
-        public ManualPulsoidAuth(PulsoidModule heartRateConnector, Action<bool> setPulsoidAuth, PulsoidOAuthHandler oauthHandler, INavigationService nav)
+        public ManualPulsoidAuth(PulsoidModule heartRateConnector, Action<PulsoidAuthState> setPulsoidAuthState, PulsoidOAuthHandler oauthHandler, INavigationService nav)
         {
             InitializeComponent();
             _heartRateConnector = heartRateConnector;
-            _setPulsoidAuth = setPulsoidAuth;
+            _setPulsoidAuthState = setPulsoidAuthState;
             _oauthHandler = oauthHandler;
             _nav = nav;
         }
@@ -71,19 +72,32 @@ namespace vrcosc_magicchatbox.UI.Dialogs
 
             try
             {
-                bool isValidToken = await _oauthHandler.ValidateTokenAsync(token);
+                var validation = await _oauthHandler.ValidateTokenAsync(token);
 
-                if (isValidToken)
+                if (validation == PulsoidTokenValidation.Invalid)
                 {
-                    _heartRateConnector.Settings.AccessTokenOAuth = token;
-                    _heartRateConnector.SaveSettings();
-                    _setPulsoidAuth(true);
-                    Close();
+                    MessageBox.Show("Pulsoid rejected that token, or it is missing the heart-rate scope. Please try again.", "Invalid token", MessageBoxButton.OK, MessageBoxImage.Error);
+                    return;
+                }
+
+                _heartRateConnector.Settings.AccessTokenOAuth = token;
+                _heartRateConnector.SaveSettings();
+
+                if (_heartRateConnector.Settings.TokenProtectionFailed)
+                {
+                    _setPulsoidAuthState(PulsoidAuthState.Unreadable);
+                    MessageBox.Show("The token was accepted, but Windows could not encrypt it for storage, so it will not survive a restart.", "Pulsoid", MessageBoxButton.OK, MessageBoxImage.Warning);
                 }
                 else
                 {
-                    MessageBox.Show("Invalid token, please try again.", "Invalid token", MessageBoxButton.OK, MessageBoxImage.Error);
+                    // An unreachable Pulsoid is not a bad token; keep the sign-in and let the
+                    // connection loop confirm it.
+                    _setPulsoidAuthState(validation == PulsoidTokenValidation.Unknown
+                        ? PulsoidAuthState.Unreachable
+                        : PulsoidAuthState.Authenticated);
                 }
+
+                Close();
             }
             catch (Exception ex)
             {

@@ -51,6 +51,7 @@ public class OpenVrSessionServiceTests
         public bool BussyBoysMode { get; set; }
         public bool Egg_Dev { get; set; }
         public bool PulsoidAuthConnected { get; set; }
+        public vrcosc_magicchatbox.ViewModels.State.PulsoidAuthState PulsoidAuthState { get; set; }
         public int MainWindowBlurEffect { get; set; }
 
         public bool IsVRRunning

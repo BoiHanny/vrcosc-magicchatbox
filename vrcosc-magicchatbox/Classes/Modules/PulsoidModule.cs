@@ -13,6 +13,7 @@ using vrcosc_magicchatbox.Core.State;
 using vrcosc_magicchatbox.Core.Toast;
 using vrcosc_magicchatbox.Services;
 using vrcosc_magicchatbox.ViewModels.Models;
+using vrcosc_magicchatbox.ViewModels.State;
 
 namespace vrcosc_magicchatbox.Classes.Modules;
 
@@ -50,7 +51,10 @@ public partial class PulsoidModule : ObservableObject, IModule
     private DateTime _lastTokenValidationUtc = DateTime.MinValue;
     private DateTime _lastInactivityLogUtc = DateTime.MinValue;
     private static readonly TimeSpan _statsFetchInterval = TimeSpan.FromSeconds(30);
-    private static readonly TimeSpan _tokenValidationInterval = TimeSpan.FromSeconds(30);
+    // An idle strap used to trigger 120 validate calls an hour. Pulsoid documents no rate limit,
+    // so this is undocumented risk landing on the code path that decides whether to sign the user
+    // out; five minutes is plenty to notice a revoked token while the device is offline anyway.
+    private static readonly TimeSpan _tokenValidationInterval = TimeSpan.FromMinutes(5);
     private static readonly TimeSpan _inactivityLogInterval = TimeSpan.FromSeconds(30);
     private int _previousHeartRate = -1;
     private System.Timers.Timer _processDataTimer;
@@ -90,9 +94,20 @@ public partial class PulsoidModule : ObservableObject, IModule
     public bool IsEnabled { get; set; } = true;
     public bool IsRunning => isMonitoringStarted;
     public Task InitializeAsync(CancellationToken ct = default) => Task.CompletedTask;
-    public Task StartAsync(CancellationToken ct = default) => Task.CompletedTask;
+
+    /// <summary>
+    /// First network work happens here, not in the constructor, so the bootstrapper can hold it
+    /// until the app (and the network stack) is actually up — the same gate Spotify and Discord use.
+    /// </summary>
+    public Task StartAsync(CancellationToken ct = default) => CheckMonitoringConditionsAsync();
+
     public async Task StopAsync(CancellationToken ct = default) { await StopMonitoringHeartRateAsync(); }
-    public void SaveSettings() => _settingsProvider.Save();
+
+    /// <summary>
+    /// Writes settings straight through, cancelling any pending debounce. The access token must be
+    /// on disk the moment it is set or cleared, not two seconds later when the app might be closing.
+    /// </summary>
+    public void SaveSettings() => _settingsProvider.FlushPendingSave();
 
     public PulsoidModule(IAppState appState, IPulsoidClient client, IUiDispatcher dispatcher, IOscSender oscSender, IntegrationSettings integrationSettings, PulsoidOAuthHandler oAuth, ISettingsProvider<PulsoidModuleSettings> settingsProvider, IToastService? toast = null)
     {
@@ -121,7 +136,37 @@ public partial class PulsoidModule : ObservableObject, IModule
             _dispatcher.BeginInvoke(() => _ = ProcessDataAsync());
         };
 
-        _ = CheckMonitoringConditionsAsync();
+        RestoreAuthStateFromSettings();
+    }
+
+    /// <summary>
+    /// Seeds the sign-in state from what is on disk, synchronously and without touching the network.
+    /// The token has always survived restarts; the flag describing it did not, because nothing ever
+    /// derived it from the stored credential. That is the whole "authentication lost on restart" bug.
+    /// </summary>
+    public void RestoreAuthStateFromSettings()
+    {
+        if (Settings.TokenProtectionFailed)
+        {
+            SetAuthState(PulsoidAuthState.Unreadable);
+            PulsoidAccessError = true;
+            PulsoidAccessErrorTxt = "The saved Pulsoid token could not be decrypted on this Windows account. Please reconnect.";
+            Logging.WriteInfo("Pulsoid: stored token present but undecryptable; asking the user to reconnect.");
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(Settings.AccessTokenOAuth))
+        {
+            SetAuthState(PulsoidAuthState.NoToken);
+            return;
+        }
+
+        // Optimistic on purpose: a stored token is a sign-in until Pulsoid says otherwise, so an
+        // offline or slow launch still shows "connected" instead of demanding a pointless re-auth.
+        SetAuthState(PulsoidAuthState.Unverified);
+        PulsoidAccessError = false;
+        PulsoidAccessErrorTxt = string.Empty;
+        Logging.WriteInfo("Pulsoid: restored saved sign-in from settings (pending verification).");
     }
 
     private void OnHeartRateReceived(int rawHR)
@@ -134,15 +179,22 @@ public partial class PulsoidModule : ObservableObject, IModule
         if (!_pulsoidErrorShown)
         {
             _pulsoidErrorShown = true;
-            _toast?.Show("💓 Pulsoid Error", message, ToastType.Error, key: "pulsoid-error");
+            _toast?.Show("💓 Pulsoid Error", message,
+                error == PulsoidConnectionError.TokenInvalid ? ToastType.Error : ToastType.Warning,
+                key: "pulsoid-error");
         }
 
         _dispatcher.BeginInvoke(() =>
         {
             PulsoidAccessError = true;
             PulsoidAccessErrorTxt = message;
+
+            // Only an unambiguous rejection demotes the sign-in. Everything else is Pulsoid or the
+            // network being unavailable, which keeps the credential and keeps retrying.
             if (error == PulsoidConnectionError.TokenInvalid)
-                TriggerPulsoidAuthConnected(false);
+                SetAuthState(PulsoidAuthState.Rejected);
+            else
+                MarkUnreachableIfSignedIn();
         });
     }
 
@@ -155,6 +207,9 @@ public partial class PulsoidModule : ObservableObject, IModule
             {
                 PulsoidAccessError = false;
                 PulsoidAccessErrorTxt = "";
+                // A completed handshake is the strongest proof the token works, so this is where
+                // the sign-in becomes confirmed. Previously nothing ever set it back to true.
+                SetAuthState(PulsoidAuthState.Authenticated);
             });
             _processDataTimer.Start();
         }
@@ -373,13 +428,31 @@ public partial class PulsoidModule : ObservableObject, IModule
 
         isMonitoringStarted = true;
         string accessToken = Settings.AccessTokenOAuth;
+
+        if (Settings.TokenProtectionFailed)
+        {
+            _dispatcher.BeginInvoke(() =>
+            {
+                isMonitoringStarted = false;
+                PulsoidAccessError = true;
+                SetAuthState(PulsoidAuthState.Unreadable);
+                PulsoidAccessErrorTxt = "The saved Pulsoid token could not be decrypted on this Windows account. Please reconnect.";
+            });
+            if (!_pulsoidErrorShown)
+            {
+                _pulsoidErrorShown = true;
+                _toast?.Show("💓 Pulsoid", "The saved Pulsoid token could not be decrypted. Please reconnect.", ToastType.Error, key: "pulsoid-error");
+            }
+            return;
+        }
+
         if (string.IsNullOrEmpty(accessToken))
         {
             _dispatcher.BeginInvoke(() =>
             {
                 isMonitoringStarted = false;
                 PulsoidAccessError = true;
-                TriggerPulsoidAuthConnected(false);
+                SetAuthState(PulsoidAuthState.NoToken);
                 PulsoidAccessErrorTxt = "No Pulsoid connection found. Please connect with the Pulsoid Authentication server.";
             });
             if (!_pulsoidErrorShown)
@@ -390,22 +463,45 @@ public partial class PulsoidModule : ObservableObject, IModule
             return;
         }
 
-        bool isTokenValid = await OAuth.ValidateTokenAsync(accessToken).ConfigureAwait(false);
-        if (!isTokenValid)
+        var validation = await OAuth.ValidateTokenAsync(accessToken).ConfigureAwait(false);
+
+        if (validation == PulsoidTokenValidation.Invalid)
         {
             _dispatcher.BeginInvoke(() =>
             {
                 isMonitoringStarted = false;
                 PulsoidAccessError = true;
-                TriggerPulsoidAuthConnected(false);
-                PulsoidAccessErrorTxt = "Expired access token. Please reconnect.";
+                SetAuthState(PulsoidAuthState.Rejected);
+                PulsoidAccessErrorTxt = "Pulsoid rejected the saved token. Please reconnect.";
             });
             if (!_pulsoidErrorShown)
             {
                 _pulsoidErrorShown = true;
-                _toast?.Show("💓 Pulsoid", "Expired access token. Please reconnect.", ToastType.Warning, key: "pulsoid-error");
+                _toast?.Show("💓 Pulsoid", "Pulsoid rejected the saved token. Please reconnect.", ToastType.Warning, key: "pulsoid-error");
             }
             return;
+        }
+
+        if (validation == PulsoidTokenValidation.Unknown)
+        {
+            // Could not verify — offline, timeout, 429, 5xx. Keep the sign-in and connect anyway:
+            // the socket handshake is itself an auth check and owns the retry/backoff loop.
+            Logging.WriteInfo("Pulsoid token could not be verified right now; connecting with the saved sign-in anyway.");
+            _dispatcher.BeginInvoke(() =>
+            {
+                MarkUnreachableIfSignedIn();
+                PulsoidAccessError = true;
+                PulsoidAccessErrorTxt = "Can't reach Pulsoid right now — retrying with your saved sign-in.";
+            });
+        }
+        else
+        {
+            _dispatcher.BeginInvoke(() =>
+            {
+                SetAuthState(PulsoidAuthState.Authenticated);
+                PulsoidAccessError = false;
+                PulsoidAccessErrorTxt = string.Empty;
+            });
         }
 
         var cts = new CancellationTokenSource();
@@ -678,17 +774,32 @@ public partial class PulsoidModule : ObservableObject, IModule
                 if (nowUtc - _lastTokenValidationUtc >= _tokenValidationInterval)
                 {
                     _lastTokenValidationUtc = nowUtc;
-                    bool tokenValid = await OAuth.ValidateTokenAsync(Settings.AccessTokenOAuth);
-                    if (!tokenValid)
+                    var validation = await OAuth.ValidateTokenAsync(Settings.AccessTokenOAuth);
+                    if (validation == PulsoidTokenValidation.Invalid)
                     {
                         _dispatcher.BeginInvoke(() =>
                         {
                             PulsoidAccessError = true;
-                            PulsoidAccessErrorTxt = "Access token invalid or revoked. Please reconnect.";
-                            TriggerPulsoidAuthConnected(false);
+                            PulsoidAccessErrorTxt = "Pulsoid rejected the saved token. Please reconnect.";
+                            SetAuthState(PulsoidAuthState.Rejected);
                         });
                         await StopMonitoringHeartRateAsync();
                         return;
+                    }
+
+                    if (validation == PulsoidTokenValidation.Unknown)
+                    {
+                        // An idle strap is not an auth event, and neither is a validate call we
+                        // could not complete. Keep the session; say so plainly.
+                        _dispatcher.BeginInvoke(() =>
+                        {
+                            MarkUnreachableIfSignedIn();
+                            PulsoidAccessErrorTxt = "Can't reach Pulsoid right now — your sign-in is kept.";
+                        });
+                    }
+                    else
+                    {
+                        _dispatcher.BeginInvoke(() => SetAuthState(PulsoidAuthState.Authenticated));
                     }
                 }
 
@@ -878,13 +989,21 @@ public partial class PulsoidModule : ObservableObject, IModule
                _integrationSettings.IntgrHeartRate_OSC;
     }
 
-    public void TriggerPulsoidAuthConnected(bool newValue)
+    /// <summary>Writes the one value that decides whether the user is signed in to Pulsoid.</summary>
+    public void SetAuthState(PulsoidAuthState newState)
     {
-        bool currentvalue = _appState.PulsoidAuthConnected;
-        if (newValue != currentvalue)
-        {
-            _appState.PulsoidAuthConnected = newValue;
-        }
+        if (_appState.PulsoidAuthState != newState)
+            _appState.PulsoidAuthState = newState;
+    }
+
+    /// <summary>
+    /// Downgrades a working sign-in to "can't reach Pulsoid" without ever signing the user out.
+    /// A rejected or absent token is left alone: those are conclusions, not outages.
+    /// </summary>
+    private void MarkUnreachableIfSignedIn()
+    {
+        if (_appState.PulsoidAuthState is PulsoidAuthState.Authenticated or PulsoidAuthState.Unverified)
+            _appState.PulsoidAuthState = PulsoidAuthState.Unreachable;
     }
 
     public void UpdateFormattedHeartRateText()

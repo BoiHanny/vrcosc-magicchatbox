@@ -184,6 +184,7 @@ public static class ServiceRegistration
             sp.GetRequiredService<MediaLinkDisplayState>(),
             sp.GetRequiredService<SpotifyDisplayState>(),
             sp.GetRequiredService<LyricsDisplayState>(),
+            new Lazy<LyricsSectionViewModel>(() => sp.GetRequiredService<LyricsSectionViewModel>()),
             sp.GetRequiredService<TrackerDisplayState>(),
             sp.GetRequiredService<IAppState>(),
             sp.GetRequiredService<IMenuNavigationService>(),

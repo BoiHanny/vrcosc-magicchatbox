@@ -1,5 +1,6 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using vrcosc_magicchatbox.Classes.DataAndSecurity;
 using vrcosc_magicchatbox.Core.Configuration;
@@ -149,6 +150,27 @@ public partial class PulsoidModuleSettings : VersionedSettings
 
     private string _accessTokenOAuthEncrypted = string.Empty;
     private string _accessTokenOAuth = string.Empty;
+    private bool _tokenProtectionFailed;
+
+    /// <summary>
+    /// True when DPAPI could not protect or unprotect the Pulsoid token on this machine/account.
+    /// Never serialized: it describes this session's ability to use the credential, not the
+    /// credential itself. When it is set, the stored ciphertext has deliberately been left alone
+    /// rather than overwritten with nothing.
+    /// </summary>
+    [JsonIgnore]
+    public bool TokenProtectionFailed
+    {
+        get => _tokenProtectionFailed;
+        private set
+        {
+            if (_tokenProtectionFailed == value)
+                return;
+
+            _tokenProtectionFailed = value;
+            OnPropertyChanged(nameof(TokenProtectionFailed));
+        }
+    }
 
     [JsonIgnore]
     public string AccessTokenOAuth
@@ -156,13 +178,45 @@ public partial class PulsoidModuleSettings : VersionedSettings
         get => _accessTokenOAuth;
         set
         {
-            if (_accessTokenOAuth != value)
+            string incoming = value ?? string.Empty;
+            if (_accessTokenOAuth == incoming)
+                return;
+
+            if (incoming.Length == 0)
             {
-                _accessTokenOAuth = value ?? string.Empty;
-                EncryptionMethods.TryProcessToken(ref _accessTokenOAuth, ref _accessTokenOAuthEncrypted, true);
-                OnPropertyChanged(nameof(AccessTokenOAuth));
-                OnPropertyChanged(nameof(AccessTokenOAuthEncrypted));
+                // An explicit clear is the user disconnecting: both halves go.
+                _accessTokenOAuth = string.Empty;
+                _accessTokenOAuthEncrypted = string.Empty;
+                TokenProtectionFailed = false;
             }
+            else
+            {
+                string plain = incoming;
+                string cipher = null;
+                bool encrypted = EncryptionMethods.TryProcessToken(ref plain, ref cipher, isEncryption: true);
+
+                _accessTokenOAuth = incoming;
+
+                if (encrypted && !string.IsNullOrEmpty(cipher))
+                {
+                    _accessTokenOAuthEncrypted = cipher;
+                    TokenProtectionFailed = false;
+                }
+                else
+                {
+                    // Encryption failed. Keep the working plaintext for this session, but leave
+                    // whatever ciphertext is already stored untouched — writing null here is what
+                    // silently destroys a perfectly good saved token at the next debounced save.
+                    TokenProtectionFailed = true;
+                    Logging.WriteException(
+                        new InvalidOperationException(
+                            "Pulsoid access token could not be encrypted with DPAPI. The previously saved token was left untouched, and this one will not survive a restart."),
+                        MSGBox: false);
+                }
+            }
+
+            OnPropertyChanged(nameof(AccessTokenOAuth));
+            OnPropertyChanged(nameof(AccessTokenOAuthEncrypted));
         }
     }
 
@@ -171,13 +225,44 @@ public partial class PulsoidModuleSettings : VersionedSettings
         get => _accessTokenOAuthEncrypted;
         set
         {
-            if (_accessTokenOAuthEncrypted != value)
+            string incoming = value ?? string.Empty;
+            if (_accessTokenOAuthEncrypted == incoming)
+                return;
+
+            _accessTokenOAuthEncrypted = incoming;
+
+            if (incoming.Length == 0)
             {
-                _accessTokenOAuthEncrypted = value ?? string.Empty;
-                EncryptionMethods.TryProcessToken(ref _accessTokenOAuthEncrypted, ref _accessTokenOAuth, false);
-                OnPropertyChanged(nameof(AccessTokenOAuthEncrypted));
-                OnPropertyChanged(nameof(AccessTokenOAuth));
+                _accessTokenOAuth = string.Empty;
+                TokenProtectionFailed = false;
             }
+            else
+            {
+                string cipher = incoming;
+                string plain = null;
+                bool decrypted = EncryptionMethods.TryProcessToken(ref cipher, ref plain, isEncryption: false);
+
+                if (decrypted && !string.IsNullOrEmpty(plain))
+                {
+                    _accessTokenOAuth = plain;
+                    TokenProtectionFailed = false;
+                }
+                else
+                {
+                    // Decryption failed (different Windows account, restored profile, corrupt blob).
+                    // The ciphertext stays exactly as it is on disk — it may well decrypt elsewhere —
+                    // but the failure is made visible instead of presenting a silently empty token.
+                    _accessTokenOAuth = string.Empty;
+                    TokenProtectionFailed = true;
+                    Logging.WriteException(
+                        new InvalidOperationException(
+                            "Stored Pulsoid access token could not be decrypted with DPAPI. The encrypted value has been kept on disk; the user must reconnect to use heart rate on this account."),
+                        MSGBox: false);
+                }
+            }
+
+            OnPropertyChanged(nameof(AccessTokenOAuthEncrypted));
+            OnPropertyChanged(nameof(AccessTokenOAuth));
         }
     }
 

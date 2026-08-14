@@ -18,7 +18,7 @@ public partial class PulsoidSection : UserControl
         {
             var dialog = new ManualPulsoidAuth(
                 vm.Modules.Pulsoid,
-                auth => vm.PulsoidAuthConnected = auth,
+                state => vm.PulsoidAuthState = state,
                 vm.PulsoidOAuth,
                 vm.Navigation);
             DialogWindowHelper.PrepareModal(dialog, Window.GetWindow(this));
