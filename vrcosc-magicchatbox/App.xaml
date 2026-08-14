@@ -55,9 +55,22 @@
                     </Setter.Value>
                 </Setter>
             </Style>
+            <!--
+                Options section header. The template TextBlock below used to hard-code
+                FontSize/Foreground and set no FontFamily, so every FontSize/FontWeight/Foreground
+                declared on the 22 call sites was silently discarded and the headers rendered as
+                Segoe UI 13. The template now binds family, size and colour to these setters.
+                FontWeight is deliberately NOT template-bound: the 22 call sites still declare
+                FontWeight="Bold", and honouring that would overshoot the type scale (SemiBold 600
+                is the specced weight for this role, with Bold 700 held in reserve). The weight is
+                pinned in the template instead so the render is correct whether or not those
+                now-redundant call-site attributes are ever cleaned up.
+            -->
             <Style x:Key="ExpandCollapseToggleButtonStyle" TargetType="ToggleButton">
                 <Setter Property="Background" Value="Transparent" />
-                <Setter Property="Foreground" Value="#B7BBD4" />
+                <Setter Property="Foreground" Value="{StaticResource TextSectionHeaderBrush}" />
+                <Setter Property="FontFamily" Value="{StaticResource FontPrimary}" />
+                <Setter Property="FontSize" Value="15" />
                 <Setter Property="BorderBrush" Value="Transparent" />
                 <Setter Property="Padding" Value="5,0,5,0" />
                 <Setter Property="Template">
@@ -84,8 +97,10 @@
                                             Grid.Column="1"
                                             Margin="8,0,10,0"
                                             VerticalAlignment="Center"
-                                            FontSize="13"
-                                            Foreground="#B7BBD4"
+                                            FontFamily="{TemplateBinding FontFamily}"
+                                            FontSize="{TemplateBinding FontSize}"
+                                            FontWeight="SemiBold"
+                                            Foreground="{TemplateBinding Foreground}"
                                             Text="{TemplateBinding Tag}" />
                                     </Grid>
                                 </Border>
@@ -133,9 +148,12 @@
                     </Trigger>
                 </Style.Triggers>
             </Style>
+            <!--  Same header role as ExpandCollapseToggleButtonStyle, dev-only accent colours.  -->
             <Style x:Key="ExpandCollapseToggleButtonStyleDEV" TargetType="ToggleButton">
                 <Setter Property="Background" Value="Transparent" />
-                <Setter Property="Foreground" Value="#B7BBD4" />
+                <Setter Property="Foreground" Value="{StaticResource TextSectionHeaderBrush}" />
+                <Setter Property="FontFamily" Value="{StaticResource FontPrimary}" />
+                <Setter Property="FontSize" Value="15" />
                 <Setter Property="BorderBrush" Value="Transparent" />
                 <Setter Property="Padding" Value="5,0,5,0" />
                 <Setter Property="Template">
@@ -162,8 +180,10 @@
                                             Grid.Column="1"
                                             Margin="8,0,10,0"
                                             VerticalAlignment="Center"
-                                            FontSize="13"
-                                            Foreground="#B7BBD4"
+                                            FontFamily="{TemplateBinding FontFamily}"
+                                            FontSize="{TemplateBinding FontSize}"
+                                            FontWeight="SemiBold"
+                                            Foreground="{TemplateBinding Foreground}"
                                             Text="{TemplateBinding Tag}" />
                                     </Grid>
                                 </Border>

@@ -33,9 +33,6 @@
                 Width="Auto"
                 Height="30"
                 HorizontalAlignment="Left"
-                FontSize="15"
-                FontWeight="Bold"
-                Foreground="{StaticResource TextSectionHeaderBrush}"
                 IsChecked="{Binding AppSettings.Settings_TikTokLive, Mode=TwoWay}"
                 Style="{StaticResource ExpandCollapseToggleButtonStyle}"
                 Tag="TikTok options"
@@ -66,6 +63,7 @@
                                 <TextBlock
                                     FontFamily="/Fonts/#Albert Sans"
                                     FontSize="15"
+                                    FontWeight="Medium"
                                     Foreground="{StaticResource TextLabelBrush}"
                                     Text="Profile username" />
                                 <TextBox
@@ -89,6 +87,7 @@
                                 <TextBlock
                                     FontFamily="/Fonts/#Albert Sans"
                                     FontSize="15"
+                                    FontWeight="Medium"
                                     Foreground="{StaticResource TextLabelBrush}"
                                     Text="Refresh every (min)" />
                                 <TextBox
@@ -121,7 +120,7 @@
                                     <TextBlock
                                         FontFamily="/Fonts/#Albert Sans"
                                         FontSize="12"
-                                        FontWeight="SemiBold"
+                                        FontWeight="Medium"
                                         Foreground="{StaticResource AccentTealBrush}"
                                         Text="{Binding Modules.TikTokLive.FollowerCountDisplay, StringFormat='Followers: {0}', FallbackValue='Followers: -'}" />
                                     <TextBlock
@@ -142,7 +141,6 @@
                                     <TextBlock
                                         FontFamily="/Fonts/#Albert Sans"
                                         FontSize="12"
-                                        FontWeight="SemiBold"
                                         Foreground="{StaticResource AccentLightPurpleBrush}"
                                         Text="Profile preview" />
                                     <TextBlock
@@ -160,6 +158,7 @@
                             Margin="0,10,0,0"
                             FontFamily="/Fonts/#Albert Sans"
                             FontSize="15"
+                            FontWeight="Medium"
                             Foreground="{StaticResource TextLabelBrush}"
                             Text="Profile template" />
                         <TextBox
@@ -239,6 +238,7 @@
                                     <TextBlock
                                         FontFamily="/Fonts/#Albert Sans"
                                         FontSize="15"
+                                        FontWeight="Medium"
                                         Foreground="{StaticResource TextLabelBrush}"
                                         Text="Order" />
                                     <ComboBox
@@ -258,6 +258,7 @@
                                     <TextBlock
                                         FontFamily="/Fonts/#Albert Sans"
                                         FontSize="15"
+                                        FontWeight="Medium"
                                         Foreground="{StaticResource TextLabelBrush}"
                                         Text="Separator" />
                                     <TextBox
@@ -382,6 +383,7 @@
                                     <TextBlock
                                         FontFamily="/Fonts/#Albert Sans"
                                         FontSize="15"
+                                        FontWeight="Medium"
                                         Foreground="{StaticResource TextLabelBrush}"
                                         Text="LIVE host username" />
                                     <TextBox
@@ -396,6 +398,7 @@
                                     <TextBlock
                                         FontFamily="/Fonts/#Albert Sans"
                                         FontSize="15"
+                                        FontWeight="Medium"
                                         Foreground="{StaticResource TextLabelBrush}"
                                         Text="Timeout (s)" />
                                     <TextBox
@@ -410,6 +413,7 @@
                                     <TextBlock
                                         FontFamily="/Fonts/#Albert Sans"
                                         FontSize="15"
+                                        FontWeight="Medium"
                                         Foreground="{StaticResource TextLabelBrush}"
                                         Text="Reconnect (s)" />
                                     <TextBox
@@ -458,6 +462,7 @@
                                 Margin="0,8,0,0"
                                 FontFamily="/Fonts/#Albert Sans"
                                 FontSize="15"
+                                FontWeight="Medium"
                                 Foreground="{StaticResource TextLabelBrush}"
                                 Text="LIVE summary template" />
                             <TextBox
@@ -483,6 +488,7 @@
                                 <TextBlock
                                     FontFamily="/Fonts/#Albert Sans"
                                     FontSize="15"
+                                    FontWeight="Medium"
                                     Foreground="{StaticResource TextLabelBrush}"
                                     Text="Default duration (seconds)" />
                                 <TextBox

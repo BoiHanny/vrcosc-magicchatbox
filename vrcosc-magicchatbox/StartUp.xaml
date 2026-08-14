@@ -8,6 +8,7 @@
     Width="580"
     Background="#150A2E"
     Cursor="AppStarting"
+    FontFamily="{DynamicResource FontPrimary}"
     ResizeMode="NoResize"
     SizeToContent="Height"
     WindowStartupLocation="CenterScreen"

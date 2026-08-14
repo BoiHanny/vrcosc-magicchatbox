@@ -1,4 +1,4 @@
-﻿<UserControl
+<UserControl
     x:Class="vrcosc_magicchatbox.UI.Pages.Options.DiscordSection"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -33,9 +33,6 @@
                 Width="Auto"
                 Height="30"
                 HorizontalAlignment="Left"
-                FontSize="15"
-                FontWeight="Bold"
-                Foreground="{StaticResource TextSectionHeaderBrush}"
                 IsChecked="{Binding AppSettings.Settings_Discord, Mode=TwoWay}"
                 Style="{StaticResource ExpandCollapseToggleButtonStyle}"
                 Tag="Discord voice options"
@@ -117,7 +114,6 @@
                                     <TextBlock
                                         FontFamily="/Fonts/#Albert Sans"
                                         FontSize="12"
-                                        FontWeight="SemiBold"
                                         Foreground="{StaticResource AccentDiscordBrush}"
                                         Text="🎮  Rich Presence" />
                                     <TextBlock
@@ -144,7 +140,6 @@
                                     <TextBlock
                                         FontFamily="/Fonts/#Albert Sans"
                                         FontSize="12"
-                                        FontWeight="SemiBold"
                                         Foreground="{StaticResource AccentTealBrush}"
                                         Text="🎙  Voice Detection" />
                                     <TextBlock
@@ -633,6 +628,7 @@
                             Padding="0,0,0,0"
                             FontFamily="/Fonts/#Albert Sans"
                             FontSize="15"
+                            FontWeight="Medium"
                             Foreground="{StaticResource TextLabelBrush}"
                             Text="Max speakers to show" />
                         <StackPanel Margin="0,0,0,5" Orientation="Horizontal">
@@ -660,6 +656,7 @@
                             Padding="0,0,0,0"
                             FontFamily="/Fonts/#Albert Sans"
                             FontSize="15"
+                            FontWeight="Medium"
                             Foreground="{StaticResource TextLabelBrush}"
                             Text="Speaker debounce" />
                         <TextBlock
@@ -718,6 +715,7 @@
                             Padding="0,0,0,0"
                             FontFamily="/Fonts/#Albert Sans"
                             FontSize="15"
+                            FontWeight="Medium"
                             Foreground="{StaticResource TextLabelBrush}"
                             Text="Text when nobody is speaking" />
                         <TextBox
@@ -733,6 +731,7 @@
                             Padding="0,0,0,0"
                             FontFamily="/Fonts/#Albert Sans"
                             FontSize="15"
+                            FontWeight="Medium"
                             Foreground="{StaticResource TextLabelBrush}"
                             Text="Text when not in a voice channel" />
                         <TextBlock

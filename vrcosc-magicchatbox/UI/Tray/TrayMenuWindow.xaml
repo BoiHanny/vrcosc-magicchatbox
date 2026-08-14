@@ -7,6 +7,7 @@
     AllowsTransparency="True"
     Background="Transparent"
     Deactivated="Window_Deactivated"
+    FontFamily="{DynamicResource FontPrimary}"
     ResizeMode="NoResize"
     ShowInTaskbar="False"
     SizeToContent="Height"

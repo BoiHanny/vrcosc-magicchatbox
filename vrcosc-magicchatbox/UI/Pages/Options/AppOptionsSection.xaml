@@ -33,9 +33,6 @@
                 Width="Auto"
                 Height="30"
                 HorizontalAlignment="Left"
-                FontSize="15"
-                FontWeight="Bold"
-                Foreground="{StaticResource TextSectionHeaderBrush}"
                 IsChecked="{Binding AppSettings.Settings_AppOptions, Mode=TwoWay}"
                 Style="{StaticResource ExpandCollapseToggleButtonStyle}"
                 Tag="App options"
@@ -97,6 +94,7 @@
                         HorizontalAlignment="Left"
                         FontFamily="/Fonts/#Albert Sans"
                         FontSize="15"
+                        FontWeight="Medium"
                         Foreground="{StaticResource TextLabelBrush}"
                         Style="{StaticResource OptionSubsectionHeaderStyle}"
                         Text="Local IP address" />
@@ -130,7 +128,7 @@
                                             Margin="0,-1,5,0"
                                             VerticalAlignment="Center"
                                             FontSize="14"
-                                            FontWeight="DemiBold"
+                                            FontWeight="SemiBold"
                                             Foreground="{StaticResource TextSubtlePurpleBrush}"
                                             Text="Default" />
                                     </StackPanel>
@@ -145,6 +143,7 @@
                         HorizontalAlignment="Left"
                         FontFamily="/Fonts/#Albert Sans"
                         FontSize="15"
+                        FontWeight="Medium"
                         Foreground="{StaticResource TextLabelBrush}"
                         Style="{StaticResource OptionSubsectionHeaderStyle}"
                         Text="Port (outgoing)" />
@@ -178,7 +177,7 @@
                                             Margin="0,-1,5,0"
                                             VerticalAlignment="Center"
                                             FontSize="14"
-                                            FontWeight="DemiBold"
+                                            FontWeight="SemiBold"
                                             Foreground="{StaticResource TextSubtlePurpleBrush}"
                                             Text="Default" />
                                     </StackPanel>
@@ -199,6 +198,7 @@
                     VerticalAlignment="Center"
                     FontFamily="/Fonts/#Albert Sans"
                     FontSize="15"
+                    FontWeight="Medium"
                     Foreground="{StaticResource TextLabelBrush}"
                     Style="{StaticResource OptionSubsectionHeaderStyle}"
                     Text="OSC tick / send rate" />
@@ -250,6 +250,7 @@
                             HorizontalAlignment="Left"
                             FontFamily="/Fonts/#Albert Sans"
                             FontSize="15"
+                            FontWeight="Medium"
                             Foreground="{StaticResource TextLabelBrush}"
                             Style="{StaticResource OptionSubsectionHeaderStyle}"
                             Text="2nd IP address" />
@@ -268,6 +269,7 @@
                             HorizontalAlignment="Left"
                             FontFamily="/Fonts/#Albert Sans"
                             FontSize="15"
+                            FontWeight="Medium"
                             Foreground="{StaticResource TextLabelBrush}"
                             Style="{StaticResource OptionSubsectionHeaderStyle}"
                             Text="2nd VRChat port (outgoing)" />
@@ -307,6 +309,7 @@
                             HorizontalAlignment="Left"
                             FontFamily="/Fonts/#Albert Sans"
                             FontSize="15"
+                            FontWeight="Medium"
                             Foreground="{StaticResource TextLabelBrush}"
                             Style="{StaticResource OptionSubsectionHeaderStyle}"
                             Text="3rd IP address" />
@@ -325,6 +328,7 @@
                             HorizontalAlignment="Left"
                             FontFamily="/Fonts/#Albert Sans"
                             FontSize="15"
+                            FontWeight="Medium"
                             Foreground="{StaticResource TextLabelBrush}"
                             Style="{StaticResource OptionSubsectionHeaderStyle}"
                             Text="3rd VRChat port (outgoing)" />
@@ -371,6 +375,7 @@
                         HorizontalAlignment="Left"
                         FontFamily="/Fonts/#Albert Sans"
                         FontSize="15"
+                        FontWeight="Medium"
                         Foreground="{StaticResource TextLabelBrush}"
                         Style="{StaticResource OptionSubsectionHeaderStyle}"
                         Text="OSC separator (when not using ENTER)" />
@@ -389,6 +394,7 @@
                         HorizontalAlignment="Left"
                         FontFamily="/Fonts/#Albert Sans"
                         FontSize="15"
+                        FontWeight="Medium"
                         Foreground="{StaticResource TextLabelBrush}"
                         Style="{StaticResource OptionSubsectionHeaderStyle}"
                         Text="OSC message prefix" />
@@ -407,6 +413,7 @@
                         HorizontalAlignment="Left"
                         FontFamily="/Fonts/#Albert Sans"
                         FontSize="15"
+                        FontWeight="Medium"
                         Foreground="{StaticResource TextLabelBrush}"
                         Style="{StaticResource OptionSubsectionHeaderStyle}"
                         Text="OSC message suffix" />

@@ -32,9 +32,6 @@
                 Width="Auto"
                 Height="30"
                 HorizontalAlignment="Left"
-                FontSize="15"
-                FontWeight="Bold"
-                Foreground="{StaticResource TextSectionHeaderBrush}"
                 IsChecked="{Binding AppSettings.Settings_ComponentStats, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                 Style="{StaticResource ExpandCollapseToggleButtonStyle}"
                 Tag="Component stats options"
@@ -74,6 +71,7 @@
                             VerticalAlignment="Center"
                             FontFamily="/Fonts/#Albert Sans"
                             FontSize="15"
+                            FontWeight="Medium"
                             Foreground="{StaticResource TextLabelBrush}"
                             Text="Stats separator" />
                         <TextBox
@@ -160,6 +158,7 @@
                                     VerticalAlignment="Center"
                                     FontFamily="/Fonts/#Albert Sans"
                                     FontSize="15"
+                                    FontWeight="Medium"
                                     Foreground="{StaticResource TextLabelBrush}"
                                     Text="Custom hardware name" />
                                 <TextBox
@@ -299,6 +298,7 @@
                                     VerticalAlignment="Center"
                                     FontFamily="/Fonts/#Albert Sans"
                                     FontSize="15"
+                                    FontWeight="Medium"
                                     Foreground="{StaticResource TextLabelBrush}"
                                     Text="Custom hardware name" />
                                 <TextBox
@@ -388,6 +388,7 @@
                                     VerticalAlignment="Center"
                                     FontFamily="/Fonts/#Albert Sans"
                                     FontSize="15"
+                                    FontWeight="Medium"
                                     Foreground="{StaticResource TextLabelBrush}"
                                     Text="Custom hardware name" />
                                 <TextBox
@@ -477,6 +478,7 @@
                                     VerticalAlignment="Center"
                                     FontFamily="/Fonts/#Albert Sans"
                                     FontSize="15"
+                                    FontWeight="Medium"
                                     Foreground="{StaticResource TextLabelBrush}"
                                     Text="Custom hardware name" />
                                 <TextBox

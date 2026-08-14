@@ -39,9 +39,6 @@
                 Width="Auto"
                 Height="30"
                 HorizontalAlignment="Left"
-                FontSize="15"
-                FontWeight="Bold"
-                Foreground="{StaticResource TextSectionHeaderBrush}"
                 IsChecked="{Binding AppSettings.Settings_TTS, Mode=TwoWay}"
                 Style="{StaticResource ExpandCollapseToggleButtonStyle}"
                 Tag="Text to speech options"
@@ -117,6 +114,7 @@
                                 VerticalAlignment="Center"
                                 FontFamily="/Fonts/#Albert Sans"
                                 FontSize="15"
+                                FontWeight="Medium"
                                 Foreground="{StaticResource TextLabelBrush}"
                                 Text="TTS voice" />
                             <ComboBox
@@ -134,6 +132,7 @@
                                 VerticalAlignment="Center"
                                 FontFamily="/Fonts/#Albert Sans"
                                 FontSize="15"
+                                FontWeight="Medium"
                                 Foreground="{StaticResource TextLabelBrush}"
                                 Text="TTS output" />
                             <ComboBox

@@ -1,4 +1,4 @@
-﻿<UserControl
+<UserControl
     x:Class="vrcosc_magicchatbox.UI.Pages.Options.TrackerBatterySection"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -35,9 +35,6 @@
                 Width="Auto"
                 Height="30"
                 HorizontalAlignment="Left"
-                FontSize="15"
-                FontWeight="Bold"
-                Foreground="{StaticResource TextSectionHeaderBrush}"
                 IsChecked="{Binding AppSettings.Settings_TrackerBattery, Mode=TwoWay}"
                 Style="{StaticResource ExpandCollapseToggleButtonStyle}"
                 Tag="Tracker battery manager"
@@ -259,8 +256,9 @@
                                                 Width="35"
                                                 VerticalAlignment="Center"
                                                 DockPanel.Dock="Right"
-                                                FontFamily="Consolas"
+                                                FontFamily="/Fonts/#Albert Sans"
                                                 FontSize="14"
+                                                FontWeight="Medium"
                                                 Foreground="{StaticResource TextDangerRedBrush}"
                                                 Text="{Binding Modules.TrackerBattery.Settings.LowThreshold, StringFormat='{}{0}%'}"
                                                 TextAlignment="Right" />

@@ -33,9 +33,6 @@
                 Width="Auto"
                 Height="30"
                 HorizontalAlignment="Left"
-                FontSize="15"
-                FontWeight="Bold"
-                Foreground="{StaticResource TextSectionHeaderBrush}"
                 IsChecked="{Binding AppSettings.Settings_Chatting, Mode=TwoWay}"
                 Style="{StaticResource ExpandCollapseToggleButtonStyle}"
                 Tag="Chatting options"
@@ -53,6 +50,7 @@
                         Padding="0,0,0,0"
                         FontFamily="/Fonts/#Albert Sans"
                         FontSize="15"
+                        FontWeight="Medium"
                         Foreground="{StaticResource TextLabelBrush}"
                         Style="{StaticResource OptionSubsectionHeaderStyle}"
                         Text="Chat timeout" />
@@ -99,6 +97,7 @@
                         Margin="0,10,0,0"
                         FontFamily="/Fonts/#Albert Sans"
                         FontSize="15"
+                        FontWeight="Medium"
                         Foreground="{StaticResource TextLabelBrush}"
                         Style="{StaticResource OptionSubsectionHeaderStyle}"
                         Text="Inline autocomplete" />
@@ -236,6 +235,7 @@
                             VerticalAlignment="Center"
                             FontFamily="/Fonts/#Albert Sans"
                             FontSize="15"
+                            FontWeight="Medium"
                             Foreground="{StaticResource TextLabelBrush}"
                             Style="{StaticResource OptionSubsectionHeaderStyle}"
                             Text="Delay before sending" />
@@ -282,6 +282,7 @@
                             VerticalAlignment="Center"
                             FontFamily="/Fonts/#Albert Sans"
                             FontSize="15"
+                            FontWeight="Medium"
                             Foreground="{StaticResource TextLabelBrush}"
                             Style="{StaticResource OptionSubsectionHeaderStyle}"
                             Text="Update rate of active chat message" />

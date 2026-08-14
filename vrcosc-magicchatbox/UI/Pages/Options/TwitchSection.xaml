@@ -34,9 +34,6 @@
                 Width="Auto"
                 Height="30"
                 HorizontalAlignment="Left"
-                FontSize="15"
-                FontWeight="Bold"
-                Foreground="{StaticResource TextSectionHeaderBrush}"
                 IsChecked="{Binding AppSettings.Settings_Twitch, Mode=TwoWay}"
                 Style="{StaticResource ExpandCollapseToggleButtonStyle}"
                 Tag="Twitch options"
@@ -65,6 +62,7 @@
                         Padding="0,0,0,0"
                         FontFamily="/Fonts/#Albert Sans"
                         FontSize="15"
+                        FontWeight="Medium"
                         Foreground="{StaticResource TextLabelBrush}"
                         Text="Channel name" />
                     <TextBox
@@ -81,6 +79,7 @@
                         Padding="0,0,0,0"
                         FontFamily="/Fonts/#Albert Sans"
                         FontSize="15"
+                        FontWeight="Medium"
                         Foreground="{StaticResource TextLabelBrush}"
                         Text="Client ID" />
                     <StackPanel Margin="0,3,0,0" Orientation="Horizontal">
@@ -146,6 +145,7 @@
                         Padding="0,0,0,0"
                         FontFamily="/Fonts/#Albert Sans"
                         FontSize="15"
+                        FontWeight="Medium"
                         Foreground="{StaticResource TextLabelBrush}"
                         Text="Access token" />
                     <StackPanel Margin="0,3,0,0" Orientation="Horizontal">
@@ -213,6 +213,7 @@
                         Padding="0,0,0,0"
                         FontFamily="/Fonts/#Albert Sans"
                         FontSize="15"
+                        FontWeight="Medium"
                         Foreground="{StaticResource TextLabelBrush}"
                         Text="Refresh interval (seconds)" />
                     <StackPanel Margin="0,3,0,0" Orientation="Horizontal">
@@ -272,6 +273,7 @@
                             Padding="0,0,0,0"
                             FontFamily="/Fonts/#Albert Sans"
                             FontSize="15"
+                            FontWeight="Medium"
                             Foreground="{StaticResource TextLabelBrush}"
                             Text="Live prefix" />
                         <TextBox
@@ -296,6 +298,7 @@
                             Padding="0,0,0,0"
                             FontFamily="/Fonts/#Albert Sans"
                             FontSize="15"
+                            FontWeight="Medium"
                             Foreground="{StaticResource TextLabelBrush}"
                             Text="Game prefix" />
                         <TextBox
@@ -328,6 +331,7 @@
                                 Padding="0,0,0,0"
                                 FontFamily="/Fonts/#Albert Sans"
                                 FontSize="15"
+                                FontWeight="Medium"
                                 Foreground="{StaticResource TextLabelBrush}"
                                 Text="Viewer label" />
                             <TextBox
@@ -368,6 +372,7 @@
                                 Padding="0,0,0,0"
                                 FontFamily="/Fonts/#Albert Sans"
                                 FontSize="15"
+                                FontWeight="Medium"
                                 Foreground="{StaticResource TextLabelBrush}"
                                 Text="Follower label" />
                             <TextBox
@@ -407,6 +412,7 @@
                             Padding="0,0,0,0"
                             FontFamily="/Fonts/#Albert Sans"
                             FontSize="15"
+                            FontWeight="Medium"
                             Foreground="{StaticResource TextLabelBrush}"
                             Text="Title prefix" />
                         <TextBox
@@ -431,6 +437,7 @@
                             Padding="0,0,0,0"
                             FontFamily="/Fonts/#Albert Sans"
                             FontSize="15"
+                            FontWeight="Medium"
                             Foreground="{StaticResource TextLabelBrush}"
                             Text="Channel prefix" />
                         <TextBox
@@ -448,6 +455,7 @@
                         Padding="0,0,0,0"
                         FontFamily="/Fonts/#Albert Sans"
                         FontSize="15"
+                        FontWeight="Medium"
                         Foreground="{StaticResource TextLabelBrush}"
                         Text="Separator"
                         Visibility="{Binding Modules.Twitch.Settings.TemplateHasValue, Converter={StaticResource InverseBoolToVisibilityConverter}, UpdateSourceTrigger=PropertyChanged}" />
@@ -471,6 +479,7 @@
                         Padding="0,0,0,0"
                         FontFamily="/Fonts/#Albert Sans"
                         FontSize="15"
+                        FontWeight="Medium"
                         Foreground="{StaticResource TextLabelBrush}"
                         Text="Template (use {live} {game} {gameWithLabel} {viewers} {viewerCount} {viewerLabel} {followers} {followerCount} {followerLabel} {followersWithLabel} {title} {titleWithLabel} {channel} {channelWithLabel} {status})"
                         TextWrapping="Wrap" />
@@ -492,6 +501,7 @@
                         Padding="0,0,0,0"
                         FontFamily="/Fonts/#Albert Sans"
                         FontSize="15"
+                        FontWeight="Medium"
                         Foreground="{StaticResource TextLabelBrush}"
                         Text="Offline message" />
                     <TextBox
@@ -552,6 +562,7 @@
                                         Padding="0,0,0,0"
                                         FontFamily="/Fonts/#Albert Sans"
                                         FontSize="15"
+                                        FontWeight="Medium"
                                         Foreground="{StaticResource TextLabelBrush}"
                                         Text="Message" />
                                     <Grid Margin="0,3,0,0">
@@ -583,6 +594,7 @@
                                             Margin="0,4,0,0"
                                             FontFamily="/Fonts/#Albert Sans"
                                             FontSize="15"
+                                            FontWeight="Medium"
                                             Foreground="{StaticResource TextLabelBrush}"
                                             Text="Color" />
                                         <Border
@@ -657,6 +669,7 @@
                                         Padding="0,0,0,0"
                                         FontFamily="/Fonts/#Albert Sans"
                                         FontSize="15"
+                                        FontWeight="Medium"
                                         Foreground="{StaticResource TextLabelBrush}"
                                         Text="Target channel" />
                                     <Grid Margin="0,3,0,0">
@@ -695,6 +708,7 @@
                                             Padding="0,0,0,0"
                                             FontFamily="/Fonts/#Albert Sans"
                                             FontSize="15"
+                                            FontWeight="Medium"
                                             Foreground="{StaticResource TextLabelBrush}"
                                             Text="Announcement template" />
                                         <TextBox
@@ -713,6 +727,7 @@
                                                 Margin="0,4,0,0"
                                                 FontFamily="/Fonts/#Albert Sans"
                                                 FontSize="15"
+                                                FontWeight="Medium"
                                                 Foreground="{StaticResource TextLabelBrush}"
                                                 Text="Color" />
                                             <Border

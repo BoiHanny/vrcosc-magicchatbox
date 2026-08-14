@@ -40,9 +40,6 @@
                 Width="Auto"
                 Height="30"
                 HorizontalAlignment="Left"
-                FontSize="15"
-                FontWeight="Bold"
-                Foreground="{StaticResource TextSectionHeaderBrush}"
                 IsChecked="{Binding AppSettings.Settings_HeartRate, Mode=TwoWay}"
                 Style="{StaticResource ExpandCollapseToggleButtonStyle}"
                 Tag="Pulsoid heart rate options"
@@ -274,6 +271,7 @@
 
                 </Border>
                 <Border Padding="0" Style="{StaticResource OptionCardStyle}">
+                  <StackPanel>
                     <StackPanel Orientation="Horizontal">
                         <Button
                             x:Name="ConnectWithPulsoid"
@@ -358,7 +356,6 @@
                                 Effect="{StaticResource TextBlockShadowEffect}"
                                 FontFamily="/Fonts/#Comfortaa"
                                 FontSize="12"
-                                FontWeight="Bold"
                                 Foreground="LightSeaGreen"
                                 RenderOptions.BitmapScalingMode="NearestNeighbor"
                                 Text="No device connected"
@@ -375,7 +372,14 @@
                             TextWrapping="Wrap"
                             Visibility="{Binding Modules.Pulsoid.PulsoidAccessError, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}" />
                     </StackPanel>
-
+                    <TextBlock
+                        Margin="2,4,0,0"
+                        FontFamily="/Fonts/#Albert Sans"
+                        FontSize="12"
+                        Foreground="{StaticResource TextLabelBrush}"
+                        Text="{Binding Pulsoid.AuthStatusText, UpdateSourceTrigger=PropertyChanged}"
+                        TextWrapping="Wrap" />
+                  </StackPanel>
                 </Border>
                 <Border
                     Padding="0"
@@ -390,6 +394,7 @@
                             Cursor="Hand"
                             FontFamily="/Fonts/#Albert Sans"
                             FontSize="15"
+                            FontWeight="Medium"
                             Foreground="{StaticResource TextLabelBrush}"
                             MouseUp="ManualPulsoidAuthBtn_MouseUp"
                             Text="Manual web authorization" />
@@ -612,6 +617,7 @@
                                         VerticalAlignment="Center"
                                         FontFamily="/Fonts/#Albert Sans"
                                         FontSize="15"
+                                        FontWeight="Medium"
                                         Foreground="{StaticResource TextLabelBrush}"
                                         Text="Use last" />
                                     <TextBox
@@ -627,6 +633,7 @@
                                         VerticalAlignment="Center"
                                         FontFamily="/Fonts/#Albert Sans"
                                         FontSize="15"
+                                        FontWeight="Medium"
                                         Foreground="{StaticResource TextLabelBrush}"
                                         Text="received heart rate updates from the network to show smooth heart rate changes." />
                                 </StackPanel>
@@ -669,6 +676,7 @@
                                     VerticalAlignment="Center"
                                     FontFamily="/Fonts/#Albert Sans"
                                     FontSize="15"
+                                    FontWeight="Medium"
                                     Foreground="{StaticResource TextLabelBrush}"
                                     Text="Lower than" />
                                 <TextBox
@@ -686,6 +694,7 @@
                                     VerticalAlignment="Center"
                                     FontFamily="/Fonts/#Albert Sans"
                                     FontSize="15"
+                                    FontWeight="Medium"
                                     Foreground="{StaticResource TextLabelBrush}"
                                     Text="show" />
                                 <TextBox
@@ -704,6 +713,7 @@
                                     VerticalAlignment="Center"
                                     FontFamily="/Fonts/#Albert Sans"
                                     FontSize="15"
+                                    FontWeight="Medium"
                                     Foreground="{StaticResource TextLabelBrush}"
                                     Text="Higher than" />
                                 <TextBox
@@ -720,6 +730,7 @@
                                     VerticalAlignment="Center"
                                     FontFamily="/Fonts/#Albert Sans"
                                     FontSize="15"
+                                    FontWeight="Medium"
                                     Foreground="{StaticResource TextLabelBrush}"
                                     Text="show" />
                                 <TextBox
@@ -756,6 +767,7 @@
                                 VerticalAlignment="Center"
                                 FontFamily="/Fonts/#Albert Sans"
                                 FontSize="15"
+                                FontWeight="Medium"
                                 Foreground="{StaticResource TextLabelBrush}"
                                 Text="Trend symbols" />
                             <StackPanel VerticalAlignment="Center" Orientation="Horizontal">
@@ -778,6 +790,7 @@
                                     VerticalAlignment="Center"
                                     FontFamily="/Fonts/#Albert Sans"
                                     FontSize="15"
+                                    FontWeight="Medium"
                                     Foreground="{StaticResource TextLabelBrush}"
                                     Text="Use last" />
                                 <TextBox
@@ -793,6 +806,7 @@
                                     VerticalAlignment="Center"
                                     FontFamily="/Fonts/#Albert Sans"
                                     FontSize="15"
+                                    FontWeight="Medium"
                                     Foreground="{StaticResource TextLabelBrush}"
                                     Text="heart rate scans to identify trends." />
                             </StackPanel>
@@ -804,6 +818,7 @@
                                 VerticalAlignment="Center"
                                 FontFamily="/Fonts/#Albert Sans"
                                 FontSize="15"
+                                FontWeight="Medium"
                                 Foreground="{StaticResource TextLabelBrush}"
                                 Text="Trend sensitivity" />
                             <StackPanel Margin="3,0" Orientation="Horizontal">
@@ -860,6 +875,7 @@
                                     VerticalAlignment="Center"
                                     FontFamily="/Fonts/#Albert Sans"
                                     FontSize="15"
+                                    FontWeight="Medium"
                                     Foreground="{StaticResource TextLabelBrush}"
                                     Text="Use last" />
                                 <TextBox
@@ -875,6 +891,7 @@
                                     VerticalAlignment="Center"
                                     FontFamily="/Fonts/#Albert Sans"
                                     FontSize="15"
+                                    FontWeight="Medium"
                                     Foreground="{StaticResource TextLabelBrush}"
                                     Text="heart rate scans to show smooth heart rate changes." />
                             </StackPanel>
@@ -911,6 +928,7 @@
                                     VerticalAlignment="Center"
                                     FontFamily="/Fonts/#Albert Sans"
                                     FontSize="15"
+                                    FontWeight="Medium"
                                     Foreground="{StaticResource TextLabelBrush}"
                                     Text="Max Heart Rate:" />
                                 <TextBox
@@ -926,6 +944,7 @@
                                     VerticalAlignment="Center"
                                     FontFamily="/Fonts/#Albert Sans"
                                     FontSize="15"
+                                    FontWeight="Medium"
                                     Foreground="{StaticResource TextLabelBrush}"
                                     Text="BPM" />
 
@@ -939,6 +958,7 @@
                                     VerticalAlignment="Center"
                                     FontFamily="/Fonts/#Albert Sans"
                                     FontSize="15"
+                                    FontWeight="Medium"
                                     Foreground="{StaticResource TextLabelBrush}"
                                     Text="Max Overflow:" />
 
@@ -955,6 +975,7 @@
                                     VerticalAlignment="Center"
                                     FontFamily="/Fonts/#Albert Sans"
                                     FontSize="15"
+                                    FontWeight="Medium"
                                     Foreground="{StaticResource TextLabelBrush}"
                                     Text="BPM" />
                             </StackPanel>
@@ -994,6 +1015,7 @@
                                     VerticalAlignment="Center"
                                     FontFamily="/Fonts/#Albert Sans"
                                     FontSize="15"
+                                    FontWeight="Medium"
                                     Foreground="{StaticResource TextLabelBrush}"
                                     Text="Adjust heart-rate by" />
                                 <TextBox
@@ -1009,6 +1031,7 @@
                                     VerticalAlignment="Center"
                                     FontFamily="/Fonts/#Albert Sans"
                                     FontSize="15"
+                                    FontWeight="Medium"
                                     Foreground="{StaticResource TextLabelBrush}"
                                     Text="BPM" />
                             </StackPanel>
@@ -1040,6 +1063,7 @@
                                     VerticalAlignment="Center"
                                     FontFamily="/Fonts/#Albert Sans"
                                     FontSize="15"
+                                    FontWeight="Medium"
                                     Foreground="{StaticResource TextLabelBrush}"
                                     Text="If the heart rate is unchanged for" />
                                 <TextBox
@@ -1055,6 +1079,7 @@
                                     VerticalAlignment="Center"
                                     FontFamily="/Fonts/#Albert Sans"
                                     FontSize="15"
+                                    FontWeight="Medium"
                                     Foreground="{StaticResource TextLabelBrush}"
                                     Text="seconds, then the heart rate is considered offline." />
                             </StackPanel>
@@ -1114,6 +1139,7 @@
                                 VerticalAlignment="Center"
                                 FontFamily="/Fonts/#Albert Sans"
                                 FontSize="15"
+                                FontWeight="Medium"
                                 Foreground="{StaticResource TextLabelBrush}"
                                 Text="The title is shown above/before the heart rate." />
                             <StackPanel
@@ -1124,6 +1150,7 @@
                                     VerticalAlignment="Center"
                                     FontFamily="/Fonts/#Albert Sans"
                                     FontSize="15"
+                                    FontWeight="Medium"
                                     Foreground="{StaticResource TextLabelBrush}"
                                     Text="Show off as:" />
                                 <TextBox

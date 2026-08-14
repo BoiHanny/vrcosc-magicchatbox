@@ -1,4 +1,4 @@
-﻿<UserControl
+<UserControl
     x:Class="vrcosc_magicchatbox.UI.Pages.Options.WindowActivitySection"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -34,9 +34,6 @@
                 Width="Auto"
                 Height="30"
                 HorizontalAlignment="Left"
-                FontSize="15"
-                FontWeight="Bold"
-                Foreground="{StaticResource TextSectionHeaderBrush}"
                 IsChecked="{Binding AppSettings.Settings_WindowActivity, Mode=TwoWay}"
                 Style="{StaticResource ExpandCollapseToggleButtonStyle}"
                 Tag="Window activity options"
@@ -110,6 +107,7 @@
                             Padding="0,0,0,0"
                             FontFamily="/Fonts/#Albert Sans"
                             FontSize="15"
+                            FontWeight="Medium"
                             Foreground="{StaticResource TextLabelBrush}"
                             Text="max title length" />
                         <TextBox
@@ -258,6 +256,7 @@
                         Padding="0,10,0,0"
                         FontFamily="/Fonts/#Albert Sans"
                         FontSize="15"
+                        FontWeight="Medium"
                         Foreground="{StaticResource TextLabelBrush}"
                         Text="Desktop mode style" />
                     <StackPanel Orientation="Horizontal">
@@ -303,6 +302,7 @@
                         Padding="0,10,0,0"
                         FontFamily="/Fonts/#Albert Sans"
                         FontSize="15"
+                        FontWeight="Medium"
                         Foreground="{StaticResource TextLabelBrush}"
                         Text="VR mode style" />
                     <StackPanel Orientation="Horizontal">
@@ -345,6 +345,7 @@
                 Margin="0,15,0,5"
                 FontFamily="/Fonts/#Albert Sans"
                 FontSize="15"
+                FontWeight="Medium"
                 Foreground="{StaticResource TextLabelBrush}"
                 Text="Cleanup action" />
             <StackPanel Grid.Row="2" Orientation="Horizontal">

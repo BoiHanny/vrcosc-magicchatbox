@@ -10,6 +10,7 @@
                                      IsDesignTimeCreatable=False}"
     d:DesignHeight="550"
     d:DesignWidth="900"
+    FontFamily="{DynamicResource FontPrimary}"
     mc:Ignorable="d">
 
     <ScrollViewer

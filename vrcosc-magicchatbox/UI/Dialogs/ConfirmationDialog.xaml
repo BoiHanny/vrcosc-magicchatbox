@@ -5,6 +5,7 @@
     Title="Confirm"
     Width="520"
     Background="{StaticResource SurfaceCardBrush}"
+    FontFamily="{DynamicResource FontPrimary}"
     ResizeMode="NoResize"
     SizeToContent="Height"
     WindowStyle="None">

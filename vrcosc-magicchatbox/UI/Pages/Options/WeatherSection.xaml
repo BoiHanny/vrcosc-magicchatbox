@@ -35,9 +35,6 @@
                 Width="Auto"
                 Height="30"
                 HorizontalAlignment="Left"
-                FontSize="15"
-                FontWeight="Bold"
-                Foreground="{StaticResource TextSectionHeaderBrush}"
                 IsChecked="{Binding AppSettings.Settings_Weather, Mode=TwoWay}"
                 Style="{StaticResource ExpandCollapseToggleButtonStyle}"
                 Tag="Weather options"
@@ -57,6 +54,7 @@
                         Padding="0,0,0,0"
                         FontFamily="/Fonts/#Albert Sans"
                         FontSize="15"
+                        FontWeight="Medium"
                         Foreground="{StaticResource TextLabelBrush}"
                         Text="Weather refresh (minutes)" />
                     <StackPanel Margin="0,3,0,0" Orientation="Horizontal">
@@ -91,6 +89,7 @@
                         Padding="0,0,0,0"
                         FontFamily="/Fonts/#Albert Sans"
                         FontSize="15"
+                        FontWeight="Medium"
                         Foreground="{StaticResource TextLabelBrush}"
                         Text="Location mode" />
                     <ComboBox
@@ -124,6 +123,7 @@
                             Padding="0,0,0,0"
                             FontFamily="/Fonts/#Albert Sans"
                             FontSize="15"
+                            FontWeight="Medium"
                             Foreground="{StaticResource TextLabelBrush}"
                             Text="Custom city"
                             Visibility="{Binding WeatherSettings.WeatherLocationModeIsCustomCity, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}" />
@@ -131,6 +131,7 @@
                             Padding="0,0,0,0"
                             FontFamily="/Fonts/#Albert Sans"
                             FontSize="15"
+                            FontWeight="Medium"
                             Foreground="{StaticResource TextLabelBrush}"
                             Text="Fallback city"
                             Visibility="{Binding WeatherSettings.WeatherLocationModeIsIPBased, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}" />
@@ -202,6 +203,7 @@
                             Padding="0,0,0,0"
                             FontFamily="/Fonts/#Albert Sans"
                             FontSize="15"
+                            FontWeight="Medium"
                             Foreground="{StaticResource TextLabelBrush}"
                             Text="Coordinates (lat, lon)" />
                         <StackPanel Orientation="Horizontal">
@@ -234,6 +236,7 @@
                         Padding="0,0,0,0"
                         FontFamily="/Fonts/#Albert Sans"
                         FontSize="15"
+                        FontWeight="Medium"
                         Foreground="{StaticResource TextLabelBrush}"
                         Text="Layout mode" />
                     <ComboBox
@@ -254,6 +257,7 @@
                             Padding="0,0,0,0"
                             FontFamily="/Fonts/#Albert Sans"
                             FontSize="15"
+                            FontWeight="Medium"
                             Foreground="{StaticResource TextLabelBrush}"
                             Text="Weather stats separator" />
                         <TextBox
@@ -345,6 +349,7 @@
                                             Margin="0,0,0,4"
                                             FontFamily="/Fonts/#Albert Sans"
                                             FontSize="15"
+                                            FontWeight="Medium"
                                             Foreground="{StaticResource TextLabelBrush}"
                                             Text="{Binding DisplayLabel}" />
                                         <Border
@@ -416,6 +421,7 @@
                         Padding="0,0,0,0"
                         FontFamily="/Fonts/#Albert Sans"
                         FontSize="15"
+                        FontWeight="Medium"
                         Foreground="{StaticResource TextLabelBrush}"
                         Text="Unit override" />
                     <ComboBox
@@ -435,6 +441,7 @@
                         Padding="0,0,0,0"
                         FontFamily="/Fonts/#Albert Sans"
                         FontSize="15"
+                        FontWeight="Medium"
                         Foreground="{StaticResource TextLabelBrush}"
                         Text="Wind unit" />
                     <ComboBox

@@ -32,9 +32,6 @@
                 Width="Auto"
                 Height="30"
                 HorizontalAlignment="Left"
-                FontSize="15"
-                FontWeight="Bold"
-                Foreground="{StaticResource TextSectionHeaderBrush}"
                 IsChecked="{Binding AppSettings.Settings_Status, Mode=TwoWay}"
                 Style="{StaticResource ExpandCollapseToggleButtonStyle}"
                 Tag="Status options"
@@ -179,6 +176,7 @@
                             VerticalAlignment="Center"
                             FontFamily="/Fonts/#Albert Sans"
                             FontSize="15"
+                            FontWeight="Medium"
                             Foreground="{StaticResource TextLabelBrush}"
                             Text="Cycle to the next every" />
                         <TextBox
@@ -197,6 +195,7 @@
                             VerticalAlignment="Center"
                             FontFamily="/Fonts/#Albert Sans"
                             FontSize="15"
+                            FontWeight="Medium"
                             Foreground="{StaticResource TextLabelBrush}"
                             Text="seconds" />
 
@@ -249,6 +248,7 @@
                                 VerticalAlignment="Center"
                                 FontFamily="/Fonts/#Albert Sans"
                                 FontSize="15"
+                                FontWeight="Medium"
                                 Foreground="{StaticResource TextLabelBrush}"
                                 Text="Timeout time in" />
                             <TextBox
@@ -268,6 +268,7 @@
                                 VerticalAlignment="Center"
                                 FontFamily="/Fonts/#Albert Sans"
                                 FontSize="15"
+                                FontWeight="Medium"
                                 Foreground="{StaticResource TextLabelBrush}"
                                 Text="seconds" />
 
@@ -509,6 +510,7 @@
                             Padding="4,16,9,0"
                             FontFamily="/Fonts/#Albert Sans"
                             FontSize="15"
+                            FontWeight="Medium"
                             Foreground="{StaticResource TextLabelBrush}"
                             Text="Make fancy text" />
                         <TextBlock

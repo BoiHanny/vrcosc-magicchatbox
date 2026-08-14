@@ -1,4 +1,4 @@
-﻿<Window
+<Window
     x:Class="vrcosc_magicchatbox.UI.Dialogs.TwitchAuth"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -9,6 +9,7 @@
     Width="700"
     Height="390"
     Background="#41375B"
+    FontFamily="{DynamicResource FontPrimary}"
     ResizeMode="NoResize"
     mc:Ignorable="d">
 
@@ -83,18 +84,18 @@
                     TextWrapping="Wrap">
                     <Run
                         FontSize="22"
-                        FontWeight="DemiBold"
+                        FontWeight="SemiBold"
                         Text="Setup your Twitch Integration 🎮" />
                     <LineBreak />
                     <LineBreak />
                     <Run
-                        FontWeight="DemiBold"
+                        FontWeight="SemiBold"
                         Foreground="White"
                         Text="You need a Twitch Developer App and a User Access Token." />
                     <LineBreak />
                     <Run Foreground="#CCCCCC" Text="Required scope: " />
                     <Run
-                        FontWeight="DemiBold"
+                        FontWeight="SemiBold"
                         Foreground="#B39DDB"
                         Text="moderator:read:followers" />
                     <Run Foreground="#CCCCCC" Text=" (follower count)" />

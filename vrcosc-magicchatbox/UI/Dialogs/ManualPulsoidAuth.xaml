@@ -9,6 +9,7 @@
     Width="700"
     Height="250"
     Background="#41375B"
+    FontFamily="{DynamicResource FontPrimary}"
     ResizeMode="NoResize"
     mc:Ignorable="d">
 
@@ -104,6 +105,7 @@
                     VerticalAlignment="Top"
                     FontFamily="/Fonts/#Comfortaa"
                     FontSize="20"
+                    FontWeight="SemiBold"
                     Foreground="White"
                     RenderOptions.BitmapScalingMode="NearestNeighbor"
                     Text="Login, click 'Authorize app', then paste the access_token (or the full redirect URL).">

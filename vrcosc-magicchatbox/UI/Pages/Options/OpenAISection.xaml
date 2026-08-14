@@ -33,9 +33,6 @@
                 Width="Auto"
                 Height="30"
                 HorizontalAlignment="Left"
-                FontSize="15"
-                FontWeight="Bold"
-                Foreground="{StaticResource TextSectionHeaderBrush}"
                 IsChecked="{Binding AppSettings.Settings_OpenAI, Mode=TwoWay}"
                 Style="{StaticResource ExpandCollapseToggleButtonStyle}"
                 Tag="OpenAI options"
@@ -217,7 +214,7 @@
                                 VerticalAlignment="Center"
                                 FontFamily="/Fonts/#Albert Sans"
                                 FontSize="12"
-                                FontWeight="DemiBold"
+                                FontWeight="SemiBold"
                                 Foreground="{StaticResource TextLabelBrush}"
                                 Text="{Binding Modules.IntelliChat.Settings.SelectedWritingStyle.StyleDescription}" />
                         </StackPanel>
@@ -386,6 +383,7 @@
                             VerticalAlignment="Center"
                             FontFamily="/Fonts/#Albert Sans"
                             FontSize="15"
+                            FontWeight="Medium"
                             Foreground="{StaticResource TextLabelBrush}"
                             Text="Only works in Whisper"
                             TextWrapping="Wrap" />
@@ -427,6 +425,7 @@
                                 Padding="3,10,0,0"
                                 FontFamily="/Fonts/#Albert Sans"
                                 FontSize="15"
+                                FontWeight="Medium"
                                 Foreground="{StaticResource TextLabelBrush}"
                                 Text="Disable after" />
                             <TextBox
@@ -443,6 +442,7 @@
                                 Padding="0,10,0,0"
                                 FontFamily="/Fonts/#Albert Sans"
                                 FontSize="15"
+                                FontWeight="Medium"
                                 Foreground="{StaticResource TextLabelBrush}"
                                 Text="milliseconds of silence" />
 
@@ -463,6 +463,7 @@
                             VerticalAlignment="Center"
                             FontFamily="/Fonts/#Albert Sans"
                             FontSize="15"
+                            FontWeight="Medium"
                             Foreground="{StaticResource TextLabelBrush}"
                             Text="Adjust the noise gate threshold" />
 

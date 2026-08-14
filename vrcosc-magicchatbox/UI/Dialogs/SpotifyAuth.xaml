@@ -8,6 +8,7 @@
     Width="860"
     Height="680"
     Background="#41375B"
+    FontFamily="{DynamicResource FontPrimary}"
     ResizeMode="NoResize"
     mc:Ignorable="d">
 
@@ -70,7 +71,7 @@
                     TextWrapping="Wrap">
                     <Run
                         FontSize="23"
-                        FontWeight="DemiBold"
+                        FontWeight="SemiBold"
                         Text="Spotify in your VRChat chatbox 🎵" />
                     <LineBreak />
                     <LineBreak />

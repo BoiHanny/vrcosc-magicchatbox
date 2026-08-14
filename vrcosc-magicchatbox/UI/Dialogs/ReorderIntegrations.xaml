@@ -8,6 +8,7 @@
     Width="520"
     Height="520"
     Background="#41375B"
+    FontFamily="{DynamicResource FontPrimary}"
     ResizeMode="NoResize"
     WindowStartupLocation="CenterOwner"
     mc:Ignorable="d">
