@@ -49,14 +49,16 @@ public class OscSenderExplicitTextTests : IDisposable
         oscSettings.Value.OscIP = "127.0.0.1";
         oscSettings.Value.OscPortOut = port;
 
+        var ttsSettings = new StubSettingsProvider<TtsSettings>();
+
         _sender = new OscSenderService(
             oscSettings,
             new StubSettingsProvider<AppSettings>(),
-            new StubSettingsProvider<TtsSettings>(),
+            ttsSettings,
             new FakeAppState(),
             new ChatStatusDisplayState(),
             _oscDisplay,
-            new TtsAudioDisplayState());
+            new TtsAudioDisplayState(ttsSettings));
     }
 
     public void Dispose()

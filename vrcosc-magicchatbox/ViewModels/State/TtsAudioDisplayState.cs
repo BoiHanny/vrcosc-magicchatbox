@@ -1,5 +1,7 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using System.Collections.Generic;
+using vrcosc_magicchatbox.Classes.Modules;
+using vrcosc_magicchatbox.Core.Configuration;
 using vrcosc_magicchatbox.ViewModels.Models;
 
 namespace vrcosc_magicchatbox.ViewModels.State;
@@ -7,7 +9,21 @@ namespace vrcosc_magicchatbox.ViewModels.State;
 public sealed partial class TtsAudioDisplayState : ObservableObject
 {
     [ObservableProperty]
-    private string _toggleVoiceText = "Toggle voice (V)";
+    private string _toggleVoiceText = "Toggle voice";
+
+    // The "(V)" hint advertises the in-window shortcut, which only works while ToggleVoiceWithV is
+    // on. Following the setting stops the button promising a key that is off.
+    public TtsAudioDisplayState(ISettingsProvider<TtsSettings> ttsSettingsProvider)
+    {
+        TtsSettings settings = ttsSettingsProvider.Value;
+        UpdateToggleVoiceText(settings.ToggleVoiceWithV);
+
+        settings.PropertyChanged += (_, e) =>
+        {
+            if (e.PropertyName == nameof(TtsSettings.ToggleVoiceWithV))
+                UpdateToggleVoiceText(settings.ToggleVoiceWithV);
+        };
+    }
 
     private bool _TTSBtnShadow = false;
     public bool TTSBtnShadow

@@ -54,11 +54,15 @@ public sealed class MenuNavigationService : IMenuNavigationService
 
     public void SetScrollToSectionAction(Action<string> scrollToSection) => _scrollToSection = scrollToSection;
 
+    // Soundpad owns no options section, so its tile door aims at the bridge permission row rather
+    // than the top of Privacy.
+    public const string PrivacySoundpadTarget = "Settings_Privacy_Soundpad";
+
     public void ActivateSetting(string settingName)
     {
-        if (settingName == "Settings_Privacy")
+        if (settingName == "Settings_Privacy" || settingName == PrivacySoundpadTarget)
         {
-            NavigateToPrivacy();
+            NavigateToPrivacy(settingName);
             return;
         }
 
@@ -106,13 +110,15 @@ public sealed class MenuNavigationService : IMenuNavigationService
         });
     }
 
-    public void NavigateToPrivacy()
+    public void NavigateToPrivacy() => NavigateToPrivacy("Settings_Privacy");
+
+    private void NavigateToPrivacy(string scrollTarget)
     {
         _dispatcher.BeginInvoke(() =>
         {
             NavigateToPageCore(3, recordHistory: true);
             _expandPrivacy?.Invoke();
-            _scrollToSection?.Invoke("Settings_Privacy");
+            _scrollToSection?.Invoke(scrollTarget);
         });
     }
 

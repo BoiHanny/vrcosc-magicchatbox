@@ -303,6 +303,32 @@
 
                 <Border Style="{StaticResource OptionCardStyle}">
                     <StackPanel>
+                        <TextBlock Style="{StaticResource OptionSubsectionHeaderStyle}" Text="Long song names" />
+
+                        <TextBlock Style="{StaticResource OptionHelpTextStyle}" Text="The chatbox line is 144 characters, and a line that goes over is dropped rather than clipped - so one song with a long list of artists can take the whole thing off screen." />
+
+                        <CheckBox
+                            Margin="3,7"
+                            IsChecked="{Binding MediaLinkSettings.ShortenToFit, Mode=TwoWay}"
+                            Style="{DynamicResource SettingsCheckbox}">
+                            Shorten instead of dropping the song
+                        </CheckBox>
+
+                        <TextBlock Style="{StaticResource OptionHelpTextStyle}" Text="Trims the guest credits first, then the extra artists - &quot;Ariana Grande, Doja Cat, Megan Thee Stallion&quot; becomes &quot;Ariana Grande +2&quot; - and only shortens the title itself as a last resort. This is tried before the progress bar is downgraded, so the bar survives the spare names." />
+
+                        <CheckBox
+                            Margin="3,7"
+                            IsChecked="{Binding MediaLinkSettings.TidyTitles, Mode=TwoWay}"
+                            Style="{DynamicResource SettingsCheckbox}">
+                            Tidy up video titles
+                        </CheckBox>
+
+                        <TextBlock Style="{StaticResource OptionHelpTextStyle}" Text="Browsers report a video's full title, so YouTube arrives as &quot;Rick Astley - Never Gonna Give You Up (Official Music Video)&quot; with the channel name repeated. This drops the upload noise and the duplicated artist, leaving &quot;Never Gonna Give You Up&quot;. Live, Remix, Acoustic and the like are always kept." />
+                    </StackPanel>
+                </Border>
+
+                <Border Style="{StaticResource OptionCardStyle}">
+                    <StackPanel>
                         <TextBlock Style="{StaticResource OptionSubsectionHeaderStyle}" Text="Media progress bar" />
 
                         <TextBlock Style="{StaticResource OptionHelpTextStyle}" Text="Choose whether and how the media progress bar is shown." />

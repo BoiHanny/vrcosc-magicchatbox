@@ -4,6 +4,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:lyrics="clr-namespace:vrcosc_magicchatbox.Classes.Modules.Lyrics"
     xmlns:sections="clr-namespace:vrcosc_magicchatbox.ViewModels.Sections"
     d:DataContext="{d:DesignInstance Type=sections:LyricsSectionViewModel,
                                      IsDesignTimeCreatable=False}"
@@ -200,7 +201,8 @@
                             Margin="0,0,4,0"
                             Command="{Binding ResetOffsetCommand}"
                             Content="Reset"
-                            Style="{StaticResource Status_Button_style}" />
+                            Style="{StaticResource Status_Button_style}"
+                            ToolTip="Back to the +100 ms the app ships with." />
                         <Button
                             Width="52"
                             Height="26"
@@ -321,8 +323,38 @@
                         IsChecked="{Binding Settings.ShowNoteIcon, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                     <CheckBox
                         Margin="0,2"
-                        Content="Show ♪ during instrumental breaks"
+                        Content="Raise (backing vocals) to ᵇᵃᶜᵏⁱⁿᵍ ᵛᵒᶜᵃˡˢ"
+                        IsChecked="{Binding Settings.SuperscriptAsides, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                        ToolTip="Drops the brackets and raises what was inside them, so the main line reads at full size. Asides that cannot be raised keep their brackets." />
+                    <CheckBox
+                        Margin="0,2"
+                        Content="Show a marker during intros and instrumental breaks"
                         IsChecked="{Binding Settings.ShowGapMarker, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+
+                    <StackPanel
+                        Margin="0,6,0,0"
+                        Orientation="Horizontal"
+                        Visibility="{Binding Settings.ShowGapMarker, Converter={StaticResource BoolToVisibilityConverter}, UpdateSourceTrigger=PropertyChanged}">
+                        <TextBlock
+                            Width="210"
+                            VerticalAlignment="Center"
+                            FontFamily="/Fonts/#Albert Sans"
+                            FontSize="12"
+                            Foreground="{StaticResource TextMutedBrush}"
+                            Text="Marker" />
+                        <ComboBox
+                            Width="260"
+                            HorizontalAlignment="Left"
+                            ItemsSource="{Binding Source={x:Static lyrics:LyricsSettings.AvailableInstrumentalMarkers}}"
+                            SelectedValue="{Binding Settings.InstrumentalMarker, Mode=TwoWay}"
+                            ToolTip="The animated ones step through their frames as the song plays.">
+                            <ComboBox.ItemTemplate>
+                                <DataTemplate>
+                                    <TextBlock Text="{Binding Converter={StaticResource EnumDescriptionConverter}}" />
+                                </DataTemplate>
+                            </ComboBox.ItemTemplate>
+                        </ComboBox>
+                    </StackPanel>
 
                     <StackPanel Margin="0,8,0,0" Orientation="Horizontal">
                         <TextBlock
@@ -336,6 +368,47 @@
                             Width="60"
                             Text="{Binding Settings.MinimumCharacters, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                     </StackPanel>
+                </StackPanel>
+            </Border>
+
+            <Border Style="{StaticResource OptionCardStyle}">
+                <StackPanel>
+                    <TextBlock Style="{StaticResource OptionSubsectionHeaderStyle}" Text="Finding the right lyrics" />
+
+                    <TextBlock
+                        Style="{StaticResource OptionHelpTextStyle}"
+                        Text="A song can be in the database several times over - the original, the remixes, the live take - all sharing a name and often a length. These decide how sure the match has to be before the words go on screen." />
+
+                    <StackPanel Margin="0,8,0,0" Orientation="Horizontal">
+                        <TextBlock
+                            Width="210"
+                            VerticalAlignment="Center"
+                            FontFamily="/Fonts/#Albert Sans"
+                            FontSize="12"
+                            Foreground="{StaticResource TextMutedBrush}"
+                            Text="How sure the match must be" />
+                        <ComboBox
+                            Width="260"
+                            HorizontalAlignment="Left"
+                            ItemsSource="{Binding Source={x:Static lyrics:LyricsSettings.AvailableMatchStrictness}}"
+                            SelectedValue="{Binding Settings.MatchStrictness, Mode=TwoWay}">
+                            <ComboBox.ItemTemplate>
+                                <DataTemplate>
+                                    <TextBlock Text="{Binding Converter={StaticResource EnumDescriptionConverter}}" />
+                                </DataTemplate>
+                            </ComboBox.ItemTemplate>
+                        </ComboBox>
+                    </StackPanel>
+
+                    <CheckBox
+                        Margin="0,10,0,2"
+                        Content="Search again without the version in the title"
+                        IsChecked="{Binding Settings.BroadenSearchWhenNoMatch, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                        ToolTip="Only used when the exact title finds nothing." />
+
+                    <TextBlock
+                        Style="{StaticResource OptionHelpTextStyle}"
+                        Text="&quot;Song (Some Remix)&quot; is searched for again as &quot;Song&quot;, because a database often files a version under the plain name. Anything found that way has to match the running time closely, so this widens what can be found without loosening what counts as a match." />
                 </StackPanel>
             </Border>
 

@@ -3,6 +3,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Navigation;
 using System.Windows.Threading;
+using vrcosc_magicchatbox.Services;
 using vrcosc_magicchatbox.ViewModels;
 
 namespace vrcosc_magicchatbox.UI.Pages;
@@ -57,6 +58,8 @@ public partial class OptionsPage : UserControl
             ["Settings_VrPerformance"] = OptionsWrapper_VrPerformance,
             ["Settings_Lyrics"] = OptionsWrapper_Lyrics,
             ["Settings_Privacy"] = OptionsWrapper_Privacy,
+            // Soundpad has no section of its own, only this permission row.
+            [MenuNavigationService.PrivacySoundpadTarget] = PrivacySectionControl.SoundpadBridgeRow,
             ["Settings_WindowActivity"] = OptionsWrapper_WindowActivity,
         };
     }

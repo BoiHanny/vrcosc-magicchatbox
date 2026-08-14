@@ -15,23 +15,33 @@ public static class LyricSegmentFormatter
         int budget,
         LyricsSettings settings)
     {
-        if (settings == null || budget < settings.MinimumCharacters)
-            return string.Empty;
-
-        string prefix = settings.ShowNoteIcon ? GapMark + " " : string.Empty;
-        int textBudget = budget - prefix.Length;
-
-        if (textBudget < 4)
+        if (settings == null || budget <= 0)
             return string.Empty;
 
         switch (cursor.Kind)
         {
+            // The intro counts too: it is the longest silent stretch of most songs, and showing
+            // nothing there looked like the lyrics had failed.
             case LyricCursorKind.InstrumentalGap:
-                return settings.ShowGapMarker ? GapMark : string.Empty;
+            case LyricCursorKind.BeforeFirstLine:
+                return BuildInstrumentalMarker(settings, position, budget);
 
             case LyricCursorKind.Line:
-                string text = Sanitize(cursor.Text);
+                // A partial lyric is worse than none, so a line still has to clear the floor the
+                // user set. The marker above does not - it is complete at one character.
+                if (budget < settings.MinimumCharacters)
+                    return string.Empty;
+
+                string text = PrepareLine(cursor.Text, settings);
                 if (text.Length == 0)
+                    return string.Empty;
+
+                string prefix = settings.ShowNoteIcon ? GapMark + " " : string.Empty;
+                int textBudget = budget - prefix.Length;
+
+                // Sized for a line of lyrics. This used to guard the marker too, which needs one
+                // character.
+                if (textBudget < 4)
                     return string.Empty;
 
                 return prefix + Fit(text, textBudget, cursor, position);
@@ -39,6 +49,35 @@ public static class LyricSegmentFormatter
             default:
                 return string.Empty;
         }
+    }
+
+    public static string BuildInstrumentalMarker(LyricsSettings settings, TimeSpan position, int budget)
+    {
+        if (settings == null || !settings.ShowGapMarker)
+            return string.Empty;
+
+        var style = settings.InstrumentalMarker;
+
+        // Budgeted against the widest frame, not the current one: styles that change width as they
+        // animate would otherwise blink in and out near the edge.
+        if (InstrumentalMarker.MaxWidth(style) > budget)
+            style = LyricsInstrumentalMarker.Note;
+
+        string marker = InstrumentalMarker.Render(style, position);
+        return marker.Length <= budget ? marker : string.Empty;
+    }
+
+    /// <summary>
+    /// A lyric line ready to show. Shared with the module so the ribbon preview and the chatbox
+    /// cannot disagree.
+    /// </summary>
+    public static string PrepareLine(string? raw, LyricsSettings? settings)
+    {
+        string text = Sanitize(raw);
+        if (text.Length == 0 || settings?.SuperscriptAsides != true)
+            return text;
+
+        return Sanitize(LyricAsides.Apply(text));
     }
 
     public static string Sanitize(string? text)

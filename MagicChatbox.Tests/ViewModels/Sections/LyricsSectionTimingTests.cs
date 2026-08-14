@@ -44,7 +44,7 @@ public class LyricsSectionTimingTests
 
         vm.NudgeOffsetCommand.Execute("-100");
 
-        Assert.Equal(-100, vm.Settings.OffsetMs);
+        Assert.Equal(LyricsTuning.DefaultOffsetMs - 100, vm.Settings.OffsetMs);
         Assert.Equal(1, lyrics.SaveCount);
     }
 
@@ -65,15 +65,24 @@ public class LyricsSectionTimingTests
     }
 
     [Fact]
-    public void Reset_puts_the_offset_back_in_sync()
+    public void Reset_puts_the_offset_back_to_the_shipped_default()
     {
         var (vm, _) = Build();
         vm.NudgeOffsetCommand.Execute("1000");
 
         vm.ResetOffsetCommand.Execute(null);
 
-        Assert.Equal(0, vm.Settings.OffsetMs);
-        Assert.Equal("in sync", vm.OffsetChip);
+        // Not zero: zero is the setting where the words arrive late, so resetting to it would undo
+        // the correction the app ships with.
+        Assert.Equal(LyricsTuning.DefaultOffsetMs, vm.Settings.OffsetMs);
+    }
+
+    [Fact]
+    public void A_fresh_install_starts_at_the_shipped_offset()
+    {
+        var (vm, _) = Build();
+
+        Assert.Equal(LyricsTuning.DefaultOffsetMs, vm.Settings.OffsetMs);
     }
 
     /// <summary>
@@ -90,10 +99,14 @@ public class LyricsSectionTimingTests
 
         vm.NudgeOffsetCommand.Execute("300");
 
+        // Measured from the shipped default rather than from zero, which is where a fresh view model
+        // now starts.
+        int expected = LyricsTuning.DefaultOffsetMs + 300;
+
         Assert.Contains(nameof(vm.OffsetChip), raised);
         Assert.Contains(nameof(vm.OffsetSummary), raised);
-        Assert.Equal("+300 ms", vm.OffsetChip);
-        Assert.Equal("Lyrics run 300 ms early", vm.OffsetSummary);
+        Assert.Equal($"+{expected} ms", vm.OffsetChip);
+        Assert.Equal($"Lyrics run {expected} ms early", vm.OffsetSummary);
     }
 
     [Fact]
@@ -158,7 +171,7 @@ public class LyricsSectionTimingTests
         vm.NudgeOffsetCommand.Execute("half a second");
         vm.NudgeGapThresholdCommand.Execute("");
 
-        Assert.Equal(0, vm.Settings.OffsetMs);
+        Assert.Equal(LyricsTuning.DefaultOffsetMs, vm.Settings.OffsetMs);
         Assert.Equal(8, vm.Settings.GapThresholdSeconds);
         Assert.Equal(0, lyrics.SaveCount);
     }

@@ -852,14 +852,19 @@
                                             <ColumnDefinition Width="Auto" />
                                         </Grid.ColumnDefinitions>
 
+                                        <!--  A Grid does not clip, so without trimming the label draws
+                                              at its full width and runs under the pill.  -->
                                         <TextBlock
                                             Grid.Column="0"
+                                            Margin="0,0,8,0"
                                             VerticalAlignment="Center"
                                             FontFamily="/Fonts/#Albert Sans"
                                             FontSize="{StaticResource FontSizeMicro}"
                                             Foreground="{StaticResource DeckTextMutedBrush}"
                                             RenderOptions.BitmapScalingMode="NearestNeighbor"
-                                            Text="AWAY FROM KEYBOARD" />
+                                            Text="AWAY FROM KEYBOARD"
+                                            TextTrimming="CharacterEllipsis"
+                                            ToolTip="AWAY FROM KEYBOARD" />
 
                                         <Border
                                             Grid.Column="1"
@@ -878,6 +883,9 @@
                                                     </Style.Triggers>
                                                 </Style>
                                             </Border.Style>
+                                            <!--  "HERE" rather than "AT KEYBOARD": the header already
+                                                  says keyboard, and repeating it made the row too
+                                                  wide.  -->
                                             <TextBlock
                                                 VerticalAlignment="Center"
                                                 FontFamily="/Fonts/#Albert Sans"
@@ -886,7 +894,7 @@
                                                 <TextBlock.Style>
                                                     <Style TargetType="TextBlock">
                                                         <Setter Property="Foreground" Value="{StaticResource DeckTextMutedBrush}" />
-                                                        <Setter Property="Text" Value="AT KEYBOARD" />
+                                                        <Setter Property="Text" Value="HERE" />
                                                         <Style.Triggers>
                                                             <DataTrigger Binding="{Binding Modules.Afk.IsAfk}" Value="True">
                                                                 <Setter Property="Foreground" Value="#FFCFF6E4" />
@@ -957,6 +965,7 @@
 
                                         <StackPanel
                                             Grid.Column="0"
+                                            Margin="0,0,8,0"
                                             VerticalAlignment="Center"
                                             Orientation="Horizontal"
                                             Visibility="{Binding Modules.Afk.VRModeLabelActive, Converter={StaticResource InverseBoolToVisibilityConverter}, UpdateSourceTrigger=PropertyChanged}">
@@ -998,13 +1007,17 @@
                                             </TextBlock>
                                         </StackPanel>
 
+                                        <!--  Same as the header: this one ran under the AFK NOW button.  -->
                                         <TextBlock
                                             Grid.Column="0"
+                                            Margin="0,0,8,0"
                                             VerticalAlignment="Center"
                                             FontFamily="/Fonts/#Albert Sans"
                                             FontSize="12"
                                             Foreground="{StaticResource DeckTextMutedBrush}"
-                                            Text="Paused while you are in VR"
+                                            Text="Paused while in VR"
+                                            TextTrimming="CharacterEllipsis"
+                                            ToolTip="AFK detection is paused while you are in VR"
                                             Visibility="{Binding Modules.Afk.VRModeLabelActive, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}" />
 
                                         <ToggleButton
