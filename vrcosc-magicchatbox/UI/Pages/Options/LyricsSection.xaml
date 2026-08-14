@@ -323,8 +323,38 @@
                         IsChecked="{Binding Settings.ShowNoteIcon, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                     <CheckBox
                         Margin="0,2"
-                        Content="Show ♪ during instrumental breaks"
+                        Content="Raise (backing vocals) to ᵇᵃᶜᵏⁱⁿᵍ ᵛᵒᶜᵃˡˢ"
+                        IsChecked="{Binding Settings.SuperscriptAsides, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                        ToolTip="Drops the brackets and raises what was inside them, so the main line reads at full size. Asides that cannot be raised keep their brackets." />
+                    <CheckBox
+                        Margin="0,2"
+                        Content="Show a marker during intros and instrumental breaks"
                         IsChecked="{Binding Settings.ShowGapMarker, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+
+                    <StackPanel
+                        Margin="0,6,0,0"
+                        Orientation="Horizontal"
+                        Visibility="{Binding Settings.ShowGapMarker, Converter={StaticResource BoolToVisibilityConverter}, UpdateSourceTrigger=PropertyChanged}">
+                        <TextBlock
+                            Width="210"
+                            VerticalAlignment="Center"
+                            FontFamily="/Fonts/#Albert Sans"
+                            FontSize="12"
+                            Foreground="{StaticResource TextMutedBrush}"
+                            Text="Marker" />
+                        <ComboBox
+                            Width="260"
+                            HorizontalAlignment="Left"
+                            ItemsSource="{Binding Source={x:Static lyrics:LyricsSettings.AvailableInstrumentalMarkers}}"
+                            SelectedValue="{Binding Settings.InstrumentalMarker, Mode=TwoWay}"
+                            ToolTip="The animated ones step through their frames as the song plays.">
+                            <ComboBox.ItemTemplate>
+                                <DataTemplate>
+                                    <TextBlock Text="{Binding Converter={StaticResource EnumDescriptionConverter}}" />
+                                </DataTemplate>
+                            </ComboBox.ItemTemplate>
+                        </ComboBox>
+                    </StackPanel>
 
                     <StackPanel Margin="0,8,0,0" Orientation="Horizontal">
                         <TextBlock
@@ -338,37 +368,6 @@
                             Width="60"
                             Text="{Binding Settings.MinimumCharacters, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                     </StackPanel>
-                </StackPanel>
-            </Border>
-
-            <Border Style="{StaticResource OptionCardStyle}">
-                <StackPanel>
-                    <TextBlock
-                        Margin="0,0,0,4"
-                        FontFamily="/Fonts/#Comfortaa"
-                        FontSize="13"
-                        Foreground="{StaticResource TextSectionHeaderBrush}"
-                        Text="Sharing space with the song title" />
-                    <TextBlock
-                        Margin="0,0,0,8"
-                        FontFamily="/Fonts/#Albert Sans"
-                        FontSize="11"
-                        Foreground="{StaticResource TextMutedBrush}"
-                        Text="The chatbox holds 144 characters for every integration together. Hiding the title while a lyric shows roughly doubles the room the words get."
-                        TextWrapping="Wrap" />
-
-                    <ComboBox
-                        Width="280"
-                        HorizontalAlignment="Left"
-                        ItemsSource="{Binding CoexistenceModes}"
-                        SelectedItem="{Binding Settings.Coexistence, Mode=TwoWay}"
-                        Style="{StaticResource DarkComboBoxStyle}">
-                        <ComboBox.ItemTemplate>
-                            <DataTemplate>
-                                <TextBlock Text="{Binding Converter={StaticResource EnumDescriptionConverter}}" />
-                            </DataTemplate>
-                        </ComboBox.ItemTemplate>
-                    </ComboBox>
                 </StackPanel>
             </Border>
 
@@ -410,6 +409,37 @@
                     <TextBlock
                         Style="{StaticResource OptionHelpTextStyle}"
                         Text="&quot;Song (Some Remix)&quot; is searched for again as &quot;Song&quot;, because a database often files a version under the plain name. Anything found that way has to match the running time closely, so this widens what can be found without loosening what counts as a match." />
+                </StackPanel>
+            </Border>
+
+            <Border Style="{StaticResource OptionCardStyle}">
+                <StackPanel>
+                    <TextBlock
+                        Margin="0,0,0,4"
+                        FontFamily="/Fonts/#Comfortaa"
+                        FontSize="13"
+                        Foreground="{StaticResource TextSectionHeaderBrush}"
+                        Text="Sharing space with the song title" />
+                    <TextBlock
+                        Margin="0,0,0,8"
+                        FontFamily="/Fonts/#Albert Sans"
+                        FontSize="11"
+                        Foreground="{StaticResource TextMutedBrush}"
+                        Text="The chatbox holds 144 characters for every integration together. Hiding the title while a lyric shows roughly doubles the room the words get."
+                        TextWrapping="Wrap" />
+
+                    <ComboBox
+                        Width="280"
+                        HorizontalAlignment="Left"
+                        ItemsSource="{Binding CoexistenceModes}"
+                        SelectedItem="{Binding Settings.Coexistence, Mode=TwoWay}"
+                        Style="{StaticResource DarkComboBoxStyle}">
+                        <ComboBox.ItemTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding Converter={StaticResource EnumDescriptionConverter}}" />
+                            </DataTemplate>
+                        </ComboBox.ItemTemplate>
+                    </ComboBox>
                 </StackPanel>
             </Border>
 

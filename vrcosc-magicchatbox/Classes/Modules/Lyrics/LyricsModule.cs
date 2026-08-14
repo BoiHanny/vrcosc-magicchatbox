@@ -162,17 +162,28 @@ public partial class LyricsModule : ObservableObject, IModule
                 TimeSpan.FromSeconds(Math.Max(1, Settings.GapThresholdSeconds)),
                 TimeSpan.FromSeconds(Math.Max(1, Settings.LineHoldSeconds)));
 
-            string line = cursor.Kind == LyricCursorKind.Line
-                ? LyricSegmentFormatter.Sanitize(cursor.Text)
-                : string.Empty;
+            // An instrumental stretch needs text of its own. Leaving it blank switched IsShowingLine
+            // off and the OSC provider drops the segment on that, so the marker never got out.
+            string line = cursor.Kind switch
+            {
+                LyricCursorKind.Line => LyricSegmentFormatter.PrepareLine(cursor.Text, Settings),
+                LyricCursorKind.InstrumentalGap or LyricCursorKind.BeforeFirstLine =>
+                    LyricSegmentFormatter.BuildInstrumentalMarker(Settings, source.Position, int.MaxValue),
+                _ => string.Empty,
+            };
 
             _display.Cursor = cursor;
             _display.Position = source.Position;
             _display.CurrentLine = line;
             _display.IsShowingLine = line.Length > 0;
             _display.PositionSource = source.SourceName;
+
+            // Only a real lyric earns the song title's place. Hiding it for a marker would leave the
+            // line saying nothing but the marker.
             _display.SuppressMediaTitle =
-                Settings.Coexistence == LyricsMediaCoexistence.PreferLyrics && line.Length > 0;
+                Settings.Coexistence == LyricsMediaCoexistence.PreferLyrics
+                && cursor.Kind == LyricCursorKind.Line
+                && line.Length > 0;
         }
         catch (Exception ex)
         {

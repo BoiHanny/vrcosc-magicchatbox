@@ -32,11 +32,19 @@ public partial class LyricsSettings : VersionedSettings
     [ObservableProperty] private bool _useLocalFiles = true;
     [ObservableProperty] private string _localLyricsFolder = string.Empty;
 
+    [ObservableProperty] private LyricsInstrumentalMarker _instrumentalMarker = LyricsInstrumentalMarker.TrailingDots;
+
+    // Backing vocals arrive in brackets. Raising them separates them from the main line.
+    [ObservableProperty] private bool _superscriptAsides = true;
+
     [ObservableProperty] private LyricsMatchStrictness _matchStrictness = LyricsMatchStrictness.Balanced;
 
     // When the exact title finds nothing, search again without the version in the name. The running
     // time then has to agree closely, so this widens the search without loosening the match.
     [ObservableProperty] private bool _broadenSearchWhenNoMatch = true;
+
+    public static IEnumerable<LyricsInstrumentalMarker> AvailableInstrumentalMarkers { get; } =
+        Enum.GetValues(typeof(LyricsInstrumentalMarker)).Cast<LyricsInstrumentalMarker>().ToList();
 
     public static IEnumerable<LyricsMatchStrictness> AvailableMatchStrictness { get; } =
         Enum.GetValues(typeof(LyricsMatchStrictness)).Cast<LyricsMatchStrictness>().ToList();
