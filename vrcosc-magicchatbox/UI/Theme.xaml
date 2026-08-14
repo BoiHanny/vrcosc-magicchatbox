@@ -698,6 +698,18 @@
         header was separated from the thing it labels by weight and a slightly brighter brush
         alone. One step of size makes the hierarchy survive a squint.
     -->
+    <!--
+        Introduces a run of related sections on the options page. Bigger and quieter than a
+        subsection header: it names the group, it is not a setting.
+    -->
+    <Style x:Key="OptionGroupHeaderStyle" TargetType="{x:Type TextBlock}">
+        <Setter Property="Margin" Value="14,18,12,6" />
+        <Setter Property="FontFamily" Value="{StaticResource FontSecondary}" />
+        <Setter Property="FontSize" Value="{StaticResource FontSizeHeading}" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="Foreground" Value="{StaticResource TextLightPurpleBrush}" />
+    </Style>
+
     <Style x:Key="OptionSubsectionHeaderStyle" TargetType="{x:Type TextBlock}">
         <Setter Property="Margin" Value="2,8,0,5" />
         <Setter Property="FontFamily" Value="{StaticResource FontPrimary}" />

@@ -20,6 +20,15 @@
         HorizontalScrollBarVisibility="Disabled"
         VerticalScrollBarVisibility="Auto">
         <StackPanel>
+            <TextBlock Style="{StaticResource OptionGroupHeaderStyle}" Text="Your message" />
+
+            <ContentControl
+                x:Name="OptionsWrapper_Chatting"
+                Style="{StaticResource OptionSectionWithResetStyle}"
+                Tag="chatting">
+                <options:ChattingOptionsSection x:Name="Section_Chatting" DataContext="{Binding ChattingOptionsSection}" />
+            </ContentControl>
+
             <ContentControl
                 x:Name="OptionsWrapper_Status"
                 Style="{StaticResource OptionSectionWithResetStyle}"
@@ -27,33 +36,30 @@
                 <options:StatusSection x:Name="Section_Status" DataContext="{Binding StatusSection}" />
             </ContentControl>
 
+            <TextBlock Style="{StaticResource OptionGroupHeaderStyle}" Text="Music" />
+
             <ContentControl
-                x:Name="OptionsWrapper_VrcRadar"
+                x:Name="OptionsWrapper_MediaLink"
                 Style="{StaticResource OptionSectionWithResetStyle}"
-                Tag="vrc-radar">
-                <options:VrcRadarSection x:Name="Section_VRCRadar" DataContext="{Binding VrcRadarSection}" />
+                Tag="media-link">
+                <options:MediaLinkSection x:Name="MediaLinkSectionControl" DataContext="{Binding MediaLinkSection}" />
             </ContentControl>
 
             <ContentControl
-                x:Name="OptionsWrapper_Pulsoid"
+                x:Name="OptionsWrapper_Spotify"
                 Style="{StaticResource OptionSectionWithResetStyle}"
-                Tag="pulsoid">
-                <options:PulsoidSection x:Name="Section_Pulsoid" DataContext="{Binding PulsoidSection}" />
+                Tag="spotify">
+                <options:SpotifySection x:Name="Section_Spotify" DataContext="{Binding SpotifySection}" />
             </ContentControl>
 
             <ContentControl
-                x:Name="OptionsWrapper_Time"
+                x:Name="OptionsWrapper_Lyrics"
                 Style="{StaticResource OptionSectionWithResetStyle}"
-                Tag="time">
-                <options:TimeOptionsSection x:Name="Section_Time" DataContext="{Binding TimeOptionsSection}" />
+                Tag="lyrics">
+                <options:LyricsSection x:Name="LyricsSectionControl" DataContext="{Binding LyricsSection}" />
             </ContentControl>
 
-            <ContentControl
-                x:Name="OptionsWrapper_Weather"
-                Style="{StaticResource OptionSectionWithResetStyle}"
-                Tag="weather">
-                <options:WeatherSection x:Name="Section_Weather" DataContext="{Binding WeatherSection}" />
-            </ContentControl>
+            <TextBlock Style="{StaticResource OptionGroupHeaderStyle}" Text="Streaming and chat" />
 
             <ContentControl
                 x:Name="OptionsWrapper_Twitch"
@@ -77,17 +83,35 @@
             </ContentControl>
 
             <ContentControl
-                x:Name="OptionsWrapper_Spotify"
+                x:Name="OptionsWrapper_VrcRadar"
                 Style="{StaticResource OptionSectionWithResetStyle}"
-                Tag="spotify">
-                <options:SpotifySection x:Name="Section_Spotify" DataContext="{Binding SpotifySection}" />
+                Tag="vrc-radar">
+                <options:VrcRadarSection x:Name="Section_VRCRadar" DataContext="{Binding VrcRadarSection}" />
+            </ContentControl>
+
+            <TextBlock Style="{StaticResource OptionGroupHeaderStyle}" Text="On screen" />
+
+            <ContentControl
+                x:Name="OptionsWrapper_Time"
+                Style="{StaticResource OptionSectionWithResetStyle}"
+                Tag="time">
+                <options:TimeOptionsSection x:Name="Section_Time" DataContext="{Binding TimeOptionsSection}" />
             </ContentControl>
 
             <ContentControl
-                x:Name="OptionsWrapper_OpenAI"
+                x:Name="OptionsWrapper_Weather"
                 Style="{StaticResource OptionSectionWithResetStyle}"
-                Tag="openai">
-                <options:OpenAISection x:Name="Section_OpenAI" DataContext="{Binding OpenAISection}" />
+                Tag="weather">
+                <options:WeatherSection x:Name="Section_Weather" DataContext="{Binding WeatherSection}" />
+            </ContentControl>
+
+            <TextBlock Style="{StaticResource OptionGroupHeaderStyle}" Text="Your PC and body" />
+
+            <ContentControl
+                x:Name="OptionsWrapper_Pulsoid"
+                Style="{StaticResource OptionSectionWithResetStyle}"
+                Tag="pulsoid">
+                <options:PulsoidSection x:Name="Section_Pulsoid" DataContext="{Binding PulsoidSection}" />
             </ContentControl>
 
             <ContentControl
@@ -105,47 +129,13 @@
             </ContentControl>
 
             <ContentControl
-                x:Name="OptionsWrapper_Chatting"
+                x:Name="OptionsWrapper_WindowActivity"
                 Style="{StaticResource OptionSectionWithResetStyle}"
-                Tag="chatting">
-                <options:ChattingOptionsSection x:Name="Section_Chatting" DataContext="{Binding ChattingOptionsSection}" />
+                Tag="window-activity">
+                <options:WindowActivitySection x:Name="WindowActivitySectionControl" DataContext="{Binding WindowActivitySection}" />
             </ContentControl>
 
-            <ContentControl
-                x:Name="OptionsWrapper_Tts"
-                Style="{StaticResource OptionSectionWithResetStyle}"
-                Tag="tts">
-                <options:TtsOptionsSection x:Name="TtsOptionsSectionControl" DataContext="{Binding TtsSection}" />
-            </ContentControl>
-
-            <ContentControl
-                x:Name="OptionsWrapper_MediaLink"
-                Style="{StaticResource OptionSectionWithResetStyle}"
-                Tag="media-link">
-                <options:MediaLinkSection x:Name="MediaLinkSectionControl" DataContext="{Binding MediaLinkSection}" />
-            </ContentControl>
-
-            <ContentControl
-                x:Name="OptionsWrapper_AppOptions"
-                Style="{StaticResource OptionSectionWithResetStyle}"
-                Tag="app-options">
-                <options:AppOptionsSection x:Name="AppOptionsSectionControl" DataContext="{Binding AppOptionsSection}" />
-            </ContentControl>
-
-            <ContentControl
-                x:Name="OptionsWrapper_EggDev"
-                Style="{StaticResource OptionSectionWithResetStyle}"
-                Tag="egg-dev"
-                Visibility="{Binding EggDevSection.AppState.Egg_Dev, Converter={StaticResource BoolToVisibilityConverter}, UpdateSourceTrigger=PropertyChanged}">
-                <options:EggDevSection x:Name="EggDevSectionControl" DataContext="{Binding EggDevSection}" />
-            </ContentControl>
-
-            <ContentControl
-                x:Name="OptionsWrapper_TrackerBattery"
-                Style="{StaticResource OptionSectionWithResetStyle}"
-                Tag="tracker-battery">
-                <options:TrackerBatterySection x:Name="TrackerBatterySectionControl" DataContext="{Binding TrackerBatterySection}" />
-            </ContentControl>
+            <TextBlock Style="{StaticResource OptionGroupHeaderStyle}" Text="VR" />
 
             <ContentControl
                 x:Name="OptionsWrapper_VrPerformance"
@@ -155,10 +145,35 @@
             </ContentControl>
 
             <ContentControl
-                x:Name="OptionsWrapper_Lyrics"
+                x:Name="OptionsWrapper_TrackerBattery"
                 Style="{StaticResource OptionSectionWithResetStyle}"
-                Tag="lyrics">
-                <options:LyricsSection x:Name="LyricsSectionControl" DataContext="{Binding LyricsSection}" />
+                Tag="tracker-battery">
+                <options:TrackerBatterySection x:Name="TrackerBatterySectionControl" DataContext="{Binding TrackerBatterySection}" />
+            </ContentControl>
+
+            <TextBlock Style="{StaticResource OptionGroupHeaderStyle}" Text="AI and voice" />
+
+            <ContentControl
+                x:Name="OptionsWrapper_OpenAI"
+                Style="{StaticResource OptionSectionWithResetStyle}"
+                Tag="openai">
+                <options:OpenAISection x:Name="Section_OpenAI" DataContext="{Binding OpenAISection}" />
+            </ContentControl>
+
+            <ContentControl
+                x:Name="OptionsWrapper_Tts"
+                Style="{StaticResource OptionSectionWithResetStyle}"
+                Tag="tts">
+                <options:TtsOptionsSection x:Name="TtsOptionsSectionControl" DataContext="{Binding TtsSection}" />
+            </ContentControl>
+
+            <TextBlock Style="{StaticResource OptionGroupHeaderStyle}" Text="App and privacy" />
+
+            <ContentControl
+                x:Name="OptionsWrapper_AppOptions"
+                Style="{StaticResource OptionSectionWithResetStyle}"
+                Tag="app-options">
+                <options:AppOptionsSection x:Name="AppOptionsSectionControl" DataContext="{Binding AppOptionsSection}" />
             </ContentControl>
 
             <ContentControl
@@ -169,11 +184,13 @@
             </ContentControl>
 
             <ContentControl
-                x:Name="OptionsWrapper_WindowActivity"
+                x:Name="OptionsWrapper_EggDev"
                 Style="{StaticResource OptionSectionWithResetStyle}"
-                Tag="window-activity">
-                <options:WindowActivitySection x:Name="WindowActivitySectionControl" DataContext="{Binding WindowActivitySection}" />
+                Tag="egg-dev"
+                Visibility="{Binding EggDevSection.AppState.Egg_Dev, Converter={StaticResource BoolToVisibilityConverter}, UpdateSourceTrigger=PropertyChanged}">
+                <options:EggDevSection x:Name="EggDevSectionControl" DataContext="{Binding EggDevSection}" />
             </ContentControl>
+
 
             <TextBlock
                 Margin="12,14,12,8"
