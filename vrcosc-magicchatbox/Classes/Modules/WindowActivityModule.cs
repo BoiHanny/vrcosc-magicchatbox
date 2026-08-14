@@ -9,7 +9,9 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Automation;
 using vrcosc_magicchatbox.Classes.DataAndSecurity;
+using vrcosc_magicchatbox.Core;
 using vrcosc_magicchatbox.Core.Configuration;
+using vrcosc_magicchatbox.Core.Osc.Text;
 using vrcosc_magicchatbox.Core.Privacy;
 using vrcosc_magicchatbox.Core.State;
 using vrcosc_magicchatbox.Core.Toast;
@@ -18,6 +20,44 @@ using vrcosc_magicchatbox.ViewModels;
 using vrcosc_magicchatbox.ViewModels.State;
 
 namespace vrcosc_magicchatbox.Classes.Modules;
+
+/// <summary>
+/// The text work behind the focused-app readout, kept out of the module so it can be tested without
+/// a foreground window, a dispatcher and a consent service behind it.
+/// </summary>
+public static class WindowActivityText
+{
+    /// <summary>
+    /// An app name arrives from a file description, a shell display name or a UWP automation
+    /// element, and none of those are bounded. This is generous but finite.
+    /// </summary>
+    public const int MaxAppNameChars = 48;
+
+    /// <summary>
+    /// What the title is allowed to cost. Nothing longer than the whole chatbox line can ever be
+    /// shown, so that stays the ceiling even when the user turned the per-app limit off.
+    /// </summary>
+    public static int TitleCap(bool limitOn, int configured)
+        => limitOn
+            ? Math.Clamp(configured, 0, Constants.OscMaxMessageLength)
+            : Constants.OscMaxMessageLength;
+
+    /// <summary>
+    /// The app name, with its title in brackets after it. Both are values - the reader is here to
+    /// find out which app, not to be told the word "app" - so neither gets raised.
+    /// </summary>
+    public static string Compose(string? appName, string? windowTitle)
+    {
+        string name = SegmentWriter.Truncate(SegmentWriter.Tidy(appName), MaxAppNameChars);
+        string title = SegmentWriter.Tidy(windowTitle);
+
+        return new SegmentWriter()
+            .Field(
+                OscText.Value($"'{name}'"),
+                OscText.Value(title.Length == 0 ? null : $"({title})"))
+            .Text;
+    }
+}
 
 public class WindowActivityModule : vrcosc_magicchatbox.Services.IWindowActivityService
 {
@@ -123,7 +163,7 @@ public class WindowActivityModule : vrcosc_magicchatbox.Services.IWindowActivity
             if (existingProcessInfo == null)
             {
                 AddNewProcessToViewModel(processName, windowTitle);
-                return $"'{processName}'";
+                return WindowActivityText.Compose(processName, null);
             }
             else
             {
@@ -149,12 +189,13 @@ public class WindowActivityModule : vrcosc_magicchatbox.Services.IWindowActivity
 
                 bool titleCheck = CheckTitleCondition(existingProcessInfo, windowTitle);
 
-                if (existingProcessInfo.ApplyCustomAppName && !string.IsNullOrEmpty(existingProcessInfo.CustomAppName))
-                {
-                    return "'" + existingProcessInfo.CustomAppName + "'" + (titleCheck && Settings.TitleScan ? " (" + windowTitle + ")" : string.Empty);
-                }
+                // The two branches used to bracket the title differently - one of them opened with
+                // "( " - so the same app printed a stray space depending on whether it was renamed.
+                string title = titleCheck && Settings.TitleScan ? windowTitle : string.Empty;
 
-                return "'" + processName + "'" + (titleCheck && Settings.TitleScan ? " ( " + windowTitle + ")" : string.Empty);
+                return existingProcessInfo.ApplyCustomAppName && !string.IsNullOrEmpty(existingProcessInfo.CustomAppName)
+                    ? WindowActivityText.Compose(existingProcessInfo.CustomAppName, title)
+                    : WindowActivityText.Compose(processName, title);
             }
         }
         catch (Exception ex)
@@ -208,12 +249,11 @@ public class WindowActivityModule : vrcosc_magicchatbox.Services.IWindowActivity
                 return string.Empty;
         }
 
-        if (Settings.LimitTitleOnApp && fullTitle.Length > Settings.MaxShowTitleCount)
-        {
-            fullTitle = fullTitle.Substring(0, Settings.MaxShowTitleCount) + "...";
-        }
-
-        return fullTitle;
+        // The old cut spent three characters saying what one ellipsis says, and a raw Substring can
+        // land between the two halves of an emoji and print a replacement box.
+        return SegmentWriter.Truncate(
+            fullTitle,
+            WindowActivityText.TitleCap(Settings.LimitTitleOnApp, Settings.MaxShowTitleCount));
     }
 
     private static string ApplyPerAppFilter(string text, ProcessInfo process)

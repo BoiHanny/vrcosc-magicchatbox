@@ -32,7 +32,9 @@ public sealed class VrcLogOscProvider : IOscProvider
         var radar = _modules.Value.VrcRadar;
         if (radar == null || !((IModule)radar).IsRunning) return null;
 
-        string? text = radar.GetOutputString();
+        // World names and display names come straight out of a log file, so the radar is told what is
+        // left of the line rather than handing back whatever length it happens to have.
+        string? text = radar.GetOutputString(context.RemainingCharsIf(string.Empty));
         if (string.IsNullOrWhiteSpace(text)) return null;
 
         return new OscSegment { Text = text };

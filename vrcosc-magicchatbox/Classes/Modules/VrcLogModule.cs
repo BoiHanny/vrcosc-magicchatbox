@@ -10,13 +10,71 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using vrcosc_magicchatbox.Classes.DataAndSecurity;
+using vrcosc_magicchatbox.Core;
 using vrcosc_magicchatbox.Core.Configuration;
+using vrcosc_magicchatbox.Core.Osc.Text;
 using vrcosc_magicchatbox.Core.Privacy;
 using vrcosc_magicchatbox.Core.State;
 using vrcosc_magicchatbox.Core.Toast;
 using vrcosc_magicchatbox.Services;
 
 namespace vrcosc_magicchatbox.Classes.Modules;
+
+/// <summary>
+/// The radar's text work. Everything it prints - world names, display names - comes out of a log
+/// file and has no length of its own, so the bounding lives here where it can be tested on its own.
+/// </summary>
+public static class VrcLogText
+{
+    /// <summary>
+    /// What a name out of the log is allowed to cost. The words the template puts around it are what
+    /// carry the meaning, so a very long name must not be able to push them off the line.
+    /// </summary>
+    public const int MaxNameChars = 32;
+
+    /// <summary>A world or display name, cut to something a line can hold.</summary>
+    public static string Name(string? name) => SegmentWriter.Truncate(SegmentWriter.Tidy(name), MaxNameChars);
+
+    /// <summary>
+    /// A duration with its unit glued on and raised. The number is what the reader is here for, so
+    /// it stays full size - the radar used to leave both at the same weight.
+    /// </summary>
+    public static string Duration(TimeSpan ts)
+    {
+        if (ts.TotalSeconds < 60)
+            return Measure((int)ts.TotalSeconds, "s");
+        if (ts.TotalHours >= 1)
+            return Measure((int)ts.TotalHours, "h") + Measure(ts.Minutes, "m", "D2");
+
+        return Measure((int)ts.TotalMinutes, "m");
+    }
+
+    private static string Measure(int amount, string unit, string? format = null)
+        => new SegmentWriter()
+            .Field(OscText.Value(amount.ToString(format, CultureInfo.InvariantCulture)), OscText.Unit(unit))
+            .Text;
+
+    /// <summary>
+    /// Renders inside a budget by cutting the one part that has no bound of its own - the world
+    /// name - and only cutting the rendered line itself if that was not enough.
+    /// </summary>
+    public static string FitToBudget(Func<string, string> render, string worldName, int budget)
+    {
+        if (budget <= 0)
+            return string.Empty;
+
+        string text = render(worldName);
+        if (text.Length <= budget)
+            return text;
+
+        // Give back exactly what the line is over, so the template's own words survive intact.
+        string shorter = SegmentWriter.Truncate(worldName, worldName.Length - (text.Length - budget));
+        if (shorter.Length < worldName.Length)
+            text = render(shorter);
+
+        return SegmentWriter.Truncate(text, budget);
+    }
+}
 
 public partial class VrcLogModule : ObservableObject, IModule
 {
@@ -275,65 +333,80 @@ public partial class VrcLogModule : ObservableObject, IModule
     }
 
 
-    public string? GetOutputString()
+    /// <param name="budget">
+    /// How much of the chatbox line is left. The default is the whole line, which is what the
+    /// settings preview wants to see; the OSC provider passes what is actually free.
+    /// </param>
+    public string? GetOutputString(int budget = Constants.OscMaxMessageLength)
     {
         lock (_stateLock)
         {
             bool hasTransient = DateTime.Now < _transientExpiry && !string.IsNullOrEmpty(_transientMessage);
 
+            // A transient is already composed by the time it gets here, so the cut is the whole
+            // message. The names inside it were bounded when it was set.
+            string? Transient() => SegmentWriter.Truncate(_transientMessage, budget) is { Length: > 0 } t ? t : null;
+
             switch (Settings.DisplayMode)
             {
                 case RadarDisplayMode.TransientOnly:
-                    return hasTransient ? _transientMessage : null;
+                    return hasTransient ? Transient() : null;
 
                 case RadarDisplayMode.JoinLeaveOnly:
-                    return hasTransient ? _transientMessage : null;
+                    return hasTransient ? Transient() : null;
 
                 case RadarDisplayMode.CompactInfo:
                     if (hasTransient)
-                        return _transientMessage;
+                        return Transient();
                     if (CurrentWorldName == "Not in a world")
                         return null;
-                    return $"🌎 {CurrentWorldName} 👥{PlayerCount}";
+                    return VrcLogText.FitToBudget(
+                        world => $"🌎 {world} 👥{PlayerCount}", VrcLogText.Name(CurrentWorldName), budget);
 
                 case RadarDisplayMode.AlwaysShow:
                 case RadarDisplayMode.EventOverlay:
                 default:
                     if (hasTransient)
-                        return _transientMessage;
+                        return Transient();
                     if (CurrentWorldName == "Not in a world")
                         return null;
-                    return BuildWorldTemplate();
+                    return VrcLogText.FitToBudget(
+                        BuildWorldTemplate, VrcLogText.Name(CurrentWorldName), budget);
             }
         }
     }
 
-    private string BuildWorldTemplate()
+    private string BuildWorldTemplate(string worldName)
     {
         string master = IsInstanceMaster ? Settings.MasterIcon : string.Empty;
         string text = Settings.TemplateWorld
             .Replace("{master}", master)
-            .Replace("{world}", CurrentWorldName)
+            .Replace("{world}", worldName)
             .Replace("{count}", PlayerCount.ToString())
-            .Replace("{peak}", _peakPlayerCount.ToString());
+            .Replace("{peak}", _peakPlayerCount.ToString())
+            // Three stock presets carry these and nothing ever filled them in, so the chatbox
+            // printed the token itself.
+            .Replace("{peak_session}", PeakPlayerCountThisSession.ToString())
+            .Replace("{worlds}", _sessionWorldsVisited.ToString())
+            .Replace("{players}", _allPlayersSeen.Count.ToString());
 
         if (text.Contains("{session_time}"))
         {
             string sessionTime = _worldJoinedAt > DateTime.MinValue
-                ? FormatDuration(DateTime.Now - _worldJoinedAt) : string.Empty;
+                ? VrcLogText.Duration(DateTime.Now - _worldJoinedAt) : string.Empty;
             text = text.Replace("{session_time}", sessionTime);
         }
 
         if (text.Contains("{app_session}"))
         {
             var elapsed = DateTimeOffset.UtcNow - _appStartedAt;
-            text = text.Replace("{app_session}", FormatDuration(elapsed));
+            text = text.Replace("{app_session}", VrcLogText.Duration(elapsed));
         }
 
         if (text.Contains("{offline}"))
         {
             string offline = _totalOfflineSeconds >= 60
-                ? FormatDuration(TimeSpan.FromSeconds(_totalOfflineSeconds))
+                ? VrcLogText.Duration(TimeSpan.FromSeconds(_totalOfflineSeconds))
                 : string.Empty;
             text = text.Replace("{offline}", offline);
         }
@@ -348,12 +421,13 @@ public partial class VrcLogModule : ObservableObject, IModule
         else
             text = text.Replace("{region}", string.Empty);
 
-        if (!string.IsNullOrEmpty(InstanceOwnerName))
-            text = text.Replace("{owner}", InstanceOwnerName);
-        else
-            text = text.Replace("{owner}", string.Empty);
+        text = text.Replace("{owner}", VrcLogText.Name(InstanceOwnerName));
 
-        text = Regex.Replace(text, @"\s*\|\s*\|\s*", " | ");        text = Regex.Replace(text, @"(\s*\|\s*)+$", "");        text = Regex.Replace(text, @"^\s*\|\s*", "");        text = Regex.Replace(text, @"\s{2,}", " ");        text = text.Trim();
+        text = Regex.Replace(text, @"\s*\|\s*\|\s*", " | ");
+        text = Regex.Replace(text, @"(\s*\|\s*)+$", "");
+        text = Regex.Replace(text, @"^\s*\|\s*", "");
+        text = Regex.Replace(text, @"\s{2,}", " ");
+        text = text.Trim();
 
         text = text.Replace("\\n", "\n").Replace("/n", "\n");
 
@@ -711,7 +785,7 @@ public partial class VrcLogModule : ObservableObject, IModule
                     if (Settings.ShowSeenAgainNotification)
                     {
                         SetTransient(
-                            Settings.TemplateSeenAgain.Replace("{user}", name),
+                            Settings.TemplateSeenAgain.Replace("{user}", VrcLogText.Name(name)),
                             Settings.SeenAgainDuration,
                             TransientPriority.SeenAgain);
                     }
@@ -722,7 +796,7 @@ public partial class VrcLogModule : ObservableObject, IModule
             if (!isBackfill && Settings.AnnounceJoins)
             {
                 SetTransient(
-                    Settings.TemplateJoin.Replace("{user}", name),
+                    Settings.TemplateJoin.Replace("{user}", VrcLogText.Name(name)),
                     Settings.JoinLeaveDuration,
                     TransientPriority.JoinLeave);
             }
@@ -753,7 +827,7 @@ public partial class VrcLogModule : ObservableObject, IModule
             if (!isBackfill && !_inBootstrapMode && Settings.AnnounceLeaves)
             {
                 SetTransient(
-                    Settings.TemplateLeave.Replace("{user}", name),
+                    Settings.TemplateLeave.Replace("{user}", VrcLogText.Name(name)),
                     Settings.JoinLeaveDuration,
                     TransientPriority.JoinLeave);
             }
@@ -1272,12 +1346,5 @@ public partial class VrcLogModule : ObservableObject, IModule
         {
             Logging.WriteInfo($"VrcRadar: Failed to save session: {ex.Message}");
         }
-    }
-
-    private static string FormatDuration(TimeSpan ts)
-    {
-        if (ts.TotalSeconds < 60) return $"{(int)ts.TotalSeconds}s";
-        if (ts.TotalHours >= 1) return $"{(int)ts.TotalHours}h{ts.Minutes:D2}m";
-        return $"{(int)ts.TotalMinutes}m";
     }
 }
