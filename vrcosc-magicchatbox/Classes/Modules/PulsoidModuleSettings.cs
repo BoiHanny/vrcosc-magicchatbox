@@ -150,25 +150,47 @@ public partial class PulsoidModuleSettings : VersionedSettings
 
     private string _accessTokenOAuthEncrypted = string.Empty;
     private string _accessTokenOAuth = string.Empty;
-    private bool _tokenProtectionFailed;
+    private bool _tokenEncryptionFailed;
+    private bool _storedTokenUnreadable;
 
     /// <summary>
-    /// True when DPAPI could not protect or unprotect the Pulsoid token on this machine/account.
-    /// Never serialized: it describes this session's ability to use the credential, not the
-    /// credential itself. When it is set, the stored ciphertext has deliberately been left alone
-    /// rather than overwritten with nothing.
+    /// True when DPAPI refused to <em>protect</em> a token we are holding in memory. The credential
+    /// itself is fine and heart rate works for the rest of this session; it simply will not survive
+    /// a restart. Never serialized: it describes this session, not the credential.
+    /// This is deliberately separate from <see cref="StoredTokenUnreadable"/> — conflating the two
+    /// meant an encrypt failure silently disabled heart rate and blamed decryption for it.
     /// </summary>
     [JsonIgnore]
-    public bool TokenProtectionFailed
+    public bool TokenEncryptionFailed
     {
-        get => _tokenProtectionFailed;
+        get => _tokenEncryptionFailed;
         private set
         {
-            if (_tokenProtectionFailed == value)
+            if (_tokenEncryptionFailed == value)
                 return;
 
-            _tokenProtectionFailed = value;
-            OnPropertyChanged(nameof(TokenProtectionFailed));
+            _tokenEncryptionFailed = value;
+            OnPropertyChanged(nameof(TokenEncryptionFailed));
+        }
+    }
+
+    /// <summary>
+    /// True when a ciphertext exists on disk but DPAPI could not <em>unprotect</em> it on this
+    /// Windows account, so there is nothing usable in memory at all. Never serialized. While it is
+    /// set the stored ciphertext has deliberately been left alone rather than overwritten with
+    /// nothing — it may well decrypt on the account it came from.
+    /// </summary>
+    [JsonIgnore]
+    public bool StoredTokenUnreadable
+    {
+        get => _storedTokenUnreadable;
+        private set
+        {
+            if (_storedTokenUnreadable == value)
+                return;
+
+            _storedTokenUnreadable = value;
+            OnPropertyChanged(nameof(StoredTokenUnreadable));
         }
     }
 
@@ -179,40 +201,43 @@ public partial class PulsoidModuleSettings : VersionedSettings
         set
         {
             string incoming = value ?? string.Empty;
-            if (_accessTokenOAuth == incoming)
-                return;
 
             if (incoming.Length == 0)
             {
-                // An explicit clear is the user disconnecting: both halves go.
-                _accessTokenOAuth = string.Empty;
-                _accessTokenOAuthEncrypted = string.Empty;
-                TokenProtectionFailed = false;
+                // An explicit clear is the user disconnecting: both halves go, unconditionally.
+                // Guarding on the plaintext alone made this a silent no-op after a failed decrypt,
+                // where the plaintext is already empty but the ciphertext on disk is not.
+                ClearStoredToken();
+                return;
+            }
+
+            if (_accessTokenOAuth == incoming && !_storedTokenUnreadable && !_tokenEncryptionFailed)
+                return;
+
+            bool encrypted = TryProtectToken(incoming, out string cipher);
+
+            _accessTokenOAuth = incoming;
+            StoredTokenUnreadable = false;
+
+            if (encrypted && !string.IsNullOrEmpty(cipher))
+            {
+                _accessTokenOAuthEncrypted = cipher;
+                TokenEncryptionFailed = false;
             }
             else
             {
-                string plain = incoming;
-                string cipher = null;
-                bool encrypted = EncryptionMethods.TryProcessToken(ref plain, ref cipher, isEncryption: true);
+                // Encryption failed. Keep the working plaintext for this session — heart rate is
+                // perfectly usable — but do not leave a *different* credential sitting in the
+                // ciphertext: the flag is not persisted, so the next launch would decrypt the old
+                // blob cleanly and silently sign the user back in as the superseded token.
+                TokenEncryptionFailed = true;
+                if (_accessTokenOAuthEncrypted.Length > 0 && !StoredCipherDecryptsTo(incoming))
+                    _accessTokenOAuthEncrypted = string.Empty;
 
-                _accessTokenOAuth = incoming;
-
-                if (encrypted && !string.IsNullOrEmpty(cipher))
-                {
-                    _accessTokenOAuthEncrypted = cipher;
-                    TokenProtectionFailed = false;
-                }
-                else
-                {
-                    // Encryption failed. Keep the working plaintext for this session, but leave
-                    // whatever ciphertext is already stored untouched — writing null here is what
-                    // silently destroys a perfectly good saved token at the next debounced save.
-                    TokenProtectionFailed = true;
-                    Logging.WriteException(
-                        new InvalidOperationException(
-                            "Pulsoid access token could not be encrypted with DPAPI. The previously saved token was left untouched, and this one will not survive a restart."),
-                        MSGBox: false);
-                }
+                Logging.WriteException(
+                    new InvalidOperationException(
+                        "Pulsoid access token could not be encrypted with DPAPI. Heart rate works for this session, but the token will not survive a restart."),
+                    MSGBox: false);
             }
 
             OnPropertyChanged(nameof(AccessTokenOAuth));
@@ -234,18 +259,18 @@ public partial class PulsoidModuleSettings : VersionedSettings
             if (incoming.Length == 0)
             {
                 _accessTokenOAuth = string.Empty;
-                TokenProtectionFailed = false;
+                TokenEncryptionFailed = false;
+                StoredTokenUnreadable = false;
             }
             else
             {
-                string cipher = incoming;
-                string plain = null;
-                bool decrypted = EncryptionMethods.TryProcessToken(ref cipher, ref plain, isEncryption: false);
+                bool decrypted = TryUnprotectToken(incoming, out string plain);
 
                 if (decrypted && !string.IsNullOrEmpty(plain))
                 {
                     _accessTokenOAuth = plain;
-                    TokenProtectionFailed = false;
+                    TokenEncryptionFailed = false;
+                    StoredTokenUnreadable = false;
                 }
                 else
                 {
@@ -253,7 +278,8 @@ public partial class PulsoidModuleSettings : VersionedSettings
                     // The ciphertext stays exactly as it is on disk — it may well decrypt elsewhere —
                     // but the failure is made visible instead of presenting a silently empty token.
                     _accessTokenOAuth = string.Empty;
-                    TokenProtectionFailed = true;
+                    TokenEncryptionFailed = false;
+                    StoredTokenUnreadable = true;
                     Logging.WriteException(
                         new InvalidOperationException(
                             "Stored Pulsoid access token could not be decrypted with DPAPI. The encrypted value has been kept on disk; the user must reconnect to use heart rate on this account."),
@@ -266,4 +292,51 @@ public partial class PulsoidModuleSettings : VersionedSettings
         }
     }
 
+    /// <summary>
+    /// Forgets the Pulsoid credential completely: plaintext, ciphertext and both protection flags.
+    /// This is what Disconnect must call. Assigning <see cref="string.Empty"/> to
+    /// <see cref="AccessTokenOAuth"/> routes here for the same reason, but going through an
+    /// explicit method makes it obvious that clearing is unconditional and never value-guarded.
+    /// </summary>
+    public void ClearStoredToken()
+    {
+        _accessTokenOAuth = string.Empty;
+        _accessTokenOAuthEncrypted = string.Empty;
+        TokenEncryptionFailed = false;
+        StoredTokenUnreadable = false;
+
+        // Raised unconditionally: the settings provider only writes to disk when it hears a
+        // change, and a clear that stays in memory is exactly the bug this method exists to fix.
+        OnPropertyChanged(nameof(AccessTokenOAuth));
+        OnPropertyChanged(nameof(AccessTokenOAuthEncrypted));
+    }
+
+    /// <summary>True when the ciphertext currently on disk decrypts to exactly this plaintext.</summary>
+    private bool StoredCipherDecryptsTo(string plaintext)
+        => TryUnprotectToken(_accessTokenOAuthEncrypted, out string plain)
+           && string.Equals(plain, plaintext, StringComparison.Ordinal);
+
+    /// <summary>
+    /// DPAPI protect, isolated behind a seam because it cannot be made to fail on demand on a
+    /// healthy machine, and the behaviour on failure is the whole point of the encrypt/unreadable
+    /// split. Tests override it; nothing else should.
+    /// </summary>
+    protected virtual bool TryProtectToken(string plaintext, out string ciphertext)
+    {
+        string source = plaintext;
+        string destination = null;
+        bool ok = EncryptionMethods.TryProcessToken(ref source, ref destination, isEncryption: true);
+        ciphertext = destination;
+        return ok;
+    }
+
+    /// <summary>DPAPI unprotect. See <see cref="TryProtectToken"/> for why this is virtual.</summary>
+    protected virtual bool TryUnprotectToken(string ciphertext, out string plaintext)
+    {
+        string source = ciphertext;
+        string destination = null;
+        bool ok = EncryptionMethods.TryProcessToken(ref source, ref destination, isEncryption: false);
+        plaintext = destination;
+        return ok;
+    }
 }

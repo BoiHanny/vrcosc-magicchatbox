@@ -626,10 +626,7 @@
                     <StackPanel>
                         <TextBlock
                             Padding="0,0,0,0"
-                            FontFamily="/Fonts/#Albert Sans"
-                            FontSize="15"
-                            FontWeight="Medium"
-                            Foreground="{StaticResource TextLabelBrush}"
+                            Style="{StaticResource OptionFieldLabelStyle}"
                             Text="Max speakers to show" />
                         <StackPanel Margin="0,0,0,5" Orientation="Horizontal">
                             <Slider
@@ -654,10 +651,7 @@
 
                         <TextBlock
                             Padding="0,0,0,0"
-                            FontFamily="/Fonts/#Albert Sans"
-                            FontSize="15"
-                            FontWeight="Medium"
-                            Foreground="{StaticResource TextLabelBrush}"
+                            Style="{StaticResource OptionFieldLabelStyle}"
                             Text="Speaker debounce" />
                         <TextBlock
                             Width="auto"
@@ -713,10 +707,7 @@
                     <StackPanel>
                         <TextBlock
                             Padding="0,0,0,0"
-                            FontFamily="/Fonts/#Albert Sans"
-                            FontSize="15"
-                            FontWeight="Medium"
-                            Foreground="{StaticResource TextLabelBrush}"
+                            Style="{StaticResource OptionFieldLabelStyle}"
                             Text="Text when nobody is speaking" />
                         <TextBox
                             Width="200"
@@ -729,10 +720,7 @@
 
                         <TextBlock
                             Padding="0,0,0,0"
-                            FontFamily="/Fonts/#Albert Sans"
-                            FontSize="15"
-                            FontWeight="Medium"
-                            Foreground="{StaticResource TextLabelBrush}"
+                            Style="{StaticResource OptionFieldLabelStyle}"
                             Text="Text when not in a voice channel" />
                         <TextBlock
                             Width="auto"

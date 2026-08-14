@@ -83,18 +83,17 @@ namespace vrcosc_magicchatbox.UI.Dialogs
                 _heartRateConnector.Settings.AccessTokenOAuth = token;
                 _heartRateConnector.SaveSettings();
 
-                if (_heartRateConnector.Settings.TokenProtectionFailed)
+                // An unreachable Pulsoid is not a bad token; keep the sign-in and let the
+                // connection loop confirm it.
+                _setPulsoidAuthState(validation == PulsoidTokenValidation.Unknown
+                    ? PulsoidAuthState.Unreachable
+                    : PulsoidAuthState.Authenticated);
+
+                // A failed encrypt is a storage problem, not a sign-in problem: the token works
+                // for this session, so it is a warning rather than an "unreadable" lockout.
+                if (_heartRateConnector.Settings.TokenEncryptionFailed)
                 {
-                    _setPulsoidAuthState(PulsoidAuthState.Unreadable);
-                    MessageBox.Show("The token was accepted, but Windows could not encrypt it for storage, so it will not survive a restart.", "Pulsoid", MessageBoxButton.OK, MessageBoxImage.Warning);
-                }
-                else
-                {
-                    // An unreachable Pulsoid is not a bad token; keep the sign-in and let the
-                    // connection loop confirm it.
-                    _setPulsoidAuthState(validation == PulsoidTokenValidation.Unknown
-                        ? PulsoidAuthState.Unreachable
-                        : PulsoidAuthState.Authenticated);
+                    MessageBox.Show("The token was accepted and heart rate works now, but Windows could not encrypt it for storage, so you will need to reconnect after a restart.", "Pulsoid", MessageBoxButton.OK, MessageBoxImage.Warning);
                 }
 
                 Close();

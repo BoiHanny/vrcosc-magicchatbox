@@ -172,12 +172,10 @@
                 <Border Style="{StaticResource OptionCardStyle}" Visibility="{Binding AppSettings.CycleStatus, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
                     <StackPanel Margin="5" Orientation="Horizontal">
                         <TextBlock
+                            Margin="0"
                             Padding="0,0,9,0"
                             VerticalAlignment="Center"
-                            FontFamily="/Fonts/#Albert Sans"
-                            FontSize="15"
-                            FontWeight="Medium"
-                            Foreground="{StaticResource TextLabelBrush}"
+                            Style="{StaticResource OptionFieldLabelStyle}"
                             Text="Cycle to the next every" />
                         <TextBox
                             x:Name="SwitchStatusInterval"
@@ -191,12 +189,10 @@
                             Text="{Binding AppSettings.SwitchStatusInterval, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                             TextAlignment="Center" />
                         <TextBlock
+                            Margin="0"
                             Padding="5,0,5,0"
                             VerticalAlignment="Center"
-                            FontFamily="/Fonts/#Albert Sans"
-                            FontSize="15"
-                            FontWeight="Medium"
-                            Foreground="{StaticResource TextLabelBrush}"
+                            Style="{StaticResource OptionFieldLabelStyle}"
                             Text="seconds" />
 
                     </StackPanel>
@@ -244,12 +240,10 @@
 
                         <StackPanel Margin="5" Orientation="Horizontal">
                             <TextBlock
+                                Margin="0"
                                 Padding="0,0,4,0"
                                 VerticalAlignment="Center"
-                                FontFamily="/Fonts/#Albert Sans"
-                                FontSize="15"
-                                FontWeight="Medium"
-                                Foreground="{StaticResource TextLabelBrush}"
+                                Style="{StaticResource OptionFieldLabelStyle}"
                                 Text="Timeout time in" />
                             <TextBox
                                 x:Name="TimeoutTime"
@@ -264,12 +258,10 @@
                                 TextAlignment="Center" />
 
                             <TextBlock
+                                Margin="0"
                                 Padding="4,0,2,0"
                                 VerticalAlignment="Center"
-                                FontFamily="/Fonts/#Albert Sans"
-                                FontSize="15"
-                                FontWeight="Medium"
-                                Foreground="{StaticResource TextLabelBrush}"
+                                Style="{StaticResource OptionFieldLabelStyle}"
                                 Text="seconds" />
 
                             <TextBlock
@@ -508,10 +500,7 @@
                               ====================================================================  -->
                         <TextBlock
                             Padding="4,16,9,0"
-                            FontFamily="/Fonts/#Albert Sans"
-                            FontSize="15"
-                            FontWeight="Medium"
-                            Foreground="{StaticResource TextLabelBrush}"
+                            Style="{StaticResource OptionFieldLabelStyle}"
                             Text="Make fancy text" />
                         <TextBlock
                             Padding="4,0,9,6"

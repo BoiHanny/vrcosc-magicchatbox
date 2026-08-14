@@ -229,77 +229,12 @@
                           here and there are one value, not two copies.  -->
                     <TextBlock
                         Margin="0,14,0,6"
-                        FontFamily="/Fonts/#Albert Sans"
-                        FontSize="11"
-                        Foreground="{StaticResource TextMutedBrush}"
-                        Text="A silence longer than the gap counts as an instrumental break, and the last line stays up for the hold before the ♪ marker takes over."
-                        TextWrapping="Wrap" />
+                        Style="{StaticResource OptionHelpTextStyle}"
+                        Text="A silence longer than the gap counts as an instrumental break, and the last line stays up for the hold before the ♪ marker takes over." />
 
-                    <StackPanel Orientation="Horizontal">
-                        <TextBlock
-                            Width="34"
-                            VerticalAlignment="Center"
-                            FontFamily="/Fonts/#Albert Sans"
-                            FontSize="12"
-                            Foreground="{StaticResource TextMutedBrush}"
-                            Text="Gap" />
-                        <Button
-                            Width="26"
-                            Height="26"
-                            Margin="0,0,4,0"
-                            Command="{Binding NudgeGapThresholdCommand}"
-                            CommandParameter="-1"
-                            Content="−"
-                            Style="{StaticResource Status_Button_style}" />
-                        <TextBlock
-                            Width="34"
-                            VerticalAlignment="Center"
-                            FontFamily="/Fonts/#Albert Sans"
-                            FontSize="12"
-                            Foreground="{StaticResource TextLightPurpleBrush}"
-                            Text="{Binding Settings.GapThresholdSeconds, StringFormat='{}{0}s'}"
-                            TextAlignment="Center" />
-                        <Button
-                            Width="26"
-                            Height="26"
-                            Margin="4,0,18,0"
-                            Command="{Binding NudgeGapThresholdCommand}"
-                            CommandParameter="1"
-                            Content="+"
-                            Style="{StaticResource Status_Button_style}" />
-
-                        <TextBlock
-                            Width="34"
-                            VerticalAlignment="Center"
-                            FontFamily="/Fonts/#Albert Sans"
-                            FontSize="12"
-                            Foreground="{StaticResource TextMutedBrush}"
-                            Text="Hold" />
-                        <Button
-                            Width="26"
-                            Height="26"
-                            Margin="0,0,4,0"
-                            Command="{Binding NudgeLineHoldCommand}"
-                            CommandParameter="-1"
-                            Content="−"
-                            Style="{StaticResource Status_Button_style}" />
-                        <TextBlock
-                            Width="34"
-                            VerticalAlignment="Center"
-                            FontFamily="/Fonts/#Albert Sans"
-                            FontSize="12"
-                            Foreground="{StaticResource TextLightPurpleBrush}"
-                            Text="{Binding Settings.LineHoldSeconds, StringFormat='{}{0}s'}"
-                            TextAlignment="Center" />
-                        <Button
-                            Width="26"
-                            Height="26"
-                            Margin="4,0,0,0"
-                            Command="{Binding NudgeLineHoldCommand}"
-                            CommandParameter="1"
-                            Content="+"
-                            Style="{StaticResource Status_Button_style}" />
-                    </StackPanel>
+                    <!--  Same stepper row as the Integrations ribbon - one template, so the two
+                          copies cannot drift apart in type or spacing again.  -->
+                    <ContentControl Content="{Binding}" ContentTemplate="{StaticResource LyricsTimingRowTemplate}" />
 
                     <TextBlock
                         Margin="0,8,0,0"

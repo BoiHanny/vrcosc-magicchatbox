@@ -36,7 +36,12 @@
     <sys:Double x:Key="FontSizeCaption">12</sys:Double>
     <sys:Double x:Key="FontSizeMicro">11</sys:Double>
 
-    <SolidColorBrush x:Key="TextLabelBrush" Color="#FFA997BA" />
+    <!--
+        Lifted from #FFA997BA, which measured exactly 4.50:1 on cards (#FF3B3054) and only
+        4.12:1 on the gradient (#FF40365B) - i.e. ~108 field labels sat on or under the AA
+        floor. #FFB3A3C4 measures 5.16:1 on cards and 4.72:1 on the gradient. Do not darken.
+    -->
+    <SolidColorBrush x:Key="TextLabelBrush" Color="#FFB3A3C4" />
     <SolidColorBrush x:Key="TextPrimaryBrush" Color="#FFB9B5C1" />
     <SolidColorBrush x:Key="TextBodyBrush" Color="#FFB9B5C1" />
     <SolidColorBrush x:Key="TextMutedBrush" Color="#FFA29BB5" />
@@ -54,6 +59,11 @@
     <SolidColorBrush x:Key="InputBackgroundBrush" Color="#FF7B7195" />
     <SolidColorBrush x:Key="ControlBorderBrush" Color="#FF2D1265" />
     <SolidColorBrush x:Key="ButtonTextBrush" Color="#9B90D1" />
+    <!--
+        STROKE ONLY. This is a divider/outline colour and must never be used as a Foreground:
+        against the dark popup and card surfaces it lands around 3.7:1, well under the 4.5:1
+        floor the rest of the app holds to. For muted body text use TextMutedBrush.
+    -->
     <SolidColorBrush x:Key="BorderMutedBrush" Color="#FF7D7397" />
     <SolidColorBrush x:Key="AccentTealBrush" Color="#FF31B7B4" />
     <SolidColorBrush x:Key="AccentDeepPurpleBrush" Color="#FF302573" />
@@ -1505,5 +1515,91 @@
             </Setter.Value>
         </Setter>
     </Style>
+
+    <!--
+        The lyrics Gap/Hold stepper row. It appears twice - on the Integrations ribbon and on the
+        Options timing card - and had drifted to two type scales and two button sizes. Keyed here so
+        both sites render the same widget instead of two hand-kept copies.
+
+        DataContext contract: a LyricsSectionViewModel (NudgeGapThresholdCommand,
+        NudgeLineHoldCommand, Settings.GapThresholdSeconds, Settings.LineHoldSeconds). On the
+        Options card that is already the ambient DataContext (Content="{Binding}"); on the
+        Integrations page it hangs off the page VM (Content="{Binding LyricsTuning}").
+
+        Status_Button_style lives in App.xaml, which merges this dictionary before defining it, so
+        the reference has to be DynamicResource - StaticResource would be a forward reference and
+        would throw at load.
+    -->
+    <DataTemplate x:Key="LyricsTimingRowTemplate">
+        <StackPanel Orientation="Horizontal">
+            <TextBlock
+                Width="34"
+                VerticalAlignment="Center"
+                FontFamily="{StaticResource FontPrimary}"
+                FontSize="{StaticResource FontSizeCaption}"
+                Foreground="{StaticResource TextMutedBrush}"
+                Text="Gap" />
+            <Button
+                Width="26"
+                Height="26"
+                Margin="0,0,4,0"
+                Command="{Binding NudgeGapThresholdCommand}"
+                CommandParameter="-1"
+                Content="−"
+                Style="{DynamicResource Status_Button_style}"
+                ToolTip="A silence must be longer than this before it counts as an instrumental break." />
+            <TextBlock
+                Width="34"
+                VerticalAlignment="Center"
+                FontFamily="{StaticResource FontPrimary}"
+                FontSize="{StaticResource FontSizeCaption}"
+                Foreground="{StaticResource TextLightPurpleBrush}"
+                Text="{Binding Settings.GapThresholdSeconds, StringFormat='{}{0}s'}"
+                TextAlignment="Center" />
+            <Button
+                Width="26"
+                Height="26"
+                Margin="4,0,18,0"
+                Command="{Binding NudgeGapThresholdCommand}"
+                CommandParameter="1"
+                Content="+"
+                Style="{DynamicResource Status_Button_style}"
+                ToolTip="A silence must be longer than this before it counts as an instrumental break." />
+
+            <TextBlock
+                Width="34"
+                VerticalAlignment="Center"
+                FontFamily="{StaticResource FontPrimary}"
+                FontSize="{StaticResource FontSizeCaption}"
+                Foreground="{StaticResource TextMutedBrush}"
+                Text="Hold" />
+            <Button
+                Width="26"
+                Height="26"
+                Margin="0,0,4,0"
+                Command="{Binding NudgeLineHoldCommand}"
+                CommandParameter="-1"
+                Content="−"
+                Style="{DynamicResource Status_Button_style}"
+                ToolTip="How long the last line stays up before the ♪ break marker takes over." />
+            <TextBlock
+                Width="34"
+                VerticalAlignment="Center"
+                FontFamily="{StaticResource FontPrimary}"
+                FontSize="{StaticResource FontSizeCaption}"
+                Foreground="{StaticResource TextLightPurpleBrush}"
+                Text="{Binding Settings.LineHoldSeconds, StringFormat='{}{0}s'}"
+                TextAlignment="Center" />
+            <Button
+                Width="26"
+                Height="26"
+                Margin="4,0,0,0"
+                Command="{Binding NudgeLineHoldCommand}"
+                CommandParameter="1"
+                Content="+"
+                Style="{DynamicResource Status_Button_style}"
+                ToolTip="How long the last line stays up before the ♪ break marker takes over." />
+        </StackPanel>
+    </DataTemplate>
 
 </ResourceDictionary>

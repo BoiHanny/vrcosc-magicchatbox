@@ -111,12 +111,7 @@ public partial class PulsoidSectionViewModel : ObservableObject
                 pulsoid.Settings.AccessTokenOAuth = accessToken;
                 pulsoid.SaveSettings();
 
-                if (pulsoid.Settings.TokenProtectionFailed)
-                {
-                    PulsoidAuthState = PulsoidAuthState.Unreadable;
-                    _toast.Show("Pulsoid", "Signed in, but Windows could not encrypt the token for storage — it will not survive a restart.", ToastType.Error, key: "pulsoid-token-protect-failed");
-                }
-                else if (validation == PulsoidTokenValidation.Unknown)
+                if (validation == PulsoidTokenValidation.Unknown)
                 {
                     PulsoidAuthState = PulsoidAuthState.Unreachable;
                     _toast.Show("Pulsoid", "Signed in, but Pulsoid could not be reached to confirm the token. It has been saved and will be retried.", ToastType.Warning, key: "pulsoid-token-unverified");
@@ -124,6 +119,13 @@ public partial class PulsoidSectionViewModel : ObservableObject
                 else
                 {
                     PulsoidAuthState = PulsoidAuthState.Authenticated;
+                }
+
+                // A failed encrypt is a storage problem, not a sign-in problem: the token works
+                // for this session. Reporting it as "unreadable" threw away a live sign-in.
+                if (pulsoid.Settings.TokenEncryptionFailed)
+                {
+                    _toast.Show("Pulsoid", "Signed in, but Windows could not encrypt the token for storage — heart rate works now, and you will need to reconnect after a restart.", ToastType.Warning, key: "pulsoid-token-protect-failed");
                 }
             }
             else
@@ -147,7 +149,9 @@ public partial class PulsoidSectionViewModel : ObservableObject
     {
         var pulsoid = _moduleHost.Value.Pulsoid;
         if (pulsoid == null) return;
-        pulsoid.Settings.AccessTokenOAuth = string.Empty;
+        // Unconditional: after a failed decrypt the plaintext is already empty while the ciphertext
+        // is not, so assigning string.Empty here matched the old value-guard and cleared nothing.
+        pulsoid.Settings.ClearStoredToken();
         pulsoid.SaveSettings();
         PulsoidAuthState = PulsoidAuthState.NoToken;
         await pulsoid.DisconnectSession();

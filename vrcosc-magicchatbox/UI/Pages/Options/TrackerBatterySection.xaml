@@ -256,10 +256,9 @@
                                                 Width="35"
                                                 VerticalAlignment="Center"
                                                 DockPanel.Dock="Right"
-                                                FontFamily="/Fonts/#Albert Sans"
-                                                FontSize="14"
-                                                FontWeight="Medium"
+                                                FontSize="13"
                                                 Foreground="{StaticResource TextDangerRedBrush}"
+                                                Style="{StaticResource NumericReadoutStyle}"
                                                 Text="{Binding Modules.TrackerBattery.Settings.LowThreshold, StringFormat='{}{0}%'}"
                                                 TextAlignment="Right" />
                                             <Slider

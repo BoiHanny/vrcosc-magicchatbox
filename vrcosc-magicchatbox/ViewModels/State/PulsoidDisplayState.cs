@@ -68,7 +68,10 @@ public sealed partial class PulsoidDisplayState : ObservableObject
     public string AuthStatusText => _authState switch
     {
         PulsoidAuthState.Authenticated => "Signed in to Pulsoid.",
-        PulsoidAuthState.Unverified => "Signed in to Pulsoid — checking your token…",
+        // Deliberately not "checking your token…": nothing promotes Unverified until monitoring
+        // actually starts, and with the heart-rate integration switched off that never happens.
+        // Promising an in-flight check that will never finish is worse than saying nothing.
+        PulsoidAuthState.Unverified => "Signed in to Pulsoid with your saved token.",
         PulsoidAuthState.Unreachable => "Can't reach Pulsoid right now — your sign-in is kept and will keep retrying.",
         PulsoidAuthState.Rejected => "Pulsoid rejected the saved token. Please reconnect.",
         PulsoidAuthState.Unreadable => "The saved Pulsoid token could not be decrypted on this Windows account. Please reconnect.",

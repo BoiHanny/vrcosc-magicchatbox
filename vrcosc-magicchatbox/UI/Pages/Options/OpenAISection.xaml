@@ -378,13 +378,11 @@
                             TextWrapping="Wrap" />
                         <TextBlock
                             Width="600"
+                            Margin="0"
                             Padding="2,0,0,5"
                             HorizontalAlignment="Left"
                             VerticalAlignment="Center"
-                            FontFamily="/Fonts/#Albert Sans"
-                            FontSize="15"
-                            FontWeight="Medium"
-                            Foreground="{StaticResource TextLabelBrush}"
+                            Style="{StaticResource OptionFieldLabelStyle}"
                             Text="Only works in Whisper"
                             TextWrapping="Wrap" />
                         <CheckBox
@@ -423,10 +421,7 @@
                             <TextBlock
                                 Width="auto"
                                 Padding="3,10,0,0"
-                                FontFamily="/Fonts/#Albert Sans"
-                                FontSize="15"
-                                FontWeight="Medium"
-                                Foreground="{StaticResource TextLabelBrush}"
+                                Style="{StaticResource OptionFieldLabelStyle}"
                                 Text="Disable after" />
                             <TextBox
                                 x:Name="SilenceAutoTurnOffDurationINT"
@@ -440,10 +435,7 @@
                             <TextBlock
                                 Width="auto"
                                 Padding="0,10,0,0"
-                                FontFamily="/Fonts/#Albert Sans"
-                                FontSize="15"
-                                FontWeight="Medium"
-                                Foreground="{StaticResource TextLabelBrush}"
+                                Style="{StaticResource OptionFieldLabelStyle}"
                                 Text="milliseconds of silence" />
 
 
@@ -459,12 +451,10 @@
 
                         <TextBlock
                             Width="auto"
+                            Margin="0"
                             Padding="4,16,0,5"
                             VerticalAlignment="Center"
-                            FontFamily="/Fonts/#Albert Sans"
-                            FontSize="15"
-                            FontWeight="Medium"
-                            Foreground="{StaticResource TextLabelBrush}"
+                            Style="{StaticResource OptionFieldLabelStyle}"
                             Text="Adjust the noise gate threshold" />
 
                         <StackPanel Margin="4,0,0,7" Orientation="Horizontal">

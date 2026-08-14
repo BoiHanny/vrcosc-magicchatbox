@@ -120,10 +120,7 @@
                             <TextBlock
                                 Margin="0,0,5,0"
                                 VerticalAlignment="Center"
-                                FontFamily="/Fonts/#Albert Sans"
-                                FontSize="15"
-                                FontWeight="Medium"
-                                Foreground="{StaticResource TextLabelBrush}"
+                                Style="{StaticResource OptionFieldLabelStyle}"
                                 Text="Hide after:" />
                             <TextBox
                                 Width="40"
@@ -134,10 +131,7 @@
                             <TextBlock
                                 Margin="5,0,0,0"
                                 VerticalAlignment="Center"
-                                FontFamily="/Fonts/#Albert Sans"
-                                FontSize="15"
-                                FontWeight="Medium"
-                                Foreground="{StaticResource TextLabelBrush}"
+                                Style="{StaticResource OptionFieldLabelStyle}"
                                 Text="seconds" />
                         </StackPanel>
                     </StackPanel>
@@ -277,12 +271,10 @@
 
                         <StackPanel Margin="3,7" Orientation="Horizontal">
                             <TextBlock
+                                Margin="0"
                                 Padding="0,0,5,0"
                                 VerticalAlignment="Center"
-                                FontFamily="/Fonts/#Albert Sans"
-                                FontSize="15"
-                                FontWeight="Medium"
-                                Foreground="{StaticResource TextLabelBrush}"
+                                Style="{StaticResource OptionFieldLabelStyle}"
                                 Text="Forget session" />
                             <TextBox
                                 Width="auto"
@@ -295,12 +287,10 @@
                                 Text="{Binding MediaLinkSettings.SessionTimeout, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                 TextAlignment="Center" />
                             <TextBlock
+                                Margin="0"
                                 Padding="5,0,5,0"
                                 VerticalAlignment="Center"
-                                FontFamily="/Fonts/#Albert Sans"
-                                FontSize="15"
-                                FontWeight="Medium"
-                                Foreground="{StaticResource TextLabelBrush}"
+                                Style="{StaticResource OptionFieldLabelStyle}"
                                 Text="seconds after disconnect" />
 
                         </StackPanel>
@@ -530,12 +520,10 @@
                                     <StackPanel Margin="0,0,0,0" Orientation="Horizontal">
                                         <TextBlock
                                             Height="25"
+                                            Margin="0"
                                             Padding="0,5,5,0"
                                             VerticalAlignment="Center"
-                                            FontFamily="/Fonts/#Albert Sans"
-                                            FontSize="15"
-                                            FontWeight="Medium"
-                                            Foreground="{StaticResource TextLabelBrush}"
+                                            Style="{StaticResource OptionFieldLabelStyle}"
                                             Text="Progress bar length:" />
                                         <TextBox
                                             Width="auto"

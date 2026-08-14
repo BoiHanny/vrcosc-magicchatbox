@@ -549,10 +549,7 @@
                             <TextBlock
                                 Margin="0,0,5,0"
                                 VerticalAlignment="Center"
-                                FontFamily="/Fonts/#Albert Sans"
-                                FontSize="15"
-                                FontWeight="Medium"
-                                Foreground="{StaticResource TextLabelBrush}"
+                                Style="{StaticResource OptionFieldLabelStyle}"
                                 Text="Hide after:" />
                             <TextBox
                                 Width="40"
@@ -563,10 +560,7 @@
                             <TextBlock
                                 Margin="5,0,0,0"
                                 VerticalAlignment="Center"
-                                FontFamily="/Fonts/#Albert Sans"
-                                FontSize="15"
-                                FontWeight="Medium"
-                                Foreground="{StaticResource TextLabelBrush}"
+                                Style="{StaticResource OptionFieldLabelStyle}"
                                 Text="seconds" />
                         </StackPanel>
                     </StackPanel>

@@ -68,11 +68,9 @@
                         VerticalAlignment="Center"
                         Orientation="Horizontal">
                         <TextBlock
+                            Margin="0"
                             VerticalAlignment="Center"
-                            FontFamily="/Fonts/#Albert Sans"
-                            FontSize="15"
-                            FontWeight="Medium"
-                            Foreground="{StaticResource TextLabelBrush}"
+                            Style="{StaticResource OptionFieldLabelStyle}"
                             Text="Stats separator" />
                         <TextBox
                             x:Name="StatsSeparatorTextBox"
@@ -155,11 +153,9 @@
                                 VerticalAlignment="Center"
                                 Orientation="Horizontal">
                                 <TextBlock
+                                    Margin="0"
                                     VerticalAlignment="Center"
-                                    FontFamily="/Fonts/#Albert Sans"
-                                    FontSize="15"
-                                    FontWeight="Medium"
-                                    Foreground="{StaticResource TextLabelBrush}"
+                                    Style="{StaticResource OptionFieldLabelStyle}"
                                     Text="Custom hardware name" />
                                 <TextBox
                                     x:Name="CPUCustomHardwareName"
@@ -295,11 +291,9 @@
                                 VerticalAlignment="Center"
                                 Orientation="Horizontal">
                                 <TextBlock
+                                    Margin="0"
                                     VerticalAlignment="Center"
-                                    FontFamily="/Fonts/#Albert Sans"
-                                    FontSize="15"
-                                    FontWeight="Medium"
-                                    Foreground="{StaticResource TextLabelBrush}"
+                                    Style="{StaticResource OptionFieldLabelStyle}"
                                     Text="Custom hardware name" />
                                 <TextBox
                                     x:Name="GPUCustomHardwareName"
@@ -385,11 +379,9 @@
                                 VerticalAlignment="Center"
                                 Orientation="Horizontal">
                                 <TextBlock
+                                    Margin="0"
                                     VerticalAlignment="Center"
-                                    FontFamily="/Fonts/#Albert Sans"
-                                    FontSize="15"
-                                    FontWeight="Medium"
-                                    Foreground="{StaticResource TextLabelBrush}"
+                                    Style="{StaticResource OptionFieldLabelStyle}"
                                     Text="Custom hardware name" />
                                 <TextBox
                                     x:Name="VRAMCustomHardwareName"
@@ -475,11 +467,9 @@
                                 VerticalAlignment="Center"
                                 Orientation="Horizontal">
                                 <TextBlock
+                                    Margin="0"
                                     VerticalAlignment="Center"
-                                    FontFamily="/Fonts/#Albert Sans"
-                                    FontSize="15"
-                                    FontWeight="Medium"
-                                    Foreground="{StaticResource TextLabelBrush}"
+                                    Style="{StaticResource OptionFieldLabelStyle}"
                                     Text="Custom hardware name" />
                                 <TextBox
                                     x:Name="RAMCustomHardwareName"

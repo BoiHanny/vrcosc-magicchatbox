@@ -725,7 +725,7 @@
                         <TextBlock
                             VerticalAlignment="Center"
                             FontFamily="/Fonts/#Albert Sans"
-                            FontSize="10"
+                            FontSize="{StaticResource FontSizeMicro}"
                             Text="{Binding OscDisplay.OscMsgCountUI}">
                             <TextBlock.Style>
                                 <Style TargetType="TextBlock">
@@ -767,7 +767,7 @@
                                     <TextBlock
                                         Margin="0,0,0,6"
                                         FontFamily="/Fonts/#Albert Sans"
-                                        FontSize="10"
+                                        FontSize="{StaticResource FontSizeMicro}"
                                         Foreground="{StaticResource DeckTextMutedBrush}"
                                         RenderOptions.BitmapScalingMode="NearestNeighbor"
                                         Text="STATUS SET" />
@@ -856,7 +856,7 @@
                                             Grid.Column="0"
                                             VerticalAlignment="Center"
                                             FontFamily="/Fonts/#Albert Sans"
-                                            FontSize="10"
+                                            FontSize="{StaticResource FontSizeMicro}"
                                             Foreground="{StaticResource DeckTextMutedBrush}"
                                             RenderOptions.BitmapScalingMode="NearestNeighbor"
                                             Text="AWAY FROM KEYBOARD" />
@@ -881,7 +881,7 @@
                                             <TextBlock
                                                 VerticalAlignment="Center"
                                                 FontFamily="/Fonts/#Albert Sans"
-                                                FontSize="10"
+                                                FontSize="{StaticResource FontSizeMicro}"
                                                 RenderOptions.BitmapScalingMode="NearestNeighbor">
                                                 <TextBlock.Style>
                                                     <Style TargetType="TextBlock">

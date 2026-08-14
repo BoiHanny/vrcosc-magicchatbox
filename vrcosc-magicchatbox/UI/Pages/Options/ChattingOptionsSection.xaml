@@ -47,12 +47,9 @@
                 <StackPanel>
                     <TextBlock
                         Grid.Column="0"
+                        Margin="2,8,0,5"
                         Padding="0,0,0,0"
-                        FontFamily="/Fonts/#Albert Sans"
-                        FontSize="15"
-                        FontWeight="Medium"
-                        Foreground="{StaticResource TextLabelBrush}"
-                        Style="{StaticResource OptionSubsectionHeaderStyle}"
+                        Style="{StaticResource OptionFieldLabelStyle}"
                         Text="Chat timeout" />
                     <TextBlock
                         Margin="0,0,0,3"
@@ -95,11 +92,7 @@
 
                     <TextBlock
                         Margin="0,10,0,0"
-                        FontFamily="/Fonts/#Albert Sans"
-                        FontSize="15"
-                        FontWeight="Medium"
-                        Foreground="{StaticResource TextLabelBrush}"
-                        Style="{StaticResource OptionSubsectionHeaderStyle}"
+                        Style="{StaticResource OptionFieldLabelStyle}"
                         Text="Inline autocomplete" />
                     <CheckBox IsChecked="{Binding ChatSettings.ChatAutocompleteEnabled, Mode=TwoWay}" Style="{DynamicResource SettingsCheckbox}">
                         Show ghost text suggestions while typing
@@ -231,13 +224,10 @@
                     <StackPanel Visibility="{Binding ChatSettings.ChatAddSmallDelay, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
                         <TextBlock
                             Width="auto"
+                            Margin="2,8,0,5"
                             Padding="0,0"
                             VerticalAlignment="Center"
-                            FontFamily="/Fonts/#Albert Sans"
-                            FontSize="15"
-                            FontWeight="Medium"
-                            Foreground="{StaticResource TextLabelBrush}"
-                            Style="{StaticResource OptionSubsectionHeaderStyle}"
+                            Style="{StaticResource OptionFieldLabelStyle}"
                             Text="Delay before sending" />
                         <StackPanel Margin="0,0,0,7" Orientation="Horizontal">
                             <Slider
@@ -278,13 +268,10 @@
                     <StackPanel Visibility="{Binding ChatSettings.KeepUpdatingChat, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
                         <TextBlock
                             Width="auto"
+                            Margin="2,8,0,5"
                             Padding="0,0"
                             VerticalAlignment="Center"
-                            FontFamily="/Fonts/#Albert Sans"
-                            FontSize="15"
-                            FontWeight="Medium"
-                            Foreground="{StaticResource TextLabelBrush}"
-                            Style="{StaticResource OptionSubsectionHeaderStyle}"
+                            Style="{StaticResource OptionFieldLabelStyle}"
                             Text="Update rate of active chat message" />
                         <StackPanel Margin="0,0,0,7" Orientation="Horizontal">
                             <Slider

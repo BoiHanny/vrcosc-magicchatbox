@@ -111,11 +111,9 @@
                         <StackPanel Style="{StaticResource OptionActionRowStyle}">
                             <TextBlock
                                 Width="85"
+                                Margin="0"
                                 VerticalAlignment="Center"
-                                FontFamily="/Fonts/#Albert Sans"
-                                FontSize="15"
-                                FontWeight="Medium"
-                                Foreground="{StaticResource TextLabelBrush}"
+                                Style="{StaticResource OptionFieldLabelStyle}"
                                 Text="TTS voice" />
                             <ComboBox
                                 x:Name="TikTokTTSVoicesComboBox"
@@ -129,11 +127,9 @@
                         <StackPanel Style="{StaticResource OptionActionRowStyle}">
                             <TextBlock
                                 Width="85"
+                                Margin="0"
                                 VerticalAlignment="Center"
-                                FontFamily="/Fonts/#Albert Sans"
-                                FontSize="15"
-                                FontWeight="Medium"
-                                Foreground="{StaticResource TextLabelBrush}"
+                                Style="{StaticResource OptionFieldLabelStyle}"
                                 Text="TTS output" />
                             <ComboBox
                                 x:Name="PlaybackOutputDeviceComboBox"

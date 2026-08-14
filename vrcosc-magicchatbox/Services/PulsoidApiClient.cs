@@ -156,8 +156,9 @@ public sealed class PulsoidApiClient : IPulsoidClient
                 return true;
 
             case 402:
+                // Terminal: the loop below stops for good, so the text must not promise a retry.
                 ConnectionFailed?.Invoke(PulsoidConnectionError.SubscriptionRequired,
-                    "Pulsoid reports that this feature needs a paid plan.");
+                    "Pulsoid reports that this feature needs a paid plan, so reconnecting has stopped.");
                 return true;
 
             case 0:
@@ -214,14 +215,23 @@ public sealed class PulsoidApiClient : IPulsoidClient
                 string errorContent = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
                 Logging.WriteInfo($"Error fetching Pulsoid statistics: {response.StatusCode}, Content: {errorContent}");
 
-                // A 401 here is the same authoritative rejection as anywhere else and used to be
-                // swallowed, leaving stale statistics being broadcast over OSC forever.
-                if (response.StatusCode == HttpStatusCode.Unauthorized)
-                    ConnectionFailed?.Invoke(PulsoidConnectionError.TokenInvalid,
-                        "Pulsoid rejected the saved token. Please reconnect.");
-                else if (response.StatusCode == HttpStatusCode.PaymentRequired)
-                    ConnectionFailed?.Invoke(PulsoidConnectionError.SubscriptionRequired,
-                        "Pulsoid statistics need a paid plan.");
+                // A failure here disables statistics and nothing else. Statistics are documented as
+                // optional and ValidateTokenAsync deliberately accepts a token without
+                // data:statistics:read, so raising TokenInvalid from this endpoint signed the user
+                // out of heart rate — while the socket was still streaming beats — and re-latched
+                // it every 30 seconds. The socket is the authoritative liveness signal.
+                switch (response.StatusCode)
+                {
+                    case HttpStatusCode.Unauthorized:
+                    case HttpStatusCode.Forbidden:
+                        ConnectionFailed?.Invoke(PulsoidConnectionError.StatisticsUnavailable,
+                            "Pulsoid would not return heart-rate statistics for this token. Heart rate itself is unaffected.");
+                        break;
+                    case HttpStatusCode.PaymentRequired:
+                        ConnectionFailed?.Invoke(PulsoidConnectionError.StatisticsUnavailable,
+                            "Pulsoid statistics need a paid plan. Heart rate itself is unaffected.");
+                        break;
+                }
 
                 return null;
             }

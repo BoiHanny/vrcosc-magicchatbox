@@ -10,6 +10,19 @@ using Xunit;
 namespace MagicChatbox.Tests.Classes.Modules;
 
 /// <summary>
+/// DPAPI cannot be made to refuse on a healthy machine, so the protect step is overridden through
+/// the seam the settings object exposes for exactly that. Everything else is the production code.
+/// </summary>
+internal sealed class UnprotectablePulsoidSettings : PulsoidModuleSettings
+{
+    protected override bool TryProtectToken(string plaintext, out string ciphertext)
+    {
+        ciphertext = null;
+        return false;
+    }
+}
+
+/// <summary>
 /// Regression cover for "Pulsoid authentication is lost across app restarts".
 /// The token always survived; what did not was the state describing it, and a transient
 /// validation failure was indistinguishable from a revoked token.
@@ -60,7 +73,8 @@ public sealed class PulsoidAuthPersistenceTests : IDisposable
 
         var reader = new JsonSettingsProvider<PulsoidModuleSettings>(_env);
         Assert.Equal(token, reader.Value.AccessTokenOAuth);
-        Assert.False(reader.Value.TokenProtectionFailed);
+        Assert.False(reader.Value.StoredTokenUnreadable);
+        Assert.False(reader.Value.TokenEncryptionFailed);
         reader.Dispose();
     }
 
@@ -101,15 +115,100 @@ public sealed class PulsoidAuthPersistenceTests : IDisposable
     [Fact]
     public void UndecryptableStoredToken_KeepsTheCiphertextAndReportsTheFailure()
     {
-        // A DPAPI blob from another account looks like this: valid base64, refuses to unprotect.
-        string junkCipher = Convert.ToBase64String(new byte[] { 1, 0, 0, 0, 9, 9, 9, 9 });
-        var settings = new PulsoidModuleSettings { AccessTokenOAuthEncrypted = junkCipher };
+        var settings = new PulsoidModuleSettings { AccessTokenOAuthEncrypted = UndecryptableCipher };
 
-        Assert.True(settings.TokenProtectionFailed);
+        Assert.True(settings.StoredTokenUnreadable);
+        // Nothing failed to *encrypt* here; conflating the two is what disabled heart rate for a
+        // whole session on a perfectly good token.
+        Assert.False(settings.TokenEncryptionFailed);
         // The bad blob is preserved rather than being blanked out: it may decrypt elsewhere,
         // and overwriting it is how a good token gets silently destroyed.
-        Assert.Equal(junkCipher, settings.AccessTokenOAuthEncrypted);
+        Assert.Equal(UndecryptableCipher, settings.AccessTokenOAuthEncrypted);
         Assert.Equal(string.Empty, settings.AccessTokenOAuth);
+    }
+
+    /// <summary>A DPAPI blob from another account: valid base64, refuses to unprotect here.</summary>
+    private static string UndecryptableCipher => Convert.ToBase64String(new byte[] { 1, 0, 0, 0, 9, 9, 9, 9 });
+
+    [Fact]
+    public void ClearStoredToken_AfterAFailedDecrypt_WipesTheCiphertextAndTheFailureFlag()
+    {
+        // The state Disconnect has to cope with: plaintext already empty, ciphertext still there.
+        var settings = new PulsoidModuleSettings { AccessTokenOAuthEncrypted = UndecryptableCipher };
+        Assert.True(settings.StoredTokenUnreadable);
+
+        settings.ClearStoredToken();
+
+        Assert.Equal(string.Empty, settings.AccessTokenOAuth);
+        Assert.Equal(string.Empty, settings.AccessTokenOAuthEncrypted);
+        Assert.False(settings.StoredTokenUnreadable);
+        Assert.False(settings.TokenEncryptionFailed);
+    }
+
+    [Fact]
+    public void AssigningEmpty_AfterAFailedDecrypt_IsNotSwallowedByThePlaintextGuard()
+    {
+        // The exact bug: the setter compared the incoming "" with the (already empty) plaintext,
+        // returned early, and left the blob on disk forever — TokenProtectionFailed is not
+        // serialized, so the next launch re-derived the lockout from the surviving ciphertext and
+        // the user could never clear it from the UI.
+        var settings = new PulsoidModuleSettings { AccessTokenOAuthEncrypted = UndecryptableCipher };
+
+        settings.AccessTokenOAuth = string.Empty;
+
+        Assert.Equal(string.Empty, settings.AccessTokenOAuthEncrypted);
+        Assert.False(settings.StoredTokenUnreadable);
+    }
+
+    [Fact]
+    public void ClearStoredToken_AfterAFailedDecrypt_RemovesTheBlobFromDiskToo()
+    {
+        // End to end: an undecryptable blob is on disk, the user presses Disconnect, and the next
+        // launch must come up as "not connected" rather than re-deriving the lockout.
+        var seed = new PulsoidModuleSettings { AccessTokenOAuthEncrypted = UndecryptableCipher };
+        File.WriteAllText(SettingsFile, JsonConvert.SerializeObject(seed));
+
+        var provider = new JsonSettingsProvider<PulsoidModuleSettings>(_env);
+        Assert.True(provider.Value.StoredTokenUnreadable);
+
+        provider.Value.ClearStoredToken();
+        provider.FlushPendingSave();
+        provider.Dispose();
+
+        var afterDisconnect = new JsonSettingsProvider<PulsoidModuleSettings>(_env);
+        Assert.Equal(string.Empty, afterDisconnect.Value.AccessTokenOAuthEncrypted);
+        Assert.Equal(string.Empty, afterDisconnect.Value.AccessTokenOAuth);
+        Assert.False(afterDisconnect.Value.StoredTokenUnreadable);
+        afterDisconnect.Dispose();
+    }
+
+    // ---- (a2) an encrypt failure is a storage problem, not a lost credential -------------------
+
+    [Fact]
+    public void EncryptFailure_KeepsTheWorkingPlaintextAndIsNotReportedAsUnreadable()
+    {
+        var settings = new UnprotectablePulsoidSettings { AccessTokenOAuth = "works-right-now" };
+
+        Assert.Equal("works-right-now", settings.AccessTokenOAuth);
+        Assert.True(settings.TokenEncryptionFailed);
+        // Nothing is unreadable: there is a perfectly usable token in memory.
+        Assert.False(settings.StoredTokenUnreadable);
+    }
+
+    [Fact]
+    public void EncryptFailure_DoesNotLeaveASupersededTokenToResurrectOnTheNextLaunch()
+    {
+        var settings = new UnprotectablePulsoidSettings();
+
+        // Pretend a previous session stored a different credential successfully. Any ciphertext
+        // that does not decrypt to the token we now hold is superseded, and leaving it means the
+        // next launch signs the user back in as the old token with nothing to show for it.
+        settings.AccessTokenOAuthEncrypted = UndecryptableCipher;
+        settings.AccessTokenOAuth = "the-new-token";
+
+        Assert.Equal("the-new-token", settings.AccessTokenOAuth);
+        Assert.True(settings.TokenEncryptionFailed);
+        Assert.Equal(string.Empty, settings.AccessTokenOAuthEncrypted);
     }
 
     // ---- (b) a transient failure never becomes a terminal unauthenticated state ----------------
@@ -164,44 +263,12 @@ public sealed class PulsoidAuthPersistenceTests : IDisposable
         Assert.Contains(nameof(PulsoidDisplayState.AuthStatusText), seen);
     }
 
-    [Fact]
-    public void TransientValidationFailure_NeitherClearsTheTokenNorSignsTheUserOut()
-    {
-        const string token = "still-perfectly-good-token";
-
-        var provider = new JsonSettingsProvider<PulsoidModuleSettings>(_env);
-        provider.Value.AccessTokenOAuth = token;
-        provider.FlushPendingSave();
-
-        // Restart: the module seeds an optimistic signed-in state from the stored credential.
-        var display = new PulsoidDisplayState();
-        var reloaded = new JsonSettingsProvider<PulsoidModuleSettings>(_env);
-        display.AuthState = string.IsNullOrWhiteSpace(reloaded.Value.AccessTokenOAuth)
-            ? PulsoidAuthState.NoToken
-            : PulsoidAuthState.Unverified;
-        Assert.True(display.AuthConnected);
-
-        // Pulsoid is unreachable (offline / timeout / 429 / 5xx) — the outcome the validator
-        // reports for every one of those.
-        var validation = PulsoidTokenValidation.Unknown;
-        if (validation == PulsoidTokenValidation.Invalid)
-            display.AuthState = PulsoidAuthState.Rejected;
-        else if (validation == PulsoidTokenValidation.Unknown)
-            display.AuthState = PulsoidAuthState.Unreachable;
-        else
-            display.AuthState = PulsoidAuthState.Authenticated;
-
-        Assert.Equal(PulsoidAuthState.Unreachable, display.AuthState);
-        Assert.True(display.AuthConnected);
-        Assert.Equal(token, reloaded.Value.AccessTokenOAuth);
-
-        // And the credential is still on disk for the next launch.
-        reloaded.Dispose();
-        provider.Dispose();
-        var afterOutage = new JsonSettingsProvider<PulsoidModuleSettings>(_env);
-        Assert.Equal(token, afterOutage.Value.AccessTokenOAuth);
-        afterOutage.Dispose();
-    }
+    // The transient-failure regression is covered by
+    // PulsoidModuleAuthRestoreTests.Startup_WhenPulsoidIsUnreachable_*, which drives the real
+    // PulsoidModule against a stubbed Pulsoid. The version that used to live here copied the
+    // module's decision table into the test body with a constant `validation`, so two of its three
+    // arms were unreachable and the assertion held by construction — it stayed green with the bug
+    // reinstated, which is worse than having no test at all.
 
     [Fact]
     public void PulsoidAuthState_IsOnlyEverReachedFromTheDerivedBoolean()

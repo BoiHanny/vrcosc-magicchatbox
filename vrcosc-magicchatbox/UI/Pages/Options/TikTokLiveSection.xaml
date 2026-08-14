@@ -61,10 +61,7 @@
                         <StackPanel Margin="0,8,0,0" Orientation="Horizontal">
                             <StackPanel>
                                 <TextBlock
-                                    FontFamily="/Fonts/#Albert Sans"
-                                    FontSize="15"
-                                    FontWeight="Medium"
-                                    Foreground="{StaticResource TextLabelBrush}"
+                                    Style="{StaticResource OptionFieldLabelStyle}"
                                     Text="Profile username" />
                                 <TextBox
                                     Width="220"
@@ -85,10 +82,7 @@
                                 Style="{StaticResource Status_Button_style}" />
                             <StackPanel Margin="12,0,0,0">
                                 <TextBlock
-                                    FontFamily="/Fonts/#Albert Sans"
-                                    FontSize="15"
-                                    FontWeight="Medium"
-                                    Foreground="{StaticResource TextLabelBrush}"
+                                    Style="{StaticResource OptionFieldLabelStyle}"
                                     Text="Refresh every (min)" />
                                 <TextBox
                                     Width="70"
@@ -156,10 +150,7 @@
 
                         <TextBlock
                             Margin="0,10,0,0"
-                            FontFamily="/Fonts/#Albert Sans"
-                            FontSize="15"
-                            FontWeight="Medium"
-                            Foreground="{StaticResource TextLabelBrush}"
+                            Style="{StaticResource OptionFieldLabelStyle}"
                             Text="Profile template" />
                         <TextBox
                             Width="520"
@@ -236,10 +227,7 @@
                             <StackPanel Orientation="Horizontal">
                                 <StackPanel>
                                     <TextBlock
-                                        FontFamily="/Fonts/#Albert Sans"
-                                        FontSize="15"
-                                        FontWeight="Medium"
-                                        Foreground="{StaticResource TextLabelBrush}"
+                                        Style="{StaticResource OptionFieldLabelStyle}"
                                         Text="Order" />
                                     <ComboBox
                                         Width="190"
@@ -256,10 +244,7 @@
                                 </StackPanel>
                                 <StackPanel Margin="12,0,0,0">
                                     <TextBlock
-                                        FontFamily="/Fonts/#Albert Sans"
-                                        FontSize="15"
-                                        FontWeight="Medium"
-                                        Foreground="{StaticResource TextLabelBrush}"
+                                        Style="{StaticResource OptionFieldLabelStyle}"
                                         Text="Separator" />
                                     <TextBox
                                         Width="110"
@@ -381,10 +366,7 @@
                             <StackPanel Orientation="Horizontal">
                                 <StackPanel>
                                     <TextBlock
-                                        FontFamily="/Fonts/#Albert Sans"
-                                        FontSize="15"
-                                        FontWeight="Medium"
-                                        Foreground="{StaticResource TextLabelBrush}"
+                                        Style="{StaticResource OptionFieldLabelStyle}"
                                         Text="LIVE host username" />
                                     <TextBox
                                         Width="220"
@@ -396,10 +378,7 @@
                                 </StackPanel>
                                 <StackPanel Margin="12,0,0,0">
                                     <TextBlock
-                                        FontFamily="/Fonts/#Albert Sans"
-                                        FontSize="15"
-                                        FontWeight="Medium"
-                                        Foreground="{StaticResource TextLabelBrush}"
+                                        Style="{StaticResource OptionFieldLabelStyle}"
                                         Text="Timeout (s)" />
                                     <TextBox
                                         Width="70"
@@ -411,10 +390,7 @@
                                 </StackPanel>
                                 <StackPanel Margin="12,0,0,0">
                                     <TextBlock
-                                        FontFamily="/Fonts/#Albert Sans"
-                                        FontSize="15"
-                                        FontWeight="Medium"
-                                        Foreground="{StaticResource TextLabelBrush}"
+                                        Style="{StaticResource OptionFieldLabelStyle}"
                                         Text="Reconnect (s)" />
                                     <TextBox
                                         Width="70"
@@ -460,10 +436,7 @@
 
                             <TextBlock
                                 Margin="0,8,0,0"
-                                FontFamily="/Fonts/#Albert Sans"
-                                FontSize="15"
-                                FontWeight="Medium"
-                                Foreground="{StaticResource TextLabelBrush}"
+                                Style="{StaticResource OptionFieldLabelStyle}"
                                 Text="LIVE summary template" />
                             <TextBox
                                 Width="520"
@@ -486,10 +459,7 @@
                             <TextBlock Style="{StaticResource OptionSubsectionHeaderStyle}" Text="LIVE event overlays" />
                             <StackPanel Margin="0,0,0,6">
                                 <TextBlock
-                                    FontFamily="/Fonts/#Albert Sans"
-                                    FontSize="15"
-                                    FontWeight="Medium"
-                                    Foreground="{StaticResource TextLabelBrush}"
+                                    Style="{StaticResource OptionFieldLabelStyle}"
                                     Text="Default duration (seconds)" />
                                 <TextBox
                                     Width="70"

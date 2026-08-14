@@ -90,13 +90,10 @@
                         TextWrapping="Wrap" />
                     <TextBlock
                         Grid.Column="0"
+                        Margin="2,8,0,5"
                         Padding="0,0,0,3"
                         HorizontalAlignment="Left"
-                        FontFamily="/Fonts/#Albert Sans"
-                        FontSize="15"
-                        FontWeight="Medium"
-                        Foreground="{StaticResource TextLabelBrush}"
-                        Style="{StaticResource OptionSubsectionHeaderStyle}"
+                        Style="{StaticResource OptionFieldLabelStyle}"
                         Text="Local IP address" />
                     <StackPanel Orientation="Horizontal">
                         <TextBox
@@ -139,13 +136,10 @@
 
                     <TextBlock
                         Grid.Column="0"
+                        Margin="2,8,0,5"
                         Padding="0,10,0,3"
                         HorizontalAlignment="Left"
-                        FontFamily="/Fonts/#Albert Sans"
-                        FontSize="15"
-                        FontWeight="Medium"
-                        Foreground="{StaticResource TextLabelBrush}"
-                        Style="{StaticResource OptionSubsectionHeaderStyle}"
+                        Style="{StaticResource OptionFieldLabelStyle}"
                         Text="Port (outgoing)" />
                     <StackPanel Margin="0,0,0,10" Orientation="Horizontal">
                         <TextBox
@@ -194,13 +188,10 @@
                 </StackPanel>
                 <TextBlock
                     Width="auto"
+                    Margin="2,8,0,5"
                     Padding="0,0"
                     VerticalAlignment="Center"
-                    FontFamily="/Fonts/#Albert Sans"
-                    FontSize="15"
-                    FontWeight="Medium"
-                    Foreground="{StaticResource TextLabelBrush}"
-                    Style="{StaticResource OptionSubsectionHeaderStyle}"
+                    Style="{StaticResource OptionFieldLabelStyle}"
                     Text="OSC tick / send rate" />
                 <StackPanel Margin="0,0,0,7" Orientation="Horizontal">
                     <Slider
@@ -246,13 +237,10 @@
                     <StackPanel Margin="5">
                         <TextBlock
                             Grid.Column="0"
+                            Margin="2,8,0,5"
                             Padding="0,0,0,0"
                             HorizontalAlignment="Left"
-                            FontFamily="/Fonts/#Albert Sans"
-                            FontSize="15"
-                            FontWeight="Medium"
-                            Foreground="{StaticResource TextLabelBrush}"
-                            Style="{StaticResource OptionSubsectionHeaderStyle}"
+                            Style="{StaticResource OptionFieldLabelStyle}"
                             Text="2nd IP address" />
                         <TextBox
                             x:Name="SecOSCIP"
@@ -265,13 +253,10 @@
                             Text="{Binding OscSettings.SecOSCIP, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                         <TextBlock
                             Grid.Column="0"
+                            Margin="2,8,0,5"
                             Padding="0,0,0,0"
                             HorizontalAlignment="Left"
-                            FontFamily="/Fonts/#Albert Sans"
-                            FontSize="15"
-                            FontWeight="Medium"
-                            Foreground="{StaticResource TextLabelBrush}"
-                            Style="{StaticResource OptionSubsectionHeaderStyle}"
+                            Style="{StaticResource OptionFieldLabelStyle}"
                             Text="2nd VRChat port (outgoing)" />
                         <TextBox
                             x:Name="SecOSCPort"
@@ -305,13 +290,10 @@
                     <StackPanel Margin="5">
                         <TextBlock
                             Grid.Column="0"
+                            Margin="2,8,0,5"
                             Padding="0,0,0,0"
                             HorizontalAlignment="Left"
-                            FontFamily="/Fonts/#Albert Sans"
-                            FontSize="15"
-                            FontWeight="Medium"
-                            Foreground="{StaticResource TextLabelBrush}"
-                            Style="{StaticResource OptionSubsectionHeaderStyle}"
+                            Style="{StaticResource OptionFieldLabelStyle}"
                             Text="3rd IP address" />
                         <TextBox
                             x:Name="ThirdOSCIP"
@@ -324,13 +306,10 @@
                             Text="{Binding OscSettings.ThirdOSCIP, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                         <TextBlock
                             Grid.Column="0"
+                            Margin="2,8,0,5"
                             Padding="0,0,0,0"
                             HorizontalAlignment="Left"
-                            FontFamily="/Fonts/#Albert Sans"
-                            FontSize="15"
-                            FontWeight="Medium"
-                            Foreground="{StaticResource TextLabelBrush}"
-                            Style="{StaticResource OptionSubsectionHeaderStyle}"
+                            Style="{StaticResource OptionFieldLabelStyle}"
                             Text="3rd VRChat port (outgoing)" />
                         <TextBox
                             x:Name="ThirdOSCPort"
@@ -371,13 +350,10 @@
                 </CheckBox>
                 <StackPanel Margin="0,0,0,15">
                     <TextBlock
+                        Margin="2,8,0,5"
                         Padding="0,0,0,3"
                         HorizontalAlignment="Left"
-                        FontFamily="/Fonts/#Albert Sans"
-                        FontSize="15"
-                        FontWeight="Medium"
-                        Foreground="{StaticResource TextLabelBrush}"
-                        Style="{StaticResource OptionSubsectionHeaderStyle}"
+                        Style="{StaticResource OptionFieldLabelStyle}"
                         Text="OSC separator (when not using ENTER)" />
                     <TextBox
                         x:Name="OscMessageSeparator"
@@ -390,13 +366,10 @@
                 </StackPanel>
                 <StackPanel Margin="0,0,0,15">
                     <TextBlock
+                        Margin="2,8,0,5"
                         Padding="0,0,0,3"
                         HorizontalAlignment="Left"
-                        FontFamily="/Fonts/#Albert Sans"
-                        FontSize="15"
-                        FontWeight="Medium"
-                        Foreground="{StaticResource TextLabelBrush}"
-                        Style="{StaticResource OptionSubsectionHeaderStyle}"
+                        Style="{StaticResource OptionFieldLabelStyle}"
                         Text="OSC message prefix" />
                     <TextBox
                         x:Name="OscMessagePrefix"
@@ -409,13 +382,10 @@
                 </StackPanel>
                 <StackPanel Margin="0,0,0,15">
                     <TextBlock
+                        Margin="2,8,0,5"
                         Padding="0,0,0,3"
                         HorizontalAlignment="Left"
-                        FontFamily="/Fonts/#Albert Sans"
-                        FontSize="15"
-                        FontWeight="Medium"
-                        Foreground="{StaticResource TextLabelBrush}"
-                        Style="{StaticResource OptionSubsectionHeaderStyle}"
+                        Style="{StaticResource OptionFieldLabelStyle}"
                         Text="OSC message suffix" />
                     <TextBox
                         x:Name="OscMessageSuffix"

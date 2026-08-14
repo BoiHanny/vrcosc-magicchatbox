@@ -60,10 +60,7 @@
                     HorizontalAlignment="Left">
                     <TextBlock
                         Padding="0,0,0,0"
-                        FontFamily="/Fonts/#Albert Sans"
-                        FontSize="15"
-                        FontWeight="Medium"
-                        Foreground="{StaticResource TextLabelBrush}"
+                        Style="{StaticResource OptionFieldLabelStyle}"
                         Text="Channel name" />
                     <TextBox
                         x:Name="TwitchChannelName"
@@ -77,10 +74,7 @@
                     <TextBlock
                         Margin="0,8,0,0"
                         Padding="0,0,0,0"
-                        FontFamily="/Fonts/#Albert Sans"
-                        FontSize="15"
-                        FontWeight="Medium"
-                        Foreground="{StaticResource TextLabelBrush}"
+                        Style="{StaticResource OptionFieldLabelStyle}"
                         Text="Client ID" />
                     <StackPanel Margin="0,3,0,0" Orientation="Horizontal">
                         <ToggleButton
@@ -143,10 +137,7 @@
                     <TextBlock
                         Margin="0,8,0,0"
                         Padding="0,0,0,0"
-                        FontFamily="/Fonts/#Albert Sans"
-                        FontSize="15"
-                        FontWeight="Medium"
-                        Foreground="{StaticResource TextLabelBrush}"
+                        Style="{StaticResource OptionFieldLabelStyle}"
                         Text="Access token" />
                     <StackPanel Margin="0,3,0,0" Orientation="Horizontal">
                         <ToggleButton
@@ -211,10 +202,7 @@
                     <TextBlock
                         Margin="0,10,0,0"
                         Padding="0,0,0,0"
-                        FontFamily="/Fonts/#Albert Sans"
-                        FontSize="15"
-                        FontWeight="Medium"
-                        Foreground="{StaticResource TextLabelBrush}"
+                        Style="{StaticResource OptionFieldLabelStyle}"
                         Text="Refresh interval (seconds)" />
                     <StackPanel Margin="0,3,0,0" Orientation="Horizontal">
                         <TextBox
@@ -271,10 +259,7 @@
                     <StackPanel Margin="0,6,0,0" Visibility="{Binding Modules.Twitch.Settings.ShowLiveIndicator, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
                         <TextBlock
                             Padding="0,0,0,0"
-                            FontFamily="/Fonts/#Albert Sans"
-                            FontSize="15"
-                            FontWeight="Medium"
-                            Foreground="{StaticResource TextLabelBrush}"
+                            Style="{StaticResource OptionFieldLabelStyle}"
                             Text="Live prefix" />
                         <TextBox
                             x:Name="TwitchLivePrefix"
@@ -296,10 +281,7 @@
                     <StackPanel Margin="0,0,0,6" Visibility="{Binding Modules.Twitch.Settings.ShowGameName, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
                         <TextBlock
                             Padding="0,0,0,0"
-                            FontFamily="/Fonts/#Albert Sans"
-                            FontSize="15"
-                            FontWeight="Medium"
-                            Foreground="{StaticResource TextLabelBrush}"
+                            Style="{StaticResource OptionFieldLabelStyle}"
                             Text="Game prefix" />
                         <TextBox
                             x:Name="TwitchGamePrefix"
@@ -329,10 +311,7 @@
                         <StackPanel Margin="0,6,0,0" Visibility="{Binding Modules.Twitch.Settings.ShowViewerLabel, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
                             <TextBlock
                                 Padding="0,0,0,0"
-                                FontFamily="/Fonts/#Albert Sans"
-                                FontSize="15"
-                                FontWeight="Medium"
-                                Foreground="{StaticResource TextLabelBrush}"
+                                Style="{StaticResource OptionFieldLabelStyle}"
                                 Text="Viewer label" />
                             <TextBox
                                 x:Name="TwitchViewerLabel"
@@ -370,10 +349,7 @@
                         <StackPanel Margin="0,6,0,0" Visibility="{Binding Modules.Twitch.Settings.ShowFollowerLabel, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
                             <TextBlock
                                 Padding="0,0,0,0"
-                                FontFamily="/Fonts/#Albert Sans"
-                                FontSize="15"
-                                FontWeight="Medium"
-                                Foreground="{StaticResource TextLabelBrush}"
+                                Style="{StaticResource OptionFieldLabelStyle}"
                                 Text="Follower label" />
                             <TextBox
                                 x:Name="TwitchFollowerLabel"
@@ -410,10 +386,7 @@
                     <StackPanel Margin="0,6,0,0" Visibility="{Binding Modules.Twitch.Settings.ShowStreamTitle, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
                         <TextBlock
                             Padding="0,0,0,0"
-                            FontFamily="/Fonts/#Albert Sans"
-                            FontSize="15"
-                            FontWeight="Medium"
-                            Foreground="{StaticResource TextLabelBrush}"
+                            Style="{StaticResource OptionFieldLabelStyle}"
                             Text="Title prefix" />
                         <TextBox
                             x:Name="TwitchStreamTitlePrefix"
@@ -435,10 +408,7 @@
                     <StackPanel Margin="0,6,0,0" Visibility="{Binding Modules.Twitch.Settings.ShowChannelName, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
                         <TextBlock
                             Padding="0,0,0,0"
-                            FontFamily="/Fonts/#Albert Sans"
-                            FontSize="15"
-                            FontWeight="Medium"
-                            Foreground="{StaticResource TextLabelBrush}"
+                            Style="{StaticResource OptionFieldLabelStyle}"
                             Text="Channel prefix" />
                         <TextBox
                             x:Name="TwitchChannelPrefix"
@@ -453,10 +423,7 @@
                     <TextBlock
                         Margin="0,12,0,0"
                         Padding="0,0,0,0"
-                        FontFamily="/Fonts/#Albert Sans"
-                        FontSize="15"
-                        FontWeight="Medium"
-                        Foreground="{StaticResource TextLabelBrush}"
+                        Style="{StaticResource OptionFieldLabelStyle}"
                         Text="Separator"
                         Visibility="{Binding Modules.Twitch.Settings.TemplateHasValue, Converter={StaticResource InverseBoolToVisibilityConverter}, UpdateSourceTrigger=PropertyChanged}" />
                     <TextBox
@@ -477,10 +444,7 @@
                     <TextBlock
                         Margin="0,12,0,0"
                         Padding="0,0,0,0"
-                        FontFamily="/Fonts/#Albert Sans"
-                        FontSize="15"
-                        FontWeight="Medium"
-                        Foreground="{StaticResource TextLabelBrush}"
+                        Style="{StaticResource OptionFieldLabelStyle}"
                         Text="Template (use {live} {game} {gameWithLabel} {viewers} {viewerCount} {viewerLabel} {followers} {followerCount} {followerLabel} {followersWithLabel} {title} {titleWithLabel} {channel} {channelWithLabel} {status})"
                         TextWrapping="Wrap" />
                     <TextBox
@@ -499,10 +463,7 @@
                     <TextBlock
                         Margin="0,12,0,0"
                         Padding="0,0,0,0"
-                        FontFamily="/Fonts/#Albert Sans"
-                        FontSize="15"
-                        FontWeight="Medium"
-                        Foreground="{StaticResource TextLabelBrush}"
+                        Style="{StaticResource OptionFieldLabelStyle}"
                         Text="Offline message" />
                     <TextBox
                         x:Name="TwitchOfflineMessage"
@@ -560,10 +521,7 @@
                                 <StackPanel Margin="0,6,0,0" Visibility="{Binding Modules.Twitch.Settings.AnnouncementsEnabled, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
                                     <TextBlock
                                         Padding="0,0,0,0"
-                                        FontFamily="/Fonts/#Albert Sans"
-                                        FontSize="15"
-                                        FontWeight="Medium"
-                                        Foreground="{StaticResource TextLabelBrush}"
+                                        Style="{StaticResource OptionFieldLabelStyle}"
                                         Text="Message" />
                                     <Grid Margin="0,3,0,0">
                                         <Grid.ColumnDefinitions>
@@ -592,10 +550,7 @@
                                     <StackPanel Margin="0,6,0,0" Orientation="Horizontal">
                                         <TextBlock
                                             Margin="0,4,0,0"
-                                            FontFamily="/Fonts/#Albert Sans"
-                                            FontSize="15"
-                                            FontWeight="Medium"
-                                            Foreground="{StaticResource TextLabelBrush}"
+                                            Style="{StaticResource OptionFieldLabelStyle}"
                                             Text="Color" />
                                         <Border
                                             Width="14"
@@ -667,10 +622,7 @@
                                 <StackPanel Margin="0,6,0,0" Visibility="{Binding Modules.Twitch.Settings.ShoutoutsEnabled, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
                                     <TextBlock
                                         Padding="0,0,0,0"
-                                        FontFamily="/Fonts/#Albert Sans"
-                                        FontSize="15"
-                                        FontWeight="Medium"
-                                        Foreground="{StaticResource TextLabelBrush}"
+                                        Style="{StaticResource OptionFieldLabelStyle}"
                                         Text="Target channel" />
                                     <Grid Margin="0,3,0,0">
                                         <Grid.ColumnDefinitions>
@@ -706,10 +658,7 @@
                                     <StackPanel Margin="0,6,0,0" Visibility="{Binding Modules.Twitch.Settings.ShoutoutAlsoAnnounce, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
                                         <TextBlock
                                             Padding="0,0,0,0"
-                                            FontFamily="/Fonts/#Albert Sans"
-                                            FontSize="15"
-                                            FontWeight="Medium"
-                                            Foreground="{StaticResource TextLabelBrush}"
+                                            Style="{StaticResource OptionFieldLabelStyle}"
                                             Text="Announcement template" />
                                         <TextBox
                                             x:Name="TwitchShoutoutAnnouncementTemplate"
@@ -725,10 +674,7 @@
                                         <StackPanel Margin="0,6,0,0" Orientation="Horizontal">
                                             <TextBlock
                                                 Margin="0,4,0,0"
-                                                FontFamily="/Fonts/#Albert Sans"
-                                                FontSize="15"
-                                                FontWeight="Medium"
-                                                Foreground="{StaticResource TextLabelBrush}"
+                                                Style="{StaticResource OptionFieldLabelStyle}"
                                                 Text="Color" />
                                             <Border
                                                 Width="14"

@@ -105,10 +105,7 @@
                         <TextBlock
                             Grid.Column="0"
                             Padding="0,0,0,0"
-                            FontFamily="/Fonts/#Albert Sans"
-                            FontSize="15"
-                            FontWeight="Medium"
-                            Foreground="{StaticResource TextLabelBrush}"
+                            Style="{StaticResource OptionFieldLabelStyle}"
                             Text="max title length" />
                         <TextBox
                             x:Name="MaxShowTitleCount_INT"
@@ -254,10 +251,7 @@
                     <TextBlock
                         Width="auto"
                         Padding="0,10,0,0"
-                        FontFamily="/Fonts/#Albert Sans"
-                        FontSize="15"
-                        FontWeight="Medium"
-                        Foreground="{StaticResource TextLabelBrush}"
+                        Style="{StaticResource OptionFieldLabelStyle}"
                         Text="Desktop mode style" />
                     <StackPanel Orientation="Horizontal">
                         <TextBox
@@ -300,10 +294,7 @@
                     <TextBlock
                         Width="auto"
                         Padding="0,10,0,0"
-                        FontFamily="/Fonts/#Albert Sans"
-                        FontSize="15"
-                        FontWeight="Medium"
-                        Foreground="{StaticResource TextLabelBrush}"
+                        Style="{StaticResource OptionFieldLabelStyle}"
                         Text="VR mode style" />
                     <StackPanel Orientation="Horizontal">
                         <TextBox
@@ -343,10 +334,7 @@
             <TextBlock
                 Grid.Row="1"
                 Margin="0,15,0,5"
-                FontFamily="/Fonts/#Albert Sans"
-                FontSize="15"
-                FontWeight="Medium"
-                Foreground="{StaticResource TextLabelBrush}"
+                Style="{StaticResource OptionFieldLabelStyle}"
                 Text="Cleanup action" />
             <StackPanel Grid.Row="2" Orientation="Horizontal">
                 <Button
