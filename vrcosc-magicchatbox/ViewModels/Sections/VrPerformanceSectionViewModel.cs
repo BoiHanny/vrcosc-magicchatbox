@@ -42,17 +42,11 @@ public partial class VrPerformanceSectionViewModel : ObservableObject
     {
         OnPropertyChanged(nameof(HealthyPreview));
         OnPropertyChanged(nameof(DegradedPreview));
-        OnPropertyChanged(nameof(HealthyPreviewLength));
-        OnPropertyChanged(nameof(DegradedPreviewLength));
     }
 
     public string HealthyPreview => Preview(degraded: false);
 
     public string DegradedPreview => Preview(degraded: true);
-
-    public string HealthyPreviewLength => $"{HealthyPreview.Length} chars";
-
-    public string DegradedPreviewLength => $"{DegradedPreview.Length} chars";
 
     private string Preview(bool degraded)
     {

@@ -2,6 +2,7 @@
     x:Class="vrcosc_magicchatbox.UI.Pages.Options.TrackerBatterySection"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:controls="clr-namespace:vrcosc_magicchatbox.UI.Controls"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:modules="clr-namespace:vrcosc_magicchatbox.Classes.Modules"
@@ -56,22 +57,17 @@
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
                 <StackPanel VerticalAlignment="Center">
-                    <TextBlock
-                        FontFamily="/Fonts/#Albert Sans"
-                        FontSize="18"
-                        Foreground="{StaticResource TextSectionHeaderBrush}"
-                        Style="{StaticResource OptionSubsectionHeaderStyle}"
-                        Text="VR Battery Monitor" />
+                    <TextBlock Style="{StaticResource OptionSubsectionHeaderStyle}" Text="Battery levels of your VR gear" />
                     <StackPanel Margin="0,2,0,0" Orientation="Horizontal">
                         <TextBlock
-                            FontFamily="/Fonts/#Albert Sans"
-                            FontSize="12"
+                            FontFamily="{StaticResource FontPrimary}"
+                            FontSize="{StaticResource FontSizeCaption}"
                             Foreground="{StaticResource TextMutedBrush}"
                             Text="{Binding IntegrationDisplay.TrackerBatteryDeviceSummary}" />
                         <TextBlock
                             Margin="10,0,0,0"
-                            FontFamily="/Fonts/#Albert Sans"
-                            FontSize="12"
+                            FontFamily="{StaticResource FontPrimary}"
+                            FontSize="{StaticResource FontSizeCaption}"
                             Foreground="{StaticResource TextMutedBrush}"
                             Text="{Binding IntegrationDisplay.TrackerBatteryLastScanDisplay}" />
                     </StackPanel>
@@ -85,23 +81,23 @@
                         Margin="0,0,6,0"
                         Padding="10,0"
                         Command="{Binding TrackerBatteryScanCommand}"
-                        Content="Scan Devices"
-                        FontSize="12"
+                        Content="Look for devices"
+                        FontSize="{StaticResource FontSizeCaption}"
                         Style="{StaticResource Status_Button_style}" />
                     <Button
                         Height="26"
                         Margin="0,0,6,0"
                         Padding="8,0"
                         Command="{Binding ResetTrackerBatteryTemplateCommand}"
-                        Content="Reset Template"
-                        FontSize="12"
+                        Content="Start the wording over"
+                        FontSize="{StaticResource FontSizeCaption}"
                         Style="{StaticResource Status_Button_style}" />
                     <Button
                         Height="26"
                         Padding="8,0"
                         Command="{Binding ResetTrackerDevicesCommand}"
-                        Content="Reset Devices"
-                        FontSize="12"
+                        Content="Forget my devices"
+                        FontSize="{StaticResource FontSizeCaption}"
                         Style="{StaticResource Status_Button_style}" />
                 </StackPanel>
             </Grid>
@@ -113,36 +109,30 @@
                         <Border Style="{StaticResource OptionCardStyle}">
 
                             <StackPanel Margin="5">
-                                <TextBlock
-                                    Padding="2,0,0,0"
-                                    VerticalAlignment="Center"
-                                    FontFamily="/Fonts/#Albert Sans"
-                                    FontSize="20"
-                                    Foreground="{StaticResource TextLabelBrush}"
-                                    Style="{StaticResource OptionSubsectionHeaderStyle}"
-                                    Text="Message Builder" />
-                                <TextBlock
-                                    Width="auto"
-                                    Margin="2,0,0,2"
-                                    FontFamily="/Fonts/#Albert Sans"
-                                    FontSize="13"
-                                    FontStyle="Italic"
-                                    Foreground="{StaticResource TextLabelBrush}"
-                                    Opacity="0.5"
-                                    Style="{StaticResource OptionHelpTextStyle}"
-                                    Text="Construct how the battery message looks in chat." />
+                                <TextBlock Style="{StaticResource OptionSubsectionHeaderStyle}" Text="What the chatbox line says" />
+                                <TextBlock Style="{StaticResource OptionHelpTextStyle}" Text="Build the line your battery levels go out on." />
+
+                                <!--
+                                    Batteries only report while SteamVR is running, so on a desktop
+                                    this used to be a template editor with a permanently blank box.
+                                    The sample devices make every box below visibly move the line.
+                                -->
+                                <controls:SegmentPreview
+                                    Margin="8,8,8,0"
+                                    Caption="What goes in your chatbox (sample devices)"
+                                    Line="{Binding SamplePreview}" />
 
                                 <TextBlock
                                     Margin="8,8,8,0"
-                                    FontFamily="/Fonts/#Albert Sans"
-                                    FontSize="11">
-                                    <Run Foreground="{StaticResource TextDimLabelBrush}" Text="Available Tokens: " />
-                                    <Run Foreground="#2FD1C5" Text="{}{icon} " />
+                                    FontFamily="{StaticResource FontPrimary}"
+                                    FontSize="{StaticResource FontSizeMicro}">
+                                    <Run Foreground="{StaticResource TextDimLabelBrush}" Text="Drop these in and they turn into the real thing: " />
+                                    <Run Foreground="{StaticResource TextHighlightCyanBrush}" Text="{}{icon} " />
                                     <Run Foreground="{StaticResource TextHighlightCyanBrush}" Text="{}{name} " />
-                                    <Run Foreground="#FFB561" Text="{}{batt} " />
-                                    <Run Foreground="#BCA9FF" Text="{}{status} " />
+                                    <Run Foreground="{StaticResource TextSuccessLightBrush}" Text="{}{batt} " />
+                                    <Run Foreground="{StaticResource TextSoftPurpleBrush}" Text="{}{status} " />
                                     <Run Foreground="{StaticResource TextDangerRedBrush}" Text="{}{low} " />
-                                    <Run Foreground="#9CD4FF" Text="{}{kind} " />
+                                    <Run Foreground="{StaticResource TextLightPurpleBrush}" Text="{}{kind} " />
                                     <Run Foreground="{StaticResource TextMutedGrayBrush}" Text="{}{serial} " />
                                     <Run Foreground="{StaticResource TextMutedGrayBrush}" Text="{}{model}" />
                                 </TextBlock>
@@ -155,7 +145,7 @@
                                     </Grid.ColumnDefinitions>
 
                                     <StackPanel Grid.Column="0" Margin="0,0,10,0">
-                                        <TextBlock Style="{StaticResource TrackerLabelText}" Text="Start (Prefix)" />
+                                        <TextBlock Style="{StaticResource TrackerLabelText}" Text="Start of the line" />
                                         <TextBox
                                             Width="90"
                                             Margin="0,4,0,0"
@@ -163,17 +153,17 @@
                                     </StackPanel>
 
                                     <StackPanel Grid.Column="1">
-                                        <TextBlock Style="{StaticResource TrackerLabelText}" Text="Device Loop Template" />
+                                        <TextBlock Style="{StaticResource TrackerLabelText}" Text="Repeated once for every device" />
                                         <TextBox
                                             Margin="0,4,0,0"
-                                            FontSize="15"
+                                            FontSize="{StaticResource FontSizeBody}"
                                             FontWeight="SemiBold"
                                             Foreground="{StaticResource TextHighlightCyanBrush}"
                                             Text="{Binding Modules.TrackerBattery.Settings.Template, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                                     </StackPanel>
 
                                     <StackPanel Grid.Column="2" Margin="10,0,0,0">
-                                        <TextBlock Style="{StaticResource TrackerLabelText}" Text="End (Suffix)" />
+                                        <TextBlock Style="{StaticResource TrackerLabelText}" Text="End of the line" />
                                         <TextBox
                                             Width="90"
                                             Margin="0,4,0,0"
@@ -183,40 +173,26 @@
 
                                 <CheckBox
                                     Margin="9,4"
-                                    IsChecked="{Binding Modules.TrackerBattery.Settings.ShowControllers}"
-                                    Style="{DynamicResource SettingsCheckbox}">
-                                    Show Controllers
-                                </CheckBox>
+                                    Content="Include my controllers"
+                                    IsChecked="{Binding Modules.TrackerBattery.Settings.ShowControllers}" />
                                 <CheckBox
                                     Margin="9,4"
-                                    IsChecked="{Binding Modules.TrackerBattery.Settings.ShowHeadset}"
-                                    Style="{DynamicResource SettingsCheckbox}">
-                                    Show Headset
-                                </CheckBox>
+                                    Content="Include my headset"
+                                    IsChecked="{Binding Modules.TrackerBattery.Settings.ShowHeadset}" />
                                 <CheckBox
                                     Margin="9,4"
-                                    IsChecked="{Binding Modules.TrackerBattery.Settings.ShowTrackers}"
-                                    Style="{DynamicResource SettingsCheckbox}">
-                                    Show Trackers
-                                </CheckBox>
+                                    Content="Include my trackers"
+                                    IsChecked="{Binding Modules.TrackerBattery.Settings.ShowTrackers}" />
                                 <CheckBox
                                     Margin="9,4"
-                                    IsChecked="{Binding Modules.TrackerBattery.Settings.ShowDisconnected}"
-                                    Style="{DynamicResource SettingsCheckbox}">
-                                    Show Offline devices
-                                </CheckBox>
+                                    Content="Include devices that are switched off"
+                                    IsChecked="{Binding Modules.TrackerBattery.Settings.ShowDisconnected}" />
 
                                 <StackPanel Margin="5,0,0,0" VerticalAlignment="Center">
                                     <TextBlock
-                                        Width="auto"
                                         Margin="4,3,0,0"
-                                        FontFamily="/Fonts/#Albert Sans"
-                                        FontSize="15"
-                                        FontStyle="Italic"
-                                        Foreground="{StaticResource TextLabelBrush}"
-                                        Opacity="0.5"
-                                        Style="{StaticResource OptionHelpTextStyle}"
-                                        Text="Separator between devices" />
+                                        Style="{StaticResource OptionFieldLabelStyle}"
+                                        Text="What goes between two devices" />
 
                                     <TextBox
                                         Width="45"
@@ -232,31 +208,23 @@
                                     Style="{StaticResource TrackerSubCard}">
                                     <StackPanel>
                                         <StackPanel Orientation="Horizontal">
-                                            <TextBlock
-                                                Width="auto"
-                                                VerticalAlignment="Center"
-                                                FontFamily="/Fonts/#Albert Sans"
-                                                FontSize="14"
-                                                FontStyle="Italic"
-                                                Foreground="{StaticResource TextLabelBrush}"
-                                                Opacity="0.5"
-                                                Style="{StaticResource OptionSubsectionHeaderStyle}"
-                                                Text="Low Battery Alert" />
+                                            <TextBlock Style="{StaticResource OptionSubsectionHeaderStyle}" Text="Running low" />
                                             <ToggleButton
                                                 Margin="8,0,0,0"
                                                 HorizontalAlignment="Left"
                                                 VerticalAlignment="Center"
-                                                Content="Show Low Only"
+                                                Content="Only mention low ones"
                                                 IsChecked="{Binding Modules.TrackerBattery.Settings.GlobalEmergency}"
                                                 Style="{DynamicResource GlowyToggleButton}" />
                                         </StackPanel>
+                                        <TextBlock Style="{StaticResource OptionHelpTextStyle}" Text="A device counts as low at or below this level." />
 
                                         <DockPanel Margin="0,5,0,0">
                                             <TextBlock
                                                 Width="35"
                                                 VerticalAlignment="Center"
                                                 DockPanel.Dock="Right"
-                                                FontSize="13"
+                                                FontSize="{StaticResource FontSizeSecondary}"
                                                 Foreground="{StaticResource TextDangerRedBrush}"
                                                 Style="{StaticResource NumericReadoutStyle}"
                                                 Text="{Binding Modules.TrackerBattery.Settings.LowThreshold, StringFormat='{}{0}%'}"
@@ -275,35 +243,6 @@
                         </Border>
 
                     </StackPanel>
-                </Border>
-
-                <Border
-                    Margin="0,0,0,12"
-                    Padding="12"
-                    Background="{StaticResource SurfaceDarkBrush}"
-                    BorderBrush="{StaticResource SurfaceVariantBrush}"
-                    BorderThickness="1"
-                    CornerRadius="8">
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto" />
-                            <ColumnDefinition Width="*" />
-                        </Grid.ColumnDefinitions>
-                        <TextBlock
-                            VerticalAlignment="Center"
-                            FontFamily="/Fonts/#Comfortaa"
-                            FontSize="12"
-                            Foreground="{StaticResource TextDimLabelBrush}"
-                            Text="PREVIEW" />
-                        <TextBlock
-                            Grid.Column="1"
-                            HorizontalAlignment="Center"
-                            FontFamily="/Fonts/#Albert Sans"
-                            FontSize="14"
-                            Foreground="#E7E2F5"
-                            Text="{Binding IntegrationDisplay.TrackerBatteryPreview}"
-                            TextWrapping="Wrap" />
-                    </Grid>
                 </Border>
 
                 <ItemsControl ItemsSource="{Binding Tracker.TrackerDevices}">
@@ -365,7 +304,8 @@
                                         <TextBlock
                                             Margin="0,0,0,3"
                                             HorizontalAlignment="Center"
-                                            FontSize="10"
+                                            FontFamily="{StaticResource FontPrimary}"
+                                            FontSize="{StaticResource FontSizeFine}"
                                             Foreground="{StaticResource TextMutedGrayBrush}"
                                             Text="Icon" />
 
@@ -384,7 +324,7 @@
                                                 HorizontalContentAlignment="Center"
                                                 VerticalContentAlignment="Center"
                                                 Background="Transparent"
-                                                FontSize="20"
+                                                FontSize="{StaticResource FontSizeTitle}"
                                                 Text="{Binding CustomIcon, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                                 TextAlignment="Center" />
                                         </Border>
@@ -394,31 +334,23 @@
                                         <TextBlock
                                             Margin="0,0,0,3"
                                             HorizontalAlignment="Center"
-                                            FontSize="10"
+                                            FontFamily="{StaticResource FontPrimary}"
+                                            FontSize="{StaticResource FontSizeFine}"
                                             Foreground="{StaticResource TextMutedGrayBrush}"
-                                            Text="Custom Name" />
+                                            Text="Call it" />
                                         <TextBox Text="{Binding CustomName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                                         <StackPanel Orientation="Horizontal">
                                             <TextBlock
                                                 Margin="0,2,0,0"
-                                                FontSize="8"
+                                                FontFamily="{StaticResource FontPrimary}"
+                                                FontSize="{StaticResource FontSizeFine}"
                                                 Foreground="{StaticResource TextSoftPurpleBrush}"
-                                                Text="Default "
+                                                Text="Normally called "
                                                 TextTrimming="CharacterEllipsis" />
                                             <TextBlock
                                                 Margin="0,2,0,0"
-                                                FontSize="8"
-                                                Foreground="{StaticResource TextSoftPurpleBrush}"
-                                                Text="{Binding DeviceKind}" />
-                                            <TextBlock
-                                                Margin="0,2,0,0"
-                                                FontSize="8"
-                                                Foreground="{StaticResource TextSoftPurpleBrush}"
-                                                Text=" name: "
-                                                TextTrimming="CharacterEllipsis" />
-                                            <TextBlock
-                                                Margin="0,2,0,0"
-                                                FontSize="10"
+                                                FontFamily="{StaticResource FontPrimary}"
+                                                FontSize="{StaticResource FontSizeFine}"
                                                 Foreground="{StaticResource TextSoftPurpleBrush}"
                                                 Text="{Binding OriginalModelName}"
                                                 TextTrimming="CharacterEllipsis" />
@@ -443,9 +375,10 @@
                                             CornerRadius="4"
                                             Visibility="{Binding IsCharging, Converter={StaticResource InverseBoolToHiddenConverter}}">
                                             <TextBlock
-                                                FontSize="10"
-                                                Foreground="#FFD06A"
-                                                Text="⚡ Charge" />
+                                                FontFamily="{StaticResource FontPrimary}"
+                                                FontSize="{StaticResource FontSizeFine}"
+                                                Foreground="{StaticResource StatusWarningBrush}"
+                                                Text="⚡ Charging" />
                                         </Border>
                                         <Border
                                             Margin="0,4,0,0"
@@ -454,9 +387,10 @@
                                             CornerRadius="4"
                                             Visibility="{Binding IsConnected, Converter={StaticResource InverseBoolToVisibilityConverter}}">
                                             <TextBlock
-                                                FontSize="10"
+                                                FontFamily="{StaticResource FontPrimary}"
+                                                FontSize="{StaticResource FontSizeFine}"
                                                 Foreground="{StaticResource TextMutedGrayBrush}"
-                                                Text="Offline" />
+                                                Text="Switched off" />
                                         </Border>
                                     </StackPanel>
 
@@ -465,31 +399,25 @@
                                         Grid.ColumnSpan="3"
                                         Margin="0,12,0,0">
                                         <CheckBox
-                                            FontSize="11"
+                                            Content="Include this one"
+                                            FontSize="{StaticResource FontSizeMicro}"
                                             Foreground="{StaticResource TextLightPurpleBrush}"
-                                            IsChecked="{Binding IsHidden, Converter={StaticResource InvertBooleanConverter}, Mode=TwoWay}"
-                                            Style="{DynamicResource SettingsCheckbox}">
-                                            Enabled
-                                        </CheckBox>
+                                            IsChecked="{Binding IsHidden, Converter={StaticResource InvertBooleanConverter}, Mode=TwoWay}" />
                                         <CheckBox
                                             Margin="12,0,0,0"
-                                            FontSize="11"
+                                            Content="Only when it is low"
+                                            FontSize="{StaticResource FontSizeMicro}"
                                             Foreground="{StaticResource TextLightPurpleBrush}"
-                                            IsChecked="{Binding ShowOnlyOnLowBattery, Mode=TwoWay}"
-                                            Style="{DynamicResource SettingsCheckbox}">
-                                            Low only
-                                        </CheckBox>
+                                            IsChecked="{Binding ShowOnlyOnLowBattery, Mode=TwoWay}" />
                                         <StackPanel
                                             Margin="12,0,0,0"
                                             Orientation="Horizontal"
                                             Visibility="{Binding ShowOnlyOnLowBattery, Converter={StaticResource InverseBoolToHiddenConverter}}">
                                             <CheckBox
-                                                FontSize="11"
+                                                Content="Its own low point"
+                                                FontSize="{StaticResource FontSizeMicro}"
                                                 Foreground="{StaticResource TextLightPurpleBrush}"
-                                                IsChecked="{Binding UseCustomLowThreshold, Mode=TwoWay}"
-                                                Style="{DynamicResource SettingsCheckbox}">
-                                                Custom low
-                                            </CheckBox>
+                                                IsChecked="{Binding UseCustomLowThreshold, Mode=TwoWay}" />
                                             <TextBox
                                                 Width="40"
                                                 Margin="6,0,0,0"
@@ -498,7 +426,8 @@
                                             <TextBlock
                                                 Margin="4,0,0,0"
                                                 VerticalAlignment="Center"
-                                                FontSize="11"
+                                                FontFamily="{StaticResource FontPrimary}"
+                                                FontSize="{StaticResource FontSizeMicro}"
                                                 Foreground="{StaticResource TextLightPurpleBrush}"
                                                 Text="%"
                                                 Visibility="{Binding UseCustomLowThreshold, Converter={StaticResource InverseBoolToHiddenConverter}}" />
@@ -516,14 +445,7 @@
                         <Border Style="{StaticResource OptionCardStyle}">
 
                             <StackPanel Margin="5">
-                                <TextBlock
-                                    Padding="2,0,0,0"
-                                    VerticalAlignment="Center"
-                                    FontFamily="/Fonts/#Albert Sans"
-                                    FontSize="20"
-                                    Foreground="{StaticResource TextLabelBrush}"
-                                    Style="{StaticResource OptionSubsectionHeaderStyle}"
-                                    Text="Advanced Behavior &amp; Text Overrides" />
+                                <TextBlock Style="{StaticResource OptionSubsectionHeaderStyle}" Text="Order, limits and your own wording" />
 
                                 <StackPanel Margin="8">
                                     <Grid Margin="0,0,0,15">
@@ -532,26 +454,24 @@
                                             <ColumnDefinition Width="*" />
                                         </Grid.ColumnDefinitions>
                                         <StackPanel Grid.Column="0" Margin="0,0,10,0">
-                                            <TextBlock
-                                                Width="auto"
-                                                VerticalAlignment="Center"
-                                                FontFamily="/Fonts/#Albert Sans"
-                                                FontSize="14"
-                                                FontStyle="Italic"
-                                                Foreground="{StaticResource TextLabelBrush}"
-                                                Text="Sort Order" />
+                                            <TextBlock Style="{StaticResource OptionFieldLabelStyle}" Text="List the devices by" />
                                             <ComboBox
                                                 Margin="0,4,0,0"
                                                 ItemsSource="{Binding Source={x:Static modules:TrackerBatterySettings.AvailableSortModes}}"
-                                                SelectedItem="{Binding Modules.TrackerBattery.Settings.SortMode, Mode=TwoWay}" />
+                                                SelectedItem="{Binding Modules.TrackerBattery.Settings.SortMode, Mode=TwoWay}">
+                                                <!--  The enum already carries readable names; without this they showed as C# identifiers.  -->
+                                                <ComboBox.ItemTemplate>
+                                                    <DataTemplate>
+                                                        <TextBlock Text="{Binding Converter={StaticResource EnumDescriptionConverter}}" />
+                                                    </DataTemplate>
+                                                </ComboBox.ItemTemplate>
+                                            </ComboBox>
                                         </StackPanel>
                                         <StackPanel Grid.Column="1" Margin="0,20,0,0">
                                             <CheckBox
                                                 Margin="0,0,0,4"
-                                                Content="Rotate if text too long"
-                                                FontSize="14"
-                                                IsChecked="{Binding Modules.TrackerBattery.Settings.RotateOverflow, Mode=TwoWay}"
-                                                Style="{DynamicResource SettingsCheckbox}" />
+                                                Content="Take turns when they will not all fit"
+                                                IsChecked="{Binding Modules.TrackerBattery.Settings.RotateOverflow, Mode=TwoWay}" />
                                             <StackPanel
                                                 Margin="0,4,0,0"
                                                 VerticalAlignment="Center"
@@ -560,47 +480,27 @@
                                                 Visibility="{Binding Modules.TrackerBattery.Settings.RotateOverflow, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
                                                 <TextBlock
                                                     VerticalAlignment="Center"
-                                                    FontFamily="/Fonts/#Albert Sans"
-                                                    FontSize="14"
-                                                    FontStyle="Italic"
-                                                    Foreground="{StaticResource TextLabelBrush}"
-                                                    Text="Rotate every" />
+                                                    Style="{StaticResource OptionFieldLabelStyle}"
+                                                    Text="Swap over every" />
                                                 <TextBox Margin="4,0" Text="{Binding Modules.TrackerBattery.Settings.RotationIntervalSeconds, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                                                 <TextBlock
                                                     VerticalAlignment="Center"
-                                                    FontFamily="/Fonts/#Albert Sans"
-                                                    FontSize="14"
-                                                    FontStyle="Italic"
-                                                    Foreground="{StaticResource TextLabelBrush}"
-                                                    Text="sec" />
+                                                    Style="{StaticResource OptionFieldLabelStyle}"
+                                                    Text="seconds" />
                                             </StackPanel>
                                         </StackPanel>
                                     </Grid>
 
                                     <WrapPanel Margin="0,0,0,15">
                                         <StackPanel Margin="0,0,20,8">
-                                            <TextBlock
-                                                Width="auto"
-                                                VerticalAlignment="Center"
-                                                FontFamily="/Fonts/#Albert Sans"
-                                                FontSize="14"
-                                                FontStyle="Italic"
-                                                Foreground="{StaticResource TextLabelBrush}"
-                                                Text="Max Entries" />
+                                            <TextBlock Style="{StaticResource OptionFieldLabelStyle}" Text="Most devices to name at once" />
                                             <TextBox
                                                 Width="60"
                                                 Margin="0,4,0,0"
                                                 Text="{Binding Modules.TrackerBattery.Settings.MaxEntries, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                                         </StackPanel>
                                         <StackPanel Margin="0,0,20,8">
-                                            <TextBlock
-                                                Width="auto"
-                                                VerticalAlignment="Center"
-                                                FontFamily="/Fonts/#Albert Sans"
-                                                FontSize="14"
-                                                FontStyle="Italic"
-                                                Foreground="{StaticResource TextLabelBrush}"
-                                                Text="Max Length (Chars, 0 = no limit)" />
+                                            <TextBlock Style="{StaticResource OptionFieldLabelStyle}" Text="Longest one device may be, in characters (0 = no limit)" />
                                             <TextBox
                                                 Width="60"
                                                 Margin="0,4,0,0"
@@ -608,62 +508,31 @@
                                         </StackPanel>
                                     </WrapPanel>
 
-                                    <TextBlock
-                                        Margin="0,0,0,8"
-                                        VerticalAlignment="Center"
-                                        FontFamily="/Fonts/#Albert Sans"
-                                        FontSize="14"
-                                        Foreground="{StaticResource TextLabelBrush}"
-                                        Style="{StaticResource OptionSubsectionHeaderStyle}"
-                                        Text="Custom Status Text" />
+                                    <TextBlock Style="{StaticResource OptionSubsectionHeaderStyle}" Text="Your own words" />
                                     <WrapPanel>
                                         <StackPanel Margin="0,0,15,12">
-                                            <TextBlock
-                                                VerticalAlignment="Center"
-                                                FontFamily="/Fonts/#Albert Sans"
-                                                FontSize="14"
-                                                FontStyle="Italic"
-                                                Foreground="{StaticResource TextLabelBrush}"
-                                                Text="Online State" />
+                                            <TextBlock Style="{StaticResource OptionFieldLabelStyle}" Text="Word for a device that is on" />
                                             <TextBox
                                                 Width="110"
                                                 Margin="0,4,0,0"
                                                 Text="{Binding Modules.TrackerBattery.Settings.OnlineText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                                         </StackPanel>
                                         <StackPanel Margin="0,0,15,12">
-                                            <TextBlock
-                                                VerticalAlignment="Center"
-                                                FontFamily="/Fonts/#Albert Sans"
-                                                FontSize="14"
-                                                FontStyle="Italic"
-                                                Foreground="{StaticResource TextLabelBrush}"
-                                                Text="Offline State" />
+                                            <TextBlock Style="{StaticResource OptionFieldLabelStyle}" Text="Word for a device that is off" />
                                             <TextBox
                                                 Width="110"
                                                 Margin="0,4,0,0"
                                                 Text="{Binding Modules.TrackerBattery.Settings.OfflineText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                                         </StackPanel>
                                         <StackPanel Margin="0,0,15,12">
-                                            <TextBlock
-                                                VerticalAlignment="Center"
-                                                FontFamily="/Fonts/#Albert Sans"
-                                                FontSize="14"
-                                                FontStyle="Italic"
-                                                Foreground="{StaticResource TextLabelBrush}"
-                                                Text="Offline Battery" />
+                                            <TextBlock Style="{StaticResource OptionFieldLabelStyle}" Text="Battery reading when it is off" />
                                             <TextBox
                                                 Width="110"
                                                 Margin="0,4,0,0"
                                                 Text="{Binding Modules.TrackerBattery.Settings.OfflineBatteryText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                                         </StackPanel>
                                         <StackPanel Margin="0,0,15,12">
-                                            <TextBlock
-                                                VerticalAlignment="Center"
-                                                FontFamily="/Fonts/#Albert Sans"
-                                                FontSize="14"
-                                                FontStyle="Italic"
-                                                Foreground="{StaticResource TextLabelBrush}"
-                                                Text="Low Battery Tag" />
+                                            <TextBlock Style="{StaticResource OptionFieldLabelStyle}" Text="Warning next to a low battery" />
                                             <TextBox
                                                 Width="90"
                                                 Margin="0,4,0,0"

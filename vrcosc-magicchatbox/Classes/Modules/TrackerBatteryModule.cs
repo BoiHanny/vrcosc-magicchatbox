@@ -266,14 +266,6 @@ namespace vrcosc_magicchatbox.Classes.Modules
 
             bool globalEmergency = Settings.GlobalEmergency;
 
-            string template = string.IsNullOrWhiteSpace(Settings.Template)
-                ? "{icon} {name} {batt}%"
-                : Settings.Template;
-
-            string separator = string.IsNullOrWhiteSpace(Settings.Separator)
-                ? " | "
-                : Settings.Separator;
-
             IEnumerable<TrackerDevice> activeDevices = _tracker.TrackerDevices
                 .Where(ShouldIncludeDevice);
 
@@ -302,13 +294,33 @@ namespace vrcosc_magicchatbox.Classes.Modules
 
             UpdateActiveDevices(displayDevices);
 
+            string message = ComposeMessage(displayDevices, Settings);
+
+            UpdatePreview(message);
+            return message.Trim();
+        }
+
+        /// <summary>
+        /// Renders the chosen devices and joins them into the line, with the start and end text
+        /// around it. Pure, so the settings preview shows the real line with no headset connected.
+        /// </summary>
+        public static string ComposeMessage(IEnumerable<TrackerDevice> devices, TrackerBatterySettings settings)
+        {
+            string template = string.IsNullOrWhiteSpace(settings.Template)
+                ? "{icon} {name} {batt}%"
+                : settings.Template;
+
+            string separator = string.IsNullOrWhiteSpace(settings.Separator)
+                ? " | "
+                : settings.Separator;
+
             var entries = new List<string>();
-            foreach (var device in displayDevices)
+            foreach (var device in devices)
             {
-                int lowThreshold = GetLowThreshold(device);
+                int lowThreshold = GetLowThreshold(device, settings);
                 bool isLow = device.IsConnected && device.BatteryPercentage <= lowThreshold;
 
-                string entry = BuildEntry(device, template, Settings, isLow);
+                string entry = BuildEntry(device, template, settings, isLow);
 
                 if (!string.IsNullOrWhiteSpace(entry))
                 {
@@ -318,18 +330,75 @@ namespace vrcosc_magicchatbox.Classes.Modules
 
             string message = entries.Count == 0 ? string.Empty : string.Join(separator, entries);
 
-            if (!string.IsNullOrWhiteSpace(message) && !string.IsNullOrWhiteSpace(Settings.Prefix))
+            if (!string.IsNullOrWhiteSpace(message) && !string.IsNullOrWhiteSpace(settings.Prefix))
             {
-                message = $"{Raise(Settings.Prefix, Settings.UseSmallText)} {message}";
+                message = $"{Raise(settings.Prefix, settings.UseSmallText)} {message}";
             }
 
-            if (!string.IsNullOrWhiteSpace(message) && !string.IsNullOrWhiteSpace(Settings.Suffix))
+            if (!string.IsNullOrWhiteSpace(message) && !string.IsNullOrWhiteSpace(settings.Suffix))
             {
-                message = $"{message} {Raise(Settings.Suffix, Settings.UseSmallText)}";
+                message = $"{message} {Raise(settings.Suffix, settings.UseSmallText)}";
             }
 
-            UpdatePreview(message);
-            return message.Trim();
+            return message;
+        }
+
+        /// <summary>
+        /// The line built from three plausible devices instead of real ones.
+        /// </summary>
+        /// <remarks>
+        /// Battery levels only exist while SteamVR is running, so configuring this section on a
+        /// desktop meant editing a template against a blank box. The sample runs the same filter,
+        /// sort and limit the live path does, so every box on the page visibly moves the line.
+        /// </remarks>
+        public static string BuildSampleMessage(TrackerBatterySettings settings)
+        {
+            var sample = new List<TrackerDevice>
+            {
+                new()
+                {
+                    SerialNumber = "SAMPLE-HMD",
+                    OriginalModelName = "Headset",
+                    DeviceKind = "HMD",
+                    CustomIcon = "🥽",
+                    IsConnected = true,
+                    BatteryLevel = 0.82f,
+                },
+                new()
+                {
+                    SerialNumber = "SAMPLE-CTRL",
+                    OriginalModelName = "Left controller",
+                    DeviceKind = "Controller",
+                    CustomIcon = "🎮",
+                    IsConnected = true,
+                    BatteryLevel = 0.14f,
+                },
+                new()
+                {
+                    SerialNumber = "SAMPLE-TRKR",
+                    OriginalModelName = "Waist tracker",
+                    DeviceKind = "Tracker",
+                    CustomIcon = "📍",
+                    IsConnected = true,
+                    BatteryLevel = 0.57f,
+                },
+            };
+
+            IEnumerable<TrackerDevice> shown = sample.Where(d => ShouldIncludeDevice(d, settings));
+
+            if (settings.GlobalEmergency)
+            {
+                shown = shown.Where(d => d.BatteryPercentage <= GetLowThreshold(d, settings));
+            }
+
+            var ordered = ApplySort(shown, settings).ToList();
+
+            if (settings.MaxEntries > 0 && ordered.Count > settings.MaxEntries)
+            {
+                ordered = ordered.Take(settings.MaxEntries).ToList();
+            }
+
+            return ComposeMessage(ordered, settings);
         }
 
         private void UpdateSummary(string scanStatus)
@@ -499,30 +568,33 @@ namespace vrcosc_magicchatbox.Classes.Modules
             return string.Empty;
         }
 
-        private bool ShouldIncludeDevice(TrackerDevice device)
+        private bool ShouldIncludeDevice(TrackerDevice device) => ShouldIncludeDevice(device, Settings);
+
+        /// <summary>Which devices the four "show" boxes let onto the line. Pure, so the preview agrees with the chatbox.</summary>
+        public static bool ShouldIncludeDevice(TrackerDevice device, TrackerBatterySettings settings)
         {
             if (device.IsHidden)
             {
                 return false;
             }
 
-            bool showDisconnected = Settings.ShowDisconnected;
+            bool showDisconnected = settings.ShowDisconnected;
             if (!showDisconnected && !device.IsConnected)
             {
                 return false;
             }
 
-            if (device.DeviceKind == "Controller" && !Settings.ShowControllers)
+            if (device.DeviceKind == "Controller" && !settings.ShowControllers)
             {
                 return false;
             }
 
-            if (device.DeviceKind == "HMD" && !Settings.ShowHeadset)
+            if (device.DeviceKind == "HMD" && !settings.ShowHeadset)
             {
                 return false;
             }
 
-            if (device.DeviceKind == "Tracker" && !Settings.ShowTrackers)
+            if (device.DeviceKind == "Tracker" && !settings.ShowTrackers)
             {
                 return false;
             }
@@ -530,16 +602,20 @@ namespace vrcosc_magicchatbox.Classes.Modules
             return true;
         }
 
-        private int GetLowThreshold(TrackerDevice device)
+        private int GetLowThreshold(TrackerDevice device) => GetLowThreshold(device, Settings);
+
+        public static int GetLowThreshold(TrackerDevice device, TrackerBatterySettings settings)
         {
             return device.UseCustomLowThreshold
                 ? device.CustomLowThreshold
-                : Settings.LowThreshold;
+                : settings.LowThreshold;
         }
 
-        private IEnumerable<TrackerDevice> ApplySort(IEnumerable<TrackerDevice> devices)
+        private IEnumerable<TrackerDevice> ApplySort(IEnumerable<TrackerDevice> devices) => ApplySort(devices, Settings);
+
+        public static IEnumerable<TrackerDevice> ApplySort(IEnumerable<TrackerDevice> devices, TrackerBatterySettings settings)
         {
-            switch (Settings.SortMode)
+            switch (settings.SortMode)
             {
                 case TrackerBatterySortMode.Name:
                     return devices.OrderBy(d => d.DisplayName);

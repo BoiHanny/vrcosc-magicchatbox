@@ -95,6 +95,7 @@ public class WeatherOscProviderTests
         public void TriggerManualRefresh() { }
         public string BuildTimeWeatherText(string timeText) => text;
         public string BuildWeatherOnlyText() => text;
+        public string BuildSampleWeatherText() => text;
         public IReadOnlyDictionary<int, string> GetDefaultConditionMap() => new Dictionary<int, string>();
         public IReadOnlyDictionary<int, string> GetDefaultConditionIconMap() => new Dictionary<int, string>();
     }

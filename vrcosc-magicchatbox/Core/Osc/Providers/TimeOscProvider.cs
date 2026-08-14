@@ -1,6 +1,6 @@
 ﻿using vrcosc_magicchatbox.Classes.Modules;
 using vrcosc_magicchatbox.Core.Configuration;
-using vrcosc_magicchatbox.Core.Osc.Text;
+using vrcosc_magicchatbox.Services;
 using vrcosc_magicchatbox.ViewModels.State;
 
 namespace vrcosc_magicchatbox.Core.Osc.Providers;
@@ -35,12 +35,7 @@ public sealed class TimeOscProvider : IOscProvider
         if (!_intgr.IntgrScanWindowTime || string.IsNullOrEmpty(_display.CurrentTime))
             return null;
 
-        // The clock is what the reader is here for, so it stays full size and the prefix is the part
-        // that gets raised. The writer places the space, which is the colon's old job.
-        string text = _time.PrefixTime
-            ? new SegmentWriter().Field(OscText.Label("My time"), OscText.Value(_display.CurrentTime)).Text
-            : _display.CurrentTime;
-
-        return new OscSegment { Text = text };
+        // Composed by the shared formatter so the Time settings preview shows this exact line.
+        return new OscSegment { Text = TimeSegmentFormatter.Compose(_display.CurrentTime, _time.PrefixTime) };
     }
 }

@@ -230,9 +230,28 @@ public class WeatherService : IWeatherService
             return string.Empty;
         }
 
+        WeatherSnapshot snapshot;
+        lock (SyncLock)
+        {
+            snapshot = _snapshot;
+        }
+
+        return ComposeWeatherOnly(snapshot);
+    }
+
+    // Fixed plausible readings. The formatter is a pure function of the settings plus a snapshot,
+    // so the preview needs no network, no location and no consent - the same reason Spotify can
+    // preview a track while nothing is playing.
+    private static readonly WeatherSnapshot SampleSnapshot =
+        new(21.4, "Partly cloudy", 2, 63, 11.5, 22.8);
+
+    public string BuildSampleWeatherText() => ComposeWeatherOnly(SampleSnapshot);
+
+    private string ComposeWeatherOnly(WeatherSnapshot snapshot)
+    {
         string template = NormalizeTemplate(Settings.WeatherTemplate);
         bool hasTemplate = !string.IsNullOrWhiteSpace(template);
-        WeatherTokens tokens = BuildWeatherTokens(hasTemplate);
+        WeatherTokens tokens = BuildWeatherTokens(hasTemplate, snapshot);
         if (tokens == null)
         {
             if (Settings.WeatherFallbackMode != WeatherFallbackMode.ShowNA)
@@ -260,6 +279,11 @@ public class WeatherService : IWeatherService
             snapshot = _snapshot;
         }
 
+        return BuildWeatherTokens(ignoreCustomSeparators, snapshot);
+    }
+
+    private WeatherTokens BuildWeatherTokens(bool ignoreCustomSeparators, WeatherSnapshot snapshot)
+    {
         if (snapshot == null)
         {
             return null;
