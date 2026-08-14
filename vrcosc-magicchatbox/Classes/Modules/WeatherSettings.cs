@@ -9,6 +9,27 @@ using vrcosc_magicchatbox.ViewModels;
 
 namespace vrcosc_magicchatbox.Classes.Modules;
 
+// The global temperature unit can be time-based, so both units have to come from one resolution
+// per render: the wind unit is derived from the temperature unit rather than resolved again.
+public static class WeatherUnitResolver
+{
+    public static string Temperature(WeatherUnitOverride unitOverride, string globalUnit)
+        => unitOverride switch
+        {
+            WeatherUnitOverride.Celsius => "C",
+            WeatherUnitOverride.Fahrenheit => "F",
+            _ => globalUnit
+        };
+
+    public static string Wind(WeatherWindUnitOverride windOverride, string temperatureUnit)
+        => windOverride switch
+        {
+            WeatherWindUnitOverride.KilometersPerHour => "km/h",
+            WeatherWindUnitOverride.MilesPerHour => "mph",
+            _ => temperatureUnit == "F" ? "mph" : "km/h"
+        };
+}
+
 public partial class WeatherSettings : VersionedSettings
 {
     public static IEnumerable<WeatherLayoutMode> AvailableLayoutModes { get; } = Enum.GetValues(typeof(WeatherLayoutMode)).Cast<WeatherLayoutMode>().ToList();

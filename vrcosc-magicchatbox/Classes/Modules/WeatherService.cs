@@ -282,7 +282,7 @@ public class WeatherService : IWeatherService
         string windText = string.Empty;
         if (Settings.ShowWeatherWind && snapshot.WindSpeedKph.HasValue)
         {
-            string windUnit = ResolveWindUnit();
+            string windUnit = ResolveWindUnit(unit);
             double windValue = ConvertWindSpeed(snapshot.WindSpeedKph.Value, windUnit);
             string windValueRaw = FormatWindSpeed(windValue);
             windText = $"{windValueRaw}{ToSmallText(windUnit)}";
@@ -383,15 +383,8 @@ public class WeatherService : IWeatherService
         return unit == "mph" ? speedKph * 0.621371 : speedKph;
     }
 
-    private string ResolveWindUnit()
-    {
-        return Settings.WeatherWindUnitOverride switch
-        {
-            WeatherWindUnitOverride.KilometersPerHour => "km/h",
-            WeatherWindUnitOverride.MilesPerHour => "mph",
-            _ => ResolveUnit() == "F" ? "mph" : "km/h"
-        };
-    }
+    private string ResolveWindUnit(string temperatureUnit)
+        => WeatherUnitResolver.Wind(Settings.WeatherWindUnitOverride, temperatureUnit);
 
     private string GetWeatherStatsSeparator()
     {
@@ -508,14 +501,7 @@ public class WeatherService : IWeatherService
     }
 
     private string ResolveUnit()
-    {
-        return Settings.WeatherUnitOverride switch
-        {
-            WeatherUnitOverride.Celsius => "C",
-            WeatherUnitOverride.Fahrenheit => "F",
-            _ => _componentStatsSettings.TemperatureUnit
-        };
-    }
+        => WeatherUnitResolver.Temperature(Settings.WeatherUnitOverride, _componentStatsSettings.TemperatureUnit);
 
     private string GetSeparator()
     {

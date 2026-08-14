@@ -238,6 +238,41 @@
                             Margin="0,6,0,0"
                             Padding="0,0,0,0"
                             Style="{StaticResource OptionFieldLabelStyle}"
+                            Text="Order" />
+                        <ComboBox
+                            Width="200"
+                            Margin="2,4"
+                            HorizontalAlignment="Left"
+                            ItemsSource="{Binding Source={x:Static modules:WeatherSettings.AvailableOrders}}"
+                            SelectedItem="{Binding WeatherSettings.WeatherOrder, Mode=TwoWay}">
+                            <ComboBox.ItemTemplate>
+                                <DataTemplate>
+                                    <TextBlock Text="{Binding Converter={StaticResource EnumDescriptionConverter}}" />
+                                </DataTemplate>
+                            </ComboBox.ItemTemplate>
+                        </ComboBox>
+                        <TextBlock
+                            Margin="0,6,0,0"
+                            Padding="0,0,0,0"
+                            Style="{StaticResource OptionFieldLabelStyle}"
+                            Text="Time and weather separator" />
+                        <TextBox
+                            x:Name="WeatherSeparator"
+                            Width="120"
+                            Margin="0,3,0,0"
+                            Padding="5,0,0,0"
+                            HorizontalAlignment="Left"
+                            VerticalContentAlignment="Center"
+                            FontSize="15"
+                            Text="{Binding WeatherSettings.WeatherSeparator, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                        <TextBlock
+                            Margin="0,2,0,0"
+                            Style="{StaticResource OptionHelpTextStyle}"
+                            Text="Used between the clock and the weather block. Ignored in two-line layout." />
+                        <TextBlock
+                            Margin="0,6,0,0"
+                            Padding="0,0,0,0"
+                            Style="{StaticResource OptionFieldLabelStyle}"
                             Text="Weather stats separator" />
                         <TextBox
                             x:Name="WeatherStatsSeparator"

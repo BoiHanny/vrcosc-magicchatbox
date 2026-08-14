@@ -68,7 +68,7 @@
                 <CheckBox
                     x:Name="enhancedapp_checkbox"
                     Margin="0,6,0,0"
-                    IsChecked="{Binding IntegrationSettings.ApplicationHookV2, Mode=TwoWay}"
+                    IsChecked="{Binding WindowActivitySettings.ApplicationHookV2, Mode=TwoWay}"
                     Style="{DynamicResource SettingsCheckbox}">
                     Enhanced hook for better app names
                 </CheckBox>
