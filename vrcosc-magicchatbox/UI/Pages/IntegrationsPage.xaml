@@ -2902,10 +2902,14 @@
                                         Click="HideTile_Click"
                                         Style="{StaticResource TileHideButton}"
                                         ToolTip="Hide this tile from the list. The integration stays switched on." />
+                                    <!--  Soundpad has no options section; the bridge permission is its
+                                          only setting, so the door says so rather than "CUSTOMIZE".  -->
                                     <Button
                                         Command="{Binding ActivateSettingCommand}"
-                                        CommandParameter="Settings_Privacy"
-                                        Style="{StaticResource TileDoorButton}" />
+                                        CommandParameter="Settings_Privacy_Soundpad"
+                                        Content="PERMISSION ›"
+                                        Style="{StaticResource TileDoorButton}"
+                                        ToolTip="Soundpad's only setting is the bridge permission, over in Privacy &amp; permissions." />
                                 </StackPanel>
                             </StackPanel>
                             <CheckBox

@@ -471,7 +471,9 @@
 
                         <Separator Margin="0,2,10,2" Background="{StaticResource SurfaceVariantBrush}" />
 
-                        <Grid Margin="0,4,10,12">
+                        <!--  Named so the Soundpad tile can land on this row; it has no options
+                              section of its own.  -->
+                        <Grid x:Name="SoundpadBridgeRow" Margin="0,4,10,12">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*" />
                                 <ColumnDefinition Width="Auto" />
