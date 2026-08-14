@@ -1,6 +1,7 @@
 ﻿using System;
 using vrcosc_magicchatbox.Classes.Modules;
 using vrcosc_magicchatbox.Core.Configuration;
+using vrcosc_magicchatbox.Core.Osc.Text;
 using vrcosc_magicchatbox.Core.Services;
 using vrcosc_magicchatbox.ViewModels.State;
 
@@ -49,10 +50,26 @@ public sealed class SpotifyOscProvider : IOscProvider
                 _settings.TransientDuration))
             return null;
 
-        string text = spotify.BuildOutputString(context);
+        string text = ToSegmentText(
+            spotify.BuildOutputString(context),
+            context.RemainingCharsIf(string.Empty));
+
         if (string.IsNullOrWhiteSpace(text))
             return null;
 
         return new OscSegment { Text = text };
     }
+
+    /// <summary>
+    /// The template's output as a segment: glue left behind by an emptied field taken off, then cut
+    /// to the room the line has left.
+    /// </summary>
+    /// <remarks>
+    /// The module's own ladder stops with the title still whole, so a track with a long enough name
+    /// used to hand over a segment several times the width of the chatbox. That does not just get
+    /// clipped - the builder drops every other integration trying to make space for it first.
+    /// MediaLink has cut its own line to size for a while; this is the same cut, from one place.
+    /// </remarks>
+    public static string ToSegmentText(string? text, int budget)
+        => SegmentWriter.Truncate(TemplateLine.DropStrandedJoiners(text), budget);
 }

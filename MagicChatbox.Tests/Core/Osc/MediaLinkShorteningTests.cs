@@ -57,9 +57,15 @@ public class MediaLinkShorteningTests
         public required MediaSessionInfo Session { get; init; }
         public required MediaLinkOscProvider Provider { get; init; }
 
-        public string Build()
+        public string Build(params string[] alreadyOnTheLine)
         {
-            var context = new OscBuildContext { Separator = " ┆ ", Prefix = string.Empty, Suffix = string.Empty };
+            var context = new OscBuildContext
+            {
+                CurrentSegments = alreadyOnTheLine,
+                Separator = " ┆ ",
+                Prefix = string.Empty,
+                Suffix = string.Empty
+            };
             return Provider.TryBuild(context)?.Text ?? string.Empty;
         }
     }
@@ -270,5 +276,34 @@ public class MediaLinkShorteningTests
         Assert.True(text.Length <= OscBuildContext.MaxOscLength,
             $"expected the line to fit, but it was {text.Length} characters");
         Assert.EndsWith("…", text);
+    }
+
+    [Fact]
+    public void The_cut_spends_every_character_the_line_has_left()
+    {
+        // The trim now comes from the shared writer rather than a copy living here. There is no word
+        // boundary late enough to be worth taking, so the mark lands on the last character.
+        string text = Build(new string('T', 200), "The Weeknd", shortenToFit: true).Build();
+
+        Assert.Equal(OscBuildContext.MaxOscLength, text.Length);
+    }
+
+    [Fact]
+    public void The_cut_leaves_room_for_the_integrations_already_on_the_line()
+    {
+        // The budget is what is left after the segments before it and the separator joining them,
+        // and RemainingCharsIf already counts that separator - subtracting it again cuts short.
+        var context = new OscBuildContext
+        {
+            CurrentSegments = ["12:34"],
+            Separator = " ┆ ",
+            Prefix = string.Empty,
+            Suffix = string.Empty
+        };
+
+        string text = Build(new string('T', 200), "The Weeknd", shortenToFit: true).Build("12:34");
+
+        Assert.Equal(context.RemainingCharsIf(string.Empty), text.Length);
+        Assert.True(context.WouldFit(text));
     }
 }

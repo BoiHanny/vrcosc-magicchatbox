@@ -7,6 +7,7 @@ using vrcosc_magicchatbox.Classes.Modules;
 using vrcosc_magicchatbox.Classes.Modules.Media;
 using vrcosc_magicchatbox.Classes.Utilities;
 using vrcosc_magicchatbox.Core.Configuration;
+using vrcosc_magicchatbox.Core.Osc.Text;
 using vrcosc_magicchatbox.Services;
 using vrcosc_magicchatbox.ViewModels;
 using vrcosc_magicchatbox.ViewModels.Models;
@@ -183,8 +184,9 @@ public sealed class MediaLinkOscProvider : IOscProvider
         if (!_mls.ShortenToFit)
             return Line(bodies[0]);
 
+        // Cutting a segment to the room left is no longer this integration's private trick.
         string bare = Line(bodies[^1]);
-        return context.WouldFit(bare) ? bare : HardTrim(bare, context);
+        return SegmentWriter.Truncate(bare, context.RemainingCharsIf(string.Empty));
     }
 
     /// <summary>
@@ -270,28 +272,6 @@ public sealed class MediaLinkOscProvider : IOscProvider
             ladder.Add(MediaLinkTimeSeekbar.None);
 
         return ladder;
-    }
-
-    /// <summary>Cuts a line down to the space left, marking the cut so it does not read as the title.</summary>
-    private static string HardTrim(string text, OscBuildContext context)
-    {
-        int over = -context.RemainingCharsIf(text);
-        if (over <= 0)
-            return text;
-
-        int keep = text.Length - over - 1;
-        if (keep <= 0)
-            return string.Empty;
-
-        // Prefer the last whole word, but not at the cost of half the line - a cut mid-word still
-        // beats throwing away everything that was left.
-        int space = text.LastIndexOf(' ', Math.Min(keep, text.Length - 1));
-        if (space > keep / 2)
-            keep = space;
-        else if (char.IsHighSurrogate(text[keep - 1]))
-            keep--;
-
-        return text[..keep].TrimEnd() + "…";
     }
 
     #endregion
