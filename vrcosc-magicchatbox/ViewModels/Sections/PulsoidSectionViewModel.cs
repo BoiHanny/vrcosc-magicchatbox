@@ -1,6 +1,7 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using System;
+using System.ComponentModel;
 using System.Threading.Tasks;
 using vrcosc_magicchatbox.Classes.DataAndSecurity;
 using vrcosc_magicchatbox.Classes.Modules;
@@ -12,6 +13,82 @@ using vrcosc_magicchatbox.Services;
 using vrcosc_magicchatbox.ViewModels.State;
 
 namespace vrcosc_magicchatbox.ViewModels.Sections;
+
+/// <summary>
+/// The heart-rate line written from a fixed, plausible beat instead of a live one.
+/// </summary>
+/// <remarks>
+/// Nobody configures this while wearing the band: the sensor is usually offline and the readout is
+/// empty, so the settings have nothing to show for themselves. The sample is a projection of the
+/// real settings rather than a copy of the formatter - it hands the module's own public writer a
+/// throwaway settings object carrying only the display choices, so the preview cannot drift, and the
+/// live trend arrow (which is empty most of the time, at rest) is stood in for so the switch that
+/// turns it on visibly does something.
+/// </remarks>
+public static class PulsoidPreview
+{
+    /// <summary>A resting-but-active beat: above the "sleepy" default, below the "hot" one.</summary>
+    public const int SampleHeartRate = 88;
+
+    private static readonly PulsoidStatisticsResponse SampleStats = new()
+    {
+        average_beats_per_minute = 82,
+        calories_burned_in_kcal = 417,
+        maximum_beats_per_minute = 143,
+        minimum_beats_per_minute = 54,
+        streamed_duration_in_seconds = 8_130,
+    };
+
+    public static string Render(PulsoidModuleSettings live)
+        => live is null
+            ? string.Empty
+            : PulsoidModule.BuildHeartRateString(Project(live), SampleHeartRate, deviceOnline: true, SampleStats);
+
+    /// <summary>
+    /// A throwaway copy carrying only what shapes the line. Deliberately field by field: the live
+    /// object also holds the access token, and serialising it to clone it would put the credential
+    /// through DPAPI for the sake of a preview.
+    /// </summary>
+    private static PulsoidModuleSettings Project(PulsoidModuleSettings live)
+    {
+        var symbols = live.SelectedPulsoidTrendSymbol ?? new PulsoidTrendSymbolSet();
+
+        return new PulsoidModuleSettings
+        {
+            MagicHeartIconPrefix = live.MagicHeartIconPrefix,
+            HeartRateIcon = live.HeartRateIcon,
+            ShowTemperatureText = live.ShowTemperatureText,
+            LowTemperatureThreshold = live.LowTemperatureThreshold,
+            LowHeartRateText = live.LowHeartRateText,
+            HighTemperatureThreshold = live.HighTemperatureThreshold,
+            HighHeartRateText = live.HighHeartRateText,
+            ShowBPMSuffix = live.ShowBPMSuffix,
+            HeartRateTitle = live.HeartRateTitle,
+            CurrentHeartRateTitle = live.CurrentHeartRateTitle,
+            SeparateTitleWithEnter = live.SeparateTitleWithEnter,
+            PulsoidStatsEnabled = live.PulsoidStatsEnabled,
+            HideCurrentHeartRate = live.HideCurrentHeartRate,
+            ShowCalories = live.ShowCalories,
+            ShowAverageHeartRate = live.ShowAverageHeartRate,
+            ShowMaximumHeartRate = live.ShowMaximumHeartRate,
+            ShowMinimumHeartRate = live.ShowMinimumHeartRate,
+            ShowDuration = live.ShowDuration,
+            ShowStatsTimeRange = live.ShowStatsTimeRange,
+            SelectedStatisticsTimeRange = live.SelectedStatisticsTimeRange,
+            ShowHeartRateTrendIndicator = live.ShowHeartRateTrendIndicator,
+            TrendIndicatorBehindStats = live.TrendIndicatorBehindStats,
+            SelectedPulsoidTrendSymbol = symbols,
+
+            // The live arrow is blank whenever the rate is steady, which is most of the time while
+            // someone is sitting in the settings. The sample shows a rising beat so the setting can
+            // be judged on what it looks like when it fires.
+            HeartRateTrendIndicator = symbols.UpwardTrendSymbol,
+
+            // Offline detection would blank the whole preview; the sample device is always present.
+            EnableHeartRateOfflineCheck = false,
+        };
+    }
+}
 
 public partial class PulsoidSectionViewModel : ObservableObject
 {
@@ -28,6 +105,10 @@ public partial class PulsoidSectionViewModel : ObservableObject
 
     public PulsoidOAuthHandler PulsoidOAuth => _pulsoidOAuth.Value;
     public INavigationService Navigation => _nav;
+
+    [ObservableProperty] private string _previewLine = string.Empty;
+
+    private PulsoidModuleSettings? _watchedSettings;
 
     public PulsoidSectionViewModel(
         Lazy<IModuleHost> moduleHost,
@@ -48,6 +129,34 @@ public partial class PulsoidSectionViewModel : ObservableObject
         _nav = nav;
         _toast = toast;
     }
+
+    /// <summary>
+    /// Starts keeping the preview in step with the settings. Called when the section appears rather
+    /// than from the constructor: the module registers itself with the host after the view models
+    /// are built, so there is nothing to watch yet at that point.
+    /// </summary>
+    public void AttachPreview()
+    {
+        var settings = _moduleHost.Value.Pulsoid?.Settings;
+        if (settings == null || ReferenceEquals(settings, _watchedSettings))
+            return;
+
+        if (_watchedSettings != null)
+            _watchedSettings.PropertyChanged -= OnPulsoidSettingsChanged;
+
+        _watchedSettings = settings;
+        settings.PropertyChanged += OnPulsoidSettingsChanged;
+        RefreshPreview(settings);
+    }
+
+    private void OnPulsoidSettingsChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (sender is PulsoidModuleSettings settings)
+            RefreshPreview(settings);
+    }
+
+    private void RefreshPreview(PulsoidModuleSettings settings)
+        => PreviewLine = PulsoidPreview.Render(settings);
 
     public bool PulsoidAuthConnected
     {

@@ -15,14 +15,19 @@ public partial class TitleFilterRule : ObservableObject
     public static FilterMode[] FilterModes { get; } = Enum.GetValues<FilterMode>();
 }
 
+/// <summary>
+/// What a title rule does when it matches. The descriptions are what the user reads, and they are
+/// worded to match the per-app dropdown in the same section word for word - the two lists offer the
+/// same three choices and used to name them differently.
+/// </summary>
 public enum FilterMode
 {
-    [Description("Exclude (hide when matches)")]
+    [Description("Hide the whole title")]
     Exclude,
 
-    [Description("Include (show only when matches)")]
+    [Description("Only show titles that match")]
     Include,
 
-    [Description("Remove matches")]
+    [Description("Cut out the matching words")]
     Remove
 }

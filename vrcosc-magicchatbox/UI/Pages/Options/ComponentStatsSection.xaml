@@ -2,6 +2,7 @@
     x:Class="vrcosc_magicchatbox.UI.Pages.Options.ComponentStatsSection"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:controls="clr-namespace:vrcosc_magicchatbox.UI.Controls"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:sections="clr-namespace:vrcosc_magicchatbox.ViewModels.Sections"
@@ -38,7 +39,6 @@
                 TextOptions.TextRenderingMode="ClearType" />
         </Grid>
 
-
         <StackPanel
             x:Name="Settings_ComponentStats_Grid"
             Grid.Row="1"
@@ -46,32 +46,52 @@
             Margin="34,10,0,0"
             d:Visibility="Visible"
             Visibility="{Binding AppSettings.Settings_ComponentStats, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
-            <Border Style="{StaticResource OptionCardStyle}">
 
+            <!--  Thirty-odd switches below, every one of them shaping this single line. Several of
+                  them depend on each other in ways no label can state briefly, so they are shown
+                  doing it instead: with icons on, the raised-label switches stop changing the
+                  temperature and power readings at all.  -->
+            <Border Style="{StaticResource OptionCardStyle}">
                 <StackPanel>
+                    <TextBlock Style="{StaticResource OptionSubsectionHeaderStyle}" Text="What goes in the chatbox" />
+                    <TextBlock Style="{StaticResource OptionHelpTextStyle}" Text="Example readings — yours will differ, but the wording, the order and the length will look like this. All four components are shown here; which ones really appear depends on what your machine reports. If the line runs past 144 characters the app shortens it for you, dropping the longest parts first." />
+                    <controls:SegmentPreview Line="{Binding PreviewLine}" />
+                </StackPanel>
+            </Border>
+
+            <Border Style="{StaticResource OptionCardStyle}">
+                <StackPanel>
+                    <TextBlock Style="{StaticResource OptionSubsectionHeaderStyle}" Text="Everything at once" />
+
+                    <TextBlock
+                        Margin="7,2,0,2"
+                        Style="{StaticResource OptionHelpTextStyle}"
+                        Text="Shows the temperature in Celsius for a few seconds, then Fahrenheit, and keeps swapping. Untick it to stay on one." />
                     <CheckBox
                         x:Name="IsTemperatureSwitchEnabled_checkbox"
                         Margin="5,5"
-                        Content="Autoswitch temperature units"
-                        IsChecked="{Binding StatsManager.Settings.IsTemperatureSwitchEnabled, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                        Style="{DynamicResource SettingsCheckbox}"
-                        ToolTip="" />
+                        Content="Keep swapping between °C and °F"
+                        IsChecked="{Binding StatsManager.Settings.IsTemperatureSwitchEnabled, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+
+                    <TextBlock
+                        Margin="7,8,0,2"
+                        Style="{StaticResource OptionHelpTextStyle}"
+                        Text="Replaces the words next to the temperature and power readings with icons. An icon is never shrunk, so the 'small raised labels' boxes below stop affecting those readings while this is on." />
                     <CheckBox
                         x:Name="UseEmojisForTempAndPower_checkbox"
                         Margin="5,5"
-                        Content="Use emojis for temperature and power"
-                        IsChecked="{Binding StatsManager.Settings.UseEmojisForTempAndPower, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                        Style="{DynamicResource SettingsCheckbox}"
-                        ToolTip="" />
+                        Content="Use icons instead of words — ♨️ 64°C instead of ᵗᵉᵐᵖ 64°C"
+                        IsChecked="{Binding StatsManager.Settings.UseEmojisForTempAndPower, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+
                     <StackPanel
-                        Margin="5,5"
+                        Margin="5,8,5,5"
                         VerticalAlignment="Center"
                         Orientation="Horizontal">
                         <TextBlock
                             Margin="0"
                             VerticalAlignment="Center"
                             Style="{StaticResource OptionFieldLabelStyle}"
-                            Text="Stats separator" />
+                            Text="What goes between the readings" />
                         <TextBox
                             x:Name="StatsSeparatorTextBox"
                             Width="60"
@@ -79,17 +99,20 @@
                             Margin="5,0"
                             Padding="3,0"
                             VerticalAlignment="Center"
-                            FontSize="15"
+                            FontSize="{StaticResource FontSizeBody}"
                             Text="{Binding StatsManager.Settings.StatsSeparator, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                            ToolTip="Separator between component stats (e.g. ' ¦ '). Leave blank to use the default." />
+                            ToolTip="Leave blank for the default ' ¦ '. Anything longer than eight characters is trimmed — three separators would otherwise eat a fifth of the line." />
                     </StackPanel>
+
+                    <TextBlock
+                        Margin="7,8,0,2"
+                        Style="{StaticResource OptionHelpTextStyle}"
+                        Text="On a laptop or a machine with two graphics chips, untick this to say which one to read." />
                     <CheckBox
                         x:Name="ComponentStatAutoSelectGPU_checkbox"
                         Margin="5,5"
-                        Content="Auto-select GPU"
-                        IsChecked="{Binding StatsManager.Settings.AutoSelectGPU, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                        Style="{DynamicResource SettingsCheckbox}"
-                        ToolTip="This option will automatically select the GPU." />
+                        Content="Pick the graphics card automatically"
+                        IsChecked="{Binding StatsManager.Settings.AutoSelectGPU, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                     <ComboBox
                         x:Name="ComponentStatSelectedGPUComboBox"
                         Width="186"
@@ -98,55 +121,33 @@
                         ItemsSource="{Binding StatsManager.GPUList}"
                         SelectedItem="{Binding StatsManager.Settings.SelectedGPU, Mode=TwoWay}"
                         Visibility="{Binding StatsManager.Settings.AutoSelectGPU, Converter={StaticResource InverseBoolToVisibilityConverter}, UpdateSourceTrigger=PropertyChanged}" />
-                    <TextBlock
-                        Grid.Row="0"
-                        Margin="5,5"
-                        VerticalAlignment="Center"
-                        FontFamily="/Fonts/#Comfortaa"
-                        FontSize="20"
-                        Foreground="{StaticResource TextSectionHeaderBrush}"
-                        RenderOptions.BitmapScalingMode="NearestNeighbor"
-                        Style="{StaticResource OptionSubsectionHeaderStyle}"
-                        Text="{Binding ComponentStats.CPUHardwareName, StringFormat='CPU: {0}', UpdateSourceTrigger=PropertyChanged}">
+                </StackPanel>
+            </Border>
 
-
-                        <TextBlock.Effect>
-                            <DropShadowEffect
-                                BlurRadius="10"
-                                Direction="0"
-                                Opacity="0.9"
-                                ShadowDepth="0"
-                                Color="{StaticResource AccentBlueGradientColor}" />
-                        </TextBlock.Effect>
-                    </TextBlock>
+            <Border Style="{StaticResource OptionCardStyle}">
+                <StackPanel>
+                    <TextBlock Style="{StaticResource OptionSubsectionHeaderStyle}" Text="{Binding ComponentStats.CPUHardwareName, StringFormat='Processor — {0}', UpdateSourceTrigger=PropertyChanged}" />
                     <CheckBox
                         x:Name="CPU_SmallName_checkbox"
                         Margin="5,5"
-                        Content="Stylized uppercase letters"
-                        IsChecked="{Binding ComponentStats.CPU_SmallName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                        Style="{DynamicResource SettingsCheckbox}"
-                        ToolTip="" />
-                    <CheckBox
-                        x:Name="CPU_EnableHardwareTitle_checkbox"
-                        Margin="5,5"
-                        Content="Display model name instead of 'CPU'"
-                        IsChecked="{Binding ComponentStats.CPU_EnableHardwareTitle, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                        Style="{DynamicResource SettingsCheckbox}"
-                        ToolTip="When checked, the CPU usage label will display the model name of the CPU (e.g., 'Intel Core i7') instead of just 'CPU'." />
+                        Content="Small raised label — ᶜᵖᵘ instead of CPU:"
+                        IsChecked="{Binding ComponentStats.CPU_SmallName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                     <CheckBox
                         x:Name="CPU_NumberTrailingZeros_checkbox"
                         Margin="5,5"
-                        Content="Round off CPU usage percentage"
-                        IsChecked="{Binding ComponentStats.CPU_NumberTrailingZeros, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                        Style="{DynamicResource SettingsCheckbox}"
-                        ToolTip="When enabled, the CPU usage percentage will be rounded off to the nearest whole number (e.g., displays as '7%' instead of '7.2%')." />
+                        Content="Round to whole numbers — 23﹪ instead of 23.4﹪"
+                        IsChecked="{Binding ComponentStats.CPU_NumberTrailingZeros, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                    <CheckBox
+                        x:Name="CPU_EnableHardwareTitle_checkbox"
+                        Margin="5,5"
+                        Content="Use the chip's own name instead of 'CPU'"
+                        IsChecked="{Binding ComponentStats.CPU_EnableHardwareTitle, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                        ToolTip="Model names run to thirty characters and never change, so this is the most expensive switch on the page. Watch the counter in the preview." />
                     <StackPanel Margin="5" IsEnabled="{Binding ComponentStats.CPU_EnableHardwareTitle, UpdateSourceTrigger=PropertyChanged}">
                         <CheckBox
                             x:Name="CPU_PrefixHardwareTitle_checkbox"
-                            Content="Set custom CPU model name"
-                            IsChecked="{Binding ComponentStats.CPU_PrefixHardwareTitle, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                            Style="{DynamicResource SettingsCheckbox}"
-                            ToolTip="Specify your custom model name for the CPU. Note: This option requires 'Display model name instead of 'CPU'' to be enabled." />
+                            Content="…or a shorter name you choose"
+                            IsChecked="{Binding ComponentStats.CPU_PrefixHardwareTitle, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                         <StackPanel Margin="0,10,0,0" Visibility="{Binding ComponentStats.CPU_PrefixHardwareTitle, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
                             <StackPanel
                                 Margin="0,5,0,5"
@@ -156,7 +157,7 @@
                                     Margin="0"
                                     VerticalAlignment="Center"
                                     Style="{StaticResource OptionFieldLabelStyle}"
-                                    Text="Custom hardware name" />
+                                    Text="Call it" />
                                 <TextBox
                                     x:Name="CPUCustomHardwareName"
                                     Width="auto"
@@ -164,127 +165,38 @@
                                     Margin="5,0"
                                     Padding="3,0"
                                     VerticalAlignment="Center"
-                                    FontSize="15"
+                                    FontSize="{StaticResource FontSizeBody}"
                                     Text="{Binding ComponentStats.CPUCustomHardwareName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                             </StackPanel>
                         </StackPanel>
                     </StackPanel>
                 </StackPanel>
             </Border>
+
             <Border Style="{StaticResource OptionCardStyle}">
                 <StackPanel>
-                    <TextBlock
-                        Grid.Row="0"
-                        Margin="5,5"
-                        VerticalAlignment="Center"
-                        FontFamily="/Fonts/#Comfortaa"
-                        FontSize="20"
-                        Foreground="{StaticResource TextSectionHeaderBrush}"
-                        RenderOptions.BitmapScalingMode="NearestNeighbor"
-                        Style="{StaticResource OptionSubsectionHeaderStyle}"
-                        Text="{Binding ComponentStats.GPUHardwareName, StringFormat='GPU: {0}', UpdateSourceTrigger=PropertyChanged}">
-
-                        <TextBlock.Effect>
-                            <DropShadowEffect
-                                BlurRadius="10"
-                                Direction="0"
-                                Opacity="0.9"
-                                ShadowDepth="0"
-                                Color="{StaticResource AccentBlueGradientColor}" />
-                        </TextBlock.Effect>
-                    </TextBlock>
-
-                    <CheckBox
-                        x:Name="ComponentStatGPUWattageVisible_checkbox"
-                        Margin="5,5"
-                        Content="Show GPU wattage"
-                        IsChecked="{Binding ComponentStats.ComponentStatGPUWattageVisible, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                        Style="{DynamicResource SettingsCheckbox}"
-                        ToolTip="" />
-                    <CheckBox
-                        x:Name="ComponentStatGPUTempVisible_checkbox"
-                        Margin="5,5"
-                        Content="Show GPU temperature"
-                        IsChecked="{Binding ComponentStats.ComponentStatGPUTempVisible, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                        Style="{DynamicResource SettingsCheckbox}"
-                        ToolTip="" />
-                    <CheckBox
-                        x:Name="ComponentStatGPUHotSpotVisible_checkbox"
-                        Margin="5,5"
-                        Content="Show GPU hotspot temperature"
-                        IsChecked="{Binding ComponentStats.ComponentStatGPUHotSpotVisible, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                        Style="{DynamicResource SettingsCheckbox}"
-                        ToolTip="" />
+                    <TextBlock Style="{StaticResource OptionSubsectionHeaderStyle}" Text="{Binding ComponentStats.GPUHardwareName, StringFormat='Graphics card — {0}', UpdateSourceTrigger=PropertyChanged}" />
                     <CheckBox
                         x:Name="GPU_SmallName_checkbox"
                         Margin="5,5"
-                        Content="Stylized uppercase letters"
-                        IsChecked="{Binding ComponentStats.GPU_SmallName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                        Style="{DynamicResource SettingsCheckbox}"
-                        ToolTip="" />
-                    <CheckBox
-                        x:Name="GPU_Core3DHook_checkbox"
-                        Margin="5,5"
-                        Content="Utilization is based on the 3D usage"
-                        IsChecked="{Binding StatsManager.Settings.GPU3DHook, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                        Style="{DynamicResource SettingsCheckbox}"
-                        ToolTip="" />
-                    <CheckBox
-                        x:Name="GPU_ShowFanSpeed_checkbox"
-                        Margin="5,5"
-                        Content="Show GPU fan speed (%)"
-                        IsChecked="{Binding StatsManager.Settings.ShowGpuFanSpeed, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                        Style="{DynamicResource SettingsCheckbox}"
-                        ToolTip="Appends GPU fan speed as a percentage when the vendor driver exposes it (e.g. 'fan 45%'). Not available on all GPUs." />
-                    <CheckBox
-                        x:Name="GPU_ShowCoreClock_checkbox"
-                        Margin="5,5"
-                        Content="Show GPU core clock (MHz)"
-                        IsChecked="{Binding StatsManager.Settings.ShowGpuCoreClock, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                        Style="{DynamicResource SettingsCheckbox}"
-                        ToolTip="Appends GPU core clock frequency (e.g. 'core clk 2100MHz')." />
-                    <CheckBox
-                        x:Name="GPU_ShowMemClock_checkbox"
-                        Margin="5,5"
-                        Content="Show GPU memory clock (MHz)"
-                        IsChecked="{Binding StatsManager.Settings.ShowGpuMemoryClock, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                        Style="{DynamicResource SettingsCheckbox}"
-                        ToolTip="Appends VRAM clock frequency (e.g. 'mem clk 9500MHz')." />
-                    <CheckBox
-                        x:Name="GPU_ShowMemTemp_checkbox"
-                        Margin="5,5"
-                        Content="Show GPU memory temperature"
-                        IsChecked="{Binding StatsManager.Settings.ShowGpuMemoryTemperature, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                        Style="{DynamicResource SettingsCheckbox}"
-                        ToolTip="Appends VRAM die temperature. Available on GDDR6X and some newer GPUs." />
-                    <CheckBox
-                        x:Name="GPU_ShowMemLoad_checkbox"
-                        Margin="5,5"
-                        Content="Show GPU memory controller load (%)"
-                        IsChecked="{Binding StatsManager.Settings.ShowGpuMemoryLoad, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                        Style="{DynamicResource SettingsCheckbox}"
-                        ToolTip="Appends the GPU memory controller utilisation as a percentage." />
-                    <CheckBox
-                        x:Name="GPU_EnableHardwareTitle_checkbox"
-                        Margin="5,5"
-                        Content="Display model name instead of 'GPU'"
-                        IsChecked="{Binding ComponentStats.GPU_EnableHardwareTitle, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                        Style="{DynamicResource SettingsCheckbox}"
-                        ToolTip="When checked, the GPU usage label will display the model name of the GPU (e.g., 'NVIDIA RTX 4090') instead of just 'GPU'." />
+                        Content="Small raised label — ᵍᵖᵘ instead of GPU:"
+                        IsChecked="{Binding ComponentStats.GPU_SmallName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                     <CheckBox
                         x:Name="GPU_NumberTrailingZeros_checkbox"
                         Margin="5,5"
-                        Content="Round off GPU usage percentage"
-                        IsChecked="{Binding ComponentStats.GPU_NumberTrailingZeros, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                        Style="{DynamicResource SettingsCheckbox}"
-                        ToolTip="When enabled, the GPU usage percentage will be rounded off to the nearest whole number (e.g., displays as '7%' instead of '7.2%')." />
+                        Content="Round to whole numbers — 61﹪ instead of 61.7﹪"
+                        IsChecked="{Binding ComponentStats.GPU_NumberTrailingZeros, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                    <CheckBox
+                        x:Name="GPU_EnableHardwareTitle_checkbox"
+                        Margin="5,5"
+                        Content="Use the card's own name instead of 'GPU'"
+                        IsChecked="{Binding ComponentStats.GPU_EnableHardwareTitle, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                        ToolTip="Card names are the longest text this readout can print. Watch the counter in the preview." />
                     <StackPanel Margin="5" IsEnabled="{Binding ComponentStats.GPU_EnableHardwareTitle, UpdateSourceTrigger=PropertyChanged}">
                         <CheckBox
                             x:Name="GPU_PrefixHardwareTitle_checkbox"
-                            Content="Set custom GPU model name"
-                            IsChecked="{Binding ComponentStats.GPU_PrefixHardwareTitle, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                            Style="{DynamicResource SettingsCheckbox}"
-                            ToolTip="Specify your custom model name for the GPU. Note: This option requires 'Display model name instead of 'GPU'' to be enabled." />
+                            Content="…or a shorter name you choose"
+                            IsChecked="{Binding ComponentStats.GPU_PrefixHardwareTitle, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                         <StackPanel Margin="0,10,0,0" Visibility="{Binding ComponentStats.GPU_PrefixHardwareTitle, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
                             <StackPanel
                                 Margin="0,5,0,5"
@@ -294,7 +206,7 @@
                                     Margin="0"
                                     VerticalAlignment="Center"
                                     Style="{StaticResource OptionFieldLabelStyle}"
-                                    Text="Custom hardware name" />
+                                    Text="Call it" />
                                 <TextBox
                                     x:Name="GPUCustomHardwareName"
                                     Width="auto"
@@ -302,77 +214,99 @@
                                     Margin="5,0"
                                     Padding="3,0"
                                     VerticalAlignment="Center"
-                                    FontSize="15"
+                                    FontSize="{StaticResource FontSizeBody}"
                                     Text="{Binding ComponentStats.GPUCustomHardwareName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                             </StackPanel>
                         </StackPanel>
                     </StackPanel>
+
+                    <TextBlock
+                        Margin="7,10,0,2"
+                        Style="{StaticResource OptionHelpTextStyle}"
+                        Text="Extra readings from the card. Each one adds a few characters to the line." />
+                    <CheckBox
+                        x:Name="ComponentStatGPUTempVisible_checkbox"
+                        Margin="5,5"
+                        Content="Show how hot the card is"
+                        IsChecked="{Binding ComponentStats.ComponentStatGPUTempVisible, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                    <CheckBox
+                        x:Name="ComponentStatGPUHotSpotVisible_checkbox"
+                        Margin="5,5"
+                        Content="Show the hottest spot on the chip"
+                        IsChecked="{Binding ComponentStats.ComponentStatGPUHotSpotVisible, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                    <CheckBox
+                        x:Name="ComponentStatGPUWattageVisible_checkbox"
+                        Margin="5,5"
+                        Content="Show how much power the card is drawing"
+                        IsChecked="{Binding ComponentStats.ComponentStatGPUWattageVisible, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                    <CheckBox
+                        x:Name="GPU_ShowFanSpeed_checkbox"
+                        Margin="5,5"
+                        Content="Show how hard the fan is working"
+                        IsChecked="{Binding StatsManager.Settings.ShowGpuFanSpeed, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                        ToolTip="Not every card reports this. If nothing appears in the preview, yours does not." />
+                    <CheckBox
+                        x:Name="GPU_ShowCoreClock_checkbox"
+                        Margin="5,5"
+                        Content="Show the chip's clock speed"
+                        IsChecked="{Binding StatsManager.Settings.ShowGpuCoreClock, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                    <CheckBox
+                        x:Name="GPU_ShowMemClock_checkbox"
+                        Margin="5,5"
+                        Content="Show the memory clock speed"
+                        IsChecked="{Binding StatsManager.Settings.ShowGpuMemoryClock, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                    <CheckBox
+                        x:Name="GPU_ShowMemTemp_checkbox"
+                        Margin="5,5"
+                        Content="Show how hot the card's memory is"
+                        IsChecked="{Binding StatsManager.Settings.ShowGpuMemoryTemperature, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                        ToolTip="Only newer cards report this. If nothing appears in the preview, yours does not." />
+                    <CheckBox
+                        x:Name="GPU_ShowMemLoad_checkbox"
+                        Margin="5,5"
+                        Content="Show how busy the card's memory is"
+                        IsChecked="{Binding StatsManager.Settings.ShowGpuMemoryLoad, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+
+                    <TextBlock
+                        Margin="7,10,0,2"
+                        Style="{StaticResource OptionHelpTextStyle}"
+                        Text="Counts only what games and VR are drawing, ignoring video playback and other work the card does. Usually the number you want." />
+                    <CheckBox
+                        x:Name="GPU_Core3DHook_checkbox"
+                        Margin="5,5"
+                        Content="Measure the load from 3D rendering only"
+                        IsChecked="{Binding StatsManager.Settings.GPU3DHook, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                 </StackPanel>
             </Border>
+
             <Border Style="{StaticResource OptionCardStyle}">
                 <StackPanel>
-                    <TextBlock
-                        Grid.Row="0"
-                        Margin="5,5"
-                        VerticalAlignment="Center"
-                        FontFamily="/Fonts/#Comfortaa"
-                        FontSize="20"
-                        Foreground="{StaticResource TextSectionHeaderBrush}"
-                        RenderOptions.BitmapScalingMode="NearestNeighbor"
-                        Style="{StaticResource OptionSubsectionHeaderStyle}"
-                        Text="{Binding ComponentStats.VRAMHardwareName, StringFormat='VRAM: {0}', UpdateSourceTrigger=PropertyChanged}">
-
-                        <TextBlock.Effect>
-                            <DropShadowEffect
-                                BlurRadius="10"
-                                Direction="0"
-                                Opacity="0.9"
-                                ShadowDepth="0"
-                                Color="{StaticResource AccentBlueGradientColor}" />
-                        </TextBlock.Effect>
-                    </TextBlock>
+                    <TextBlock Style="{StaticResource OptionSubsectionHeaderStyle}" Text="{Binding ComponentStats.VRAMHardwareName, StringFormat='Graphics memory — {0}', UpdateSourceTrigger=PropertyChanged}" />
                     <CheckBox
                         x:Name="VRAM_SmallName_checkbox"
                         Margin="5,5"
-                        Content="Stylized uppercase letters"
-                        IsChecked="{Binding ComponentStats.VRAM_SmallName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                        Style="{DynamicResource SettingsCheckbox}"
-                        ToolTip="" />
-                    <CheckBox
-                        x:Name="ComponentStatsGPU3DVRAMHook_checkbox"
-                        Margin="5,5"
-                        Content="VRAM usage is based on the 3D usage"
-                        IsChecked="{Binding StatsManager.Settings.GPU3DVRAMHook, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                        Style="{DynamicResource SettingsCheckbox}"
-                        ToolTip="" />
-                    <CheckBox
-                        x:Name="VRAM_EnableHardwareTitle_checkbox"
-                        Margin="5,5"
-                        Content="Display model name instead of 'VRAM'"
-                        IsChecked="{Binding ComponentStats.VRAM_EnableHardwareTitle, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                        Style="{DynamicResource SettingsCheckbox}"
-                        ToolTip="When checked, the VRAM usage label will display the selected GPU model name." />
-                    <CheckBox
-                        x:Name="VRAM_ShowMaxValue_checkbox"
-                        Margin="5,5"
-                        Content="Show max VRAM capacity"
-                        IsChecked="{Binding ComponentStats.VRAM_ShowMaxValue, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                        Style="{DynamicResource SettingsCheckbox}"
-                        ToolTip="When checked, VRAM usage includes the adapter's total dedicated VRAM when Windows exposes it." />
+                        Content="Small raised label — ᵛʳᵃᵐ instead of VRAM:"
+                        IsChecked="{Binding ComponentStats.VRAM_SmallName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                     <CheckBox
                         x:Name="VRAM_NumberTrailingZeros_checkbox"
                         Margin="5,5"
-                        Content="Round off GPU VRAM usage in GBs"
-                        IsChecked="{Binding ComponentStats.VRAM_NumberTrailingZeros, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                        Style="{DynamicResource SettingsCheckbox}"
-                        ToolTip="When enabled, the VRAM usage will be rounded off to the nearest whole number (e.g., displays as '6 GB' instead of '5.7 GB')." />
+                        Content="Round to whole numbers — 6ᵍᵇ instead of 5.7ᵍᵇ"
+                        IsChecked="{Binding ComponentStats.VRAM_NumberTrailingZeros, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                    <CheckBox
+                        x:Name="VRAM_ShowMaxValue_checkbox"
+                        Margin="5,5"
+                        Content="Show how much there is in total — 5.7/16.0 instead of 5.7"
+                        IsChecked="{Binding ComponentStats.VRAM_ShowMaxValue, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                    <CheckBox
+                        x:Name="VRAM_EnableHardwareTitle_checkbox"
+                        Margin="5,5"
+                        Content="Use the card's own name instead of 'VRAM'"
+                        IsChecked="{Binding ComponentStats.VRAM_EnableHardwareTitle, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                     <StackPanel Margin="5" IsEnabled="{Binding ComponentStats.VRAM_EnableHardwareTitle, UpdateSourceTrigger=PropertyChanged}">
                         <CheckBox
                             x:Name="VRAM_PrefixHardwareTitle_checkbox"
-                            Content="Set custom VRAM name"
-                            IsChecked="{Binding ComponentStats.VRAM_PrefixHardwareTitle, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                            Style="{DynamicResource SettingsCheckbox}"
-                            ToolTip="Specify a custom VRAM label. This option requires 'Display model name instead of VRAM' to be enabled." />
+                            Content="…or a shorter name you choose"
+                            IsChecked="{Binding ComponentStats.VRAM_PrefixHardwareTitle, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                         <StackPanel Margin="0,10,0,0" Visibility="{Binding ComponentStats.VRAM_PrefixHardwareTitle, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
                             <StackPanel
                                 Margin="0,5,0,5"
@@ -382,7 +316,7 @@
                                     Margin="0"
                                     VerticalAlignment="Center"
                                     Style="{StaticResource OptionFieldLabelStyle}"
-                                    Text="Custom hardware name" />
+                                    Text="Call it" />
                                 <TextBox
                                     x:Name="VRAMCustomHardwareName"
                                     Width="auto"
@@ -390,77 +324,57 @@
                                     Margin="5,0"
                                     Padding="3,0"
                                     VerticalAlignment="Center"
-                                    FontSize="15"
+                                    FontSize="{StaticResource FontSizeBody}"
                                     Text="{Binding ComponentStats.VRAMCustomHardwareName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                             </StackPanel>
                         </StackPanel>
                     </StackPanel>
+
+                    <TextBlock
+                        Margin="7,10,0,2"
+                        Style="{StaticResource OptionHelpTextStyle}"
+                        Text="Counts only the memory games and VR are using, ignoring the rest." />
+                    <CheckBox
+                        x:Name="ComponentStatsGPU3DVRAMHook_checkbox"
+                        Margin="5,5"
+                        Content="Measure from 3D rendering only"
+                        IsChecked="{Binding StatsManager.Settings.GPU3DVRAMHook, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                 </StackPanel>
             </Border>
+
             <Border Style="{StaticResource OptionCardStyle}">
                 <StackPanel>
-                    <TextBlock
-                        Grid.Row="0"
-                        Margin="5,5"
-                        VerticalAlignment="Center"
-                        FontFamily="/Fonts/#Comfortaa"
-                        FontSize="20"
-                        Foreground="{StaticResource TextSectionHeaderBrush}"
-                        RenderOptions.BitmapScalingMode="NearestNeighbor"
-                        Style="{StaticResource OptionSubsectionHeaderStyle}"
-                        Text="{Binding ComponentStats.RAMHardwareName, StringFormat='RAM: {0}', UpdateSourceTrigger=PropertyChanged}">
-
-                        <TextBlock.Effect>
-                            <DropShadowEffect
-                                BlurRadius="10"
-                                Direction="0"
-                                Opacity="0.9"
-                                ShadowDepth="0"
-                                Color="{StaticResource AccentBlueGradientColor}" />
-                        </TextBlock.Effect>
-                    </TextBlock>
+                    <TextBlock Style="{StaticResource OptionSubsectionHeaderStyle}" Text="{Binding ComponentStats.RAMHardwareName, StringFormat='Memory — {0}', UpdateSourceTrigger=PropertyChanged}" />
                     <CheckBox
                         x:Name="RAM_SmallName_checkbox"
                         Margin="5,5"
-                        Content="Stylized uppercase letters"
-                        IsChecked="{Binding ComponentStats.RAM_SmallName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                        Style="{DynamicResource SettingsCheckbox}"
-                        ToolTip="" />
-                    <CheckBox
-                        x:Name="RAM_EnableHardwareTitle_checkbox"
-                        Margin="5,5"
-                        Content="Display model name instead of 'RAM'"
-                        IsChecked="{Binding ComponentStats.RAM_EnableHardwareTitle, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                        Style="{DynamicResource SettingsCheckbox}"
-                        ToolTip="When checked, the RAM usage label will display the model name of ur RAM." />
-                    <CheckBox
-                        x:Name="RAM_ShowMaxValue_checkbox"
-                        Margin="5,5"
-                        Content="Show max RAM capacity"
-                        IsChecked="{Binding ComponentStats.RAM_ShowMaxValue, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                        Style="{DynamicResource SettingsCheckbox}"
-                        ToolTip="When checked, RAM usage includes the system's total physical memory." />
-                    <CheckBox
-                        x:Name="RAM_ShowDDRVersion_checkbox"
-                        Margin="5,5"
-                        Content="Show RAM DDR version"
-                        IsChecked="{Binding ComponentStats.RAM_ShowDDRVersion, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                        Style="{DynamicResource SettingsCheckbox}"
-                        ToolTip="When checked, the DDR version of the RAM will be displayed." />
+                        Content="Small raised label — ʳᵃᵐ instead of RAM:"
+                        IsChecked="{Binding ComponentStats.RAM_SmallName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                     <CheckBox
                         x:Name="RAM_NumberTrailingZeros_checkbox"
                         Margin="5,5"
-                        Content="Round off RAM usage in GBs"
-                        IsChecked="{Binding ComponentStats.RAM_NumberTrailingZeros, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                        Style="{DynamicResource SettingsCheckbox}"
-                        ToolTip="When enabled, RAM usage is rounded to the nearest whole GB (e.g., displays as '6 GB' instead of '5.7 GB')." />
+                        Content="Round to whole numbers — 18ᵍᵇ instead of 18.3ᵍᵇ"
+                        IsChecked="{Binding ComponentStats.RAM_NumberTrailingZeros, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                    <CheckBox
+                        x:Name="RAM_ShowMaxValue_checkbox"
+                        Margin="5,5"
+                        Content="Show how much there is in total — 18.3/32.0 instead of 18.3"
+                        IsChecked="{Binding ComponentStats.RAM_ShowMaxValue, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                    <CheckBox
+                        x:Name="RAM_ShowDDRVersion_checkbox"
+                        Margin="5,5"
+                        Content="Show which generation it is — ⁽ᴰᴰᴿ⁵⁾"
+                        IsChecked="{Binding ComponentStats.RAM_ShowDDRVersion, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                    <CheckBox
+                        x:Name="RAM_EnableHardwareTitle_checkbox"
+                        Margin="5,5"
+                        Content="Use the memory's own name instead of 'RAM'"
+                        IsChecked="{Binding ComponentStats.RAM_EnableHardwareTitle, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                     <StackPanel Margin="5" IsEnabled="{Binding ComponentStats.RAM_EnableHardwareTitle, UpdateSourceTrigger=PropertyChanged}">
                         <CheckBox
                             x:Name="RAM_PrefixHardwareTitle_checkbox"
-                            Content="Set custom RAM name"
-                            IsChecked="{Binding ComponentStats.RAM_PrefixHardwareTitle, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                            Style="{DynamicResource SettingsCheckbox}"
-                            ToolTip="Specify a custom RAM label. This option requires 'Display model name instead of RAM' to be enabled." />
+                            Content="…or a shorter name you choose"
+                            IsChecked="{Binding ComponentStats.RAM_PrefixHardwareTitle, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                         <StackPanel Margin="0,10,0,0" Visibility="{Binding ComponentStats.RAM_PrefixHardwareTitle, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
                             <StackPanel
                                 Margin="0,5,0,5"
@@ -470,7 +384,7 @@
                                     Margin="0"
                                     VerticalAlignment="Center"
                                     Style="{StaticResource OptionFieldLabelStyle}"
-                                    Text="Custom hardware name" />
+                                    Text="Call it" />
                                 <TextBox
                                     x:Name="RAMCustomHardwareName"
                                     Width="auto"
@@ -478,7 +392,7 @@
                                     Margin="5,0"
                                     Padding="3,0"
                                     VerticalAlignment="Center"
-                                    FontSize="15"
+                                    FontSize="{StaticResource FontSizeBody}"
                                     Text="{Binding ComponentStats.RAMCustomHardwareName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                             </StackPanel>
                         </StackPanel>
