@@ -15,7 +15,9 @@ public enum LyricsMediaCoexistence
 
 public partial class LyricsSettings : VersionedSettings
 {
-    [ObservableProperty] private int _offsetMs = 0;
+    // Only new installs feel this. An existing settings file already holds an explicit OffsetMs, so
+    // anyone who had tuned it - or deliberately left it at zero - keeps what they chose.
+    [ObservableProperty] private int _offsetMs = LyricsTuning.DefaultOffsetMs;
     [ObservableProperty] private bool _showNoteIcon = true;
     [ObservableProperty] private bool _showGapMarker = true;
     [ObservableProperty] private int _minimumCharacters = 24;

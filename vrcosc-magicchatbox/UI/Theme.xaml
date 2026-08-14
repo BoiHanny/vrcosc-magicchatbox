@@ -1530,6 +1530,47 @@
         the reference has to be DynamicResource - StaticResource would be a forward reference and
         would throw at load.
     -->
+    <!--  The sync offset as a stepper, same shape as the gap and hold row below.  -->
+    <DataTemplate x:Key="LyricsOffsetRowTemplate">
+        <StackPanel Orientation="Horizontal">
+            <TextBlock
+                Width="34"
+                VerticalAlignment="Center"
+                FontFamily="{StaticResource FontPrimary}"
+                FontSize="{StaticResource FontSizeCaption}"
+                Foreground="{StaticResource TextMutedBrush}"
+                Text="Sync" />
+            <Button
+                Width="26"
+                Height="26"
+                Margin="0,0,4,0"
+                Command="{Binding NudgeOffsetCommand}"
+                CommandParameter="-100"
+                Content="−"
+                Style="{DynamicResource Status_Button_style}"
+                ToolTip="Hold the words back by 100 ms." />
+            <!--  Wider than the gap and hold readouts: has to fit "+100 ms" and "in sync".  -->
+            <TextBlock
+                Width="56"
+                VerticalAlignment="Center"
+                FontFamily="{StaticResource FontPrimary}"
+                FontSize="{StaticResource FontSizeCaption}"
+                Foreground="{StaticResource TextLightPurpleBrush}"
+                Text="{Binding OffsetChip}"
+                TextAlignment="Center"
+                ToolTip="{Binding OffsetSummary}" />
+            <Button
+                Width="26"
+                Height="26"
+                Margin="4,0,0,0"
+                Command="{Binding NudgeOffsetCommand}"
+                CommandParameter="100"
+                Content="+"
+                Style="{DynamicResource Status_Button_style}"
+                ToolTip="Bring the words forward by 100 ms." />
+        </StackPanel>
+    </DataTemplate>
+
     <DataTemplate x:Key="LyricsTimingRowTemplate">
         <StackPanel Orientation="Horizontal">
             <TextBlock

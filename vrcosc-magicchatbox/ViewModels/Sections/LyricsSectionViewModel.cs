@@ -139,10 +139,14 @@ public partial class LyricsSectionViewModel : ObservableObject
         _settingsProvider.Save();
     }
 
+    /// <summary>
+    /// Back to the shipped offset, not to zero. Zero is not neutral - it is where the words arrive
+    /// late - so resetting to it would undo the correction.
+    /// </summary>
     [RelayCommand]
     private void ResetOffset()
     {
-        Settings.OffsetMs = 0;
+        Settings.OffsetMs = LyricsTuning.DefaultOffsetMs;
         _settingsProvider.Save();
     }
 

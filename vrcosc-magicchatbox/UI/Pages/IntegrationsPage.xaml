@@ -113,29 +113,18 @@
                                 TextTrimming="CharacterEllipsis" />
                         </StackPanel>
 
-                        <!--  The two second-based knobs. First UI they have ever had: until now they were
-                              only reachable by hand-editing the settings file.
+                        <!--  Sync offset is the knob reached for mid-song; gap and hold behind the flyout
+                              are set once, so the ribbon spends its width on this one.
 
-                              The stepper row itself is LyricsTimingRowTemplate in Theme.xaml, shared with
-                              the Options timing card. The two copies had drifted to different type scales
-                              AND different button sizes; one template means they cannot drift again. Its
-                              DataContext contract is a LyricsSectionViewModel, which is what LyricsTuning
-                              is, so it is handed over as the ContentControl's Content.  -->
+                              The stepper is LyricsOffsetRowTemplate in Theme.xaml. Its DataContext
+                              contract is a LyricsSectionViewModel, which LyricsTuning is, so it goes in
+                              as the ContentControl's Content.  -->
                         <StackPanel
                             Grid.Column="2"
                             Margin="0,0,10,0"
                             VerticalAlignment="Center"
                             Orientation="Horizontal">
-                            <ContentControl Content="{Binding LyricsTuning}" ContentTemplate="{StaticResource LyricsTimingRowTemplate}" />
-
-                            <TextBlock
-                                Margin="6,0,0,0"
-                                VerticalAlignment="Center"
-                                FontSize="{StaticResource FontSizeMicro}"
-                                Foreground="#FFFFC46B"
-                                Text="⚠"
-                                ToolTip="{Binding LyricsTuning.TimingWarning}"
-                                Visibility="{Binding LyricsTuning.HasTimingWarning, Converter={StaticResource BoolToVisibilityConverter}}" />
+                            <ContentControl Content="{Binding LyricsTuning}" ContentTemplate="{StaticResource LyricsOffsetRowTemplate}" />
                         </StackPanel>
 
                         <Grid
@@ -144,8 +133,14 @@
                             VerticalAlignment="Center">
                             <ToggleButton x:Name="LyricsSyncToggle" Style="{StaticResource LyricsFlyoutToggle}">
                                 <StackPanel Orientation="Horizontal">
-                                    <TextBlock Text="Sync " />
-                                    <TextBlock d:Text="in sync" Text="{Binding LyricsTuning.OffsetChip}" />
+                                    <TextBlock Text="Timing" />
+                                    <!--  The warning is about gap and hold, so it follows them in here.  -->
+                                    <TextBlock
+                                        Margin="5,0,0,0"
+                                        Foreground="#FFFFC46B"
+                                        Text="⚠"
+                                        ToolTip="{Binding LyricsTuning.TimingWarning}"
+                                        Visibility="{Binding LyricsTuning.HasTimingWarning, Converter={StaticResource BoolToVisibilityConverter}}" />
                                     <!--  No Opacity here. At 0.7 the chevron fell to 4.18:1 against the
                                           CHECKED pill - i.e. exactly while the flyout is open. Full
                                           opacity is 6.74:1 checked / 9.68:1 unchecked, and the glyph is
@@ -216,13 +211,42 @@
                                                 FontFamily="/Fonts/#Comfortaa"
                                                 FontSize="{StaticResource FontSizeCaption}"
                                                 Foreground="{StaticResource TextSectionHeaderBrush}"
-                                                Text="Sync offset" />
+                                                Text="Instrumental breaks" />
                                             <TextBlock
                                                 Margin="0,0,0,8"
                                                 FontFamily="/Fonts/#Albert Sans"
                                                 FontSize="{StaticResource FontSizeCaption}"
                                                 Foreground="{StaticResource TextMutedBrush}"
-                                                Text="− makes the words wait, + brings them forward. Takes effect straight away, as soon as the track is playing."
+                                                Text="Gap is how much silence counts as a break. Hold is how long the last line stays up before the ♪ marker takes over."
+                                                TextWrapping="Wrap" />
+
+                                            <ContentControl Content="{Binding LyricsTuning}" ContentTemplate="{StaticResource LyricsTimingRowTemplate}" />
+
+                                            <TextBlock
+                                                Margin="0,6,0,0"
+                                                FontFamily="/Fonts/#Albert Sans"
+                                                FontSize="{StaticResource FontSizeMicro}"
+                                                Foreground="#FFFFC46B"
+                                                Text="{Binding LyricsTuning.TimingWarning}"
+                                                TextWrapping="Wrap"
+                                                Visibility="{Binding LyricsTuning.HasTimingWarning, Converter={StaticResource BoolToVisibilityConverter}}" />
+
+                                            <Separator Margin="0,12,0,10" Background="{StaticResource SurfaceVariantBrush}" />
+
+                                            <TextBlock
+                                                Margin="0,0,0,2"
+                                                FontFamily="/Fonts/#Comfortaa"
+                                                FontSize="{StaticResource FontSizeCaption}"
+                                                Foreground="{StaticResource TextSectionHeaderBrush}"
+                                                Text="Sync offset" />
+                                            <!--  The 100 ms steps are out on the ribbon now, so this row is
+                                                  only the coarse moves and the way back to the default.  -->
+                                            <TextBlock
+                                                Margin="0,0,0,8"
+                                                FontFamily="/Fonts/#Albert Sans"
+                                                FontSize="{StaticResource FontSizeCaption}"
+                                                Foreground="{StaticResource TextMutedBrush}"
+                                                Text="Bigger jumps than the ± on the ribbon, for when the words are out by a whole second. − makes them wait, + brings them forward."
                                                 TextWrapping="Wrap" />
 
                                             <StackPanel Orientation="Horizontal">
@@ -232,19 +256,10 @@
                                                     Content="−1 s"
                                                     Style="{StaticResource LyricsNudgeButton}" />
                                                 <Button
-                                                    Command="{Binding LyricsTuning.NudgeOffsetCommand}"
-                                                    CommandParameter="-100"
-                                                    Content="−100"
-                                                    Style="{StaticResource LyricsNudgeButton}" />
-                                                <Button
                                                     Command="{Binding LyricsTuning.ResetOffsetCommand}"
                                                     Content="Reset"
-                                                    Style="{StaticResource LyricsNudgeButton}" />
-                                                <Button
-                                                    Command="{Binding LyricsTuning.NudgeOffsetCommand}"
-                                                    CommandParameter="100"
-                                                    Content="+100"
-                                                    Style="{StaticResource LyricsNudgeButton}" />
+                                                    Style="{StaticResource LyricsNudgeButton}"
+                                                    ToolTip="Back to the +100 ms the app ships with." />
                                                 <Button
                                                     Command="{Binding LyricsTuning.NudgeOffsetCommand}"
                                                     CommandParameter="1000"
@@ -259,15 +274,6 @@
                                                 FontSize="{StaticResource FontSizeMicro}"
                                                 Foreground="{StaticResource TextMutedBrush}"
                                                 Text="{Binding LyricsTuning.OffsetSummary}" />
-
-                                            <TextBlock
-                                                Margin="0,6,0,0"
-                                                FontFamily="/Fonts/#Albert Sans"
-                                                FontSize="{StaticResource FontSizeMicro}"
-                                                Foreground="#FFFFC46B"
-                                                Text="{Binding LyricsTuning.TimingWarning}"
-                                                TextWrapping="Wrap"
-                                                Visibility="{Binding LyricsTuning.HasTimingWarning, Converter={StaticResource BoolToVisibilityConverter}}" />
                                         </StackPanel>
                                     </Border>
                                 </Grid>

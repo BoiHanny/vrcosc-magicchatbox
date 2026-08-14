@@ -200,7 +200,8 @@
                             Margin="0,0,4,0"
                             Command="{Binding ResetOffsetCommand}"
                             Content="Reset"
-                            Style="{StaticResource Status_Button_style}" />
+                            Style="{StaticResource Status_Button_style}"
+                            ToolTip="Back to the +100 ms the app ships with." />
                         <Button
                             Width="52"
                             Height="26"

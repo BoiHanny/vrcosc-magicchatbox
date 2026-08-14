@@ -14,6 +14,14 @@ namespace vrcosc_magicchatbox.Classes.Modules.Lyrics;
 /// </remarks>
 public static class LyricsTuning
 {
+    /// <summary>
+    /// Lyrics land late out of the box, so the shipped offset nudges them forward. The reported
+    /// position is sampled and extrapolated, and the line only goes out on the next send, so a word
+    /// reaches VRChat after the track has moved on. Small on purpose - a wrong guess this size does
+    /// not read as broken.
+    /// </summary>
+    public const int DefaultOffsetMs = 100;
+
     /// <summary>Roughly a wrong-edition LRC; far enough to fix one, short enough not to skip a verse.</summary>
     public const int MinOffsetMs = -10000;
 
