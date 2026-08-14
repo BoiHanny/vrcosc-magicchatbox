@@ -152,7 +152,7 @@
                                 HorizontalAlignment="left"
                                 VerticalAlignment="top"
                                 FontFamily="/Fonts/#Albert Sans"
-                                FontSize="10"
+                                FontSize="{StaticResource FontSizeMicro}"
                                 Foreground="MediumPurple"
                                 RenderOptions.BitmapScalingMode="NearestNeighbor"
                                 Text="VRC OSC">
@@ -578,7 +578,7 @@
                                     <StackPanel Grid.Column="0" VerticalAlignment="Center">
                                         <TextBlock
                                             FontFamily="/Fonts/#Albert Sans"
-                                            FontSize="10"
+                                            FontSize="{StaticResource FontSizeMicro}"
                                             Foreground="#FF8B80AE"
                                             Text="INSTALLED" />
                                         <TextBlock
@@ -669,7 +669,7 @@
                                     HorizontalAlignment="Center"
                                     Cursor="Hand"
                                     FontFamily="/Fonts/#Albert Sans"
-                                    FontSize="10"
+                                    FontSize="{StaticResource FontSizeMicro}"
                                     Foreground="#FF6FBEFF"
                                     RenderOptions.BitmapScalingMode="NearestNeighbor"
                                     Text="View changes on GitHub"

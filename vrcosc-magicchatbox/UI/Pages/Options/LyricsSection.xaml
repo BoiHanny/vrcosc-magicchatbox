@@ -111,7 +111,7 @@
                         Margin="0,12,0,0"
                         FontFamily="/Fonts/#Albert Sans"
                         FontSize="11"
-                        Foreground="{StaticResource BorderMutedBrush}"
+                        Foreground="{StaticResource TextMutedBrush}"
                         Text="{Binding HostSummary}"
                         TextWrapping="Wrap" />
                 </StackPanel>
@@ -129,7 +129,7 @@
                     <TextBlock
                         FontFamily="/Fonts/#Albert Sans"
                         FontSize="13"
-                        Foreground="{StaticResource BorderMutedBrush}"
+                        Foreground="{StaticResource TextMutedBrush}"
                         Text="{Binding Display.NowPlaying}"
                         TextWrapping="Wrap" />
 
@@ -221,7 +221,7 @@
                             VerticalAlignment="Center"
                             FontFamily="/Fonts/#Albert Sans"
                             FontSize="12"
-                            Foreground="{StaticResource BorderMutedBrush}"
+                            Foreground="{StaticResource TextMutedBrush}"
                             Text="{Binding OffsetSummary}" />
                     </StackPanel>
 

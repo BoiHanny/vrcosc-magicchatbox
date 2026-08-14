@@ -66,13 +66,13 @@
                         <TextBlock
                             FontFamily="/Fonts/#Albert Sans"
                             FontSize="12"
-                            Foreground="{StaticResource BorderMutedBrush}"
+                            Foreground="{StaticResource TextMutedBrush}"
                             Text="{Binding IntegrationDisplay.TrackerBatteryDeviceSummary}" />
                         <TextBlock
                             Margin="10,0,0,0"
                             FontFamily="/Fonts/#Albert Sans"
                             FontSize="12"
-                            Foreground="{StaticResource BorderMutedBrush}"
+                            Foreground="{StaticResource TextMutedBrush}"
                             Text="{Binding IntegrationDisplay.TrackerBatteryLastScanDisplay}" />
                     </StackPanel>
                 </StackPanel>

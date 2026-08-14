@@ -196,7 +196,7 @@
                                 Margin="5,5,0,0"
                                 FontFamily="/Fonts/#Albert Sans"
                                 FontSize="12"
-                                Foreground="{StaticResource BorderMutedBrush}"
+                                Foreground="{StaticResource TextMutedBrush}"
                                 Text="ms" />
                         </StackPanel>
                     </StackPanel>
@@ -247,7 +247,7 @@
                                 VerticalAlignment="Center"
                                 FontFamily="/Fonts/#Albert Sans"
                                 FontSize="13"
-                                Foreground="{StaticResource BorderMutedBrush}"
+                                Foreground="{StaticResource TextMutedBrush}"
                                 Text="{Binding ChatSettings.ChatAddSmallDelayTIME, UpdateSourceTrigger=PropertyChanged}" />
                             <TextBlock
                                 Width="auto"
@@ -255,7 +255,7 @@
                                 VerticalAlignment="Center"
                                 FontFamily="/Fonts/#Albert Sans"
                                 FontSize="13"
-                                Foreground="{StaticResource BorderMutedBrush}"
+                                Foreground="{StaticResource TextMutedBrush}"
                                 Text="sec" />
                         </StackPanel>
                     </StackPanel>
@@ -291,7 +291,7 @@
                                 VerticalAlignment="Center"
                                 FontFamily="/Fonts/#Albert Sans"
                                 FontSize="13"
-                                Foreground="{StaticResource BorderMutedBrush}"
+                                Foreground="{StaticResource TextMutedBrush}"
                                 Text="{Binding ChatSettings.ChattingUpdateRate, UpdateSourceTrigger=PropertyChanged}" />
                             <TextBlock
                                 Width="auto"
@@ -299,7 +299,7 @@
                                 VerticalAlignment="Center"
                                 FontFamily="/Fonts/#Albert Sans"
                                 FontSize="13"
-                                Foreground="{StaticResource BorderMutedBrush}"
+                                Foreground="{StaticResource TextMutedBrush}"
                                 Text="sec" />
                         </StackPanel>
                     </StackPanel>

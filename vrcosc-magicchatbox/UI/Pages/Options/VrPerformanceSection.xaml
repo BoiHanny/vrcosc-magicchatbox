@@ -336,7 +336,7 @@
                     <TextBlock
                         FontFamily="/Fonts/#Albert Sans"
                         FontSize="12"
-                        Foreground="{StaticResource BorderMutedBrush}"
+                        Foreground="{StaticResource TextMutedBrush}"
                         Text="{Binding StatusText}"
                         TextWrapping="Wrap" />
                 </StackPanel>

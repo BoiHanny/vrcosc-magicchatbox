@@ -212,7 +212,7 @@
                         VerticalAlignment="Center"
                         FontFamily="/Fonts/#Albert Sans"
                         FontSize="13"
-                        Foreground="{StaticResource BorderMutedBrush}"
+                        Foreground="{StaticResource TextMutedBrush}"
                         Text="{Binding AppSettings.ScanningInterval}" />
                     <TextBlock
                         Width="auto"
@@ -220,7 +220,7 @@
                         VerticalAlignment="Center"
                         FontFamily="/Fonts/#Albert Sans"
                         FontSize="13"
-                        Foreground="{StaticResource BorderMutedBrush}"
+                        Foreground="{StaticResource TextMutedBrush}"
                         Text="sec" />
                 </StackPanel>
 

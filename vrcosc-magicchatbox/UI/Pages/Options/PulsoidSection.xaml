@@ -806,7 +806,7 @@
                                     VerticalAlignment="Center"
                                     FontFamily="/Fonts/#Albert Sans"
                                     FontSize="13"
-                                    Foreground="{StaticResource BorderMutedBrush}"
+                                    Foreground="{StaticResource TextMutedBrush}"
                                     Text="Quick" />
                                 <Slider
                                     x:Name="HeartRateTrendIndicatorSensitivitySlider"
@@ -823,7 +823,7 @@
                                     VerticalAlignment="Center"
                                     FontFamily="/Fonts/#Albert Sans"
                                     FontSize="13"
-                                    Foreground="{StaticResource BorderMutedBrush}"
+                                    Foreground="{StaticResource TextMutedBrush}"
                                     Text="Slow" />
                             </StackPanel>
                         </StackPanel>

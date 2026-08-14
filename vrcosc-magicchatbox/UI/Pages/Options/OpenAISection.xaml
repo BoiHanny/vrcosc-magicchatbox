@@ -476,7 +476,7 @@
                                 VerticalAlignment="Center"
                                 FontFamily="/Fonts/#Albert Sans"
                                 FontSize="15"
-                                Foreground="{StaticResource BorderMutedBrush}"
+                                Foreground="{StaticResource TextMutedBrush}"
                                 Text="{Binding Modules.Whisper.Settings.NoiseGateThreshold, UpdateSourceTrigger=PropertyChanged}" />
 
                         </StackPanel>
