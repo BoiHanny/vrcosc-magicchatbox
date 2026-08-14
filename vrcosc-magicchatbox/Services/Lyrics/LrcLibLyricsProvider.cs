@@ -12,6 +12,9 @@ using vrcosc_magicchatbox.Classes.Modules.Lyrics;
 
 namespace vrcosc_magicchatbox.Services.Lyrics;
 
+/// <summary>One attempt in the lookup ladder, and how much slack its results have earned.</summary>
+public readonly record struct LyricsLookupStep(string Url, bool RequiresCloseDuration);
+
 public sealed class LrcLibLyricsProvider : ILyricsProvider
 {
     public const string BaseUrl = "https://lrclib.net";
@@ -21,15 +24,20 @@ public sealed class LrcLibLyricsProvider : ILyricsProvider
 
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly string _userAgent;
+    private readonly Func<LyricsSettings?> _settings;
     private readonly SemaphoreSlim _gate = new(1, 1);
 
     private DateTime _nextAllowedRequestUtc = DateTime.MinValue;
     private DateTime _backoffUntilUtc = DateTime.MinValue;
 
-    public LrcLibLyricsProvider(IHttpClientFactory httpClientFactory, string appVersion)
+    public LrcLibLyricsProvider(
+        IHttpClientFactory httpClientFactory,
+        string appVersion,
+        Func<LyricsSettings?>? settings = null)
     {
         _httpClientFactory = httpClientFactory;
         _userAgent = $"MagicChatBox/{appVersion} (https://github.com/BoiHanny/vrcosc-magicchatbox)";
+        _settings = settings ?? (() => null);
     }
 
     public string Name => ProviderName;
@@ -47,28 +55,28 @@ public sealed class LrcLibLyricsProvider : ILyricsProvider
             if (DateTime.UtcNow < _backoffUntilUtc)
                 return null;
 
-            await RespectSpacingAsync(ct).ConfigureAwait(false);
+            var settings = _settings();
+            var strictness = settings?.MatchStrictness ?? LyricsMatchStrictness.Balanced;
+            bool broaden = settings?.BroadenSearchWhenNoMatch ?? true;
 
-            var direct = await GetDirectAsync(query, includeDuration: query.Duration > TimeSpan.Zero, ct)
-                .ConfigureAwait(false);
-            if (direct != null)
-                return direct;
-
-            if (query.Duration > TimeSpan.Zero)
+            foreach (LyricsLookupStep step in BuildLookupSteps(query, broaden))
             {
+                if (DateTime.UtcNow < _backoffUntilUtc)
+                    return null;
+
                 await RespectSpacingAsync(ct).ConfigureAwait(false);
-                direct = await GetDirectAsync(query, includeDuration: false, ct).ConfigureAwait(false);
-                if (direct != null)
-                    return direct;
+
+                string? body = await SendAsync(step.Url, ct).ConfigureAwait(false);
+                if (body == null)
+                    continue;
+
+                var options = LyricsMatchOptions.For(strictness, step.RequiresCloseDuration);
+                var track = ParseResponse(body, query, options);
+                if (track != null)
+                    return track;
             }
 
-            await RespectSpacingAsync(ct).ConfigureAwait(false);
-            var searched = await SearchAsync(query, structured: true, ct).ConfigureAwait(false);
-            if (searched != null)
-                return searched;
-
-            await RespectSpacingAsync(ct).ConfigureAwait(false);
-            return await SearchAsync(query, structured: false, ct).ConfigureAwait(false);
+            return null;
         }
         catch (OperationCanceledException)
         {
@@ -85,52 +93,103 @@ public sealed class LrcLibLyricsProvider : ILyricsProvider
         }
     }
 
-    private async Task<LyricTrack?> GetDirectAsync(LyricsQuery query, bool includeDuration, CancellationToken ct)
+    /// <summary>
+    /// Every lookup worth trying, most specific first, stopping as soon as one answers. The later
+    /// rungs give up detail - the version, then all but the lead artist - because the plain and the
+    /// versioned spelling of one recording can be separate entries with only one carrying synced
+    /// lyrics. Once detail is gone the running time has to agree closely.
+    /// </summary>
+    public static IReadOnlyList<LyricsLookupStep> BuildLookupSteps(LyricsQuery query, bool allowBroadening = true)
     {
-        string url = $"{BaseUrl}/api/get"
-                   + $"?track_name={Uri.EscapeDataString(query.Title)}"
-                   + $"&artist_name={Uri.EscapeDataString(query.Artist)}";
+        var steps = new List<LyricsLookupStep>();
 
-        if (query.Album.Length > 0)
-            url += $"&album_name={Uri.EscapeDataString(query.Album)}";
+        void Add(string url, bool requiresCloseDuration)
+        {
+            if (!steps.Any(s => string.Equals(s.Url, url, StringComparison.Ordinal)))
+                steps.Add(new LyricsLookupStep(url, requiresCloseDuration));
+        }
 
-        if (includeDuration)
-            url += $"&duration={(int)Math.Round(query.Duration.TotalSeconds)}";
+        string title = query.Title;
+        string artist = query.Artist;
+        string baseTitle = TitleQualifier.BaseTitle(title);
+        string primaryArtist = TitleQualifier.PrimaryArtist(artist);
 
-        string? body = await SendAsync(url, ct).ConfigureAwait(false);
-        if (body == null)
-            return null;
+        // Full title: it still identifies the recording, so the usual tolerance holds.
+        Add(Direct(title, artist, query.Album, query.Duration), false);
+        if (query.Duration > TimeSpan.Zero)
+            Add(Direct(title, artist, query.Album, TimeSpan.Zero), false);
 
-        return ParseRecord(JObject.Parse(body));
+        Add(Structured(title, artist), false);
+        Add(Keyword($"{artist} {title}"), false);
+
+        if (!allowBroadening)
+            return steps;
+
+        // Detail dropped from here on, so the length has to carry the proof.
+        if (baseTitle.Length > 0 && !string.Equals(baseTitle, title, StringComparison.OrdinalIgnoreCase))
+        {
+            Add(Structured(baseTitle, artist), true);
+            Add(Keyword($"{artist} {baseTitle}"), true);
+        }
+
+        if (primaryArtist.Length > 0 && !string.Equals(primaryArtist, artist, StringComparison.OrdinalIgnoreCase))
+            Add(Keyword($"{primaryArtist} {(baseTitle.Length > 0 ? baseTitle : title)}"), true);
+
+        return steps;
     }
 
-    private async Task<LyricTrack?> SearchAsync(LyricsQuery query, bool structured, CancellationToken ct)
+    private static string Direct(string title, string artist, string album, TimeSpan duration)
     {
-        string url = structured
-            ? $"{BaseUrl}/api/search"
-                + $"?track_name={Uri.EscapeDataString(query.Title)}"
-                + $"&artist_name={Uri.EscapeDataString(query.Artist)}"
-            : $"{BaseUrl}/api/search"
-                + $"?q={Uri.EscapeDataString($"{query.Artist} {query.Title}")}";
+        string url = $"{BaseUrl}/api/get"
+                   + $"?track_name={Uri.EscapeDataString(title)}"
+                   + $"&artist_name={Uri.EscapeDataString(artist)}";
 
-        string? body = await SendAsync(url, ct).ConfigureAwait(false);
-        if (body == null)
-            return null;
+        if (album.Length > 0)
+            url += $"&album_name={Uri.EscapeDataString(album)}";
 
-        var results = JArray.Parse(body);
-        var best = PickBest(results, query);
+        if (duration > TimeSpan.Zero)
+            url += $"&duration={(int)Math.Round(duration.TotalSeconds)}";
 
+        return url;
+    }
+
+    private static string Structured(string title, string artist)
+        => $"{BaseUrl}/api/search"
+         + $"?track_name={Uri.EscapeDataString(title)}"
+         + $"&artist_name={Uri.EscapeDataString(artist)}";
+
+    private static string Keyword(string q)
+        => $"{BaseUrl}/api/search?q={Uri.EscapeDataString(q)}";
+
+    /// <summary>
+    /// Handles both shapes the API returns. A single record is scored rather than trusted: asking
+    /// without a duration lets the server pick the version, and the wrong one is worse than none.
+    /// </summary>
+    public static LyricTrack? ParseResponse(string body, LyricsQuery query, LyricsMatchOptions options = default)
+    {
+        JToken token = JToken.Parse(body);
+
+        var records = token switch
+        {
+            JArray array => array.OfType<JObject>().ToList(),
+            JObject record => [record],
+            _ => [],
+        };
+
+        var best = PickBest(records, query, options);
         return best == null ? null : ParseRecord(best);
     }
 
-    public static JObject? PickBest(JArray results, LyricsQuery query)
+    public static JObject? PickBest(
+        IReadOnlyList<JObject> records,
+        LyricsQuery query,
+        LyricsMatchOptions options = default)
     {
-        var records = results.OfType<JObject>().ToList();
         if (records.Count == 0)
             return null;
 
         var candidates = records.Select(ToCandidate).ToList();
-        var match = LyricsMatchScorer.PickBest(candidates, query);
+        var match = LyricsMatchScorer.PickBest(candidates, query, options);
 
         if (match.Index < 0)
         {

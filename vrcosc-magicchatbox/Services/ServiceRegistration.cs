@@ -90,7 +90,8 @@ public static class ServiceRegistration
                         : string.Empty),
                 new Services.Lyrics.LrcLibLyricsProvider(
                     sp.GetRequiredService<System.Net.Http.IHttpClientFactory>(),
-                    sp.GetRequiredService<IAppInfoService>().GetApplicationVersion()),
+                    sp.GetRequiredService<IAppInfoService>().GetApplicationVersion(),
+                    () => sp.GetRequiredService<ISettingsProvider<Classes.Modules.Lyrics.LyricsSettings>>().Value),
             },
             () => sp.GetRequiredService<IPrivacyConsentService>().IsApproved(PrivacyHook.InternetAccess)));
         services.AddSingleton<AppUpdateState>();
