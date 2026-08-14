@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Globalization;
-using System.Linq;
 using vrcosc_magicchatbox.Classes.DataAndSecurity;
 using vrcosc_magicchatbox.Classes.Modules;
 using vrcosc_magicchatbox.Core.Configuration;
@@ -17,35 +16,28 @@ public sealed class TimeFormattingService : ITimeFormattingService
         _ts = timeSettingsProvider.Value;
     }
 
-    public string GetFormattedCurrentTime()
+    public string GetFormattedCurrentTime() => GetFormattedTime(DateTimeOffset.Now);
+
+    // Takes the instant so the daylight saving behaviour can be checked at any point in the year.
+    public string GetFormattedTime(DateTimeOffset instant)
     {
         try
         {
-            DateTimeOffset localDateTime = DateTimeOffset.Now;
+            // Without a custom zone the machine's own clock is what we report.
+            var (zone, standardAbbr, daylightAbbr) = _ts.TimeShowTimeZone
+                ? ResolveTimeZone(_ts.SelectedTimeZone)
+                : (TimeZoneInfo.Local, string.Empty, string.Empty);
 
-            var (timeZoneInfo, standardAbbr, daylightAbbr) = ResolveTimeZone(_ts.SelectedTimeZone);
+            // Whether daylight saving is running is the zone's business, not the user's - the
+            // setting only chooses between following the zone and staying on standard time.
+            bool isDst = _ts.UseDaylightSavingTime && zone.IsDaylightSavingTime(instant);
+            TimeSpan offset = isDst ? zone.GetUtcOffset(instant) : zone.BaseUtcOffset;
 
-            bool isDst = _ts.AutoSetDaylight
-                ? timeZoneInfo.IsDaylightSavingTime(TimeZoneInfo.ConvertTime(localDateTime, timeZoneInfo))
-                : _ts.UseDaylightSavingTime;
+            string formatted = FormatTime(instant.ToOffset(offset), _ts.Time24H);
 
-            string timezoneLabel = isDst ? daylightAbbr : standardAbbr;
-
-            var dateTimeWithZone = GetDateTimeWithZone(
-                _ts.AutoSetDaylight, _ts.TimeShowTimeZone,
-                localDateTime, timeZoneInfo,
-                out TimeSpan timeZoneOffset);
-
-            string offsetSign = timeZoneOffset < TimeSpan.Zero ? "-" : "+";
-            int totalOffsetHours = (int)timeZoneOffset.TotalHours;
-            int offsetMinutes = Math.Abs(timeZoneOffset.Minutes);
-            string offsetString = offsetMinutes == 0
-                ? $"{offsetSign}{Math.Abs(totalOffsetHours)}"
-                : $"{offsetSign}{Math.Abs(totalOffsetHours)}:{offsetMinutes:00}";
-
-            string timeZoneDisplay = $" ({timezoneLabel}{offsetString})";
-
-            return FormatTime(dateTimeWithZone, _ts.Time24H, _ts.TimeShowTimeZone, timeZoneDisplay);
+            return _ts.TimeShowTimeZone
+                ? $"{formatted} ({(isDst ? daylightAbbr : standardAbbr)}{FormatOffset(offset)})"
+                : formatted;
         }
         catch (Exception ex)
         {
@@ -54,46 +46,18 @@ public sealed class TimeFormattingService : ITimeFormattingService
         }
     }
 
-    private string FormatTime(
-        DateTimeOffset dateTimeWithZone, bool time24H, bool showTimeZone, string timeZoneDisplay)
+    private string FormatTime(DateTimeOffset dateTimeWithZone, bool time24H)
     {
         CultureInfo culture = _ts.UseSystemCulture ? CultureInfo.CurrentCulture : CultureInfo.InvariantCulture;
-        string format = time24H ? "HH:mm" : "hh:mm tt";
-        string formatted = dateTimeWithZone.ToString(format, culture);
-        return showTimeZone ? formatted + timeZoneDisplay : formatted;
+        return dateTimeWithZone.ToString(time24H ? "HH:mm" : "hh:mm tt", culture);
     }
 
-    private DateTimeOffset GetDateTimeWithZone(
-        bool autoSetDaylight, bool showTimeZone,
-        DateTimeOffset localDateTime, TimeZoneInfo tzInfo,
-        out TimeSpan offset)
+    private static string FormatOffset(TimeSpan offset)
     {
-        if (autoSetDaylight)
-        {
-            if (showTimeZone)
-            {
-                offset = tzInfo.GetUtcOffset(localDateTime);
-                return TimeZoneInfo.ConvertTime(localDateTime, tzInfo);
-            }
-            else
-            {
-                offset = TimeZoneInfo.Local.GetUtcOffset(localDateTime);
-                return localDateTime;
-            }
-        }
-        else
-        {
-            offset = tzInfo.BaseUtcOffset;
-            if (_ts.UseDaylightSavingTime)
-            {
-                var rules = tzInfo.GetAdjustmentRules();
-                var matchingRule = rules.FirstOrDefault(r =>
-                    localDateTime.DateTime >= r.DateStart && localDateTime.DateTime <= r.DateEnd);
-                TimeSpan adjustment = matchingRule?.DaylightDelta ?? TimeSpan.Zero;
-                offset = offset.Add(adjustment);
-            }
-            return localDateTime.ToOffset(offset);
-        }
+        string sign = offset < TimeSpan.Zero ? "-" : "+";
+        int hours = Math.Abs((int)offset.TotalHours);
+        int minutes = Math.Abs(offset.Minutes);
+        return minutes == 0 ? $"{sign}{hours}" : $"{sign}{hours}:{minutes:00}";
     }
 
     private static (TimeZoneInfo Info, string Standard, string Daylight) ResolveTimeZone(Timezone tz) => tz switch

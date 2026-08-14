@@ -35,8 +35,9 @@ public partial class TimeSettings : VersionedSettings
     [ObservableProperty] private bool _prefixTime = false;
     [ObservableProperty] private bool _timeShowTimeZone = false;
     [ObservableProperty] private Timezone _selectedTimeZone = Timezone.UTC;
+    // Daylight saving follows the zone's own rules; this only picks between following them
+    // and staying on standard time all year.
     [ObservableProperty] private bool _useDaylightSavingTime = true;
-    [ObservableProperty] private bool _autoSetDaylight = true;
     [ObservableProperty] private bool _useSystemCulture = false;
     [ObservableProperty] private DateTime _bussyBoysDate = DateTime.Now;
     [ObservableProperty] private bool _bussyBoysDateEnable = false;

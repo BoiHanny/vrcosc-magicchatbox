@@ -61,16 +61,11 @@
                     IsChecked="{Binding TimeSettings.UseSystemCulture, Mode=TwoWay}"
                     Style="{DynamicResource SettingsCheckbox}" />
                 <CheckBox
-                    x:Name="AutoSetDaylight_checkbox"
-                    Content="Automatically apply daylight saving time"
-                    IsChecked="{Binding TimeSettings.AutoSetDaylight, Mode=TwoWay}"
-                    Style="{DynamicResource SettingsCheckbox}" />
-                <CheckBox
                     x:Name="DaylightSavingTime_checkbox"
-                    Content="Apply daylight saving time"
+                    Content="Follow daylight saving time"
                     IsChecked="{Binding TimeSettings.UseDaylightSavingTime, Mode=TwoWay}"
-                    Style="{DynamicResource SettingsCheckbox}"
-                    Visibility="{Binding TimeSettings.AutoSetDaylight, Converter={StaticResource InverseBoolToVisibilityConverter}, UpdateSourceTrigger=PropertyChanged}" />
+                    Style="{DynamicResource SettingsCheckbox}" />
+                <TextBlock Style="{StaticResource OptionHelpTextStyle}" Text="Switches with the daylight saving period of the time zone in use. Turn off to stay on standard time all year." />
                 <CheckBox
                     x:Name="TimeShowTimeZone_checkbox"
                     Content="Use a custom time zone"
