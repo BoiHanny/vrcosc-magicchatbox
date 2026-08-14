@@ -66,11 +66,6 @@ public partial class PulsoidModule : ObservableObject, IModule
     private readonly TimeSpan _stateChangeDebounce = TimeSpan.FromSeconds(2);
     private int _unchangedHeartRateCount = 0;
 
-    [ObservableProperty]
-    private string formattedHighHeartRateText;
-
-    [ObservableProperty]
-    private string formattedLowHeartRateText;
     private bool GotReadingThisInterval = false;
 
     [ObservableProperty]
@@ -576,7 +571,6 @@ public partial class PulsoidModule : ObservableObject, IModule
 
         var cts = new CancellationTokenSource();
         _cts = cts;
-        UpdateFormattedHeartRateText();
 
         try
         {
@@ -633,7 +627,7 @@ public partial class PulsoidModule : ObservableObject, IModule
             });
         }
 
-        Settings.HeartRateIcon = GetSanitizedHeartRateIcon(Settings.HeartRateIcon);
+        Settings.HeartRateIcon = GetSanitizedHeartRateIcon(Settings, Settings.HeartRateIcon);
 
         if (Settings.MagicHeartRateIcons && Settings.HeartIcons != null && Settings.HeartIcons.Count > 0)
         {
@@ -679,81 +673,83 @@ public partial class PulsoidModule : ObservableObject, IModule
     }
 
     public string GetHeartRateString()
+        => BuildHeartRateString(Settings, HeartRate, PulsoidDeviceOnline, PulsoidStatistics);
+
+    /// <summary>
+    /// Pure formatter for the chatbox segment. Every number stays at full size and only the word
+    /// beside it is raised — the beats per minute is the part the reader came for.
+    /// </summary>
+    public static string BuildHeartRateString(
+        PulsoidModuleSettings settings,
+        int heartRate,
+        bool deviceOnline,
+        PulsoidStatisticsResponse stats)
     {
-        if (Settings.EnableHeartRateOfflineCheck && !PulsoidDeviceOnline)
+        if (settings.EnableHeartRateOfflineCheck && !deviceOnline)
             return string.Empty;
 
-        if (HeartRate <= 0)
+        if (heartRate <= 0)
             return string.Empty;
 
         StringBuilder displayTextBuilder = new StringBuilder();
 
-        if (Settings.MagicHeartIconPrefix)
+        if (settings.MagicHeartIconPrefix)
         {
-            displayTextBuilder.Append(GetHeartRatePrefixText());
+            displayTextBuilder.Append(GetHeartRatePrefixText(settings, heartRate));
         }
 
         bool showCurrentHeartRate = true;
 
-        if (Settings.PulsoidStatsEnabled)
+        if (settings.PulsoidStatsEnabled)
         {
-            showCurrentHeartRate = !Settings.HideCurrentHeartRate;
+            showCurrentHeartRate = !settings.HideCurrentHeartRate;
         }
 
         if (showCurrentHeartRate)
         {
-            displayTextBuilder.Append(" " + HeartRate.ToString());
+            displayTextBuilder.Append(" " + heartRate.ToString());
 
-            if (Settings.ShowBPMSuffix)
+            if (settings.ShowBPMSuffix)
             {
-                displayTextBuilder.Append(" bpm");
+                displayTextBuilder.Append(" " + TextUtilities.TransformToSuperscript("bpm"));
             }
         }
 
-        if (Settings.ShowHeartRateTrendIndicator && !Settings.TrendIndicatorBehindStats)
+        if (settings.ShowHeartRateTrendIndicator && !settings.TrendIndicatorBehindStats)
         {
-            displayTextBuilder.Append($" {Settings.HeartRateTrendIndicator}");
+            displayTextBuilder.Append($" {settings.HeartRateTrendIndicator}");
         }
 
-        if (Settings.PulsoidStatsEnabled && PulsoidStatistics != null)
+        if (settings.PulsoidStatsEnabled && stats != null)
         {
             List<string> statsList = new List<string>();
 
-            if (Settings.ShowCalories)
+            if (settings.ShowCalories)
             {
-                statsList.Add($"{PulsoidStatistics.calories_burned_in_kcal} kcal");
+                statsList.Add(Stat(stats.calories_burned_in_kcal.ToString(), "kcal"));
             }
-            if (Settings.ShowAverageHeartRate)
+            if (settings.ShowAverageHeartRate)
             {
-                statsList.Add($"{PulsoidStatistics.average_beats_per_minute} Avg");
+                statsList.Add(Stat(stats.average_beats_per_minute.ToString(), "avg"));
             }
-            if (Settings.ShowMaximumHeartRate)
+            if (settings.ShowMaximumHeartRate)
             {
-                statsList.Add($"{PulsoidStatistics.maximum_beats_per_minute} Max");
+                statsList.Add(Stat(stats.maximum_beats_per_minute.ToString(), "max"));
             }
-            if (Settings.ShowMinimumHeartRate)
+            if (settings.ShowMinimumHeartRate)
             {
-                statsList.Add($"{PulsoidStatistics.minimum_beats_per_minute} Min");
+                statsList.Add(Stat(stats.minimum_beats_per_minute.ToString(), "min"));
             }
-            if (Settings.ShowDuration)
+            if (settings.ShowDuration)
             {
-                TimeSpan duration = TimeSpan.FromSeconds(PulsoidStatistics.streamed_duration_in_seconds);
+                TimeSpan duration = TimeSpan.FromSeconds(stats.streamed_duration_in_seconds);
                 string formattedDuration = duration.ToString(@"hh\:mm\:ss");
 
-                if (Settings.ShowStatsTimeRange)
-                {
-                    string timeRangeDescription = Settings.SelectedStatisticsTimeRange.GetDescription();
-                    statsList.Add($"duration over {timeRangeDescription} {formattedDuration} ");
-                }
-                else
-                {
-                    statsList.Add($"duration {formattedDuration}");
-                }
-            }
+                string durationLabel = settings.ShowStatsTimeRange
+                    ? $"duration over {settings.SelectedStatisticsTimeRange.GetDescription()}"
+                    : "duration";
 
-            for (int i = 0; i < statsList.Count; i++)
-            {
-                statsList[i] = TextUtilities.TransformToSuperscript(statsList[i]);
+                statsList.Add(Stat(formattedDuration, durationLabel));
             }
 
             if (statsList.Count > 0)
@@ -763,47 +759,51 @@ public partial class PulsoidModule : ObservableObject, IModule
             }
         }
 
-        if (Settings.ShowHeartRateTrendIndicator && Settings.TrendIndicatorBehindStats)
+        if (settings.ShowHeartRateTrendIndicator && settings.TrendIndicatorBehindStats)
         {
-            displayTextBuilder.Append($" {Settings.HeartRateTrendIndicator}");
+            displayTextBuilder.Append($" {settings.HeartRateTrendIndicator}");
         }
 
-        if (Settings.HeartRateTitle)
+        if (settings.HeartRateTitle)
         {
-            string titleSeparator = Settings.SeparateTitleWithEnter ? "\v" : ": ";
-            string hrTitle = Settings.CurrentHeartRateTitle + titleSeparator;
+            string titleSeparator = settings.SeparateTitleWithEnter ? "\v" : ": ";
+            string hrTitle = settings.CurrentHeartRateTitle + titleSeparator;
             displayTextBuilder.Insert(0, hrTitle);
         }
 
         return displayTextBuilder.ToString();
     }
 
-    private string GetHeartRatePrefixText()
+    /// <summary>One statistic, value first and full size, label raised behind it.</summary>
+    private static string Stat(string value, string label)
+        => $"{value} {TextUtilities.TransformToSuperscript(label)}";
+
+    private static string GetHeartRatePrefixText(PulsoidModuleSettings settings, int hr)
     {
-        string heartIcon = GetSanitizedHeartRateIcon(Settings.HeartRateIcon);
-        string statusText = GetTemperatureStatusText(HeartRate);
+        string heartIcon = GetSanitizedHeartRateIcon(settings, settings.HeartRateIcon);
+        string statusText = GetTemperatureStatusText(settings, hr);
         return heartIcon + statusText;
     }
 
-    private string GetTemperatureStatusText(int hr)
+    private static string GetTemperatureStatusText(PulsoidModuleSettings settings, int hr)
     {
-        if (!Settings.ShowTemperatureText)
+        if (!settings.ShowTemperatureText)
             return string.Empty;
 
-        if (hr < Settings.LowTemperatureThreshold)
-            return FormattedLowHeartRateText;
+        if (hr < settings.LowTemperatureThreshold)
+            return TextUtilities.TransformToSuperscript(settings.LowHeartRateText);
 
-        if (hr >= Settings.HighTemperatureThreshold)
-            return FormattedHighHeartRateText;
+        if (hr >= settings.HighTemperatureThreshold)
+            return TextUtilities.TransformToSuperscript(settings.HighHeartRateText);
 
         return string.Empty;
     }
 
-    private string GetSanitizedHeartRateIcon(string icon)
+    private static string GetSanitizedHeartRateIcon(PulsoidModuleSettings settings, string icon)
     {
         string sanitized = icon ?? string.Empty;
-        sanitized = StripRepeatedSuffix(sanitized, FormattedLowHeartRateText);
-        sanitized = StripRepeatedSuffix(sanitized, FormattedHighHeartRateText);
+        sanitized = StripRepeatedSuffix(sanitized, TextUtilities.TransformToSuperscript(settings.LowHeartRateText));
+        sanitized = StripRepeatedSuffix(sanitized, TextUtilities.TransformToSuperscript(settings.HighHeartRateText));
         return sanitized;
     }
 
@@ -1074,12 +1074,6 @@ public partial class PulsoidModule : ObservableObject, IModule
     {
         if (_appState.PulsoidAuthState is PulsoidAuthState.Authenticated or PulsoidAuthState.Unverified)
             _appState.PulsoidAuthState = PulsoidAuthState.Unreachable;
-    }
-
-    public void UpdateFormattedHeartRateText()
-    {
-        FormattedLowHeartRateText = TextUtilities.TransformToSuperscript(Settings.LowHeartRateText);
-        FormattedHighHeartRateText = TextUtilities.TransformToSuperscript(Settings.HighHeartRateText);
     }
 
     public void Dispose()

@@ -583,14 +583,27 @@ public sealed partial class TwitchModule : ObservableObject, IModule
     }
 
     private string BuildOutputString()
+        => BuildOutputString(Settings, GameName, ViewerCount, FollowerCount, StreamTitle, IsLive);
+
+    /// <summary>
+    /// Pure formatter for the chatbox segment — everything it reads is passed in, so the
+    /// value/label rule can be exercised without a live channel.
+    /// </summary>
+    public static string BuildOutputString(
+        TwitchSettings settings,
+        string gameName,
+        int viewerCount,
+        int followerCount,
+        string streamTitle,
+        bool isLive)
     {
-        if (!IsLive)
+        if (!isLive)
         {
-            return Settings.OfflineMessage ?? string.Empty;
+            return settings.OfflineMessage ?? string.Empty;
         }
 
-        TwitchTokens tokens = BuildTokens();
-        string template = NormalizeTemplate(Settings.Template);
+        TwitchTokens tokens = BuildTokens(settings, gameName, viewerCount, followerCount, streamTitle, isLive);
+        string template = NormalizeTemplate(settings.Template);
         if (!string.IsNullOrWhiteSpace(template))
         {
             string templated = ApplyTemplate(template, tokens);
@@ -607,7 +620,7 @@ public sealed partial class TwitchModule : ObservableObject, IModule
             tokens.ChannelWithLabel
         };
 
-        string separator = NormalizeSeparator(Settings.Separator);
+        string separator = NormalizeSeparator(settings.Separator);
         if (string.IsNullOrWhiteSpace(separator))
         {
             separator = " | ";
@@ -666,43 +679,50 @@ public sealed partial class TwitchModule : ObservableObject, IModule
         });
     }
 
-    private TwitchTokens BuildTokens()
+    private static TwitchTokens BuildTokens(
+        TwitchSettings settings,
+        string gameName,
+        int viewers,
+        int followers,
+        string streamTitle,
+        bool isLive)
     {
-        bool useSmallText = Settings.UseSmallText;
+        bool useSmallText = settings.UseSmallText;
 
+        // The live marker is the one word on the line that has to be spotted, so it is never
+        // raised. Small text is for the labels sitting beside a value.
         string live = string.Empty;
-        if (Settings.ShowLiveIndicator)
+        if (settings.ShowLiveIndicator)
         {
-            string livePrefix = string.IsNullOrWhiteSpace(Settings.LivePrefix) ? string.Empty : Settings.LivePrefix.Trim();
-            live = useSmallText ? ToSmallTextPreserveEmoji(livePrefix) : livePrefix;
+            live = string.IsNullOrWhiteSpace(settings.LivePrefix) ? string.Empty : settings.LivePrefix.Trim();
         }
 
-        string game = Settings.ShowGameName ? GameName : string.Empty;
-        string gameLabelSource = string.IsNullOrWhiteSpace(Settings.GamePrefix) ? string.Empty : Settings.GamePrefix.Trim();
+        string game = settings.ShowGameName ? gameName : string.Empty;
+        string gameLabelSource = string.IsNullOrWhiteSpace(settings.GamePrefix) ? string.Empty : settings.GamePrefix.Trim();
         string gameLabel = useSmallText ? ToSmallTextPreserveEmoji(gameLabelSource) : gameLabelSource;
         string gameWithLabel = BuildLabeledValue(gameLabel, game);
 
-        string viewerCount = Settings.ShowViewerCount ? FormatViewerCount(ViewerCount, Settings.ViewerCountCompact) : string.Empty;
-        string viewerLabelSource = Settings.ShowViewerLabel && !string.IsNullOrWhiteSpace(Settings.ViewerLabel)
-            ? Settings.ViewerLabel.Trim()
+        string viewerCount = settings.ShowViewerCount ? FormatViewerCount(viewers, settings.ViewerCountCompact) : string.Empty;
+        string viewerLabelSource = settings.ShowViewerLabel && !string.IsNullOrWhiteSpace(settings.ViewerLabel)
+            ? settings.ViewerLabel.Trim()
             : string.Empty;
         string viewerLabel = useSmallText ? ToSmallTextPreserveEmoji(viewerLabelSource) : viewerLabelSource;
         string viewersWithLabel = BuildLabeledValue(viewerLabel, viewerCount);
 
-        string followerCount = Settings.ShowFollowerCount ? FormatViewerCount(FollowerCount, Settings.FollowerCountCompact) : string.Empty;
-        string followerLabelSource = Settings.ShowFollowerLabel && !string.IsNullOrWhiteSpace(Settings.FollowerLabel)
-            ? Settings.FollowerLabel.Trim()
+        string followerCount = settings.ShowFollowerCount ? FormatViewerCount(followers, settings.FollowerCountCompact) : string.Empty;
+        string followerLabelSource = settings.ShowFollowerLabel && !string.IsNullOrWhiteSpace(settings.FollowerLabel)
+            ? settings.FollowerLabel.Trim()
             : string.Empty;
         string followerLabel = useSmallText ? ToSmallTextPreserveEmoji(followerLabelSource) : followerLabelSource;
         string followersWithLabel = BuildLabeledValue(followerLabel, followerCount);
 
-        string title = Settings.ShowStreamTitle ? StreamTitle : string.Empty;
-        string titleLabelSource = string.IsNullOrWhiteSpace(Settings.StreamTitlePrefix) ? string.Empty : Settings.StreamTitlePrefix.Trim();
+        string title = settings.ShowStreamTitle ? streamTitle : string.Empty;
+        string titleLabelSource = string.IsNullOrWhiteSpace(settings.StreamTitlePrefix) ? string.Empty : settings.StreamTitlePrefix.Trim();
         string titleLabel = useSmallText ? ToSmallTextPreserveEmoji(titleLabelSource) : titleLabelSource;
         string titleWithLabel = BuildLabeledValue(titleLabel, title);
 
-        string channel = Settings.ShowChannelName ? Settings.ChannelName?.Trim() : string.Empty;
-        string channelLabelSource = string.IsNullOrWhiteSpace(Settings.ChannelPrefix) ? string.Empty : Settings.ChannelPrefix.Trim();
+        string channel = settings.ShowChannelName ? settings.ChannelName?.Trim() : string.Empty;
+        string channelLabelSource = string.IsNullOrWhiteSpace(settings.ChannelPrefix) ? string.Empty : settings.ChannelPrefix.Trim();
         string channelLabel = useSmallText ? ToSmallTextPreserveEmoji(channelLabelSource) : channelLabelSource;
         string channelWithLabel = BuildLabeledValue(channelLabel, channel);
 
@@ -720,7 +740,7 @@ public sealed partial class TwitchModule : ObservableObject, IModule
             titleWithLabel,
             channel,
             channelWithLabel,
-            IsLive ? "live" : "offline");
+            isLive ? "live" : "offline");
     }
 
     private static string BuildLabeledValue(string label, string value)

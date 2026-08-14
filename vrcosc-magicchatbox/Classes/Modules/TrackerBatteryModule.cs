@@ -308,46 +308,7 @@ namespace vrcosc_magicchatbox.Classes.Modules
                 int lowThreshold = GetLowThreshold(device);
                 bool isLow = device.IsConnected && device.BatteryPercentage <= lowThreshold;
 
-                string displayName = string.IsNullOrWhiteSpace(device.DisplayName)
-                    ? (device.SerialNumber ?? "Device")
-                    : device.DisplayName;
-
-                string batteryText;
-                if (device.IsCharging)
-                {
-                    batteryText = "+" + device.BatteryPercentage.ToString(CultureInfo.InvariantCulture);
-                }
-                else
-                {
-                    batteryText = device.IsConnected
-                        ? device.BatteryPercentage.ToString(CultureInfo.InvariantCulture)
-                        : Settings.OfflineBatteryText;
-                }
-
-                string statusText = device.IsConnected
-                    ? (device.IsCharging ? "Charging" : Settings.OnlineText)
-                    : Settings.OfflineText;
-
-                string lowTag = (isLow && !device.IsCharging)
-                    ? Settings.LowTag
-                    : string.Empty;
-
-                string entry = template
-                    .Replace("{icon}", device.CustomIcon ?? string.Empty)
-                    .Replace("{name}", displayName)
-                    .Replace("{batt}", batteryText ?? string.Empty)
-                    .Replace("{status}", statusText ?? string.Empty)
-                    .Replace("{low}", lowTag ?? string.Empty)
-                    .Replace("{kind}", device.DeviceKind ?? string.Empty)
-                    .Replace("{serial}", device.SerialNumber ?? string.Empty)
-                    .Replace("{model}", device.OriginalModelName ?? string.Empty);
-
-                if (Settings.CompactWhitespace)
-                {
-                    entry = CompactWhitespace(entry);
-                }
-
-                entry = TrimEntry(entry, Settings.MaxEntryLength);
+                string entry = BuildEntry(device, template, Settings, isLow);
 
                 if (!string.IsNullOrWhiteSpace(entry))
                 {
@@ -359,17 +320,12 @@ namespace vrcosc_magicchatbox.Classes.Modules
 
             if (!string.IsNullOrWhiteSpace(message) && !string.IsNullOrWhiteSpace(Settings.Prefix))
             {
-                message = $"{Settings.Prefix} {message}";
+                message = $"{Raise(Settings.Prefix, Settings.UseSmallText)} {message}";
             }
 
             if (!string.IsNullOrWhiteSpace(message) && !string.IsNullOrWhiteSpace(Settings.Suffix))
             {
-                message = $"{message} {Settings.Suffix}";
-            }
-
-            if (!string.IsNullOrWhiteSpace(message) && Settings.UseSmallText)
-            {
-                message = ToSmallTextPreserveSymbols(message);
+                message = $"{message} {Raise(Settings.Suffix, Settings.UseSmallText)}";
             }
 
             UpdatePreview(message);
@@ -710,6 +666,70 @@ namespace vrcosc_magicchatbox.Classes.Modules
             }
 
             return System.Text.RegularExpressions.Regex.Replace(value.Trim(), @"\s+", " ");
+        }
+
+        /// <summary>
+        /// Renders one device against the template. Pure, so the value/label rule can be checked
+        /// without SteamVR running.
+        /// </summary>
+        public static string BuildEntry(TrackerDevice device, string template, TrackerBatterySettings settings, bool isLow)
+        {
+            string displayName = string.IsNullOrWhiteSpace(device.DisplayName)
+                ? (device.SerialNumber ?? "Device")
+                : device.DisplayName;
+
+            string batteryText;
+            if (device.IsCharging)
+            {
+                batteryText = "+" + device.BatteryPercentage.ToString(CultureInfo.InvariantCulture);
+            }
+            else
+            {
+                batteryText = device.IsConnected
+                    ? device.BatteryPercentage.ToString(CultureInfo.InvariantCulture)
+                    : settings.OfflineBatteryText;
+            }
+
+            string statusText = device.IsConnected
+                ? (device.IsCharging ? "Charging" : settings.OnlineText)
+                : settings.OfflineText;
+
+            string lowTag = (isLow && !device.IsCharging)
+                ? settings.LowTag
+                : string.Empty;
+
+            bool small = settings.UseSmallText;
+
+            string entry = template
+                .Replace("{icon}", device.CustomIcon ?? string.Empty)
+                .Replace("{name}", Raise(displayName, small))
+                .Replace("{batt}", batteryText ?? string.Empty)
+                .Replace("{status}", Raise(statusText, small))
+                .Replace("{low}", lowTag ?? string.Empty)
+                .Replace("{kind}", Raise(device.DeviceKind, small))
+                .Replace("{serial}", device.SerialNumber ?? string.Empty)
+                .Replace("{model}", Raise(device.OriginalModelName, small));
+
+            if (settings.CompactWhitespace)
+            {
+                entry = CompactWhitespace(entry);
+            }
+
+            return TrimEntry(entry, settings.MaxEntryLength);
+        }
+
+        /// <summary>
+        /// Small text is only ever applied to the words around a reading — the battery percentage,
+        /// the low-battery tag and the icon are what the user is looking for, so they stay full size.
+        /// </summary>
+        private static string Raise(string value, bool small)
+        {
+            if (!small || string.IsNullOrEmpty(value))
+            {
+                return value ?? string.Empty;
+            }
+
+            return ToSmallTextPreserveSymbols(value);
         }
 
         private static string ToSmallTextPreserveSymbols(string value)
