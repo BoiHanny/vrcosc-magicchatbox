@@ -1,7 +1,9 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using System;
+using System.ComponentModel;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using vrcosc_magicchatbox.Classes.DataAndSecurity;
 using vrcosc_magicchatbox.Classes.Modules;
@@ -21,6 +23,15 @@ public partial class VrcRadarSectionViewModel : ObservableObject
 
     [ObservableProperty] private bool _isStarting;
     [ObservableProperty] private string? _selectedWorldPresetName;
+
+    /// <summary>The world line as it would read from a stand-in room.</summary>
+    [ObservableProperty] private string _worldSamplePreview = string.Empty;
+
+    /// <summary>The same for someone walking in, which is the line people see most.</summary>
+    [ObservableProperty] private string _joinSamplePreview = string.Empty;
+
+    /// <summary>And the end-of-session line, which nobody can trigger on demand to check.</summary>
+    [ObservableProperty] private string _sessionStatsSamplePreview = string.Empty;
 
     public RadarDisplayMode[] DisplayModes { get; } =
     [
@@ -44,6 +55,9 @@ public partial class VrcRadarSectionViewModel : ObservableObject
         IntegrationSettings = intgrProvider.Value;
         RadarSettings = radarProvider.Value;
         _moduleHost = moduleHost;
+
+        RadarSettings.PropertyChanged += OnRadarSettingsChanged;
+        RefreshPreviews();
     }
 
     partial void OnSelectedWorldPresetNameChanged(string? value)
@@ -89,5 +103,67 @@ public partial class VrcRadarSectionViewModel : ObservableObject
         {
             Logging.WriteInfo($"VrcRadar stop error: {ex.Message}");
         }
+    }
+
+    private void OnRadarSettingsChanged(object? sender, PropertyChangedEventArgs e) => RefreshPreviews();
+
+    private void RefreshPreviews()
+    {
+        WorldSamplePreview = RadarSampleLine.Build(RadarSettings, RadarSettings.TemplateWorld);
+        JoinSamplePreview = RadarSampleLine.Build(RadarSettings, RadarSettings.TemplateJoin);
+        SessionStatsSamplePreview = RadarSampleLine.Build(RadarSettings, RadarSettings.TemplateSessionStats);
+    }
+}
+
+/// <summary>
+/// Fills a radar template with a stand-in room so the settings page can show a finished line.
+/// </summary>
+/// <remarks>
+/// The module's own renderer needs a live VRChat log behind it and a room to be in, which is the
+/// one thing a user configuring the templates does not have. This mirrors the tidy-up the module
+/// applies on the way out - the empty-field collapse in particular, because turning the instance
+/// type off is exactly the kind of change whose effect the user cannot otherwise see.
+/// </remarks>
+public static class RadarSampleLine
+{
+    public const string SampleWorld = "Midnight Rooftop";
+    public const string SamplePlayer = "Robin";
+    public const string SampleOwner = "Sam";
+    public const string SampleType = "Public";
+    public const string SampleRegion = "EU";
+
+    public static string Build(VrcLogSettings settings, string? template)
+    {
+        if (string.IsNullOrWhiteSpace(template))
+            return string.Empty;
+
+        string text = template
+            .Replace("{master}", settings.MasterIcon ?? string.Empty)
+            .Replace("{world}", SampleWorld)
+            .Replace("{count}", "14")
+            .Replace("{peak}", "22")
+            .Replace("{peak_session}", "22")
+            .Replace("{session_time}", VrcLogText.Duration(TimeSpan.FromMinutes(72)))
+            .Replace("{app_session}", VrcLogText.Duration(TimeSpan.FromMinutes(185)))
+            .Replace("{offline}", VrcLogText.Duration(TimeSpan.FromMinutes(8)))
+            .Replace("{owner}", SampleOwner)
+            .Replace("{user}", SamplePlayer)
+            .Replace("{size}", "42MB")
+            .Replace("{speed}", "8.1MB/s")
+            .Replace("{worlds}", "3")
+            .Replace("{players}", "27");
+
+        // These two are the switches directly above the template box, so the preview has to obey
+        // them or the switches look dead.
+        text = text.Replace("{type}", settings.ShowInstanceType ? SampleType : string.Empty);
+        text = text.Replace("{region}", settings.ShowRegion ? SampleRegion : string.Empty);
+
+        text = Regex.Replace(text, @"\s*\|\s*\|\s*", " | ");
+        text = Regex.Replace(text, @"(\s*\|\s*)+$", "");
+        text = Regex.Replace(text, @"^\s*\|\s*", "");
+        text = Regex.Replace(text, @"\s{2,}", " ");
+        text = text.Trim();
+
+        return text.Replace("\\n", "\n").Replace("/n", "\n");
     }
 }

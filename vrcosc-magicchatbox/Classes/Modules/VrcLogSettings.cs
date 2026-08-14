@@ -1,14 +1,28 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
+using System.ComponentModel;
 using vrcosc_magicchatbox.Core.Configuration;
 
 namespace vrcosc_magicchatbox.Classes.Modules;
 
+/// <summary>
+/// What the radar puts in the chatbox. The descriptions are what the dropdown shows - without them
+/// it listed the member names, which mean nothing to anyone who did not write them.
+/// </summary>
 public enum RadarDisplayMode
 {
+    [Description("Always show where I am")]
     AlwaysShow,
+
+    [Description("Only speak up when something happens")]
     TransientOnly,
+
+    [Description("Show where I am, and interrupt for events")]
     EventOverlay,
+
+    [Description("Only speak up when people come and go")]
     JoinLeaveOnly,
+
+    [Description("Just the world name and how many people")]
     CompactInfo
 }
 

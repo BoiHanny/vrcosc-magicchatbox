@@ -29,10 +29,19 @@ public partial class DiscordSectionViewModel : ObservableObject
 
     public DiscordSettings? DiscordModuleSettings => _moduleHost.Value.Discord?.Settings;
 
+    /// <summary>
+    /// Stand-in call for the preview. The template is edited long before anyone is in a voice
+    /// channel, and a blank preview teaches nothing about what the template will do.
+    /// </summary>
+    public const string SampleChannelName = "general";
+
+    public const int SampleChannelCount = 4;
+    public static readonly string[] SampleSpeakers = ["Robin", "Sam", "Alex"];
+
     [ObservableProperty] private bool _hasSavedToken;
     [ObservableProperty] private bool _isConnecting;
     [ObservableProperty] private string _outputPreview = string.Empty;
-    [ObservableProperty] private string _previewLengthText = $"0/{Constants.OscMaxMessageLength}";
+    [ObservableProperty] private string _notInVcPreview = string.Empty;
     [ObservableProperty] private string _statusText = "Not connected";
     [ObservableProperty] private string _redirectPortStatus = string.Empty;
     [ObservableProperty] private string? _selectedPresetName;
@@ -302,18 +311,37 @@ public partial class DiscordSectionViewModel : ObservableObject
         }
     }
 
+    /// <summary>
+    /// Renders the template against the stand-in call. Pure, so a test can hold it to the same
+    /// result the chatbox would produce from the same names.
+    /// </summary>
+    public static string BuildSampleLine(DiscordSettings settings)
+        => DiscordModule.BuildOutputString(
+            settings,
+            SampleChannelName,
+            SampleChannelCount,
+            SampleSpeakers,
+            isMuted: false,
+            isDeafened: false,
+            Constants.OscMaxMessageLength);
+
     private void RefreshPreview()
     {
         var discord = _moduleHost.Value.Discord;
         if (discord == null)
         {
             OutputPreview = string.Empty;
-            PreviewLengthText = $"0/{Constants.OscMaxMessageLength}";
+            NotInVcPreview = string.Empty;
             return;
         }
 
-        OutputPreview = discord.GetOutputString();
-        PreviewLengthText = $"{OutputPreview.Length}/{Constants.OscMaxMessageLength}";
+        // Real names once there are real names; stand-ins the rest of the time, so the template is
+        // never edited against a blank line.
+        OutputPreview = discord.IsInVoiceChannel
+            ? discord.GetOutputString()
+            : BuildSampleLine(discord.Settings);
+
+        NotInVcPreview = discord.Settings.NotInVcText ?? string.Empty;
     }
 
     private bool CopyText(string text, string successMessage, string key)
