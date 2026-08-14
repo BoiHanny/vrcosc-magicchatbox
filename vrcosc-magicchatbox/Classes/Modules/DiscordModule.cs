@@ -7,7 +7,10 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using vrcosc_magicchatbox.Classes.DataAndSecurity;
+using vrcosc_magicchatbox.Classes.Utilities;
 using vrcosc_magicchatbox.Core.Configuration;
+using vrcosc_magicchatbox.Core.Osc;
+using vrcosc_magicchatbox.Core.Osc.Text;
 using vrcosc_magicchatbox.Core.State;
 using vrcosc_magicchatbox.Services;
 
@@ -24,6 +27,19 @@ public partial class DiscordModule : ObservableObject, IModule
     private bool _disposed;
     private Timer? _channelRefreshTimer;
     private const int ChannelRefreshIntervalMs = 30_000;
+
+    // Discord allows a 100 character channel name and a 32 character nickname, and ten speakers can
+    // be shown at once. None of that was capped, so a busy voice channel could hand the builder
+    // roughly 470 characters and take every other integration off the line.
+    private const int MaxChannelChars = 24;
+    private const int MinChannelChars = 12;
+    private const int MaxSpeakerNameChars = 16;
+
+    /// <summary>
+    /// Stands in for someone whose name never arrived. The id is a snowflake and it identifies the
+    /// account it belongs to, so it is not something to print into a public chatbox.
+    /// </summary>
+    public const string UnknownSpeaker = "someone";
 
     private readonly ConcurrentDictionary<string, CancellationTokenSource> _speakerDebounce = new();
 
@@ -119,60 +135,124 @@ public partial class DiscordModule : ObservableObject, IModule
         ResetAllOscParams();
     }
 
-    public string GetOutputString()
+    public string GetOutputString(int budget = OscBuildContext.MaxOscLength)
     {
         if (!IsInVoiceChannel || string.IsNullOrEmpty(_currentChannelId))
-            return Settings.NotInVcText;
+            return SegmentWriter.Truncate(Settings.NotInVcText, budget);
 
-        string speakingStr;
-        int speakingCount;
-
+        List<string> names;
         lock (_speakLock)
         {
             var ids = Settings.HideSelfFromSpeakers && _selfUserId != null
                 ? _speakingUserIds.Where(id => id != _selfUserId)
                 : _speakingUserIds.AsEnumerable();
 
-            var names = ids.Select(id => _userNames.GetValueOrDefault(id, $"User_{id}")).ToList();
-            speakingCount = names.Count;
-
-            if (Settings.ShowUserCountOnly)
-            {
-                speakingStr = speakingCount.ToString();
-            }
-            else if (names.Count == 0)
-            {
-                speakingStr = Settings.EmptySpeakingText;
-            }
-            else
-            {
-                var shown = names.Take(Settings.MaxSpeakingUsersToShow).ToList();
-                speakingStr = string.Join(", ", shown);
-                if (names.Count > Settings.MaxSpeakingUsersToShow)
-                    speakingStr += $" (+{names.Count - Settings.MaxSpeakingUsersToShow})";
-            }
+            names = ids.Select(id => _userNames.GetValueOrDefault(id, UnknownSpeaker)).ToList();
         }
 
-        string muteEmoji = "";
-        if (Settings.ShowMuteDeafenEmoji)
-        {
-            if (IsSelfDeafened) muteEmoji = Settings.DeafenEmoji;
-            else if (IsSelfMuted) muteEmoji = Settings.MuteEmoji;
-        }
-
-        string muteState = IsSelfDeafened ? "deafened" : IsSelfMuted ? "muted" : "unmuted";
-        string voiceState = speakingCount > 0 ? "speaking" : "quiet";
-
-        return Settings.Template
-            .Replace("{channel}", CurrentChannelName)
-            .Replace("{count}", VoiceChannelCount.ToString())
-            .Replace("{speaking}", speakingStr)
-            .Replace("{speaking_count}", speakingCount.ToString())
-            .Replace("{mute_emoji}", muteEmoji)
-            .Replace("{mute_state}", muteState)
-            .Replace("{voice_state}", voiceState)
-            .Replace("\\n", "\n").Replace("/n", "\n");
+        return BuildOutputString(
+            Settings, CurrentChannelName, VoiceChannelCount, names, IsSelfMuted, IsSelfDeafened, budget);
     }
+
+    /// <summary>
+    /// Renders the user's template into a line that fits <paramref name="budget"/> characters.
+    /// </summary>
+    /// <remarks>
+    /// Every part of this comes from somewhere else - a channel name, other people's nicknames, a
+    /// head count - and none of it had a limit. The names are capped, then the speaker list gives
+    /// way before the channel does, and whatever is left is cut rather than dropped whole.
+    /// </remarks>
+    public static string BuildOutputString(
+        DiscordSettings settings,
+        string channelName,
+        int channelCount,
+        IReadOnlyList<string> speakerNames,
+        bool isMuted,
+        bool isDeafened,
+        int budget)
+    {
+        if (budget <= 0)
+            return string.Empty;
+
+        var names = speakerNames.Select(n => SegmentWriter.Truncate(n, MaxSpeakerNameChars)).ToList();
+        string channel = SegmentWriter.Truncate(channelName, MaxChannelChars);
+
+        string muteEmoji = string.Empty;
+        if (settings.ShowMuteDeafenEmoji)
+        {
+            if (isDeafened) muteEmoji = settings.DeafenEmoji;
+            else if (isMuted) muteEmoji = settings.MuteEmoji;
+        }
+
+        string muteState = isDeafened ? "deafened" : isMuted ? "muted" : "unmuted";
+        string voiceState = names.Count > 0 ? "speaking" : "quiet";
+
+        string Speakers(int show)
+        {
+            if (settings.ShowUserCountOnly)
+                return names.Count.ToString();
+
+            if (names.Count == 0)
+                return State(settings.EmptySpeakingText).Rendered;
+
+            int take = Math.Clamp(show, 1, names.Count);
+            string shown = string.Join(", ", names.Take(take));
+
+            // The names are what the reader is here for, so they stay full size. How many did not
+            // fit is not, so it is raised.
+            return names.Count > take
+                ? new SegmentWriter().Field(OscText.Value(shown), State($"(+{names.Count - take})")).Text
+                : shown;
+        }
+
+        string Render(string channelText, string speakingText)
+            => settings.Template
+                .Replace("{channel}", channelText)
+                .Replace("{count}", channelCount.ToString())
+                .Replace("{speaking}", speakingText)
+                .Replace("{speaking_count}", names.Count.ToString())
+                .Replace("{mute_emoji}", muteEmoji)
+                .Replace("{mute_state}", State(muteState).Rendered)
+                .Replace("{voice_state}", State(voiceState).Rendered)
+                .Replace("\\n", "\n").Replace("/n", "\n");
+
+        // Longest first: the whole speaker list, then one name and a count of the rest, then the
+        // count on its own, then the same with the channel name cut back. Fit takes the first that
+        // fits, and tidying it also clears the trailing space three of the presets leave behind.
+        return SegmentWriter.Fit(
+            budget,
+            Render(channel, Speakers(settings.MaxSpeakingUsersToShow)),
+            Render(channel, Speakers(1)),
+            Render(channel, names.Count.ToString()),
+            Render(SegmentWriter.Truncate(channel, MinChannelChars), names.Count.ToString()));
+    }
+
+    /// <summary>
+    /// Raises a state word the app chose itself - but only when every character has a raised form.
+    /// One full-size letter stranded in raised text reads as a rendering fault, and there is no
+    /// raised q, which is exactly what "quiet" starts with.
+    /// </summary>
+    private static OscText State(string? word)
+    {
+        string text = word?.Trim() ?? string.Empty;
+
+        foreach (char c in text)
+        {
+            if (!char.IsWhiteSpace(c) && !SuperscriptText.CanRaise(char.ToLowerInvariant(c)))
+                return OscText.Raw(text);
+        }
+
+        return OscText.Label(text);
+    }
+
+    /// <summary>
+    /// The best name Discord gave us for someone, or a stand-in. Never the raw id.
+    /// </summary>
+    public static string ResolveDisplayName(string? nick, string? globalName, string? username)
+        => !string.IsNullOrWhiteSpace(nick) ? nick
+         : !string.IsNullOrWhiteSpace(globalName) ? globalName
+         : !string.IsNullOrWhiteSpace(username) ? username
+         : UnknownSpeaker;
 
     private void OnIpcMessage(JObject message)
     {
@@ -358,12 +438,10 @@ public partial class DiscordModule : ObservableObject, IModule
             {
                 var user = vs["user"];
                 var userId = user?["id"]?.ToString();
-                var username = user?["username"]?.ToString() ?? $"User_{userId}";
-                var nick = vs["nick"]?.ToString();
-                var globalName = user?["global_name"]?.ToString();
-                var displayName = !string.IsNullOrEmpty(nick) ? nick
-                    : !string.IsNullOrEmpty(globalName) ? globalName
-                    : username;
+                var displayName = ResolveDisplayName(
+                    vs["nick"]?.ToString(),
+                    user?["global_name"]?.ToString(),
+                    user?["username"]?.ToString());
 
                 if (userId != null)
                 {
@@ -421,12 +499,10 @@ public partial class DiscordModule : ObservableObject, IModule
     {
         var user = data["user"];
         var userId = user?["id"]?.ToString();
-        var username = user?["username"]?.ToString() ?? $"User_{userId}";
-        var nick = data["nick"]?.ToString();
-        var globalName = user?["global_name"]?.ToString();
-        var displayName = !string.IsNullOrEmpty(nick) ? nick
-            : !string.IsNullOrEmpty(globalName) ? globalName
-            : username;
+        var displayName = ResolveDisplayName(
+            data["nick"]?.ToString(),
+            user?["global_name"]?.ToString(),
+            user?["username"]?.ToString());
 
         if (userId != null)
         {
