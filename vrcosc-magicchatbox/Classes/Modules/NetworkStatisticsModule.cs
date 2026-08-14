@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Globalization;
 using System.Linq;
 using System.Net.NetworkInformation;
 using System.Runtime.CompilerServices;
@@ -9,6 +10,7 @@ using System.Threading.Tasks;
 using vrcosc_magicchatbox.Classes.DataAndSecurity;
 using vrcosc_magicchatbox.Classes.Utilities;
 using vrcosc_magicchatbox.Core.Configuration;
+using vrcosc_magicchatbox.Core.Osc.Text;
 using vrcosc_magicchatbox.Core.Privacy;
 using vrcosc_magicchatbox.Core.State;
 using vrcosc_magicchatbox.Core.Toast;
@@ -107,38 +109,40 @@ public class NetworkStatisticsModule : INotifyPropertyChanged, IModule
 
     public event PropertyChangedEventHandler PropertyChanged;
 
-    private string ConvertToSuperScriptIfNeeded(string unitstring)
-    {
-        if (Settings.StyledCharacters)
-        {
-            return TextUtilities.TransformToSuperscript(unitstring.Replace(":", ""));
-        }
-        else
-        {
-            return unitstring;
-        }
-    }
+    /// <summary>A number with its unit glued on, which is where a unit belongs.</summary>
+    private string Measure(double amount, string unit)
+        => new SegmentWriter()
+            .Field(OscText.Value(amount.ToString("N2", CultureInfo.CurrentCulture)), Unit(unit))
+            .Text;
+
+    /// <summary>Raised only when the user asked for styled characters; plain text otherwise.</summary>
+    private OscText Unit(string unit)
+        => Settings.StyledCharacters ? OscText.Unit(unit) : OscText.Raw(unit);
+
+    /// <inheritdoc cref="Unit" />
+    private OscText Label(string label)
+        => Settings.StyledCharacters ? OscText.Label(label) : OscText.Raw(label);
 
     private string FormatData(double dataMB)
     {
         if (dataMB < 1)
-            return $"{dataMB * 1000:N2} {ConvertToSuperScriptIfNeeded("KB")}";
-        else if (dataMB >= 1_000_000)
-            return $"{dataMB / 1e6:N2} {ConvertToSuperScriptIfNeeded("TB")}";
-        else if (dataMB >= 1000)
-            return $"{dataMB / 1000:N2} {ConvertToSuperScriptIfNeeded("GB")}";
-        else
-            return $"{dataMB:N2} {ConvertToSuperScriptIfNeeded("MB")}";
+            return Measure(dataMB * 1000, "KB");
+        if (dataMB >= 1_000_000)
+            return Measure(dataMB / 1e6, "TB");
+        if (dataMB >= 1000)
+            return Measure(dataMB / 1000, "GB");
+
+        return Measure(dataMB, "MB");
     }
 
     private string FormatSpeed(double speedMbps)
     {
         if (speedMbps < 1)
-            return $"{speedMbps * 1000:N2} {ConvertToSuperScriptIfNeeded("Kbps")}";
-        else if (speedMbps >= 1000)
-            return $"{speedMbps / 1000:N2} {ConvertToSuperScriptIfNeeded("Gbps")}";
-        else
-            return $"{speedMbps:N2} {ConvertToSuperScriptIfNeeded("Mbps")}";
+            return Measure(speedMbps * 1000, "Kbps");
+        if (speedMbps >= 1000)
+            return Measure(speedMbps / 1000, "Gbps");
+
+        return Measure(speedMbps, "Mbps");
     }
 
     private Task<NetworkInterface> GetActiveNetworkInterfaceAsync(CancellationToken cancellationToken)
@@ -399,26 +403,30 @@ public class NetworkStatisticsModule : INotifyPropertyChanged, IModule
 
         var networkStatsDescriptions = new List<string>();
 
-        if (Settings.ShowCurrentDown)
-            networkStatsDescriptions.Add($"{ConvertToSuperScriptIfNeeded("Down: ")} {FormatSpeed(CurrentDownloadSpeedMbps)}");
+        // The label used to carry its own trailing space and the format string added another, so
+        // every reading was written with a double space in it. The writer places the gap.
+        void Add(bool show, string label, string value)
+        {
+            if (show)
+                networkStatsDescriptions.Add(new SegmentWriter().Field(Label(label), OscText.Value(value)).Text);
+        }
 
-        if (Settings.ShowCurrentUp)
-            networkStatsDescriptions.Add($"{ConvertToSuperScriptIfNeeded("Up: ")} {FormatSpeed(CurrentUploadSpeedMbps)}");
-
-        if (Settings.ShowMaxDown)
-            networkStatsDescriptions.Add($"{ConvertToSuperScriptIfNeeded("Max Down: ")} {FormatSpeed(MaxDownloadSpeedMbps)}");
-
-        if (Settings.ShowMaxUp)
-            networkStatsDescriptions.Add($"{ConvertToSuperScriptIfNeeded("Max Up: ")} {FormatSpeed(MaxUploadSpeedMbps)}");
-
-        if (Settings.ShowTotalDown)
-            networkStatsDescriptions.Add($"{ConvertToSuperScriptIfNeeded("Total Down: ")} {FormatData(TotalDownloadedMB)}");
-
-        if (Settings.ShowTotalUp)
-            networkStatsDescriptions.Add($"{ConvertToSuperScriptIfNeeded("Total Up: ")} {FormatData(TotalUploadedMB)}");
+        Add(Settings.ShowCurrentDown, "Down", FormatSpeed(CurrentDownloadSpeedMbps));
+        Add(Settings.ShowCurrentUp, "Up", FormatSpeed(CurrentUploadSpeedMbps));
+        Add(Settings.ShowMaxDown, "Max Down", FormatSpeed(MaxDownloadSpeedMbps));
+        Add(Settings.ShowMaxUp, "Max Up", FormatSpeed(MaxUploadSpeedMbps));
+        Add(Settings.ShowTotalDown, "Total Down", FormatData(TotalDownloadedMB));
+        Add(Settings.ShowTotalUp, "Total Up", FormatData(TotalUploadedMB));
 
         if (Settings.ShowNetworkUtilization)
-            networkStatsDescriptions.Add($"{ConvertToSuperScriptIfNeeded("Network Utilization: ")} {NetworkUtilization:N2} %");
+        {
+            networkStatsDescriptions.Add(new SegmentWriter()
+                .Field(
+                    Label("Network Utilization"),
+                    OscText.Value(NetworkUtilization.ToString("N2", CultureInfo.CurrentCulture)),
+                    Unit("%"))
+                .Text);
+        }
 
         if (networkStatsDescriptions.Count == 0)
         {
