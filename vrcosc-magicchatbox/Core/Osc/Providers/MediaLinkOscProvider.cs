@@ -1,8 +1,10 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Text;
 using vrcosc_magicchatbox.Classes.Modules;
+using vrcosc_magicchatbox.Classes.Modules.Media;
 using vrcosc_magicchatbox.Classes.Utilities;
 using vrcosc_magicchatbox.Core.Configuration;
 using vrcosc_magicchatbox.Services;
@@ -147,31 +149,156 @@ public sealed class MediaLinkOscProvider : IOscProvider
     {
         string actionText = ResolveActionText(session, isPlaying: true);
         string playIcon = ResolvePlayIcon(session);
-        string title = CreateMediaLinkTitle(session);
+        bool wantsSeekbar = !session.IsLiveTime && session.TimePeekEnabled && !session.IsTimelineStale;
 
-        string text;
-        if (string.IsNullOrEmpty(title))
+        string Line(string body)
         {
-            text = actionText;
-        }
-        else
-        {
-            text = _app.PrefixIconMusic && !string.IsNullOrWhiteSpace(playIcon)
-                ? $"{playIcon} {title}"
-                : $"{actionText} {title}";
+            if (string.IsNullOrEmpty(body))
+                return actionText;
 
-            if (!session.IsLiveTime && session.TimePeekEnabled && !session.IsTimelineStale)
-                text = CreateTimeStamp(text, session, context);
+            return _app.PrefixIconMusic && !string.IsNullOrWhiteSpace(playIcon)
+                ? $"{playIcon} {body}"
+                : $"{actionText} {body}";
         }
 
-        return text;
+        IReadOnlyList<string> bodies = BuildBodyLadder(session);
+
+        // Text is the inner loop, so every way of shortening it is tried before the seekbar is
+        // downgraded. A downgrade then restarts the text at full length with the space it freed.
+        foreach (MediaLinkTimeSeekbar style in BuildSeekbarLadder(wantsSeekbar))
+        {
+            foreach (string body in bodies)
+            {
+                string candidate = wantsSeekbar
+                    ? ApplySeekbar(Line(body), session, context, style)
+                    : Line(body);
+
+                if (context.WouldFit(candidate))
+                    return candidate;
+            }
+        }
+
+        // Nothing fits. Dropping the seekbar is as far as the old behaviour ever went, so that is
+        // where it stops; only the opt-in shortener cuts into the text to keep the song on screen.
+        if (!_mls.ShortenToFit)
+            return Line(bodies[0]);
+
+        string bare = Line(bodies[^1]);
+        return context.WouldFit(bare) ? bare : HardTrim(bare, context);
+    }
+
+    /// <summary>
+    /// Every rendering of "title by artist" worth trying, longest first: upload noise, then the
+    /// featured guest, then spare credits, then the title alone. Switched off it is a single rung,
+    /// which keeps the old all-or-nothing behaviour.
+    /// </summary>
+    private IReadOnlyList<string> BuildBodyLadder(MediaSessionInfo session)
+    {
+        string title = ResolveTitle(session);
+        string artist = session.ShowArtist ? session.Artist ?? string.Empty : string.Empty;
+
+        if (!_mls.ShortenToFit)
+            return [Join(title, artist)];
+
+        var bodies = new List<string>();
+
+        void Add(string body)
+        {
+            if (body.Length > 0 && !bodies.Contains(body))
+                bodies.Add(body);
+        }
+
+        Add(Join(title, artist));
+
+        string plainTitle = MediaTitleCleaner.StripFeatured(title);
+        Add(Join(plainTitle, artist));
+
+        foreach (string rung in ArtistNameShortener.Ladder(artist))
+            Add(Join(plainTitle, rung));
+
+        // Last rung before cutting mid-word: the title on its own still names the song.
+        Add(plainTitle);
+
+        if (bodies.Count == 0)
+            Add(Join(title, artist));
+
+        return bodies;
+    }
+
+    /// <summary>The title as it should read, with the upload's decoration taken off.</summary>
+    private string ResolveTitle(MediaSessionInfo session)
+    {
+        if (!session.ShowTitle || string.IsNullOrEmpty(session.Title))
+            return string.Empty;
+
+        if (!_mls.TidyTitles)
+            return session.Title;
+
+        string cleaned = MediaTitleCleaner.Clean(session.Title, session.ShowArtist ? session.Artist : null);
+
+        // A title that is nothing but decoration is better left alone than blanked.
+        return cleaned.Length > 0 ? cleaned : session.Title;
+    }
+
+    private string Join(string title, string artist)
+    {
+        if (title.Length == 0)
+            return artist;
+        if (artist.Length == 0)
+            return title;
+
+        return $"{title}{ResolveSeparator()}{artist}";
+    }
+
+    private IReadOnlyList<MediaLinkTimeSeekbar> BuildSeekbarLadder(bool wantsSeekbar)
+    {
+        if (!wantsSeekbar)
+            return [MediaLinkTimeSeekbar.None];
+
+        var ladder = new List<MediaLinkTimeSeekbar> { _mls.TimeSeekStyle };
+        if (!_mls.AutoDowngradeSeekbar)
+            return ladder;
+
+        if (_mls.TimeSeekStyle == MediaLinkTimeSeekbar.NumbersAndSeekBar)
+            ladder.Add(MediaLinkTimeSeekbar.SmallNumbers);
+
+        if (_mls.TimeSeekStyle != MediaLinkTimeSeekbar.None)
+            ladder.Add(MediaLinkTimeSeekbar.None);
+
+        return ladder;
+    }
+
+    /// <summary>Cuts a line down to the space left, marking the cut so it does not read as the title.</summary>
+    private static string HardTrim(string text, OscBuildContext context)
+    {
+        int over = -context.RemainingCharsIf(text);
+        if (over <= 0)
+            return text;
+
+        int keep = text.Length - over - 1;
+        if (keep <= 0)
+            return string.Empty;
+
+        // Prefer the last whole word, but not at the cost of half the line - a cut mid-word still
+        // beats throwing away everything that was left.
+        int space = text.LastIndexOf(' ', Math.Min(keep, text.Length - 1));
+        if (space > keep / 2)
+            keep = space;
+        else if (char.IsHighSurrogate(text[keep - 1]))
+            keep--;
+
+        return text[..keep].TrimEnd() + "…";
     }
 
     #endregion
 
     #region Timestamp / Progress Bar (budget-aware, moved from OSCController)
 
-    private string CreateTimeStamp(string text, MediaSessionInfo session, OscBuildContext context)
+    /// <summary>
+    /// Renders the line at one seekbar style. Choosing between the styles is the caller's job, so
+    /// that artist shortening gets its turn before a style is given up.
+    /// </summary>
+    private string ApplySeekbar(string text, MediaSessionInfo session, OscBuildContext context, MediaLinkTimeSeekbar style)
     {
         TimeSpan current = session.CurrentTime;
         TimeSpan full = session.FullTime;
@@ -180,37 +307,24 @@ public sealed class MediaLinkOscProvider : IOscProvider
             return text;
 
         double pct = full.TotalSeconds == 0 ? 0 : (current.TotalSeconds / full.TotalSeconds) * 100;
-        int available = context.RemainingCharsIf(text) - 4;        var style = _mediaLink.SelectedMediaLinkSeekbarStyle;
 
-        switch (_mls.TimeSeekStyle)
+        switch (style)
         {
             case MediaLinkTimeSeekbar.NumbersAndSeekBar:
-                string bar = SeekbarUtilities.CreateProgressBar(pct, current, full, ToSeekbarOptions(style));
-                if (!string.IsNullOrWhiteSpace(bar))
-                {
-                    string candidate = style.ProgressBarOnTop ? $"{bar}\n{text}" : $"{text}\n{bar}";
-                    if (context.WouldFit(candidate))
-                        return candidate;
-                }
-                if (_mls.AutoDowngradeSeekbar)
-                    goto case MediaLinkTimeSeekbar.SmallNumbers;
-                break;
+                var barStyle = _mediaLink.SelectedMediaLinkSeekbarStyle;
+                string bar = SeekbarUtilities.CreateProgressBar(pct, current, full, ToSeekbarOptions(barStyle));
+                if (string.IsNullOrWhiteSpace(bar))
+                    return text;
+
+                return barStyle?.ProgressBarOnTop == true ? $"{bar}\n{text}" : $"{text}\n{bar}";
 
             case MediaLinkTimeSeekbar.SmallNumbers:
-                string small = SeekbarUtilities.CreateSmallNumbers(current, full);
-                string withSmall = $"{text} {small}";
-                if (context.WouldFit(withSmall))
-                    return withSmall;
-                if (_mls.AutoDowngradeSeekbar)
-                    goto case MediaLinkTimeSeekbar.None;
-                break;
+                return $"{text} {SeekbarUtilities.CreateSmallNumbers(current, full)}";
 
             case MediaLinkTimeSeekbar.None:
             default:
                 return text;
         }
-
-        return text;
     }
 
     private static SeekbarStyleOptions ToSeekbarOptions(MediaLinkStyle style)
@@ -239,19 +353,6 @@ public sealed class MediaLinkOscProvider : IOscProvider
     #endregion
 
     #region Helpers (moved from OSCController)
-
-    private string CreateMediaLinkTitle(MediaSessionInfo session)
-    {
-        var sb = new StringBuilder();
-        if (session.ShowTitle && !string.IsNullOrEmpty(session.Title))
-            sb.Append(session.Title);
-        if (session.ShowArtist && !string.IsNullOrEmpty(session.Artist))
-        {
-            if (sb.Length > 0) sb.Append(ResolveSeparator());
-            sb.Append(session.Artist);
-        }
-        return sb.ToString();
-    }
 
     private string ResolveActionText(MediaSessionInfo session, bool isPlaying)
     {
