@@ -12,6 +12,9 @@ public sealed class OscOutputBuilder
 {
     private const string DefaultSeparator = " ┆ ";
 
+    /// <summary>One character, and already in use elsewhere in the app's chatbox output.</summary>
+    private const string ClipMark = "…";
+
     private readonly IEnumerable<IOscProvider> _providers;
     private readonly IAppState _appState;
     private readonly IntegrationDisplayState _integrationDisplay;
@@ -113,8 +116,15 @@ public sealed class OscOutputBuilder
             TryAddProvider(provider);
         }
 
+        var segmentLengths = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+        foreach (var segment in collected)
+            segmentLengths[segment.UiKey] = segment.Text.Length;
+
         var trimmed = new List<string>();
-        while (collected.Count > 0)
+
+        // Segments are still dropped whole by priority, but never the last one standing: one long
+        // window title used to take the entire chatbox dark. The survivor gets clipped instead.
+        while (collected.Count > 1)
         {
             string message = AssembleMessage(collected.Select(c => c.Text), separator, prefix, suffix);
             if (message.Length <= OscBuildContext.MaxOscLength)
@@ -131,6 +141,27 @@ public sealed class OscOutputBuilder
             collected.RemoveAt(worstIdx);
         }
 
+        bool clipped = false;
+        if (collected.Count == 1)
+        {
+            var survivor = collected[0];
+
+            // The prefix and suffix are the user's own text and stay whole; the segment gets the rest.
+            // With one segment there is no separator to account for.
+            string fitted = ClipToBudget(survivor.Text, OscBuildContext.MaxOscLength - prefix.Length - suffix.Length);
+            if (fitted.Length != survivor.Text.Length)
+            {
+                clipped = true;
+                segmentLengths[survivor.UiKey] = fitted.Length;
+                collected[0] = (fitted, survivor.UiKey, survivor.Priority);
+
+                // A prefix and suffix that fill the line on their own leave the segment nothing, so it
+                // really is gone - but they still go out, and ClampToOscLimit names them in the log.
+                if (fitted.Length == 0)
+                    trimmed.Add(survivor.UiKey);
+            }
+        }
+
         string finalMessage = collected.Count > 0
             ? AssembleMessage(collected.Select(c => c.Text), separator, prefix, suffix)
             : string.Empty;
@@ -140,9 +171,10 @@ public sealed class OscOutputBuilder
         return new OscBuildResult
         {
             Message = finalMessage,
-            ExceededLimit = trimmed.Count > 0,
-            IncludedProviders = collected.Select(c => c.UiKey).ToList(),
-            TrimmedProviders = trimmed
+            ExceededLimit = trimmed.Count > 0 || clipped,
+            IncludedProviders = collected.Where(c => c.Text.Length > 0).Select(c => c.UiKey).ToList(),
+            TrimmedProviders = trimmed,
+            SegmentLengths = segmentLengths
         };
     }
 
@@ -150,10 +182,31 @@ public sealed class OscOutputBuilder
 
     private static string AssembleMessage(IEnumerable<string> segments, string separator, string prefix, string suffix)
     {
-        string message = string.Join(separator, segments);
-        if (!string.IsNullOrEmpty(message))
-            message = $"{prefix}{message}{suffix}";
-        return message;
+        // Only called once something was collected, so the prefix and suffix always apply - including
+        // when the one segment left was clipped away to nothing.
+        return $"{prefix}{string.Join(separator, segments)}{suffix}";
+    }
+
+    /// <summary>
+    /// Shortens a segment to <paramref name="budget"/> characters without splitting a surrogate pair.
+    /// </summary>
+    internal static string ClipToBudget(string text, int budget)
+    {
+        if (budget <= 0)
+            return string.Empty;
+
+        if (text.Length <= budget)
+            return text;
+
+        // The mark costs one of the budget, so it is only worth spending if a character survives beside it.
+        bool mark = budget >= 2;
+        int cut = mark ? budget - 1 : budget;
+        if (char.IsHighSurrogate(text[cut - 1]))
+            cut--;
+
+        return mark
+            ? string.Concat(text.AsSpan(0, cut), ClipMark)
+            : text.Substring(0, cut);
     }
 
     private string GetSeparator()
