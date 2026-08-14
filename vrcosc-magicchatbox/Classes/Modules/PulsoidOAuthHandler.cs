@@ -187,15 +187,22 @@ public class PulsoidOAuthHandler : IDisposable, IPulsoidTokenValidator
         }
     }
 
-    public async Task<bool> ValidateTokenAsync(string accessToken)
+    /// <summary>
+    /// Asks Pulsoid whether the token is still good. Only HTTP 401 (documented as 7005
+    /// token_not_found / 7006 token_expired) or a missing heart-rate scope counts as a rejection —
+    /// 403, 400, 429 and 5xx are request-shaping or availability problems, and everything that
+    /// prevents us from asking at all (offline, DNS, timeout) reports <see cref="PulsoidTokenValidation.Unknown"/>.
+    /// </summary>
+    public async Task<PulsoidTokenValidation> ValidateTokenAsync(string accessToken)
     {
+        if (string.IsNullOrWhiteSpace(accessToken))
+        {
+            // Nothing to ask about. Callers check for an empty token before getting here.
+            return PulsoidTokenValidation.Invalid;
+        }
+
         try
         {
-            if (string.IsNullOrWhiteSpace(accessToken))
-            {
-                return false;
-            }
-
             using (var request = new HttpRequestMessage(HttpMethod.Get, Core.Constants.PulsoidTokenValidateUrl))
             {
                 request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
@@ -206,39 +213,70 @@ public class PulsoidOAuthHandler : IDisposable, IPulsoidTokenValidator
                     var content = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
                     var tokenInfo = JsonConvert.DeserializeObject<TokenInfo>(content);
 
-                    var requiredScopes = Core.Constants.PulsoidOAuthScope.Split(',');
                     if (tokenInfo?.Scopes == null)
                     {
-                        Logging.WriteInfo("Token validation response missing scopes.");
-                        return false;
+                        // A 200 we cannot read is a Pulsoid-side oddity, not proof of a dead token.
+                        Logging.WriteInfo("Pulsoid token validation returned 200 without a scopes array; treating as unverifiable.");
+                        return PulsoidTokenValidation.Unknown;
                     }
 
-                    return requiredScopes.All(scope => tokenInfo.Scopes.Contains(scope));
-                }
-                else
-                {
-                    if (response.StatusCode == HttpStatusCode.Unauthorized ||
-                        response.StatusCode == HttpStatusCode.Forbidden ||
-                        response.StatusCode == HttpStatusCode.BadRequest)
+                    if (!tokenInfo.Scopes.Contains(Core.Constants.PulsoidRequiredScope))
                     {
-                        Logging.WriteInfo($"Token validation failed with status code {response.StatusCode}");
-                        return false;
+                        Logging.WriteInfo(
+                            $"Pulsoid token is missing the required scope '{Core.Constants.PulsoidRequiredScope}' (granted: {string.Join(", ", tokenInfo.Scopes)}).");
+                        return PulsoidTokenValidation.Invalid;
                     }
 
-                    Logging.WriteInfo($"Token validation failed with status code {response.StatusCode}, treating as transient.");
-                    return true;
+                    if (!tokenInfo.Scopes.Contains(Core.Constants.PulsoidStatisticsScope))
+                        Logging.WriteInfo("Pulsoid token has no statistics scope; heart rate works, statistics will not.");
+
+                    if (tokenInfo.ExpiresIn > 0)
+                        Logging.WriteInfo($"Pulsoid token validated, expires in {TimeSpan.FromSeconds(tokenInfo.ExpiresIn):d\\.hh\\:mm\\:ss}.");
+
+                    return PulsoidTokenValidation.Valid;
                 }
+
+                string body = await ReadBodySafelyAsync(response).ConfigureAwait(false);
+
+                if (response.StatusCode == HttpStatusCode.Unauthorized)
+                {
+                    Logging.WriteInfo($"Pulsoid rejected the token (401). {body}");
+                    return PulsoidTokenValidation.Invalid;
+                }
+
+                Logging.WriteInfo($"Pulsoid token validation could not complete (HTTP {(int)response.StatusCode}). Keeping the saved sign-in. {body}");
+                return PulsoidTokenValidation.Unknown;
             }
+        }
+        catch (OperationCanceledException ex)
+        {
+            // HttpClient's own timeout surfaces as TaskCanceledException. This is the single most
+            // common startup failure and must never be mistaken for a revoked token.
+            Logging.WriteInfo($"Pulsoid token validation timed out: {ex.Message}");
+            return PulsoidTokenValidation.Unknown;
         }
         catch (HttpRequestException ex)
         {
-            Logging.WriteException(ex, MSGBox: false);
-            return true;
+            Logging.WriteInfo($"Pulsoid token validation could not reach the server: {ex.Message}");
+            return PulsoidTokenValidation.Unknown;
         }
         catch (Exception ex)
         {
             Logging.WriteException(ex, MSGBox: false);
-            return false;
+            return PulsoidTokenValidation.Unknown;
+        }
+    }
+
+    private static async Task<string> ReadBodySafelyAsync(HttpResponseMessage response)
+    {
+        try
+        {
+            string content = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+            return string.IsNullOrWhiteSpace(content) ? string.Empty : content.Trim();
+        }
+        catch
+        {
+            return string.Empty;
         }
     }
 
@@ -246,5 +284,8 @@ public class PulsoidOAuthHandler : IDisposable, IPulsoidTokenValidator
     {
         [JsonProperty("scopes")]
         public string[] Scopes { get; set; }
+
+        [JsonProperty("expires_in")]
+        public long ExpiresIn { get; set; }
     }
 }

@@ -224,7 +224,12 @@ public class MediaLinkModule : vrcosc_magicchatbox.Services.IMediaLinkService
     {
         try
         {
-            var playbackInfo = session.ControlSession.GetPlaybackInfo();
+            // A session that is being torn down can answer GetPlaybackInfo with null
+            // rather than throwing, so this is a routine race, not an error worth logging.
+            var playbackInfo = session.ControlSession?.GetPlaybackInfo();
+            if (playbackInfo == null)
+                return;
+
             sessionInfo.PlaybackStatus = playbackInfo.PlaybackStatus;
             if (playbackInfo.PlaybackStatus == GlobalSystemMediaTransportControlsSessionPlaybackStatus.Stopped)
                 sessionInfo.CurrentTime = TimeSpan.Zero;
@@ -242,9 +247,13 @@ public class MediaLinkModule : vrcosc_magicchatbox.Services.IMediaLinkService
     {
         try
         {
+            var timeline = session.ControlSession?.GetTimelineProperties();
+            if (timeline == null)
+                return false;
+
             return ApplyTimelineProperties(
                 sessionInfo,
-                session.ControlSession.GetTimelineProperties(),
+                timeline,
                 rejectUnchangedStaleTimeline);
         }
         catch (Exception ex)
@@ -341,7 +350,11 @@ public class MediaLinkModule : vrcosc_magicchatbox.Services.IMediaLinkService
         if (S == null)
             return TimeSpan.Zero;
 
-        TimeSpan FullMediaTime = S.ControlSession.GetTimelineProperties().EndTime - S.ControlSession.GetTimelineProperties().StartTime;
+        var timeline = S.ControlSession?.GetTimelineProperties();
+        if (timeline == null)
+            return TimeSpan.Zero;
+
+        TimeSpan FullMediaTime = timeline.EndTime - timeline.StartTime;
 
         double requestedPositionSeconds = FullMediaTime.TotalSeconds * progressbarValue / 100;
 
@@ -718,12 +731,17 @@ public class MediaLinkModule : vrcosc_magicchatbox.Services.IMediaLinkService
 
         long requestedPlaybackPosition = requestedtime.Ticks;
 
-        if (S == null)
+        if (S?.ControlSession == null)
             return;
 
-        long currentPlaybackPosition = S.ControlSession.GetTimelineProperties().Position.Ticks;
-
-        await S.ControlSession.TryChangePlaybackPositionAsync(requestedPlaybackPosition);
+        try
+        {
+            await S.ControlSession.TryChangePlaybackPositionAsync(requestedPlaybackPosition);
+        }
+        catch (Exception ex)
+        {
+            Logging.WriteInfo($"Unable to seek media session {S.Id}: {ex.Message}");
+        }
     }
 
 

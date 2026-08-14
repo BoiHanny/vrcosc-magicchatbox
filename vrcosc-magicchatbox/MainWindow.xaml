@@ -16,6 +16,7 @@
     VerticalAlignment="Bottom"
     d:DataContext="{d:DesignInstance Type=vm:ViewModel,
                                      IsDesignTimeCreatable=True}"
+    FontFamily="{DynamicResource FontPrimary}"
     IsEnabled="{Binding AppSettingsInstance.AppIsEnabled, UpdateSourceTrigger=PropertyChanged}"
     Opacity="{Binding AppSettingsInstance.AppOpacity, UpdateSourceTrigger=PropertyChanged}"
     Topmost="{Binding AppSettingsInstance.Topmost, UpdateSourceTrigger=PropertyChanged}"
@@ -131,7 +132,7 @@
                                 Padding="0,12,0,0"
                                 HorizontalAlignment="Center"
                                 VerticalAlignment="Center"
-                                FontFamily="Albert Sans Thin"
+                                FontFamily="/Fonts/#Albert Sans"
                                 FontSize="16"
                                 Foreground="White"
                                 RenderOptions.BitmapScalingMode="NearestNeighbor"
@@ -150,8 +151,8 @@
                                 Padding="20,12,0,0"
                                 HorizontalAlignment="left"
                                 VerticalAlignment="top"
-                                FontFamily="Albert Sans Thin"
-                                FontSize="10"
+                                FontFamily="/Fonts/#Albert Sans"
+                                FontSize="{StaticResource FontSizeMicro}"
                                 Foreground="MediumPurple"
                                 RenderOptions.BitmapScalingMode="NearestNeighbor"
                                 Text="VRC OSC">
@@ -180,11 +181,21 @@
                             CommandParameter="0"
                             Content="Integrations"
                             Cursor="Hand"
-                            FontFamily="Comfortaa Light"
+                            FontFamily="/Fonts/#Comfortaa"
                             FontSize="18"
-                            FontWeight="Normal"
-                            Foreground="White"
-                            Style="{DynamicResource MenuItemStyle}" />
+                            Foreground="White">
+                            <!--  The selected tab carries SemiBold; the 4px highlight bar alone was the only cue.  -->
+                            <Button.Style>
+                                <Style BasedOn="{StaticResource MenuItemStyle}" TargetType="Button">
+                                    <Setter Property="FontWeight" Value="Normal" />
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding SelectedMenuIndex}" Value="0">
+                                            <Setter Property="FontWeight" Value="SemiBold" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Button.Style>
+                        </Button>
                         <Border
                             Height="4"
                             VerticalAlignment="Top"
@@ -205,11 +216,20 @@
                             CommandParameter="1"
                             Content="Status"
                             Cursor="Hand"
-                            FontFamily="Comfortaa Light"
+                            FontFamily="/Fonts/#Comfortaa"
                             FontSize="18"
-                            FontWeight="Normal"
-                            Foreground="White"
-                            Style="{DynamicResource MenuItemStyle}" />
+                            Foreground="White">
+                            <Button.Style>
+                                <Style BasedOn="{StaticResource MenuItemStyle}" TargetType="Button">
+                                    <Setter Property="FontWeight" Value="Normal" />
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding SelectedMenuIndex}" Value="1">
+                                            <Setter Property="FontWeight" Value="SemiBold" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Button.Style>
+                        </Button>
                         <Border
                             Height="4"
                             VerticalAlignment="Top"
@@ -230,11 +250,20 @@
                             CommandParameter="2"
                             Content="Chatting"
                             Cursor="Hand"
-                            FontFamily="Comfortaa Light"
+                            FontFamily="/Fonts/#Comfortaa"
                             FontSize="18"
-                            FontWeight="Normal"
-                            Foreground="White"
-                            Style="{DynamicResource MenuItemStyle}" />
+                            Foreground="White">
+                            <Button.Style>
+                                <Style BasedOn="{StaticResource MenuItemStyle}" TargetType="Button">
+                                    <Setter Property="FontWeight" Value="Normal" />
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding SelectedMenuIndex}" Value="2">
+                                            <Setter Property="FontWeight" Value="SemiBold" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Button.Style>
+                        </Button>
                         <Border
                             Height="4"
                             VerticalAlignment="Top"
@@ -255,11 +284,20 @@
                             CommandParameter="3"
                             Content="Options"
                             Cursor="Hand"
-                            FontFamily="Comfortaa Light"
+                            FontFamily="/Fonts/#Comfortaa"
                             FontSize="18"
-                            FontWeight="Normal"
-                            Foreground="White"
-                            Style="{DynamicResource MenuItemStyle}" />
+                            Foreground="White">
+                            <Button.Style>
+                                <Style BasedOn="{StaticResource MenuItemStyle}" TargetType="Button">
+                                    <Setter Property="FontWeight" Value="Normal" />
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding SelectedMenuIndex}" Value="3">
+                                            <Setter Property="FontWeight" Value="SemiBold" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Button.Style>
+                        </Button>
                         <Border
                             Height="4"
                             VerticalAlignment="Top"
@@ -400,7 +438,7 @@
                                     Width="53"
                                     VerticalAlignment="Center"
                                     FontSize="14"
-                                    FontWeight="DemiBold"
+                                    FontWeight="SemiBold"
                                     Text="Running">
                                     <TextBlock.Foreground>
                                         <LinearGradientBrush StartPoint="0.5,0" EndPoint="0.5,1">
@@ -450,7 +488,7 @@
                                     Margin="0,5,0,0"
                                     HorizontalAlignment="Center"
                                     VerticalAlignment="Center"
-                                    FontFamily="Albert Sans Thin"
+                                    FontFamily="/Fonts/#Albert Sans"
                                     FontSize="12"
                                     Foreground="#FFB3B0B9"
                                     Text="Send to VRChat" />
@@ -511,7 +549,7 @@
                                     Text="✦" />
                                 <TextBlock
                                     VerticalAlignment="Center"
-                                    FontFamily="Albert Sans Thin"
+                                    FontFamily="/Fonts/#Albert Sans"
                                     FontSize="11"
                                     Foreground="#FFA99BD2"
                                     RenderOptions.BitmapScalingMode="NearestNeighbor"
@@ -539,13 +577,13 @@
 
                                     <StackPanel Grid.Column="0" VerticalAlignment="Center">
                                         <TextBlock
-                                            FontFamily="Albert Sans Thin"
-                                            FontSize="10"
+                                            FontFamily="/Fonts/#Albert Sans"
+                                            FontSize="{StaticResource FontSizeMicro}"
                                             Foreground="#FF8B80AE"
                                             Text="INSTALLED" />
                                         <TextBlock
                                             Margin="0,2,0,0"
-                                            FontFamily="Comfortaa Light"
+                                            FontFamily="/Fonts/#Comfortaa"
                                             FontSize="17"
                                             Foreground="#FFEDE7FF"
                                             RenderOptions.BitmapScalingMode="NearestNeighbor"
@@ -587,7 +625,7 @@
                                     <TextBlock
                                         Name="NewVersion"
                                         HorizontalAlignment="Center"
-                                        FontFamily="Albert Sans Thin"
+                                        FontFamily="/Fonts/#Albert Sans"
                                         FontSize="12"
                                         Foreground="{Binding UpdateState.VersionTxtColor}"
                                         RenderOptions.BitmapScalingMode="NearestNeighbor"
@@ -608,7 +646,7 @@
 
                                 <TextBlock
                                     Margin="0,9,0,0"
-                                    FontFamily="Albert Sans Thin"
+                                    FontFamily="/Fonts/#Albert Sans"
                                     FontSize="11"
                                     Foreground="#FF9186B5"
                                     Text="{Binding UpdateState.UpdateStatustxt}"
@@ -630,8 +668,8 @@
                                     Margin="0,9,0,0"
                                     HorizontalAlignment="Center"
                                     Cursor="Hand"
-                                    FontFamily="Albert Sans Thin"
-                                    FontSize="10"
+                                    FontFamily="/Fonts/#Albert Sans"
+                                    FontSize="{StaticResource FontSizeMicro}"
                                     Foreground="#FF6FBEFF"
                                     RenderOptions.BitmapScalingMode="NearestNeighbor"
                                     Text="View changes on GitHub"
@@ -652,7 +690,7 @@
                         Grid.Column="0"
                         HorizontalAlignment="Center"
                         VerticalAlignment="Center"
-                        FontFamily="Bahnschrift SemiLight"
+                        FontFamily="/Fonts/#Albert Sans"
                         FontSize="11"
                         Foreground="{StaticResource DeckTextBrush}"
                         RenderOptions.BitmapScalingMode="NearestNeighbor"
@@ -686,8 +724,8 @@
                         </Border.Style>
                         <TextBlock
                             VerticalAlignment="Center"
-                            FontFamily="Bahnschrift SemiLight"
-                            FontSize="10"
+                            FontFamily="/Fonts/#Albert Sans"
+                            FontSize="{StaticResource FontSizeMicro}"
                             Text="{Binding OscDisplay.OscMsgCountUI}">
                             <TextBlock.Style>
                                 <Style TargetType="TextBlock">
@@ -728,8 +766,8 @@
                                 <StackPanel>
                                     <TextBlock
                                         Margin="0,0,0,6"
-                                        FontFamily="Bahnschrift SemiLight"
-                                        FontSize="10"
+                                        FontFamily="/Fonts/#Albert Sans"
+                                        FontSize="{StaticResource FontSizeMicro}"
                                         Foreground="{StaticResource DeckTextMutedBrush}"
                                         RenderOptions.BitmapScalingMode="NearestNeighbor"
                                         Text="STATUS SET" />
@@ -750,7 +788,7 @@
                                         <TextBlock
                                             Grid.Column="0"
                                             VerticalAlignment="Center"
-                                            FontFamily="Albert Sans Thin"
+                                            FontFamily="/Fonts/#Albert Sans"
                                             FontSize="11"
                                             Text="{Binding StatusSets.Summary}"
                                             TextTrimming="CharacterEllipsis">
@@ -817,8 +855,8 @@
                                         <TextBlock
                                             Grid.Column="0"
                                             VerticalAlignment="Center"
-                                            FontFamily="Bahnschrift SemiLight"
-                                            FontSize="10"
+                                            FontFamily="/Fonts/#Albert Sans"
+                                            FontSize="{StaticResource FontSizeMicro}"
                                             Foreground="{StaticResource DeckTextMutedBrush}"
                                             RenderOptions.BitmapScalingMode="NearestNeighbor"
                                             Text="AWAY FROM KEYBOARD" />
@@ -842,8 +880,8 @@
                                             </Border.Style>
                                             <TextBlock
                                                 VerticalAlignment="Center"
-                                                FontFamily="Bahnschrift SemiLight"
-                                                FontSize="10"
+                                                FontFamily="/Fonts/#Albert Sans"
+                                                FontSize="{StaticResource FontSizeMicro}"
                                                 RenderOptions.BitmapScalingMode="NearestNeighbor">
                                                 <TextBlock.Style>
                                                     <Style TargetType="TextBlock">
@@ -887,7 +925,7 @@
                                     -->
                                     <TextBlock
                                         Margin="1,6,0,0"
-                                        FontFamily="Albert Sans Thin"
+                                        FontFamily="/Fonts/#Albert Sans"
                                         FontSize="11"
                                         Foreground="{StaticResource DeckTextMutedBrush}"
                                         Text="{Binding AfkStyles.PreviewLine}"
@@ -924,7 +962,7 @@
                                             Visibility="{Binding Modules.Afk.VRModeLabelActive, Converter={StaticResource InverseBoolToVisibilityConverter}, UpdateSourceTrigger=PropertyChanged}">
                                             <TextBlock
                                                 VerticalAlignment="Center"
-                                                FontFamily="Albert Sans Thin"
+                                                FontFamily="/Fonts/#Albert Sans"
                                                 FontSize="12"
                                                 Foreground="{StaticResource DeckTextMutedBrush}"
                                                 RenderOptions.BitmapScalingMode="NearestNeighbor">
@@ -942,7 +980,7 @@
                                             <TextBlock
                                                 Padding="6,0,0,0"
                                                 VerticalAlignment="Center"
-                                                FontFamily="Comfortaa Light"
+                                                FontFamily="/Fonts/#Comfortaa"
                                                 FontSize="13"
                                                 RenderOptions.BitmapScalingMode="NearestNeighbor">
                                                 <TextBlock.Style>
@@ -963,7 +1001,7 @@
                                         <TextBlock
                                             Grid.Column="0"
                                             VerticalAlignment="Center"
-                                            FontFamily="Albert Sans Thin"
+                                            FontFamily="/Fonts/#Albert Sans"
                                             FontSize="12"
                                             Foreground="{StaticResource DeckTextMutedBrush}"
                                             Text="Paused while you are in VR"
@@ -1030,10 +1068,9 @@
                             Orientation="Horizontal">
                             <TextBlock
                                 VerticalAlignment="Center"
-                                FontFamily="Albert Sans Thin"
+                                FontFamily="/Fonts/#Albert Sans"
                                 FontSize="12"
                                 Foreground="{StaticResource TextSecondaryBrush}"
-                                Opacity="0.7"
                                 Text="TopMost" />
                             <CheckBox
                                 Margin="4,0,0,0"
@@ -1047,10 +1084,9 @@
                             Orientation="Horizontal">
                             <TextBlock
                                 VerticalAlignment="Center"
-                                FontFamily="Albert Sans Thin"
+                                FontFamily="/Fonts/#Albert Sans"
                                 FontSize="12"
                                 Foreground="{StaticResource TextSecondaryBrush}"
-                                Opacity="0.7"
                                 Text="Close to tray" />
                             <CheckBox
                                 Margin="4,0,0,0"
@@ -1066,10 +1102,9 @@
                             Visibility="{Binding SelectedMenuIndex, Converter={StaticResource IndexToVisibilityConverter}, FallbackValue=Collapsed, ConverterParameter=2}">
                             <TextBlock
                                 VerticalAlignment="Center"
-                                FontFamily="Albert Sans Thin"
+                                FontFamily="/Fonts/#Albert Sans"
                                 FontSize="12"
                                 Foreground="{StaticResource TextSecondaryBrush}"
-                                Opacity="0.7"
                                 Text="Live edit chats"
                                 Visibility="{Binding ChatSettings.ChatLiveEdit, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}" />
                             <CheckBox
@@ -1086,10 +1121,9 @@
                             Visibility="{Binding SelectedMenuIndex, Converter={StaticResource IndexToVisibilityConverter}, FallbackValue=Collapsed, ConverterParameter=2}">
                             <TextBlock
                                 VerticalAlignment="Center"
-                                FontFamily="Albert Sans Thin"
+                                FontFamily="/Fonts/#Albert Sans"
                                 FontSize="12"
                                 Foreground="{StaticResource TextSecondaryBrush}"
-                                Opacity="0.7"
                                 Text="Text to speech" />
                             <CheckBox
                                 Margin="4,0,0,0"
@@ -1107,7 +1141,7 @@
                                 <TextBlock
                                     Margin="0,0,5,0"
                                     VerticalAlignment="Center"
-                                    FontFamily="Albert Sans Thin"
+                                    FontFamily="/Fonts/#Albert Sans"
                                     FontSize="13"
                                     Foreground="{StaticResource TextSecondaryBrush}"
                                     RenderOptions.BitmapScalingMode="NearestNeighbor"
@@ -1144,7 +1178,7 @@
                                     Width="69"
                                     Margin="0,0,0,3"
                                     VerticalAlignment="Center"
-                                    FontFamily="Albert Sans Thin"
+                                    FontFamily="/Fonts/#Albert Sans"
                                     FontSize="13"
                                     Foreground="{StaticResource TextSecondaryBrush}"
                                     RenderOptions.BitmapScalingMode="NearestNeighbor"
@@ -1205,7 +1239,7 @@
                             <TextBlock
                                 VerticalAlignment="Top"
                                 d:Text="This song is paused 💖💬⏸🎵"
-                                FontFamily="Albert Sans Thin"
+                                FontFamily="/Fonts/#Albert Sans"
                                 FontSize="14"
                                 Foreground="#FFE7E2F5"
                                 LineHeight="19"
@@ -1217,7 +1251,7 @@
                             <TextBlock
                                 HorizontalAlignment="Center"
                                 VerticalAlignment="Center"
-                                FontFamily="Albert Sans Thin"
+                                FontFamily="/Fonts/#Albert Sans"
                                 FontSize="12"
                                 Foreground="{StaticResource DeckTextMutedBrush}"
                                 Text="Nothing to send yet"
@@ -1268,7 +1302,7 @@
                     Source="/Img/Icons/MagicChatbox_ico.png" />
                 <TextBlock
                     HorizontalAlignment="Center"
-                    FontFamily="Albert Sans Thin"
+                    FontFamily="/Fonts/#Albert Sans"
                     FontSize="18"
                     Foreground="White"
                     Text="MagicChatbox">
@@ -1296,17 +1330,16 @@
                     <StackPanel>
                         <TextBlock
                             x:Name="OverlayPrevStep"
-                            FontFamily="Albert Sans Thin"
+                            FontFamily="/Fonts/#Albert Sans"
                             FontSize="11"
                             Foreground="{StaticResource TextMutedBrush}"
-                            Opacity="0.5"
                             Text=""
                             TextAlignment="Center"
                             TextTrimming="CharacterEllipsis" />
                         <TextBlock
                             x:Name="OverlayCurrentStep"
                             Margin="0,2"
-                            FontFamily="Albert Sans Thin"
+                            FontFamily="/Fonts/#Albert Sans"
                             FontSize="13"
                             FontWeight="SemiBold"
                             Foreground="White"
@@ -1315,10 +1348,9 @@
                             TextTrimming="CharacterEllipsis" />
                         <TextBlock
                             x:Name="OverlayNextStep"
-                            FontFamily="Albert Sans Thin"
+                            FontFamily="/Fonts/#Albert Sans"
                             FontSize="11"
                             Foreground="{StaticResource TextMutedBrush}"
-                            Opacity="0.5"
                             Text=""
                             TextAlignment="Center"
                             TextTrimming="CharacterEllipsis" />

@@ -39,9 +39,6 @@
                 Width="Auto"
                 Height="30"
                 HorizontalAlignment="Left"
-                FontSize="15"
-                FontWeight="Bold"
-                Foreground="{StaticResource TextSectionHeaderBrush}"
                 IsChecked="{Binding AppSettings.Settings_TTS, Mode=TwoWay}"
                 Style="{StaticResource ExpandCollapseToggleButtonStyle}"
                 Tag="Text to speech options"
@@ -54,7 +51,7 @@
                 HorizontalAlignment="Left"
                 VerticalAlignment="Center"
                 Cursor="Hand"
-                FontFamily="Albert Sans Thin"
+                FontFamily="/Fonts/#Albert Sans"
                 FontSize="12"
                 Foreground="{StaticResource AccentTealBrush}"
                 MouseUp="LearnMoreAboutTTSbtn_MouseUp"
@@ -73,7 +70,7 @@
                     BorderThickness="1"
                     Style="{StaticResource OptionCardStyle}">
                     <TextBlock
-                        FontFamily="Albert Sans Thin"
+                        FontFamily="/Fonts/#Albert Sans"
                         FontSize="13"
                         Foreground="{StaticResource StatusWarningBrush}"
                         Text="Heads up: The TikTok TTS endpoint this feature uses may be unavailable, so playback could fail."
@@ -114,10 +111,9 @@
                         <StackPanel Style="{StaticResource OptionActionRowStyle}">
                             <TextBlock
                                 Width="85"
+                                Margin="0"
                                 VerticalAlignment="Center"
-                                FontFamily="Albert Sans Thin"
-                                FontSize="15"
-                                Foreground="{StaticResource TextLabelBrush}"
+                                Style="{StaticResource OptionFieldLabelStyle}"
                                 Text="TTS voice" />
                             <ComboBox
                                 x:Name="TikTokTTSVoicesComboBox"
@@ -131,10 +127,9 @@
                         <StackPanel Style="{StaticResource OptionActionRowStyle}">
                             <TextBlock
                                 Width="85"
+                                Margin="0"
                                 VerticalAlignment="Center"
-                                FontFamily="Albert Sans Thin"
-                                FontSize="15"
-                                Foreground="{StaticResource TextLabelBrush}"
+                                Style="{StaticResource OptionFieldLabelStyle}"
                                 Text="TTS output" />
                             <ComboBox
                                 x:Name="PlaybackOutputDeviceComboBox"

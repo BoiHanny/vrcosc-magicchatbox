@@ -7,6 +7,7 @@ using vrcosc_magicchatbox.Classes.DataAndSecurity;
 using vrcosc_magicchatbox.Classes.Modules;
 using vrcosc_magicchatbox.Core.Configuration;
 using vrcosc_magicchatbox.Core.State;
+using vrcosc_magicchatbox.ViewModels.Models;
 using vrcosc_magicchatbox.ViewModels.State;
 
 namespace vrcosc_magicchatbox.Services;
@@ -135,10 +136,7 @@ public sealed class ScanLoopService : IDisposable
         if (!_started || _disposed)
             return;
 
-        bool chatItemActive = _chatStatus.LastMessages != null
-            && _chatStatus.LastMessages.Any(x => x.IsRunning);
-
-        if (_chatStatus.ScanPause && chatItemActive)
+        if (IsChatOverrideActive())
         {
             StartPauseTimerIfNeeded();
         }
@@ -151,16 +149,28 @@ public sealed class ScanLoopService : IDisposable
         }
     }
 
+    private bool IsChatOverrideActive()
+    {
+        return IsChatOverrideActive(_chatStatus.ScanPause, _chatStatus.LastMessages);
+    }
+
+    public static bool IsChatOverrideActive(bool scanPause, IEnumerable<ChatItem>? lastMessages)
+    {
+        return scanPause && lastMessages != null && lastMessages.Any(x => x.IsRunning);
+    }
+
     public async Task Scantick(bool firstRun = false)
     {
         if (!_started || _disposed) return;
+        if (IsChatOverrideActive()) return;
         if (_isProcessing) return;
         _isProcessing = true;
 
         try
         {
             DateTime nowUtc = DateTime.UtcNow;
-            if (nowUtc >= _nextRun || firstRun)
+            const long allowedOverlapMs = 100;
+            if (nowUtc.AddMilliseconds(allowedOverlapMs) >= _nextRun || firstRun)
             {
                 var desiredInterval = ToOscTickInterval(AS.ScanningInterval);
                 if (_currentInterval != desiredInterval)
@@ -171,15 +181,16 @@ public sealed class ScanLoopService : IDisposable
                     return;
                 }
 
+                _nextRun = nowUtc.Add(_currentInterval);
+
                 await ExecuteScantickLogicAsync();
                 if (!_started || _disposed) return;
+                if (IsChatOverrideActive()) return;
 
                 Osc.BuildOSC();
 
-                nowUtc = DateTime.UtcNow;
                 long nowMs = nowUtc.Ticks / TimeSpan.TicksPerMillisecond;
                 long lastMs = _lastOSCMessageTime.Ticks / TimeSpan.TicksPerMillisecond;
-                const long allowedOverlapMs = 100;
 
                 if ((nowMs - lastMs + allowedOverlapMs) >= desiredInterval.TotalMilliseconds)
                 {
@@ -193,8 +204,6 @@ public sealed class ScanLoopService : IDisposable
                     var nextAllowed = _lastOSCMessageTime.Add(desiredInterval);
                     Logging.WriteInfo($"OSC message rate-limited, NOW: {DateTime.UtcNow} ALLOWED AFTER: {nextAllowed}");
                 }
-
-                _nextRun = nowUtc.Add(_currentInterval);
             }
         }
         catch (Exception ex)

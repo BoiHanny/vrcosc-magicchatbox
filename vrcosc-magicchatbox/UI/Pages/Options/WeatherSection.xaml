@@ -35,9 +35,6 @@
                 Width="Auto"
                 Height="30"
                 HorizontalAlignment="Left"
-                FontSize="15"
-                FontWeight="Bold"
-                Foreground="{StaticResource TextSectionHeaderBrush}"
                 IsChecked="{Binding AppSettings.Settings_Weather, Mode=TwoWay}"
                 Style="{StaticResource ExpandCollapseToggleButtonStyle}"
                 Tag="Weather options"
@@ -55,9 +52,7 @@
                     HorizontalAlignment="Left">
                     <TextBlock
                         Padding="0,0,0,0"
-                        FontFamily="Albert Sans Thin"
-                        FontSize="15"
-                        Foreground="{StaticResource TextLabelBrush}"
+                        Style="{StaticResource OptionFieldLabelStyle}"
                         Text="Weather refresh (minutes)" />
                     <StackPanel Margin="0,3,0,0" Orientation="Horizontal">
                         <TextBox
@@ -81,7 +76,7 @@
                         <TextBlock
                             Margin="8,3,0,0"
                             VerticalAlignment="Center"
-                            FontFamily="Albert Sans Thin"
+                            FontFamily="/Fonts/#Albert Sans"
                             FontSize="13"
                             Foreground="{StaticResource TextLabelBrush}"
                             Text="{Binding IntegrationDisplay.WeatherLastSyncDisplay}" />
@@ -89,9 +84,7 @@
                     <TextBlock
                         Margin="0,6,0,0"
                         Padding="0,0,0,0"
-                        FontFamily="Albert Sans Thin"
-                        FontSize="15"
-                        Foreground="{StaticResource TextLabelBrush}"
+                        Style="{StaticResource OptionFieldLabelStyle}"
                         Text="Location mode" />
                     <ComboBox
                         Width="220"
@@ -122,16 +115,12 @@
                     <StackPanel Margin="0,6,0,0" Visibility="{Binding WeatherSettings.WeatherLocationModeUsesCity, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
                         <TextBlock
                             Padding="0,0,0,0"
-                            FontFamily="Albert Sans Thin"
-                            FontSize="15"
-                            Foreground="{StaticResource TextLabelBrush}"
+                            Style="{StaticResource OptionFieldLabelStyle}"
                             Text="Custom city"
                             Visibility="{Binding WeatherSettings.WeatherLocationModeIsCustomCity, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}" />
                         <TextBlock
                             Padding="0,0,0,0"
-                            FontFamily="Albert Sans Thin"
-                            FontSize="15"
-                            Foreground="{StaticResource TextLabelBrush}"
+                            Style="{StaticResource OptionFieldLabelStyle}"
                             Text="Fallback city"
                             Visibility="{Binding WeatherSettings.WeatherLocationModeIsIPBased, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}" />
                         <StackPanel Margin="0,3,0,0" Orientation="Horizontal">
@@ -200,9 +189,7 @@
                     <StackPanel Margin="0,6,0,0" Visibility="{Binding WeatherSettings.WeatherLocationModeIsCustomCoordinates, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
                         <TextBlock
                             Padding="0,0,0,0"
-                            FontFamily="Albert Sans Thin"
-                            FontSize="15"
-                            Foreground="{StaticResource TextLabelBrush}"
+                            Style="{StaticResource OptionFieldLabelStyle}"
                             Text="Coordinates (lat, lon)" />
                         <StackPanel Orientation="Horizontal">
                             <TextBox
@@ -232,9 +219,7 @@
                     <TextBlock
                         Margin="0,6,0,0"
                         Padding="0,0,0,0"
-                        FontFamily="Albert Sans Thin"
-                        FontSize="15"
-                        Foreground="{StaticResource TextLabelBrush}"
+                        Style="{StaticResource OptionFieldLabelStyle}"
                         Text="Layout mode" />
                     <ComboBox
                         Width="200"
@@ -252,9 +237,7 @@
                         <TextBlock
                             Margin="0,6,0,0"
                             Padding="0,0,0,0"
-                            FontFamily="Albert Sans Thin"
-                            FontSize="15"
-                            Foreground="{StaticResource TextLabelBrush}"
+                            Style="{StaticResource OptionFieldLabelStyle}"
                             Text="Weather stats separator" />
                         <TextBox
                             x:Name="WeatherStatsSeparator"
@@ -307,7 +290,7 @@
                     </CheckBox>
                     <TextBlock
                         Margin="0,2,0,0"
-                        FontFamily="Albert Sans Thin"
+                        FontFamily="/Fonts/#Albert Sans"
                         FontSize="13"
                         Foreground="{StaticResource TextLabelBrush}"
                         Text="Custom condition text"
@@ -343,9 +326,7 @@
                                     <StackPanel>
                                         <TextBlock
                                             Margin="0,0,0,4"
-                                            FontFamily="Albert Sans Thin"
-                                            FontSize="15"
-                                            Foreground="{StaticResource TextLabelBrush}"
+                                            Style="{StaticResource OptionFieldLabelStyle}"
                                             Text="{Binding DisplayLabel}" />
                                         <Border
                                             Padding="4"
@@ -414,9 +395,7 @@
                     <TextBlock
                         Margin="0,8,0,0"
                         Padding="0,0,0,0"
-                        FontFamily="Albert Sans Thin"
-                        FontSize="15"
-                        Foreground="{StaticResource TextLabelBrush}"
+                        Style="{StaticResource OptionFieldLabelStyle}"
                         Text="Unit override" />
                     <ComboBox
                         Width="200"
@@ -433,9 +412,7 @@
                     <TextBlock
                         Margin="0,6,0,0"
                         Padding="0,0,0,0"
-                        FontFamily="Albert Sans Thin"
-                        FontSize="15"
-                        Foreground="{StaticResource TextLabelBrush}"
+                        Style="{StaticResource OptionFieldLabelStyle}"
                         Text="Wind unit" />
                     <ComboBox
                         Width="220"

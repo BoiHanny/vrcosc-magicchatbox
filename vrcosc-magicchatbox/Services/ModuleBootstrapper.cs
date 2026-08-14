@@ -263,6 +263,24 @@ public class ModuleBootstrapper
                 _host.Pulsoid = pulsoid;
                 _host.RegisterModule(pulsoid);
                 integrationSettings.PropertyChanged += pulsoid.PropertyChangedHandler;
+
+                // Pulsoid was the only credentialed module with no startup restore, which is why a
+                // perfectly good saved token still rendered as "signed out" after every restart.
+                // Reflect the stored credential now, then verify behind the same startup gate the
+                // other modules use so a slow network cannot be mistaken for a lost sign-in.
+                pulsoid.RestoreAuthStateFromSettings();
+                _ = Task.Run(async () =>
+                {
+                    try
+                    {
+                        await _startupComplete.Task;
+                        await pulsoid.StartAsync();
+                    }
+                    catch (Exception ex)
+                    {
+                        Logging.WriteInfo($"Pulsoid startup restore failed: {ex.Message}");
+                    }
+                });
             }
 
             if (soundpad != null)

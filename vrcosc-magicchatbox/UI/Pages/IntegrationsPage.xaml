@@ -15,13 +15,62 @@
                 <ResourceDictionary Source="/UI/Resources/SharedConverters.xaml" />
             </ResourceDictionary.MergedDictionaries>
 
+            <!--  Local to this page on purpose: Theme.xaml is owned elsewhere this cycle. Candidates
+                  for promotion once it is free - see the ribbon's other raw hex.  -->
+            <Style
+                x:Key="LyricsNudgeButton"
+                BasedOn="{StaticResource Status_Button_style}"
+                TargetType="Button">
+                <Setter Property="Height" Value="24" />
+                <Setter Property="MinWidth" Value="50" />
+                <Setter Property="Margin" Value="0,0,4,0" />
+                <Setter Property="FontSize" Value="11" />
+                <Setter Property="FontFamily" Value="{StaticResource FontPrimary}" />
+            </Style>
+
+            <!--  The ToggleButton twin of CustomizePillButton: same height and radius so the ribbon row
+                  does not change height, plus a checked state so an open flyout is obvious.  -->
+            <Style x:Key="LyricsFlyoutToggle" TargetType="ToggleButton">
+                <Setter Property="Background" Value="#FF2C2148" />
+                <Setter Property="Foreground" Value="{StaticResource TextLightPurpleBrush}" />
+                <Setter Property="Cursor" Value="Hand" />
+                <Setter Property="FontSize" Value="11" />
+                <Setter Property="FontFamily" Value="{StaticResource FontPrimary}" />
+                <Setter Property="Padding" Value="10,3,8,3" />
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="ToggleButton">
+                            <Border
+                                x:Name="pill"
+                                Padding="{TemplateBinding Padding}"
+                                Background="{TemplateBinding Background}"
+                                CornerRadius="10">
+                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                            </Border>
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter TargetName="pill" Property="Background" Value="#FF3A2D5A" />
+                                </Trigger>
+                                <Trigger Property="IsChecked" Value="True">
+                                    <Setter TargetName="pill" Property="Background" Value="#FF44357A" />
+                                </Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+
             <DataTemplate x:Key="LyricsRibbonTemplate">
                 <Border
+                    x:Name="LyricsRibbonRoot"
                     Margin="5,0,5,5"
                     Padding="10,7"
                     BorderBrush="#3A2A66"
                     BorderThickness="1"
-                    CornerRadius="6">
+                    CornerRadius="6"
+                    IsVisibleChanged="LyricsRibbonRoot_IsVisibleChanged"
+                    Loaded="LyricsRibbonRoot_Loaded"
+                    Unloaded="LyricsRibbonRoot_Unloaded">
                     <Border.Background>
                         <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
                             <GradientStop Offset="0" Color="#221740" />
@@ -31,7 +80,9 @@
                     <Grid>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto" />
-                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="*" MinWidth="140" />
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="Auto" />
                             <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
 
@@ -46,7 +97,7 @@
                         <StackPanel Grid.Column="1" VerticalAlignment="Center">
                             <TextBlock
                                 d:Text="It's because"
-                                FontFamily="Comfortaa Light"
+                                FontFamily="/Fonts/#Comfortaa"
                                 FontSize="14"
                                 Foreground="White"
                                 Text="{Binding LyricsDisplay.CurrentLine}"
@@ -55,15 +106,176 @@
                             <TextBlock
                                 Margin="0,2,0,0"
                                 d:Text="56 lines from LRCLIB"
-                                FontFamily="Albert Sans Thin"
+                                FontFamily="/Fonts/#Albert Sans"
                                 FontSize="11"
                                 Foreground="{StaticResource TextMutedBrush}"
                                 Text="{Binding LyricsDisplay.StatusText}"
                                 TextTrimming="CharacterEllipsis" />
                         </StackPanel>
 
-                        <Button
+                        <!--  The two second-based knobs. First UI they have ever had: until now they were
+                              only reachable by hand-editing the settings file.
+
+                              The stepper row itself is LyricsTimingRowTemplate in Theme.xaml, shared with
+                              the Options timing card. The two copies had drifted to different type scales
+                              AND different button sizes; one template means they cannot drift again. Its
+                              DataContext contract is a LyricsSectionViewModel, which is what LyricsTuning
+                              is, so it is handed over as the ContentControl's Content.  -->
+                        <StackPanel
                             Grid.Column="2"
+                            Margin="0,0,10,0"
+                            VerticalAlignment="Center"
+                            Orientation="Horizontal">
+                            <ContentControl Content="{Binding LyricsTuning}" ContentTemplate="{StaticResource LyricsTimingRowTemplate}" />
+
+                            <TextBlock
+                                Margin="6,0,0,0"
+                                VerticalAlignment="Center"
+                                FontSize="{StaticResource FontSizeMicro}"
+                                Foreground="#FFFFC46B"
+                                Text="⚠"
+                                ToolTip="{Binding LyricsTuning.TimingWarning}"
+                                Visibility="{Binding LyricsTuning.HasTimingWarning, Converter={StaticResource BoolToVisibilityConverter}}" />
+                        </StackPanel>
+
+                        <Grid
+                            Grid.Column="3"
+                            Margin="0,0,6,0"
+                            VerticalAlignment="Center">
+                            <ToggleButton x:Name="LyricsSyncToggle" Style="{StaticResource LyricsFlyoutToggle}">
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="Sync " />
+                                    <TextBlock d:Text="in sync" Text="{Binding LyricsTuning.OffsetChip}" />
+                                    <!--  No Opacity here. At 0.7 the chevron fell to 4.18:1 against the
+                                          CHECKED pill - i.e. exactly while the flyout is open. Full
+                                          opacity is 6.74:1 checked / 9.68:1 unchecked, and the glyph is
+                                          small enough that it still reads as secondary.  -->
+                                    <TextBlock Margin="5,0,0,0" Text="▾" />
+                                </StackPanel>
+                            </ToggleButton>
+
+                            <!--  IsOpen is bound straight to this instance's toggle rather than to a VM
+                                  flag. The template is instantiated twice - once on the Spotify card and
+                                  once on Media link - so a shared VM bool would open both at once, and
+                                  the collapsed one would flash its popup over the page.  -->
+                            <Popup
+                                AllowsTransparency="True"
+                                DataContext="{Binding DataContext, ElementName=LyricsSyncToggle}"
+                                IsOpen="{Binding IsChecked, ElementName=LyricsSyncToggle, Mode=TwoWay}"
+                                Placement="Bottom"
+                                PlacementTarget="{Binding ElementName=LyricsRibbonRoot}"
+                                HorizontalOffset="24"
+                                PopupAnimation="Slide"
+                                StaysOpen="False"
+                                VerticalOffset="-22">
+                                <!--  Sized to the ribbon so the card right-aligns with no magic offsets.
+
+                                      The popup HWND is exactly this Grid, so anything the card paints
+                                      outside its own bounds - here a 20px blur offset 4px down-right - is
+                                      clipped by the window edge. The Border margin is that blur's headroom,
+                                      not spacing: 24px on top, right and bottom, and on the left the card
+                                      is right-aligned inside a Grid that is wider than its 330 minimum, so
+                                      the slack is already there.
+
+                                      The two offsets cancel the margin so the card lands where it did
+                                      before the margin grew: HorizontalOffset 24 undoes the right margin
+                                      (the card is right-aligned, so a right margin walks it left), and
+                                      VerticalOffset -22 undoes the 24 top margin while keeping the
+                                      original 2px gap under the ribbon.  -->
+                                <Grid Width="{Binding ActualWidth, ElementName=LyricsRibbonRoot}">
+                                    <Border
+                                        MinWidth="330"
+                                        Margin="0,24,24,24"
+                                        Padding="12,10"
+                                        HorizontalAlignment="Right"
+                                        BorderThickness="1"
+                                        CornerRadius="10">
+                                        <Border.Background>
+                                            <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                                                <GradientStop Offset="0" Color="#FF221D38" />
+                                                <GradientStop Offset="1" Color="#FF1A1630" />
+                                            </LinearGradientBrush>
+                                        </Border.Background>
+                                        <Border.BorderBrush>
+                                            <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                                                <GradientStop Offset="0" Color="#FF4A3580" />
+                                                <GradientStop Offset="1" Color="#FF2D2050" />
+                                            </LinearGradientBrush>
+                                        </Border.BorderBrush>
+                                        <Border.Effect>
+                                            <DropShadowEffect
+                                                BlurRadius="20"
+                                                Opacity="0.6"
+                                                ShadowDepth="4"
+                                                Color="Black" />
+                                        </Border.Effect>
+
+                                        <StackPanel>
+                                            <TextBlock
+                                                Margin="0,0,0,2"
+                                                FontFamily="/Fonts/#Comfortaa"
+                                                FontSize="{StaticResource FontSizeCaption}"
+                                                Foreground="{StaticResource TextSectionHeaderBrush}"
+                                                Text="Sync offset" />
+                                            <TextBlock
+                                                Margin="0,0,0,8"
+                                                FontFamily="/Fonts/#Albert Sans"
+                                                FontSize="{StaticResource FontSizeCaption}"
+                                                Foreground="{StaticResource TextMutedBrush}"
+                                                Text="− makes the words wait, + brings them forward. Takes effect straight away, as soon as the track is playing."
+                                                TextWrapping="Wrap" />
+
+                                            <StackPanel Orientation="Horizontal">
+                                                <Button
+                                                    Command="{Binding LyricsTuning.NudgeOffsetCommand}"
+                                                    CommandParameter="-1000"
+                                                    Content="−1 s"
+                                                    Style="{StaticResource LyricsNudgeButton}" />
+                                                <Button
+                                                    Command="{Binding LyricsTuning.NudgeOffsetCommand}"
+                                                    CommandParameter="-100"
+                                                    Content="−100"
+                                                    Style="{StaticResource LyricsNudgeButton}" />
+                                                <Button
+                                                    Command="{Binding LyricsTuning.ResetOffsetCommand}"
+                                                    Content="Reset"
+                                                    Style="{StaticResource LyricsNudgeButton}" />
+                                                <Button
+                                                    Command="{Binding LyricsTuning.NudgeOffsetCommand}"
+                                                    CommandParameter="100"
+                                                    Content="+100"
+                                                    Style="{StaticResource LyricsNudgeButton}" />
+                                                <Button
+                                                    Command="{Binding LyricsTuning.NudgeOffsetCommand}"
+                                                    CommandParameter="1000"
+                                                    Content="+1 s"
+                                                    Style="{StaticResource LyricsNudgeButton}" />
+                                            </StackPanel>
+
+                                            <TextBlock
+                                                Margin="0,8,0,0"
+                                                d:Text="Lyrics run 300 ms early"
+                                                FontFamily="/Fonts/#Albert Sans"
+                                                FontSize="{StaticResource FontSizeMicro}"
+                                                Foreground="{StaticResource TextMutedBrush}"
+                                                Text="{Binding LyricsTuning.OffsetSummary}" />
+
+                                            <TextBlock
+                                                Margin="0,6,0,0"
+                                                FontFamily="/Fonts/#Albert Sans"
+                                                FontSize="{StaticResource FontSizeMicro}"
+                                                Foreground="#FFFFC46B"
+                                                Text="{Binding LyricsTuning.TimingWarning}"
+                                                TextWrapping="Wrap"
+                                                Visibility="{Binding LyricsTuning.HasTimingWarning, Converter={StaticResource BoolToVisibilityConverter}}" />
+                                        </StackPanel>
+                                    </Border>
+                                </Grid>
+                            </Popup>
+                        </Grid>
+
+                        <Button
+                            Grid.Column="4"
                             VerticalAlignment="Center"
                             Command="{Binding ActivateSettingCommand}"
                             CommandParameter="Settings_Lyrics"
@@ -103,7 +315,7 @@
                     <TextBlock
                         VerticalAlignment="Center"
                         d:Text="Enabled but not shown in VR mode: Network Statistics."
-                        FontFamily="Albert Sans Thin"
+                        FontFamily="/Fonts/#Albert Sans"
                         FontSize="11"
                         Foreground="{StaticResource DeckTextBrush}"
                         Text="{Binding ModeVisibilityWarning, UpdateSourceTrigger=PropertyChanged}"
@@ -129,7 +341,7 @@
                     <TextBlock
                         VerticalAlignment="Center"
                         d:Text="No room in the 144 characters for Discord and Weather."
-                        FontFamily="Albert Sans Thin"
+                        FontFamily="/Fonts/#Albert Sans"
                         FontSize="11"
                         Foreground="#FFFFD79A"
                         Text="{Binding TrimmedWarning, UpdateSourceTrigger=PropertyChanged}"
@@ -407,26 +619,10 @@
                                 Margin="0,3,0,0"
                                 VerticalAlignment="Center"
                                 Orientation="Horizontal">
-                                <TextBlock
-                                    VerticalAlignment="Center"
-                                    Effect="{StaticResource TextBlockShadowEffect}"
-                                    FontFamily="Comfortaa Light"
-                                    FontSize="20"
-                                    Foreground="White"
-                                    RenderOptions.BitmapScalingMode="NearestNeighbor"
-                                    Text="Personal status"
-                                    TextWrapping="Wrap" />
+                                <TextBlock Style="{StaticResource TileTitleStyle}" Text="Personal status" />
                             </StackPanel>
 
-                            <TextBlock
-                                Margin="0,3,0,0"
-                                Effect="{StaticResource TextBlockShadowEffect}"
-                                FontFamily="Comfortaa Light"
-                                FontSize="13"
-                                Foreground="{StaticResource TileDescriptionBrush}"
-                                RenderOptions.BitmapScalingMode="NearestNeighbor"
-                                Text="Say whatever you want. Save a pile of messages, cycle them, and drop to AFK when you wander off."
-                                TextWrapping="Wrap" />
+                            <TextBlock Style="{StaticResource TileDescriptionStyle}" Text="Say whatever you want. Save a pile of messages, cycle them, and drop to AFK when you wander off." />
                         </StackPanel>
                         <StackPanel Grid.Column="2" Style="{StaticResource TileControlDeck}">
                             <StackPanel Style="{StaticResource DeckOutputRow}">
@@ -534,26 +730,13 @@
                                 Margin="0,3,0,0"
                                 VerticalAlignment="Center"
                                 Orientation="Horizontal">
-                                <TextBlock
-                                    VerticalAlignment="Center"
-                                    Effect="{StaticResource TextBlockShadowEffect}"
-                                    FontFamily="Comfortaa Light"
-                                    FontSize="20"
-                                    Foreground="White"
-                                    RenderOptions.BitmapScalingMode="NearestNeighbor"
-                                    Text="Window activity"
-                                    TextWrapping="Wrap" />
+                                <TextBlock Style="{StaticResource TileTitleStyle}" Text="Window activity" />
                             </StackPanel>
 
                             <TextBlock
-                                Margin="0,3,0,0"
-                                Effect="{StaticResource TextBlockShadowEffect}"
-                                FontFamily="Comfortaa Light"
-                                FontSize="13"
-                                Foreground="{StaticResource TileDescriptionBrush}"
                                 RenderTransformOrigin="0.5,0.5"
-                                Text="VR or desktop, and what you're buried in. Mark any app private and it stays your business."
-                                TextWrapping="Wrap" />
+                                Style="{StaticResource TileDescriptionStyle}"
+                                Text="VR or desktop, and what you're buried in. Mark any app private and it stays your business." />
                         </StackPanel>
                         <StackPanel Grid.Column="2" Style="{StaticResource TileControlDeck}">
                             <StackPanel Style="{StaticResource DeckOutputRow}">
@@ -668,16 +851,7 @@
                                     <ColumnDefinition Width="Auto" />
                                     <ColumnDefinition Width="*" />
                                 </Grid.ColumnDefinitions>
-                                <TextBlock
-                                    Grid.Column="0"
-                                    VerticalAlignment="Center"
-                                    Effect="{StaticResource TextBlockShadowEffect}"
-                                    FontFamily="Comfortaa Light"
-                                    FontSize="20"
-                                    Foreground="White"
-                                    RenderOptions.BitmapScalingMode="NearestNeighbor"
-                                    Text="Pulsoid Heart Rate"
-                                    TextWrapping="Wrap" />
+                                <TextBlock Grid.Column="0" Style="{StaticResource TileTitleStyle}" Text="Pulsoid Heart Rate" />
                                 <StackPanel
                                     Grid.Column="1"
                                     HorizontalAlignment="Left"
@@ -687,9 +861,8 @@
                                             Margin="5,0,0,0"
                                             VerticalAlignment="Center"
                                             Effect="{StaticResource TextBlockShadowEffect}"
-                                            FontFamily="Comfortaa Light"
+                                            FontFamily="/Fonts/#Comfortaa"
                                             FontSize="12"
-                                            FontWeight="Bold"
                                             Foreground="LightSeaGreen"
                                             RenderOptions.BitmapScalingMode="NearestNeighbor"
                                             Text="No device connected"
@@ -699,7 +872,7 @@
                                         Margin="5,0,0,0"
                                         VerticalAlignment="Center"
                                         Effect="{StaticResource TextBlockShadowEffect}"
-                                        FontFamily="Comfortaa Light"
+                                        FontFamily="/Fonts/#Comfortaa"
                                         FontSize="12"
                                         Foreground="PaleVioletRed"
                                         RenderOptions.BitmapScalingMode="NearestNeighbor"
@@ -710,7 +883,7 @@
                                             Margin="5,0,0,0"
                                             VerticalAlignment="Center"
                                             Effect="{StaticResource TextBlockShadowEffect}"
-                                            FontFamily="Comfortaa Light"
+                                            FontFamily="/Fonts/#Comfortaa"
                                             FontSize="12"
                                             Foreground="#ABA4B8"
                                             RenderOptions.BitmapScalingMode="NearestNeighbor"
@@ -837,15 +1010,7 @@
                                 </StackPanel>
                             </Grid>
 
-                            <TextBlock
-                                Margin="0,3,0,0"
-                                Effect="{StaticResource TextBlockShadowEffect}"
-                                FontFamily="Comfortaa Light"
-                                FontSize="13"
-                                Foreground="{StaticResource TileDescriptionBrush}"
-                                RenderOptions.BitmapScalingMode="NearestNeighbor"
-                                Text="Your pulse, live in the chatbox and on your avatar over OSC. Needs a Pulsoid BRO plan."
-                                TextWrapping="Wrap" />
+                            <TextBlock Style="{StaticResource TileDescriptionStyle}" Text="Your pulse, live in the chatbox and on your avatar over OSC. Needs a Pulsoid BRO plan." />
                         </StackPanel>
                         <StackPanel Grid.Column="2" Style="{StaticResource TileControlDeck}">
                             <StackPanel Style="{StaticResource DeckOutputRow}">
@@ -910,7 +1075,7 @@
                                 <StackPanel Orientation="Horizontal">
                                     <TextBlock
                                         VerticalAlignment="Center"
-                                        FontFamily="Comfortaa Light"
+                                        FontFamily="/Fonts/#Comfortaa"
                                         FontSize="13"
                                         Foreground="{StaticResource TextSectionHeaderBrush}"
                                         Text="Active devices" />
@@ -918,9 +1083,9 @@
                                     <TextBlock
                                         Margin="10,0,0,0"
                                         VerticalAlignment="Center"
-                                        FontFamily="Albert Sans Thin"
+                                        FontFamily="/Fonts/#Albert Sans"
                                         FontSize="13"
-                                        Foreground="{StaticResource BorderMutedBrush}"
+                                        Foreground="{StaticResource TextMutedBrush}"
                                         Text="{Binding TrackerBattery_LastScanDisplay}" />
                                 </StackPanel>
                                 <ItemsControl ItemsSource="{Binding Tracker.TrackerBatteryActiveDevices}">
@@ -950,7 +1115,7 @@
                                                     <TextBlock
                                                         Margin="6,0,0,0"
                                                         FontSize="12"
-                                                        Foreground="{StaticResource BorderMutedBrush}"
+                                                        Foreground="{StaticResource TextMutedBrush}"
                                                         Text="{Binding BatteryPercentage, StringFormat='{}{0}%'}" />
                                                 </StackPanel>
                                             </Border>
@@ -1037,25 +1202,11 @@
                                     Margin="0,3,0,0"
                                     VerticalAlignment="Center"
                                     Orientation="Horizontal">
-                                    <TextBlock
-                                        VerticalAlignment="Center"
-                                        Effect="{StaticResource TextBlockShadowEffect}"
-                                        FontFamily="Comfortaa Light"
-                                        FontSize="20"
-                                        Foreground="White"
-                                        RenderOptions.BitmapScalingMode="NearestNeighbor"
-                                        Text="VR gear battery"
-                                        TextWrapping="Wrap" />
+                                    <TextBlock Style="{StaticResource TileTitleStyle}" Text="VR gear battery" />
                                 </StackPanel>
                                 <TextBlock
-                                    Margin="0,3,0,0"
-                                    Effect="{StaticResource TextBlockShadowEffect}"
-                                    FontFamily="Comfortaa Light"
-                                    FontSize="13"
-                                    Foreground="{StaticResource TileDescriptionBrush}"
-                                    RenderOptions.BitmapScalingMode="NearestNeighbor"
-                                    Text="Headset, controllers and trackers. Catch the one that&#x27;s about to die before it takes your legs with it."
-                                    TextWrapping="Wrap" />
+                                    Style="{StaticResource TileDescriptionStyle}"
+                                    Text="Headset, controllers and trackers. Catch the one that&#x27;s about to die before it takes your legs with it." />
                             </StackPanel>
                             <StackPanel Grid.Column="2" Style="{StaticResource TileControlDeck}">
                                 <StackPanel Style="{StaticResource DeckOutputRow}">
@@ -1115,16 +1266,16 @@
                                 <StackPanel Margin="3,0,0,4" Orientation="Horizontal">
                                     <TextBlock
                                         VerticalAlignment="Center"
-                                        FontFamily="Comfortaa Light"
+                                        FontFamily="/Fonts/#Comfortaa"
                                         FontSize="13"
                                         Foreground="{StaticResource TextSectionHeaderBrush}"
                                         Text="Live" />
                                     <TextBlock
                                         Margin="10,0,0,0"
                                         VerticalAlignment="Center"
-                                        FontFamily="Albert Sans Thin"
+                                        FontFamily="/Fonts/#Albert Sans"
                                         FontSize="14"
-                                        Foreground="{StaticResource BorderMutedBrush}"
+                                        Foreground="{StaticResource TextMutedBrush}"
                                         Text="{Binding IntegrationDisplay.VrPerformanceCombined}" />
                                 </StackPanel>
                                 <TextBlock
@@ -1198,7 +1349,7 @@
                                 <StackPanel Margin="3,6,0,0" Orientation="Horizontal">
                                     <TextBlock
                                         VerticalAlignment="Center"
-                                        FontFamily="Albert Sans Thin"
+                                        FontFamily="/Fonts/#Albert Sans"
                                         FontSize="12"
                                         Foreground="{StaticResource TextMutedBrush}"
                                         Text="Show" />
@@ -1296,25 +1447,9 @@
                                     Margin="0,3,0,0"
                                     VerticalAlignment="Center"
                                     Orientation="Horizontal">
-                                    <TextBlock
-                                        VerticalAlignment="Center"
-                                        Effect="{StaticResource TextBlockShadowEffect}"
-                                        FontFamily="Comfortaa Light"
-                                        FontSize="20"
-                                        Foreground="White"
-                                        RenderOptions.BitmapScalingMode="NearestNeighbor"
-                                        Text="VR performance"
-                                        TextWrapping="Wrap" />
+                                    <TextBlock Style="{StaticResource TileTitleStyle}" Text="VR performance" />
                                 </StackPanel>
-                                <TextBlock
-                                    Margin="0,3,0,0"
-                                    Effect="{StaticResource TextBlockShadowEffect}"
-                                    FontFamily="Comfortaa Light"
-                                    FontSize="13"
-                                    Foreground="{StaticResource TileDescriptionBrush}"
-                                    RenderOptions.BitmapScalingMode="NearestNeighbor"
-                                    Text="Frames, reprojection and headroom from SteamVR. Stays quiet until something actually goes wrong."
-                                    TextWrapping="Wrap" />
+                                <TextBlock Style="{StaticResource TileDescriptionStyle}" Text="Frames, reprojection and headroom from SteamVR. Stays quiet until something actually goes wrong." />
                             </StackPanel>
                             <StackPanel Grid.Column="2" Style="{StaticResource TileControlDeck}">
                                 <StackPanel Style="{StaticResource DeckOutputRow}">
@@ -1406,7 +1541,7 @@
                                         VerticalAlignment="Center"
                                         d:Text=":( sorry"
                                         d:Visibility="Visible"
-                                        FontFamily="Comfortaa Light"
+                                        FontFamily="/Fonts/#Comfortaa"
                                         FontSize="12"
                                         Foreground="#9B7FD9"
                                         RenderOptions.BitmapScalingMode="NearestNeighbor"
@@ -1531,15 +1666,7 @@
                                     Margin="0,3,0,0"
                                     VerticalAlignment="Center"
                                     Orientation="Horizontal">
-                                    <TextBlock
-                                        VerticalAlignment="Center"
-                                        Effect="{StaticResource TextBlockShadowEffect}"
-                                        FontFamily="Comfortaa Light"
-                                        FontSize="20"
-                                        Foreground="White"
-                                        RenderOptions.BitmapScalingMode="NearestNeighbor"
-                                        Text="Component ˢᵗᵃᵗˢ"
-                                        TextWrapping="Wrap" />
+                                    <TextBlock Style="{StaticResource TileTitleStyle}" Text="Component ˢᵗᵃᵗˢ" />
 
                                     <!--  Shows the last refresh, or what the integration is busy doing when there is
                                           no refresh to show. Visibility follows the status text rather than the
@@ -1549,7 +1676,7 @@
                                         Margin="5,0,0,0"
                                         VerticalAlignment="Center"
                                         Effect="{StaticResource TextBlockShadowEffect}"
-                                        FontFamily="Comfortaa Light"
+                                        FontFamily="/Fonts/#Comfortaa"
                                         FontSize="12"
                                         Foreground="#ABA4B8"
                                         RenderOptions.BitmapScalingMode="NearestNeighbor"
@@ -1566,15 +1693,7 @@
                                     </TextBlock>
                                 </StackPanel>
 
-                                <TextBlock
-                                    Margin="0,3,0,0"
-                                    Effect="{StaticResource TextBlockShadowEffect}"
-                                    FontFamily="Comfortaa Light"
-                                    FontSize="13"
-                                    Foreground="{StaticResource TileDescriptionBrush}"
-                                    RenderOptions.BitmapScalingMode="NearestNeighbor"
-                                    Text="Load, temps, wattage and clocks for your CPU, GPU, RAM and VRAM. Settle the specs question for good."
-                                    TextWrapping="Wrap" />
+                                <TextBlock Style="{StaticResource TileDescriptionStyle}" Text="Load, temps, wattage and clocks for your CPU, GPU, RAM and VRAM. Settle the specs question for good." />
                             </StackPanel>
                             <StackPanel Grid.Column="2" Style="{StaticResource TileControlDeck}">
                                 <StackPanel Style="{StaticResource DeckOutputRow}">
@@ -1685,26 +1804,10 @@
                                 Margin="0,3,0,0"
                                 VerticalAlignment="Center"
                                 Orientation="Horizontal">
-                                <TextBlock
-                                    VerticalAlignment="Center"
-                                    Effect="{StaticResource TextBlockShadowEffect}"
-                                    FontFamily="Comfortaa Light"
-                                    FontSize="20"
-                                    Foreground="White"
-                                    RenderOptions.BitmapScalingMode="NearestNeighbor"
-                                    Text="Network ˢᵗᵃᵗˢ"
-                                    TextWrapping="Wrap" />
+                                <TextBlock Style="{StaticResource TileTitleStyle}" Text="Network ˢᵗᵃᵗˢ" />
                             </StackPanel>
 
-                            <TextBlock
-                                Margin="0,3,0,0"
-                                Effect="{StaticResource TextBlockShadowEffect}"
-                                FontFamily="Comfortaa Light"
-                                FontSize="13"
-                                Foreground="{StaticResource TileDescriptionBrush}"
-                                RenderOptions.BitmapScalingMode="NearestNeighbor"
-                                Text="Live up and down speeds, session peaks and totals. Proof it&#x27;s the world lagging, not you."
-                                TextWrapping="Wrap" />
+                            <TextBlock Style="{StaticResource TileDescriptionStyle}" Text="Live up and down speeds, session peaks and totals. Proof it&#x27;s the world lagging, not you." />
                         </StackPanel>
                         <StackPanel Grid.Column="2" Style="{StaticResource TileControlDeck}">
                             <StackPanel Style="{StaticResource DeckOutputRow}">
@@ -1812,27 +1915,11 @@
                                 Margin="0,3,0,0"
                                 VerticalAlignment="Center"
                                 Orientation="Horizontal">
-                                <TextBlock
-                                    VerticalAlignment="Center"
-                                    Effect="{StaticResource TextBlockShadowEffect}"
-                                    FontFamily="Comfortaa Light"
-                                    FontSize="20"
-                                    Foreground="White"
-                                    RenderOptions.BitmapScalingMode="NearestNeighbor"
-                                    Text="Time"
-                                    TextWrapping="Wrap" />
+                                <TextBlock Style="{StaticResource TileTitleStyle}" Text="Time" />
                             </StackPanel>
 
 
-                            <TextBlock
-                                Margin="0,3,0,0"
-                                Effect="{StaticResource TextBlockShadowEffect}"
-                                FontFamily="Comfortaa Light"
-                                FontSize="13"
-                                Foreground="{StaticResource TileDescriptionBrush}"
-                                RenderOptions.BitmapScalingMode="NearestNeighbor"
-                                Text="Your local time and zone. Ends the &quot;wait, what time is it for you?&quot; question forever."
-                                TextWrapping="Wrap" />
+                            <TextBlock Style="{StaticResource TileDescriptionStyle}" Text="Your local time and zone. Ends the &quot;wait, what time is it for you?&quot; question forever." />
                         </StackPanel>
                         <StackPanel Grid.Column="2" Style="{StaticResource TileControlDeck}">
                             <StackPanel Style="{StaticResource DeckOutputRow}">
@@ -1940,20 +2027,12 @@
                                 Margin="0,3,0,0"
                                 VerticalAlignment="Center"
                                 Orientation="Horizontal">
-                                <TextBlock
-                                    VerticalAlignment="Center"
-                                    Effect="{StaticResource TextBlockShadowEffect}"
-                                    FontFamily="Comfortaa Light"
-                                    FontSize="20"
-                                    Foreground="White"
-                                    RenderOptions.BitmapScalingMode="NearestNeighbor"
-                                    Text="Weather"
-                                    TextWrapping="Wrap" />
+                                <TextBlock Style="{StaticResource TileTitleStyle}" Text="Weather" />
                                 <TextBlock
                                     Margin="6,0,0,0"
                                     VerticalAlignment="Center"
                                     Effect="{StaticResource TextBlockShadowEffect}"
-                                    FontFamily="Comfortaa Light"
+                                    FontFamily="/Fonts/#Comfortaa"
                                     FontSize="12"
                                     Foreground="#D4D0E1"
                                     RenderOptions.BitmapScalingMode="NearestNeighbor"
@@ -1961,14 +2040,8 @@
                                     Visibility="{Binding WeatherSettings.ShowWeatherInTime, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}" />
                             </StackPanel>
                             <TextBlock
-                                Margin="0,3,0,0"
-                                Effect="{StaticResource TextBlockShadowEffect}"
-                                FontFamily="Comfortaa Light"
-                                FontSize="13"
-                                Foreground="{StaticResource TileDescriptionBrush}"
-                                RenderOptions.BitmapScalingMode="NearestNeighbor"
-                                Text="Conditions where you actually are: temperature, feels-like, wind and humidity, tucked in beside your clock."
-                                TextWrapping="Wrap" />
+                                Style="{StaticResource TileDescriptionStyle}"
+                                Text="Conditions where you actually are: temperature, feels-like, wind and humidity, tucked in beside your clock." />
                         </StackPanel>
                         <StackPanel Grid.Column="2" Style="{StaticResource TileControlDeck}">
                             <StackPanel Style="{StaticResource DeckOutputRow}">
@@ -2076,15 +2149,7 @@
                                 Margin="0,3,0,0"
                                 VerticalAlignment="Center"
                                 Orientation="Horizontal">
-                                <TextBlock
-                                    VerticalAlignment="Center"
-                                    Effect="{StaticResource TextBlockShadowEffect}"
-                                    FontFamily="Comfortaa Light"
-                                    FontSize="20"
-                                    Foreground="White"
-                                    RenderOptions.BitmapScalingMode="NearestNeighbor"
-                                    Text="Twitch"
-                                    TextWrapping="Wrap" />
+                                <TextBlock Style="{StaticResource TileTitleStyle}" Text="Twitch" />
                                 <StackPanel Margin="8,0,0,0" Orientation="Horizontal">
                                     <StackPanel.Style>
                                         <Style TargetType="StackPanel">
@@ -2127,21 +2192,13 @@
                                         Margin="8,0"
                                         VerticalAlignment="Center"
                                         Effect="{StaticResource TextBlockShadowEffect}"
-                                        FontFamily="Comfortaa Light"
+                                        FontFamily="/Fonts/#Comfortaa"
                                         FontSize="11"
                                         Foreground="#D1C6E6"
                                         Text="{Binding Modules.Twitch.LastSyncDisplay}" />
                                 </StackPanel>
                             </StackPanel>
-                            <TextBlock
-                                Margin="0,3,0,0"
-                                Effect="{StaticResource TextBlockShadowEffect}"
-                                FontFamily="Comfortaa Light"
-                                FontSize="13"
-                                Foreground="{StaticResource TileDescriptionBrush}"
-                                RenderOptions.BitmapScalingMode="NearestNeighbor"
-                                Text="Live status, viewers and category, plus shoutouts and announcements you can fire off without leaving VR."
-                                TextWrapping="Wrap" />
+                            <TextBlock Style="{StaticResource TileDescriptionStyle}" Text="Live status, viewers and category, plus shoutouts and announcements you can fire off without leaving VR." />
 
                         </StackPanel>
                         <StackPanel Grid.Column="2" Style="{StaticResource TileControlDeck}">
@@ -2251,15 +2308,7 @@
                             HorizontalAlignment="Stretch"
                             VerticalAlignment="Center">
                             <StackPanel Orientation="Horizontal">
-                                <TextBlock
-                                    Margin="0,3,0,0"
-                                    VerticalAlignment="Center"
-                                    Effect="{StaticResource TextBlockShadowEffect}"
-                                    FontFamily="Comfortaa Light"
-                                    FontSize="20"
-                                    Foreground="White"
-                                    Text="TikTok"
-                                    TextWrapping="Wrap" />
+                                <TextBlock Margin="0,3,0,0" Style="{StaticResource TileTitleStyle}" Text="TikTok" />
                                 <TextBlock
                                     Opacity="0.8"
                                     Style="{StaticResource TileStatusPill}"
@@ -2267,27 +2316,20 @@
                             </StackPanel>
 
                             <StackPanel Visibility="{Binding IntegrationSettings.IntgrTikTokLive, Converter={StaticResource BoolToVisibilityConverter}, UpdateSourceTrigger=PropertyChanged}">
-                                <TextBlock
-                                    Margin="0,3,0,0"
-                                    Effect="{StaticResource TextBlockShadowEffect}"
-                                    FontFamily="Comfortaa Light"
-                                    FontSize="13"
-                                    Foreground="{StaticResource TileDescriptionBrush}"
-                                    RenderOptions.BitmapScalingMode="NearestNeighbor"
-                                    TextWrapping="Wrap">
+                                <TextBlock Style="{StaticResource TileDescriptionStyle}">
                                     <Run Text="Follower counts on their own, or go LIVE for follows and gifts landing in real time. Run either, or both." />
                                 </TextBlock>
 
                                 <StackPanel Margin="0,4,0,0" Orientation="Horizontal">
                                     <TextBlock
-                                        FontFamily="Albert Sans Thin"
+                                        FontFamily="/Fonts/#Albert Sans"
                                         FontSize="11"
                                         Foreground="{StaticResource AccentTealBrush}"
                                         Text="{Binding Modules.TikTokLive.FollowerCountDisplay, StringFormat='Followers: {0}', FallbackValue='Followers: -'}"
                                         Visibility="{Binding Modules.TikTokLive.Settings.ShowProfileSummary, Converter={StaticResource BoolToVisibilityConverter}, UpdateSourceTrigger=PropertyChanged}" />
                                     <TextBlock
                                         Margin="12,0,0,0"
-                                        FontFamily="Albert Sans Thin"
+                                        FontFamily="/Fonts/#Albert Sans"
                                         FontSize="11"
                                         Foreground="{StaticResource TextMutedBrush}"
                                         Text="{Binding Modules.TikTokLive.StatusText, StringFormat='LIVE: {0}', FallbackValue='LIVE: off'}"
@@ -2297,7 +2339,7 @@
 
                                 <TextBlock
                                     Margin="0,4,0,0"
-                                    FontFamily="Albert Sans Thin"
+                                    FontFamily="/Fonts/#Albert Sans"
                                     FontSize="11"
                                     Foreground="{StaticResource TextPrimaryBrush}"
                                     Text="{Binding Modules.TikTokLive.OutputPreview, StringFormat='Preview: {0}', FallbackValue='Preview: -'}"
@@ -2418,15 +2460,7 @@
                                 Margin="0,3,0,0"
                                 VerticalAlignment="Center"
                                 Orientation="Horizontal">
-                                <TextBlock
-                                    VerticalAlignment="Center"
-                                    Effect="{StaticResource TextBlockShadowEffect}"
-                                    FontFamily="Comfortaa Light"
-                                    FontSize="20"
-                                    Foreground="White"
-                                    RenderOptions.BitmapScalingMode="NearestNeighbor"
-                                    Text="Discord"
-                                    TextWrapping="Wrap" />
+                                <TextBlock Style="{StaticResource TileTitleStyle}" Text="Discord" />
                                 <StackPanel Margin="8,0,0,0" Orientation="Horizontal">
                                     <StackPanel.Style>
                                         <Style TargetType="StackPanel">
@@ -2459,15 +2493,7 @@
                                         Text="{Binding Modules.Discord.CurrentChannelName, FallbackValue='Not connected'}" />
                                 </StackPanel>
                             </StackPanel>
-                            <TextBlock
-                                Margin="0,3,0,0"
-                                Effect="{StaticResource TextBlockShadowEffect}"
-                                FontFamily="Comfortaa Light"
-                                FontSize="13"
-                                Foreground="{StaticResource TileDescriptionBrush}"
-                                RenderOptions.BitmapScalingMode="NearestNeighbor"
-                                Text="Who's talking in your voice channel, and your VRChat world on your Discord profile if you want it."
-                                TextWrapping="Wrap" />
+                            <TextBlock Style="{StaticResource TileDescriptionStyle}" Text="Who's talking in your voice channel, and your VRChat world on your Discord profile if you want it." />
                         </StackPanel>
                         <StackPanel Grid.Column="2" Style="{StaticResource TileControlDeck}">
                             <StackPanel Style="{StaticResource DeckOutputRow}">
@@ -2580,15 +2606,7 @@
                                 Margin="0,3,0,0"
                                 VerticalAlignment="Center"
                                 Orientation="Horizontal">
-                                <TextBlock
-                                    VerticalAlignment="Center"
-                                    Effect="{StaticResource TextBlockShadowEffect}"
-                                    FontFamily="Comfortaa Light"
-                                    FontSize="20"
-                                    Foreground="White"
-                                    RenderOptions.BitmapScalingMode="NearestNeighbor"
-                                    Text="VRChat Radar"
-                                    TextWrapping="Wrap" />
+                                <TextBlock Style="{StaticResource TileTitleStyle}" Text="VRChat Radar" />
                                 <StackPanel Margin="0,0,0,0" Orientation="Horizontal">
                                     <StackPanel.Style>
                                         <Style TargetType="StackPanel">
@@ -2621,15 +2639,7 @@
                                         Text="{Binding Modules.VrcRadar.CurrentWorldName, FallbackValue='Not in a world'}" />
                                 </StackPanel>
                             </StackPanel>
-                            <TextBlock
-                                Margin="0,3,0,0"
-                                Effect="{StaticResource TextBlockShadowEffect}"
-                                FontFamily="Comfortaa Light"
-                                FontSize="13"
-                                Foreground="{StaticResource TileDescriptionBrush}"
-                                RenderOptions.BitmapScalingMode="NearestNeighbor"
-                                Text="Reads VRChat&#x27;s own log: where you are, who came and went, and every photo you took."
-                                TextWrapping="Wrap" />
+                            <TextBlock Style="{StaticResource TileDescriptionStyle}" Text="Reads VRChat&#x27;s own log: where you are, who came and went, and every photo you took." />
                         </StackPanel>
                         <StackPanel Grid.Column="2" Style="{StaticResource TileControlDeck}">
                             <StackPanel Style="{StaticResource DeckOutputRow}">
@@ -2776,7 +2786,7 @@
                                         VerticalAlignment="Center"
                                         d:Text=":( sorry"
                                         d:Visibility="Visible"
-                                        FontFamily="Comfortaa Light"
+                                        FontFamily="/Fonts/#Comfortaa"
                                         FontSize="12"
                                         Foreground="#9B7FD9"
                                         RenderOptions.BitmapScalingMode="NearestNeighbor"
@@ -2874,25 +2884,10 @@
                                     Margin="0,3,0,0"
                                     VerticalAlignment="Center"
                                     Orientation="Horizontal">
-                                    <TextBlock
-                                        VerticalAlignment="Center"
-                                        Effect="{StaticResource TextBlockShadowEffect}"
-                                        FontFamily="Comfortaa Light"
-                                        FontSize="20"
-                                        Foreground="White"
-                                        RenderOptions.BitmapScalingMode="NearestNeighbor"
-                                        Text="Soundpad"
-                                        TextWrapping="Wrap" />
+                                    <TextBlock Style="{StaticResource TileTitleStyle}" Text="Soundpad" />
                                 </StackPanel>
 
-                                <TextBlock
-                                    Margin="0,3,0,0"
-                                    Effect="{StaticResource TextBlockShadowEffect}"
-                                    FontFamily="Comfortaa Light"
-                                    FontSize="13"
-                                    Foreground="{StaticResource TileDescriptionBrush}"
-                                    RenderOptions.BitmapScalingMode="NearestNeighbor"
-                                    TextWrapping="Wrap">
+                                <TextBlock Style="{StaticResource TileDescriptionStyle}">
                                     <Run Text="Shows the clip you just played, so the room knows exactly who did that. Quiet when nothing&#x27;s playing." />
                                 </TextBlock>
                             </StackPanel>
@@ -3009,29 +3004,14 @@
                                 HorizontalAlignment="Stretch"
                                 VerticalAlignment="Center">
                                 <StackPanel Orientation="Horizontal">
-                                    <TextBlock
-                                        Margin="0,3,0,0"
-                                        VerticalAlignment="Center"
-                                        Effect="{StaticResource TextBlockShadowEffect}"
-                                        FontFamily="Comfortaa Light"
-                                        FontSize="20"
-                                        Foreground="White"
-                                        Text="Spotify"
-                                        TextWrapping="Wrap" />
+                                    <TextBlock Margin="0,3,0,0" Style="{StaticResource TileTitleStyle}" Text="Spotify" />
                                     <TextBlock
                                         Opacity="0.8"
                                         Style="{StaticResource TileStatusPill}"
                                         Text="{Binding SpotifyDisplay.StatusText, UpdateSourceTrigger=PropertyChanged}" />
                                 </StackPanel>
 
-                                <TextBlock
-                                    Margin="0,3,0,0"
-                                    Effect="{StaticResource TextBlockShadowEffect}"
-                                    FontFamily="Comfortaa Light"
-                                    FontSize="13"
-                                    Foreground="{StaticResource TileDescriptionBrush}"
-                                    RenderOptions.BitmapScalingMode="NearestNeighbor"
-                                    TextWrapping="Wrap">
+                                <TextBlock Style="{StaticResource TileDescriptionStyle}">
                                     <Run Text="The full Spotify picture: liked, explicit, shuffle, queue and device, arranged however you like with your own template." />
                                 </TextBlock>
 
@@ -3101,19 +3081,19 @@
 
                             <StackPanel Grid.Row="0" Grid.Column="0">
                                 <TextBlock
-                                    FontFamily="Comfortaa Light"
+                                    FontFamily="/Fonts/#Comfortaa"
                                     FontSize="16"
                                     Foreground="White"
                                     Text="{Binding SpotifyWidgetTitle, UpdateSourceTrigger=PropertyChanged}" />
                                 <TextBlock
                                     Margin="0,2,0,0"
-                                    FontFamily="Albert Sans Thin"
+                                    FontFamily="/Fonts/#Albert Sans"
                                     FontSize="13"
                                     Foreground="{StaticResource TextLabelBrush}"
                                     Text="{Binding SpotifyWidgetArtist, UpdateSourceTrigger=PropertyChanged}" />
                                 <TextBlock
                                     Margin="0,2,0,0"
-                                    FontFamily="Albert Sans Thin"
+                                    FontFamily="/Fonts/#Albert Sans"
                                     FontSize="12"
                                     Foreground="{StaticResource TextLabelBrush}"
                                     Opacity="0.7"
@@ -3155,7 +3135,7 @@
                                     Value="{Binding SpotifyDisplay.ProgressPercent, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}" />
                                 <TextBlock
                                     Margin="0,3,0,0"
-                                    FontFamily="Albert Sans Thin"
+                                    FontFamily="/Fonts/#Albert Sans"
                                     FontSize="12"
                                     Foreground="{StaticResource TextLabelBrush}"
                                     Text="{Binding SpotifyDisplay.ProgressDisplay}" />
@@ -3234,7 +3214,7 @@
                                     Visibility="{Binding SpotifySettings.ShowWidgetVolume, Converter={StaticResource InverseBoolToHiddenConverter}}">
                                     <TextBlock
                                         VerticalAlignment="Center"
-                                        FontFamily="Albert Sans Thin"
+                                        FontFamily="/Fonts/#Albert Sans"
                                         Foreground="{StaticResource TextLabelBrush}"
                                         Text="Vol" />
                                     <Slider
@@ -3340,26 +3320,12 @@
                                     Margin="0,3,0,0"
                                     VerticalAlignment="Center"
                                     Orientation="Horizontal">
-                                    <TextBlock
-                                        VerticalAlignment="Center"
-                                        Effect="{StaticResource TextBlockShadowEffect}"
-                                        FontFamily="Comfortaa Light"
-                                        FontSize="20"
-                                        Foreground="White"
-                                        RenderOptions.BitmapScalingMode="NearestNeighbor"
-                                        Text="MediaLink"
-                                        TextWrapping="Wrap" />
+                                    <TextBlock Style="{StaticResource TileTitleStyle}" Text="MediaLink" />
                                 </StackPanel>
 
                                 <TextBlock
-                                    Margin="0,3,0,0"
-                                    Effect="{StaticResource TextBlockShadowEffect}"
-                                    FontFamily="Comfortaa Light"
-                                    FontSize="13"
-                                    Foreground="{StaticResource TileDescriptionBrush}"
-                                    RenderOptions.BitmapScalingMode="NearestNeighbor"
-                                    Text="Whatever&#x27;s playing on your PC: Spotify, YouTube, a browser tab. No account, no setup, just music."
-                                    TextWrapping="Wrap" />
+                                    Style="{StaticResource TileDescriptionStyle}"
+                                    Text="Whatever&#x27;s playing on your PC: Spotify, YouTube, a browser tab. No account, no setup, just music." />
                             </StackPanel>
                             <StackPanel Grid.Column="2" Style="{StaticResource TileControlDeck}">
                                 <StackPanel Style="{StaticResource DeckOutputRow}">
@@ -3621,7 +3587,7 @@
                                                             Background="Transparent"
                                                             BorderThickness="0"
                                                             Focusable="False"
-                                                            FontFamily="Albert Sans Thin"
+                                                            FontFamily="/Fonts/#Albert Sans"
                                                             FontSize="17"
                                                             FontWeight="Bold"
                                                             Foreground="#26FFFE"

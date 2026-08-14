@@ -108,6 +108,8 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Resource Include="Fonts\Albert.ttf" />
+    <Resource Include="Fonts\Comfortaa.ttf" />
     <Resource Include="Img\Hellowwweeeeen.png" />
     <Resource Include="Img\Icons\Accept_ico.png" />
     <Resource Include="Img\Icons\ActivatedStatus_ico.png">

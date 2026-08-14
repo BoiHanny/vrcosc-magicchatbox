@@ -9,6 +9,7 @@
     Width="700"
     Height="250"
     Background="#41375B"
+    FontFamily="{DynamicResource FontPrimary}"
     ResizeMode="NoResize"
     mc:Ignorable="d">
 
@@ -35,7 +36,7 @@
                     Margin="6,1,0,0"
                     HorizontalAlignment="Center"
                     VerticalAlignment="Center"
-                    FontFamily="Albert Sans Thin"
+                    FontFamily="/Fonts/#Albert Sans"
                     FontSize="14"
                     Foreground="White"
                     RenderOptions.BitmapScalingMode="NearestNeighbor"
@@ -102,8 +103,9 @@
                     Margin="25"
                     HorizontalAlignment="Center"
                     VerticalAlignment="Top"
-                    FontFamily="Comfortaa Light"
+                    FontFamily="/Fonts/#Comfortaa"
                     FontSize="20"
+                    FontWeight="SemiBold"
                     Foreground="White"
                     RenderOptions.BitmapScalingMode="NearestNeighbor"
                     Text="Login, click 'Authorize app', then paste the access_token (or the full redirect URL).">

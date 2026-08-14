@@ -116,6 +116,7 @@ public partial class IntegrationsPageViewModel : ObservableObject
         MediaLinkDisplayState mediaLinkDisplay,
         SpotifyDisplayState spotifyDisplay,
         LyricsDisplayState lyricsDisplay,
+        Lazy<Sections.LyricsSectionViewModel> lyricsTuning,
         TrackerDisplayState tracker,
         IAppState appState,
         IMenuNavigationService menuNav,
@@ -136,6 +137,7 @@ public partial class IntegrationsPageViewModel : ObservableObject
         MediaLinkDisplay = mediaLinkDisplay;
         SpotifyDisplay = spotifyDisplay;
         LyricsDisplay = lyricsDisplay;
+        _lyricsTuning = lyricsTuning;
         MediaLinkSettings = mediaLinkSettingsProvider.Value;
         SpotifySettings = spotifySettingsProvider.Value;
         WeatherSettings = weatherSettingsProvider.Value;
@@ -221,6 +223,15 @@ public partial class IntegrationsPageViewModel : ObservableObject
     public Classes.Modules.Vr.VrPerformanceSettings VrPerformanceSettings { get; }
 
     public LyricsDisplayState LyricsDisplay { get; }
+
+    private readonly Lazy<Sections.LyricsSectionViewModel> _lyricsTuning;
+
+    /// <summary>
+    /// The very same singleton the Options &gt; Lyrics section edits, so the ribbon's timing controls
+    /// and the Options page can never disagree about the offset - a nudge on either surface shows up
+    /// on the other immediately, with no syncing code.
+    /// </summary>
+    public Sections.LyricsSectionViewModel LyricsTuning => _lyricsTuning.Value;
 
     public IReadOnlyList<Classes.Modules.Vr.VrPerformanceDisplayMode> VrPerformanceDisplayModes { get; } =
         (Classes.Modules.Vr.VrPerformanceDisplayMode[])Enum.GetValues(typeof(Classes.Modules.Vr.VrPerformanceDisplayMode));

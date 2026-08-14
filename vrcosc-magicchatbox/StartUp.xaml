@@ -8,6 +8,7 @@
     Width="580"
     Background="#150A2E"
     Cursor="AppStarting"
+    FontFamily="{DynamicResource FontPrimary}"
     ResizeMode="NoResize"
     SizeToContent="Height"
     WindowStartupLocation="CenterScreen"
@@ -91,7 +92,7 @@
 
         <Style x:Key="StartupGhostButton" TargetType="Button">
             <Setter Property="Foreground" Value="#A99BD4" />
-            <Setter Property="FontFamily" Value="Albert Sans Thin" />
+            <Setter Property="FontFamily" Value="/Fonts/#Albert Sans" />
             <Setter Property="FontSize" Value="12" />
             <Setter Property="Cursor" Value="Hand" />
             <Setter Property="Template">
@@ -165,7 +166,7 @@
                             <StackPanel Orientation="Horizontal">
                                 <TextBlock
                                     VerticalAlignment="Center"
-                                    FontFamily="Comfortaa Light"
+                                    FontFamily="/Fonts/#Comfortaa"
                                     FontSize="27"
                                     Foreground="White"
                                     Text="MagicChatbox" />
@@ -180,14 +181,14 @@
                                     <TextBlock
                                         x:Name="VersionText"
                                         d:Text="0.9.215"
-                                        FontFamily="Albert Sans Thin"
+                                        FontFamily="/Fonts/#Albert Sans"
                                         FontSize="11"
                                         Foreground="#C3A9FF" />
                                 </Border>
                             </StackPanel>
                             <TextBlock
                                 Margin="2,6,0,0"
-                                FontFamily="Albert Sans Thin"
+                                FontFamily="/Fonts/#Albert Sans"
                                 FontSize="13"
                                 Foreground="#9B8FC6"
                                 Text="Sit back, relax, and let us prepare your app"
@@ -213,7 +214,7 @@
                                     x:Name="PrevStepText"
                                     Grid.Column="0"
                                     VerticalAlignment="Center"
-                                    FontFamily="Albert Sans Thin"
+                                    FontFamily="/Fonts/#Albert Sans"
                                     FontSize="12"
                                     Foreground="#6E639A"
                                     Text=""
@@ -223,7 +224,7 @@
                                     Grid.Column="1"
                                     Margin="10,0,0,0"
                                     VerticalAlignment="Center"
-                                    FontFamily="Albert Sans Thin"
+                                    FontFamily="/Fonts/#Albert Sans"
                                     FontSize="11"
                                     Foreground="#5A5185"
                                     Text="" />
@@ -247,7 +248,7 @@
                                     x:Name="CurrentStepText"
                                     Grid.Column="1"
                                     VerticalAlignment="Center"
-                                    FontFamily="Comfortaa Light"
+                                    FontFamily="/Fonts/#Comfortaa"
                                     FontSize="14"
                                     Foreground="White"
                                     Text=""
@@ -257,7 +258,7 @@
                                     Grid.Column="2"
                                     Margin="10,0,0,0"
                                     VerticalAlignment="Center"
-                                    FontFamily="Albert Sans Thin"
+                                    FontFamily="/Fonts/#Albert Sans"
                                     FontSize="11"
                                     Foreground="#9B8FC6"
                                     Text="" />
@@ -268,7 +269,7 @@
                                     x:Name="NextStepText"
                                     Margin="13,0,0,0"
                                     VerticalAlignment="Center"
-                                    FontFamily="Albert Sans Thin"
+                                    FontFamily="/Fonts/#Albert Sans"
                                     FontSize="12"
                                     Foreground="#6E639A"
                                     Text=""
@@ -300,7 +301,7 @@
                             <TextBlock
                                 Margin="0,0,6,0"
                                 VerticalAlignment="Center"
-                                FontFamily="Albert Sans Thin"
+                                FontFamily="/Fonts/#Albert Sans"
                                 FontSize="12"
                                 Foreground="#6A5F94"
                                 Text="Made with ♥ by" />
@@ -311,7 +312,7 @@
                                 <TextBlock
                                     x:Name="BylineName"
                                     VerticalAlignment="Center"
-                                    FontFamily="Comfortaa Light"
+                                    FontFamily="/Fonts/#Comfortaa"
                                     FontSize="16"
                                     Text="BoiHanny">
                                     <TextBlock.Foreground>
@@ -341,7 +342,7 @@
                                 <TextBlock
                                     x:Name="BylineShine"
                                     VerticalAlignment="Center"
-                                    FontFamily="Comfortaa Light"
+                                    FontFamily="/Fonts/#Comfortaa"
                                     FontSize="16"
                                     Foreground="#FFFFFFFF"
                                     IsHitTestVisible="False"

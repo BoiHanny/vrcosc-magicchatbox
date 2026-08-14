@@ -210,7 +210,6 @@ namespace vrcosc_magicchatbox.ViewModels
                 }
             }
 
-            _ = ScanLoop.Scantick();
             ScrollToEndRequested?.Invoke();
             return true;
         }
@@ -295,7 +294,6 @@ namespace vrcosc_magicchatbox.ViewModels
                 {
                     _chatStatus.ChatFeedbackTxt = "Message sent again";
                 }
-                _ = ScanLoop.Scantick();
             }
             catch (Exception ex)
             {

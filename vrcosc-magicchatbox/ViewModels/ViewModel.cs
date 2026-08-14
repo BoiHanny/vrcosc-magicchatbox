@@ -233,6 +233,23 @@ namespace vrcosc_magicchatbox.ViewModels
                 {
                     _pulsoid.AuthConnected = value;
                     NotifyPropertyChanged(nameof(PulsoidAuthConnected));
+                    NotifyPropertyChanged(nameof(PulsoidAuthState));
+                }
+            }
+        }
+
+        public ViewModels.State.PulsoidAuthState PulsoidAuthState
+        {
+            get => _pulsoid.AuthState;
+            set
+            {
+                if (_pulsoid.AuthState != value)
+                {
+                    bool connectedBefore = _pulsoid.AuthConnected;
+                    _pulsoid.AuthState = value;
+                    NotifyPropertyChanged(nameof(PulsoidAuthState));
+                    if (connectedBefore != _pulsoid.AuthConnected)
+                        NotifyPropertyChanged(nameof(PulsoidAuthConnected));
                 }
             }
         }

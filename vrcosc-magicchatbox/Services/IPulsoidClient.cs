@@ -7,8 +7,23 @@ namespace vrcosc_magicchatbox.Services;
 
 public enum PulsoidConnectionError
 {
+    /// <summary>Pulsoid unambiguously refused the credential (HTTP 401 on the handshake or on validate).</summary>
     TokenInvalid,
+
+    /// <summary>Repeated connection failures. Transient: the client keeps retrying in the background.</summary>
     MaxRetriesExhausted,
+
+    /// <summary>Pulsoid answered HTTP 402 — the account's plan does not cover this.</summary>
+    SubscriptionRequired,
+
+    /// <summary>
+    /// Pulsoid will not serve the optional statistics endpoint for this token (missing
+    /// data:statistics:read, a plan limit, a revoked scope). Heart rate is unaffected and the
+    /// sign-in must never be demoted because of it.
+    /// </summary>
+    StatisticsUnavailable,
+
+    /// <summary>Anything else. Transient by default; never a reason to sign the user out.</summary>
     UnexpectedError
 }
 

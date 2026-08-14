@@ -279,7 +279,7 @@ namespace vrcosc_magicchatbox
         public void StartBackgroundProcessing()
         {
             _scanLoop.Start();
-            _ = Task.Run(() => _scanLoop.Scantick(true));
+            _ = _scanLoop.Scantick(true);
         }
 
         public static event EventHandler ShadowOpacityChanged;

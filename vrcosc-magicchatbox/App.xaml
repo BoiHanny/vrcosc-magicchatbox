@@ -55,9 +55,23 @@
                     </Setter.Value>
                 </Setter>
             </Style>
+            <!--
+                Options section header. Family, size and colour are template-bound to the setters
+                below so the style owns them. FontWeight is deliberately NOT template-bound and is
+                pinned to SemiBold inside the template: 600 is the specced weight for this role,
+                and pinning it means a call site cannot reintroduce Bold 700.
+
+                FontSize is the top rung of the Options ladder and must stay above the styles it
+                contains: section header 18 (FontSizeHeading) > subsection header 16
+                (OptionSubsectionHeaderStyle) > field label 15 (FontSizeBody). At 18 SemiBold,
+                Albert Sans measures a 21.6px line box (LineSpacing 1.2), which clears the
+                Height="30" the call sites hard-code with room to spare.
+            -->
             <Style x:Key="ExpandCollapseToggleButtonStyle" TargetType="ToggleButton">
                 <Setter Property="Background" Value="Transparent" />
-                <Setter Property="Foreground" Value="#B7BBD4" />
+                <Setter Property="Foreground" Value="{StaticResource TextSectionHeaderBrush}" />
+                <Setter Property="FontFamily" Value="{StaticResource FontPrimary}" />
+                <Setter Property="FontSize" Value="{StaticResource FontSizeHeading}" />
                 <Setter Property="BorderBrush" Value="Transparent" />
                 <Setter Property="Padding" Value="5,0,5,0" />
                 <Setter Property="Template">
@@ -84,8 +98,10 @@
                                             Grid.Column="1"
                                             Margin="8,0,10,0"
                                             VerticalAlignment="Center"
-                                            FontSize="13"
-                                            Foreground="#B7BBD4"
+                                            FontFamily="{TemplateBinding FontFamily}"
+                                            FontSize="{TemplateBinding FontSize}"
+                                            FontWeight="SemiBold"
+                                            Foreground="{TemplateBinding Foreground}"
                                             Text="{TemplateBinding Tag}" />
                                     </Grid>
                                 </Border>
@@ -133,9 +149,16 @@
                     </Trigger>
                 </Style.Triggers>
             </Style>
+            <!--
+                Same header role as ExpandCollapseToggleButtonStyle, dev-only accent colours.
+                Keep FontSize and the template's pinned SemiBold in step with that style: the
+                weight is not exposed as a setter so a call site cannot reintroduce Bold 700.
+            -->
             <Style x:Key="ExpandCollapseToggleButtonStyleDEV" TargetType="ToggleButton">
                 <Setter Property="Background" Value="Transparent" />
-                <Setter Property="Foreground" Value="#B7BBD4" />
+                <Setter Property="Foreground" Value="{StaticResource TextSectionHeaderBrush}" />
+                <Setter Property="FontFamily" Value="{StaticResource FontPrimary}" />
+                <Setter Property="FontSize" Value="{StaticResource FontSizeHeading}" />
                 <Setter Property="BorderBrush" Value="Transparent" />
                 <Setter Property="Padding" Value="5,0,5,0" />
                 <Setter Property="Template">
@@ -162,8 +185,10 @@
                                             Grid.Column="1"
                                             Margin="8,0,10,0"
                                             VerticalAlignment="Center"
-                                            FontSize="13"
-                                            Foreground="#B7BBD4"
+                                            FontFamily="{TemplateBinding FontFamily}"
+                                            FontSize="{TemplateBinding FontSize}"
+                                            FontWeight="SemiBold"
+                                            Foreground="{TemplateBinding Foreground}"
                                             Text="{TemplateBinding Tag}" />
                                     </Grid>
                                 </Border>
@@ -869,9 +894,9 @@
                 <Setter Property="Background" Value="#3A3644" />
                 <Setter Property="Foreground" Value="#82829B" />
                 <Setter Property="RenderOptions.BitmapScalingMode" Value="NearestNeighbor" />
-                <Setter Property="FontSize" Value="11" />
+                <Setter Property="FontSize" Value="{StaticResource FontSizeCaption}" />
                 <Setter Property="Cursor" Value="Hand" />
-                <Setter Property="FontFamily" Value="Bahnschrift SemiLight" />
+                <Setter Property="FontFamily" Value="{StaticResource FontPrimary}" />
 
                 <Setter Property="Template">
                     <Setter.Value>
@@ -949,9 +974,9 @@
                 <Setter Property="Background" Value="#3A3644" />
                 <Setter Property="Foreground" Value="#82829B" />
                 <Setter Property="RenderOptions.BitmapScalingMode" Value="NearestNeighbor" />
-                <Setter Property="FontSize" Value="11" />
+                <Setter Property="FontSize" Value="{StaticResource FontSizeCaption}" />
                 <Setter Property="Cursor" Value="Hand" />
-                <Setter Property="FontFamily" Value="Bahnschrift SemiLight" />
+                <Setter Property="FontFamily" Value="{StaticResource FontPrimary}" />
 
                 <Setter Property="Template">
                     <Setter.Value>
@@ -1033,9 +1058,9 @@
                 <Setter Property="Background" Value="#3A3644" />
                 <Setter Property="Foreground" Value="#82829B" />
                 <Setter Property="RenderOptions.BitmapScalingMode" Value="NearestNeighbor" />
-                <Setter Property="FontSize" Value="11" />
+                <Setter Property="FontSize" Value="{StaticResource FontSizeCaption}" />
                 <Setter Property="Cursor" Value="Hand" />
-                <Setter Property="FontFamily" Value="Bahnschrift SemiLight" />
+                <Setter Property="FontFamily" Value="{StaticResource FontPrimary}" />
                 <Setter Property="Template">
                     <Setter.Value>
                         <ControlTemplate TargetType="{x:Type ToggleButton}">
@@ -1087,9 +1112,9 @@
                 <Setter Property="Background" Value="#332F44" />
                 <Setter Property="Foreground" Value="#9C9BC4" />
                 <Setter Property="RenderOptions.BitmapScalingMode" Value="NearestNeighbor" />
-                <Setter Property="FontSize" Value="11" />
+                <Setter Property="FontSize" Value="{StaticResource FontSizeCaption}" />
                 <Setter Property="Cursor" Value="Hand" />
-                <Setter Property="FontFamily" Value="Bahnschrift SemiLight" />
+                <Setter Property="FontFamily" Value="{StaticResource FontPrimary}" />
                 <Setter Property="Template">
                     <Setter.Value>
                         <ControlTemplate TargetType="{x:Type ToggleButton}">
@@ -1221,9 +1246,9 @@
             <Style x:Key="GlowyToggleButtonMediaLink" TargetType="{x:Type ToggleButton}">
                 <Setter Property="Background" Value="#240F53" />
                 <Setter Property="Foreground" Value="#D0D0D0" />
-                <Setter Property="FontSize" Value="11" />
+                <Setter Property="FontSize" Value="{StaticResource FontSizeCaption}" />
                 <Setter Property="Cursor" Value="Hand" />
-                <Setter Property="FontFamily" Value="Bahnschrift SemiLight" />
+                <Setter Property="FontFamily" Value="{StaticResource FontPrimary}" />
                 <Setter Property="Template">
                     <Setter.Value>
                         <ControlTemplate TargetType="{x:Type ToggleButton}">
@@ -1325,7 +1350,7 @@
                 <Setter Property="Foreground" Value="#240F53" />
                 <Setter Property="FontSize" Value="13" />
                 <Setter Property="Cursor" Value="Hand" />
-                <Setter Property="FontFamily" Value="Bahnschrift SemiLight" />
+                <Setter Property="FontFamily" Value="{StaticResource FontPrimary}" />
                 <Setter Property="Template">
                     <Setter.Value>
                         <ControlTemplate TargetType="{x:Type Button}">
@@ -1364,7 +1389,7 @@
                 <Setter Property="Height" Value="35" />
                 <Setter Property="Opacity" Value="1" />
                 <Setter Property="Cursor" Value="Hand" />
-                <Setter Property="FontFamily" Value="Bahnschrift SemiLight" />
+                <Setter Property="FontFamily" Value="{StaticResource FontPrimary}" />
                 <Setter Property="Template">
                     <Setter.Value>
                         <ControlTemplate TargetType="{x:Type Button}">
@@ -2146,13 +2171,13 @@
                 <Setter Property="Padding" Value="8,4,8,0" />
             </Style>
             <Style x:Key="TrackerHeaderText" TargetType="TextBlock">
-                <Setter Property="FontFamily" Value="Albert Sans Thin" />
+                <Setter Property="FontFamily" Value="/Fonts/#Albert Sans" />
                 <Setter Property="FontSize" Value="14" />
                 <Setter Property="FontWeight" Value="SemiBold" />
                 <Setter Property="Foreground" Value="#E6DFF7" />
             </Style>
             <Style x:Key="TrackerLabelText" TargetType="TextBlock">
-                <Setter Property="FontFamily" Value="Albert Sans Thin" />
+                <Setter Property="FontFamily" Value="/Fonts/#Albert Sans" />
                 <Setter Property="FontSize" Value="12" />
                 <Setter Property="Foreground" Value="#C9C1DE" />
             </Style>
@@ -2170,7 +2195,7 @@
                 </Style.Triggers>
             </Style>
             <Style x:Key="WeatherOverrideFieldLabel" TargetType="TextBlock">
-                <Setter Property="FontFamily" Value="Albert Sans Thin" />
+                <Setter Property="FontFamily" Value="/Fonts/#Albert Sans" />
                 <Setter Property="FontSize" Value="10" />
                 <Setter Property="Foreground" Value="#FFE9E2F4" />
                 <Setter Property="Opacity" Value="0.75" />

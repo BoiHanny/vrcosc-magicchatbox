@@ -40,9 +40,6 @@
                 Width="Auto"
                 Height="30"
                 HorizontalAlignment="Left"
-                FontSize="15"
-                FontWeight="Bold"
-                Foreground="{StaticResource TextSectionHeaderBrush}"
                 IsChecked="{Binding AppSettings.Settings_HeartRate, Mode=TwoWay}"
                 Style="{StaticResource ExpandCollapseToggleButtonStyle}"
                 Tag="Pulsoid heart rate options"
@@ -56,7 +53,7 @@
                 HorizontalAlignment="Left"
                 VerticalAlignment="Center"
                 Cursor="Hand"
-                FontFamily="Albert Sans Thin"
+                FontFamily="/Fonts/#Albert Sans"
                 FontSize="12"
                 Foreground="{StaticResource AccentTealBrush}"
                 MouseUp="LearnMoreAboutHeartbtn_MouseUp"
@@ -175,7 +172,7 @@
                                     HorizontalAlignment="Stretch"
                                     VerticalAlignment="Top"
                                     Background="Transparent"
-                                    FontFamily="Albert Sans Thin"
+                                    FontFamily="/Fonts/#Albert Sans"
                                     FontSize="20"
                                     FontWeight="Bold"
                                     Foreground="#12002E"
@@ -189,7 +186,7 @@
                                     HorizontalAlignment="Stretch"
                                     VerticalAlignment="Top"
                                     Background="Transparent"
-                                    FontFamily="Albert Sans Thin"
+                                    FontFamily="/Fonts/#Albert Sans"
                                     FontSize="20"
                                     FontWeight="Bold"
                                     Foreground="#2A1650"
@@ -203,7 +200,7 @@
                                     HorizontalAlignment="Stretch"
                                     VerticalAlignment="Top"
                                     Background="Transparent"
-                                    FontFamily="Albert Sans Thin"
+                                    FontFamily="/Fonts/#Albert Sans"
                                     FontSize="20"
                                     FontWeight="Bold"
                                     Foreground="#12002E"
@@ -218,7 +215,7 @@
                                 HorizontalAlignment="Stretch"
                                 VerticalAlignment="Top"
                                 Background="Transparent"
-                                FontFamily="Albert Sans Thin"
+                                FontFamily="/Fonts/#Albert Sans"
                                 FontSize="13"
                                 FontStyle="Italic"
                                 FontWeight="Medium"
@@ -274,6 +271,7 @@
 
                 </Border>
                 <Border Padding="0" Style="{StaticResource OptionCardStyle}">
+                  <StackPanel>
                     <StackPanel Orientation="Horizontal">
                         <Button
                             x:Name="ConnectWithPulsoid"
@@ -356,9 +354,8 @@
                                 Margin="5,0,0,0"
                                 VerticalAlignment="Center"
                                 Effect="{StaticResource TextBlockShadowEffect}"
-                                FontFamily="Comfortaa Light"
+                                FontFamily="/Fonts/#Comfortaa"
                                 FontSize="12"
-                                FontWeight="Bold"
                                 Foreground="LightSeaGreen"
                                 RenderOptions.BitmapScalingMode="NearestNeighbor"
                                 Text="No device connected"
@@ -368,14 +365,21 @@
                             Width="400"
                             Padding="10,4,0,4"
                             VerticalAlignment="Center"
-                            FontFamily="Albert Sans Thin"
+                            FontFamily="/Fonts/#Albert Sans"
                             FontSize="14"
                             Foreground="PaleVioletRed"
                             Text="{Binding Modules.Pulsoid.PulsoidAccessErrorTxt, UpdateSourceTrigger=PropertyChanged}"
                             TextWrapping="Wrap"
                             Visibility="{Binding Modules.Pulsoid.PulsoidAccessError, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}" />
                     </StackPanel>
-
+                    <TextBlock
+                        Margin="2,4,0,0"
+                        FontFamily="/Fonts/#Albert Sans"
+                        FontSize="12"
+                        Foreground="{StaticResource TextLabelBrush}"
+                        Text="{Binding Pulsoid.AuthStatusText, UpdateSourceTrigger=PropertyChanged}"
+                        TextWrapping="Wrap" />
+                  </StackPanel>
                 </Border>
                 <Border
                     Padding="0"
@@ -385,13 +389,12 @@
                     <StackPanel Margin="5">
                         <TextBlock
                             x:Name="ManualPulsoidAuthBtn"
+                            Margin="0"
                             Padding="0,0,9,0"
                             VerticalAlignment="Center"
                             Cursor="Hand"
-                            FontFamily="Albert Sans Thin"
-                            FontSize="15"
-                            Foreground="{StaticResource TextLabelBrush}"
                             MouseUp="ManualPulsoidAuthBtn_MouseUp"
+                            Style="{StaticResource OptionFieldLabelStyle}"
                             Text="Manual web authorization" />
                     </StackPanel>
                 </Border>
@@ -609,10 +612,9 @@
                                     VerticalAlignment="Center"
                                     Orientation="Horizontal">
                                     <TextBlock
+                                        Margin="0"
                                         VerticalAlignment="Center"
-                                        FontFamily="Albert Sans Thin"
-                                        FontSize="15"
-                                        Foreground="{StaticResource TextLabelBrush}"
+                                        Style="{StaticResource OptionFieldLabelStyle}"
                                         Text="Use last" />
                                     <TextBox
                                         x:Name="SmoothOSCHeartRate_INT"
@@ -624,10 +626,9 @@
                                         FontSize="15"
                                         Text="{Binding Modules.Pulsoid.Settings.SmoothOSCHeartRateTimeSpan, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                                     <TextBlock
+                                        Margin="0"
                                         VerticalAlignment="Center"
-                                        FontFamily="Albert Sans Thin"
-                                        FontSize="15"
-                                        Foreground="{StaticResource TextLabelBrush}"
+                                        Style="{StaticResource OptionFieldLabelStyle}"
                                         Text="received heart rate updates from the network to show smooth heart rate changes." />
                                 </StackPanel>
                                 <TextBlock
@@ -665,11 +666,10 @@
                         <StackPanel Margin="4,5,0,0" Visibility="{Binding Modules.Pulsoid.Settings.ShowTemperatureText, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
                             <StackPanel Orientation="Horizontal">
                                 <TextBlock
+                                    Margin="0"
                                     Padding="0,0,9,0"
                                     VerticalAlignment="Center"
-                                    FontFamily="Albert Sans Thin"
-                                    FontSize="15"
-                                    Foreground="{StaticResource TextLabelBrush}"
+                                    Style="{StaticResource OptionFieldLabelStyle}"
                                     Text="Lower than" />
                                 <TextBox
                                     x:Name="LowTemperatureThreshold"
@@ -682,11 +682,10 @@
                                     Text="{Binding Modules.Pulsoid.Settings.LowTemperatureThreshold, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                     TextAlignment="Center" />
                                 <TextBlock
+                                    Margin="0"
                                     Padding="5,0,5,0"
                                     VerticalAlignment="Center"
-                                    FontFamily="Albert Sans Thin"
-                                    FontSize="15"
-                                    Foreground="{StaticResource TextLabelBrush}"
+                                    Style="{StaticResource OptionFieldLabelStyle}"
                                     Text="show" />
                                 <TextBox
                                     x:Name="LowHeartRateText"
@@ -700,11 +699,10 @@
                             </StackPanel>
                             <StackPanel Margin="0,5,0,5" Orientation="Horizontal">
                                 <TextBlock
+                                    Margin="0"
                                     Padding="0,0,5,0"
                                     VerticalAlignment="Center"
-                                    FontFamily="Albert Sans Thin"
-                                    FontSize="15"
-                                    Foreground="{StaticResource TextLabelBrush}"
+                                    Style="{StaticResource OptionFieldLabelStyle}"
                                     Text="Higher than" />
                                 <TextBox
                                     x:Name="HighTemperatureThreshold"
@@ -716,11 +714,10 @@
                                     Text="{Binding Modules.Pulsoid.Settings.HighTemperatureThreshold, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                     TextAlignment="Center" />
                                 <TextBlock
+                                    Margin="0"
                                     Padding="5,0,4,0"
                                     VerticalAlignment="Center"
-                                    FontFamily="Albert Sans Thin"
-                                    FontSize="15"
-                                    Foreground="{StaticResource TextLabelBrush}"
+                                    Style="{StaticResource OptionFieldLabelStyle}"
                                     Text="show" />
                                 <TextBox
                                     x:Name="HighwHeartRateText"
@@ -754,9 +751,7 @@
                             <TextBlock
                                 Margin="4,0"
                                 VerticalAlignment="Center"
-                                FontFamily="Albert Sans Thin"
-                                FontSize="15"
-                                Foreground="{StaticResource TextLabelBrush}"
+                                Style="{StaticResource OptionFieldLabelStyle}"
                                 Text="Trend symbols" />
                             <StackPanel VerticalAlignment="Center" Orientation="Horizontal">
 
@@ -775,10 +770,9 @@
                                 VerticalAlignment="Center"
                                 Orientation="Horizontal">
                                 <TextBlock
+                                    Margin="0"
                                     VerticalAlignment="Center"
-                                    FontFamily="Albert Sans Thin"
-                                    FontSize="15"
-                                    Foreground="{StaticResource TextLabelBrush}"
+                                    Style="{StaticResource OptionFieldLabelStyle}"
                                     Text="Use last" />
                                 <TextBox
                                     x:Name="HeartRateTrendIndicatorSampleRate_INT"
@@ -790,21 +784,19 @@
                                     FontSize="15"
                                     Text="{Binding Modules.Pulsoid.Settings.HeartRateTrendIndicatorSampleRate, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                                 <TextBlock
+                                    Margin="0"
                                     VerticalAlignment="Center"
-                                    FontFamily="Albert Sans Thin"
-                                    FontSize="15"
-                                    Foreground="{StaticResource TextLabelBrush}"
+                                    Style="{StaticResource OptionFieldLabelStyle}"
                                     Text="heart rate scans to identify trends." />
                             </StackPanel>
 
 
                             <TextBlock
                                 Width="auto"
+                                Margin="0"
                                 Padding="4,0"
                                 VerticalAlignment="Center"
-                                FontFamily="Albert Sans Thin"
-                                FontSize="15"
-                                Foreground="{StaticResource TextLabelBrush}"
+                                Style="{StaticResource OptionFieldLabelStyle}"
                                 Text="Trend sensitivity" />
                             <StackPanel Margin="3,0" Orientation="Horizontal">
 
@@ -812,9 +804,9 @@
                                     Width="auto"
                                     Padding="2,5,5,5"
                                     VerticalAlignment="Center"
-                                    FontFamily="Albert Sans Thin"
+                                    FontFamily="/Fonts/#Albert Sans"
                                     FontSize="13"
-                                    Foreground="{StaticResource BorderMutedBrush}"
+                                    Foreground="{StaticResource TextMutedBrush}"
                                     Text="Quick" />
                                 <Slider
                                     x:Name="HeartRateTrendIndicatorSensitivitySlider"
@@ -829,9 +821,9 @@
                                     Width="auto"
                                     Padding="5,0"
                                     VerticalAlignment="Center"
-                                    FontFamily="Albert Sans Thin"
+                                    FontFamily="/Fonts/#Albert Sans"
                                     FontSize="13"
-                                    Foreground="{StaticResource BorderMutedBrush}"
+                                    Foreground="{StaticResource TextMutedBrush}"
                                     Text="Slow" />
                             </StackPanel>
                         </StackPanel>
@@ -857,10 +849,9 @@
                                 VerticalAlignment="Center"
                                 Orientation="Horizontal">
                                 <TextBlock
+                                    Margin="0"
                                     VerticalAlignment="Center"
-                                    FontFamily="Albert Sans Thin"
-                                    FontSize="15"
-                                    Foreground="{StaticResource TextLabelBrush}"
+                                    Style="{StaticResource OptionFieldLabelStyle}"
                                     Text="Use last" />
                                 <TextBox
                                     x:Name="SmoothHeartRate_INT"
@@ -872,10 +863,9 @@
                                     FontSize="15"
                                     Text="{Binding Modules.Pulsoid.Settings.SmoothHeartRateTimeSpan, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                                 <TextBlock
+                                    Margin="0"
                                     VerticalAlignment="Center"
-                                    FontFamily="Albert Sans Thin"
-                                    FontSize="15"
-                                    Foreground="{StaticResource TextLabelBrush}"
+                                    Style="{StaticResource OptionFieldLabelStyle}"
                                     Text="heart rate scans to show smooth heart rate changes." />
                             </StackPanel>
                         </StackPanel>
@@ -908,10 +898,9 @@
                                 Orientation="Horizontal">
 
                                 <TextBlock
+                                    Margin="0"
                                     VerticalAlignment="Center"
-                                    FontFamily="Albert Sans Thin"
-                                    FontSize="15"
-                                    Foreground="{StaticResource TextLabelBrush}"
+                                    Style="{StaticResource OptionFieldLabelStyle}"
                                     Text="Max Heart Rate:" />
                                 <TextBox
                                     x:Name="throttleRangeMin"
@@ -923,10 +912,9 @@
                                     FontSize="15"
                                     Text="{Binding Modules.Pulsoid.Settings.ThrottleHRMax, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                                 <TextBlock
+                                    Margin="0"
                                     VerticalAlignment="Center"
-                                    FontFamily="Albert Sans Thin"
-                                    FontSize="15"
-                                    Foreground="{StaticResource TextLabelBrush}"
+                                    Style="{StaticResource OptionFieldLabelStyle}"
                                     Text="BPM" />
 
                             </StackPanel>
@@ -936,10 +924,9 @@
                                 VerticalAlignment="Center"
                                 Orientation="Horizontal">
                                 <TextBlock
+                                    Margin="0"
                                     VerticalAlignment="Center"
-                                    FontFamily="Albert Sans Thin"
-                                    FontSize="15"
-                                    Foreground="{StaticResource TextLabelBrush}"
+                                    Style="{StaticResource OptionFieldLabelStyle}"
                                     Text="Max Overflow:" />
 
                                 <TextBox
@@ -952,10 +939,9 @@
                                     FontSize="15"
                                     Text="{Binding Modules.Pulsoid.Settings.ThrottleMaxAdditional, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                                 <TextBlock
+                                    Margin="0"
                                     VerticalAlignment="Center"
-                                    FontFamily="Albert Sans Thin"
-                                    FontSize="15"
-                                    Foreground="{StaticResource TextLabelBrush}"
+                                    Style="{StaticResource OptionFieldLabelStyle}"
                                     Text="BPM" />
                             </StackPanel>
                             <TextBlock
@@ -991,10 +977,9 @@
                                 VerticalAlignment="Center"
                                 Orientation="Horizontal">
                                 <TextBlock
+                                    Margin="0"
                                     VerticalAlignment="Center"
-                                    FontFamily="Albert Sans Thin"
-                                    FontSize="15"
-                                    Foreground="{StaticResource TextLabelBrush}"
+                                    Style="{StaticResource OptionFieldLabelStyle}"
                                     Text="Adjust heart-rate by" />
                                 <TextBox
                                     x:Name="HeartRateAdjustment"
@@ -1006,10 +991,9 @@
                                     FontSize="15"
                                     Text="{Binding Modules.Pulsoid.Settings.HeartRateAdjustment, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                                 <TextBlock
+                                    Margin="0"
                                     VerticalAlignment="Center"
-                                    FontFamily="Albert Sans Thin"
-                                    FontSize="15"
-                                    Foreground="{StaticResource TextLabelBrush}"
+                                    Style="{StaticResource OptionFieldLabelStyle}"
                                     Text="BPM" />
                             </StackPanel>
 
@@ -1037,10 +1021,9 @@
                                 VerticalAlignment="Center"
                                 Orientation="Horizontal">
                                 <TextBlock
+                                    Margin="0"
                                     VerticalAlignment="Center"
-                                    FontFamily="Albert Sans Thin"
-                                    FontSize="15"
-                                    Foreground="{StaticResource TextLabelBrush}"
+                                    Style="{StaticResource OptionFieldLabelStyle}"
                                     Text="If the heart rate is unchanged for" />
                                 <TextBox
                                     x:Name="UnchangedHeartRateLimit_INT"
@@ -1052,10 +1035,9 @@
                                     FontSize="15"
                                     Text="{Binding Modules.Pulsoid.Settings.UnchangedHeartRateTimeoutInSec, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                                 <TextBlock
+                                    Margin="0"
                                     VerticalAlignment="Center"
-                                    FontFamily="Albert Sans Thin"
-                                    FontSize="15"
-                                    Foreground="{StaticResource TextLabelBrush}"
+                                    Style="{StaticResource OptionFieldLabelStyle}"
                                     Text="seconds, then the heart rate is considered offline." />
                             </StackPanel>
                         </StackPanel>
@@ -1112,19 +1094,16 @@
                             <TextBlock
                                 Margin="4,0"
                                 VerticalAlignment="Center"
-                                FontFamily="Albert Sans Thin"
-                                FontSize="15"
-                                Foreground="{StaticResource TextLabelBrush}"
+                                Style="{StaticResource OptionHelpTextStyle}"
                                 Text="The title is shown above/before the heart rate." />
                             <StackPanel
                                 Margin="4,5,0,5"
                                 VerticalAlignment="Center"
                                 Orientation="Horizontal">
                                 <TextBlock
+                                    Margin="0"
                                     VerticalAlignment="Center"
-                                    FontFamily="Albert Sans Thin"
-                                    FontSize="15"
-                                    Foreground="{StaticResource TextLabelBrush}"
+                                    Style="{StaticResource OptionFieldLabelStyle}"
                                     Text="Show off as:" />
                                 <TextBox
                                     x:Name="HeartRateTitleCustom"

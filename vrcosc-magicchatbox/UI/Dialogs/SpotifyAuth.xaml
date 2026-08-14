@@ -8,6 +8,7 @@
     Width="860"
     Height="680"
     Background="#41375B"
+    FontFamily="{DynamicResource FontPrimary}"
     ResizeMode="NoResize"
     mc:Ignorable="d">
 
@@ -43,7 +44,7 @@
                 <TextBlock
                     Margin="6,1,0,0"
                     VerticalAlignment="Center"
-                    FontFamily="Albert Sans Thin"
+                    FontFamily="/Fonts/#Albert Sans"
                     FontSize="14"
                     Foreground="White"
                     Text="Connect Spotify">
@@ -63,14 +64,14 @@
             <StackPanel Margin="24,16,24,8">
                 <TextBlock
                     HorizontalAlignment="Center"
-                    FontFamily="Comfortaa Light"
+                    FontFamily="/Fonts/#Comfortaa"
                     FontSize="15"
                     Foreground="LightYellow"
                     TextAlignment="Center"
                     TextWrapping="Wrap">
                     <Run
                         FontSize="23"
-                        FontWeight="DemiBold"
+                        FontWeight="SemiBold"
                         Text="Spotify in your VRChat chatbox 🎵" />
                     <LineBreak />
                     <LineBreak />
@@ -90,7 +91,7 @@
                     BorderThickness="1"
                     CornerRadius="8">
                     <TextBlock
-                        FontFamily="Albert Sans Thin"
+                        FontFamily="/Fonts/#Albert Sans"
                         FontSize="13"
                         Foreground="{StaticResource StatusWarningBrush}"
                         Text="★ Playback controls need Spotify Premium and an active Spotify device. If buttons do nothing later, open Spotify on a phone, desktop app, or web player first."
@@ -104,13 +105,13 @@
                     CornerRadius="8">
                     <StackPanel>
                         <TextBlock
-                            FontFamily="Albert Sans Thin"
+                            FontFamily="/Fonts/#Albert Sans"
                             FontSize="15"
                             Foreground="White"
                             Text="1. Spotify Developer App" />
                         <TextBlock
                             Margin="0,4,0,6"
-                            FontFamily="Albert Sans Thin"
+                            FontFamily="/Fonts/#Albert Sans"
                             FontSize="12"
                             Foreground="#CCCCCC"
                             Text="Open your app in the Spotify Developer Dashboard and add this redirect URI exactly — a mismatch here is the most common reason connecting fails:"
@@ -177,7 +178,7 @@
                         </StackPanel>
                         <TextBlock
                             Margin="0,6,0,0"
-                            FontFamily="Albert Sans Thin"
+                            FontFamily="/Fonts/#Albert Sans"
                             FontSize="12"
                             Foreground="#CCCCCC"
                             Text="This is your public Client ID, not a client secret."
@@ -192,13 +193,13 @@
                     CornerRadius="8">
                     <StackPanel>
                         <TextBlock
-                            FontFamily="Albert Sans Thin"
+                            FontFamily="/Fonts/#Albert Sans"
                             FontSize="15"
                             Foreground="White"
                             Text="2. What may appear in VRChat?" />
                         <TextBlock
                             Margin="0,4,0,8"
-                            FontFamily="Albert Sans Thin"
+                            FontFamily="/Fonts/#Albert Sans"
                             FontSize="12"
                             Foreground="#CCCCCC"
                             Text="Pick safe defaults now. You can change every option later in Spotify settings."
@@ -252,7 +253,7 @@
                         Background="#241A38"
                         CornerRadius="8">
                         <TextBlock
-                            FontFamily="Albert Sans Thin"
+                            FontFamily="/Fonts/#Albert Sans"
                             FontSize="12"
                             Foreground="#CCCCCC"
                             TextWrapping="Wrap">
@@ -266,7 +267,7 @@
                 <TextBlock
                     x:Name="StatusText"
                     Margin="2,4,0,0"
-                    FontFamily="Albert Sans Thin"
+                    FontFamily="/Fonts/#Albert Sans"
                     FontSize="13"
                     FontStyle="Italic"
                     Foreground="LightYellow"

@@ -511,6 +511,16 @@ public partial class IntelliChatModule : ObservableObject, IModule, IRecipient<I
                 if (!string.IsNullOrEmpty(generatedText))
                 {
                     generatedText = generatedText.Trim();
+
+                    if (isNextWordPrediction)
+                    {
+                        var words = generatedText.Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries);
+                        generatedText = words.Length > 0 ? words[0] : string.Empty;
+                    }
+                    else if (generatedText.Length > Core.Constants.OscMaxMessageLength)
+                    {
+                        generatedText = generatedText.Substring(0, Core.Constants.OscMaxMessageLength);
+                    }
                 }
 
                 Settings.IntelliChatTxt = generatedText;
@@ -627,11 +637,19 @@ public partial class IntelliChatModule : ObservableObject, IModule, IRecipient<I
         return "Unknown";
     }
 
-    public static bool IsReasoningModel(IntelliGPTModel model)
+    public static ModelCapabilitiesAttribute GetModelCapabilities(IntelliGPTModel model)
     {
         var memberInfo = typeof(IntelliGPTModel).GetMember(model.ToString());
-        return memberInfo.Length > 0
-            && memberInfo[0].GetCustomAttributes(typeof(ReasoningModelAttribute), false).Length > 0;
+        if (memberInfo.Length > 0)
+        {
+            var attrs = memberInfo[0].GetCustomAttributes(typeof(ModelCapabilitiesAttribute), false);
+            if (attrs.Length > 0)
+            {
+                return (ModelCapabilitiesAttribute)attrs[0];
+            }
+        }
+
+        return ModelCapabilitiesAttribute.Default;
     }
 
     public static ChatCompletionOptions BuildChatOptions(
@@ -642,8 +660,9 @@ public partial class IntelliChatModule : ObservableObject, IModule, IRecipient<I
         float frequencyPenalty = 0f,
         float presencePenalty = 0f)
     {
-        var options = new ChatCompletionOptions { MaxOutputTokenCount = maxOutputTokens };
-        if (!IsReasoningModel(model))
+        var capabilities = GetModelCapabilities(model);
+        var options = new ChatCompletionOptions { MaxOutputTokenCount = Math.Max(maxOutputTokens, capabilities.MinOutputTokens) };
+        if (capabilities.SupportsSamplingParams)
         {
             options.Temperature = temperature;
             options.TopP = topP;

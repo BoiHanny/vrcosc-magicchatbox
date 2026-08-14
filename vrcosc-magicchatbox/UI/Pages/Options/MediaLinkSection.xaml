@@ -39,9 +39,6 @@
                 Width="Auto"
                 Height="30"
                 HorizontalAlignment="Left"
-                FontSize="15"
-                FontWeight="Bold"
-                Foreground="{StaticResource TextSectionHeaderBrush}"
                 IsChecked="{Binding AppSettings.Settings_MediaLink, Mode=TwoWay}"
                 Style="{StaticResource ExpandCollapseToggleButtonStyle}"
                 Tag="MediaLink options"
@@ -54,7 +51,7 @@
                 HorizontalAlignment="Left"
                 VerticalAlignment="Center"
                 Cursor="Hand"
-                FontFamily="Albert Sans Thin"
+                FontFamily="/Fonts/#Albert Sans"
                 FontSize="12"
                 Foreground="{StaticResource AccentTealBrush}"
                 MouseUp="LearnMoreAboutSpotifybtn_MouseUp"
@@ -123,9 +120,7 @@
                             <TextBlock
                                 Margin="0,0,5,0"
                                 VerticalAlignment="Center"
-                                FontFamily="Albert Sans Thin"
-                                FontSize="15"
-                                Foreground="{StaticResource TextLabelBrush}"
+                                Style="{StaticResource OptionFieldLabelStyle}"
                                 Text="Hide after:" />
                             <TextBox
                                 Width="40"
@@ -136,9 +131,7 @@
                             <TextBlock
                                 Margin="5,0,0,0"
                                 VerticalAlignment="Center"
-                                FontFamily="Albert Sans Thin"
-                                FontSize="15"
-                                Foreground="{StaticResource TextLabelBrush}"
+                                Style="{StaticResource OptionFieldLabelStyle}"
                                 Text="seconds" />
                         </StackPanel>
                     </StackPanel>
@@ -157,7 +150,7 @@
                         <StackPanel Margin="0,5" Orientation="Horizontal">
                             <StackPanel Margin="5,0">
                                 <TextBlock
-                                    FontFamily="Albert Sans Thin"
+                                    FontFamily="/Fonts/#Albert Sans"
                                     FontSize="12"
                                     Foreground="{StaticResource TextLabelBrush}"
                                     Text="Play icon" />
@@ -171,7 +164,7 @@
                             </StackPanel>
                             <StackPanel Margin="5,0">
                                 <TextBlock
-                                    FontFamily="Albert Sans Thin"
+                                    FontFamily="/Fonts/#Albert Sans"
                                     FontSize="12"
                                     Foreground="{StaticResource TextLabelBrush}"
                                     Text="Pause icon" />
@@ -184,7 +177,7 @@
                             </StackPanel>
                             <StackPanel Margin="5,0" Visibility="{Binding MediaLinkSettings.ShowStopIcon, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
                                 <TextBlock
-                                    FontFamily="Albert Sans Thin"
+                                    FontFamily="/Fonts/#Albert Sans"
                                     FontSize="12"
                                     Foreground="{StaticResource TextLabelBrush}"
                                     Text="Stop icon" />
@@ -197,7 +190,7 @@
                             </StackPanel>
                             <StackPanel Margin="5,0">
                                 <TextBlock
-                                    FontFamily="Albert Sans Thin"
+                                    FontFamily="/Fonts/#Albert Sans"
                                     FontSize="12"
                                     Foreground="{StaticResource TextLabelBrush}"
                                     Text="Separator" />
@@ -212,7 +205,7 @@
                         <TextBlock Style="{StaticResource OptionHelpTextStyle}" Text="Use \n for new lines in separators and state text." />
                         <TextBlock
                             Margin="2,5,0,2"
-                            FontFamily="Albert Sans Thin"
+                            FontFamily="/Fonts/#Albert Sans"
                             FontSize="13"
                             Foreground="{StaticResource TextLabelBrush}"
                             Text="State text" />
@@ -220,7 +213,7 @@
                             <TextBlock
                                 Width="70"
                                 VerticalAlignment="Center"
-                                FontFamily="Albert Sans Thin"
+                                FontFamily="/Fonts/#Albert Sans"
                                 FontSize="13"
                                 Foreground="{StaticResource TextPrimaryBrush}"
                                 Text="Playing:" />
@@ -235,7 +228,7 @@
                             <TextBlock
                                 Width="70"
                                 VerticalAlignment="Center"
-                                FontFamily="Albert Sans Thin"
+                                FontFamily="/Fonts/#Albert Sans"
                                 FontSize="13"
                                 Foreground="{StaticResource TextPrimaryBrush}"
                                 Text="Paused:" />
@@ -278,11 +271,10 @@
 
                         <StackPanel Margin="3,7" Orientation="Horizontal">
                             <TextBlock
+                                Margin="0"
                                 Padding="0,0,5,0"
                                 VerticalAlignment="Center"
-                                FontFamily="Albert Sans Thin"
-                                FontSize="15"
-                                Foreground="{StaticResource TextLabelBrush}"
+                                Style="{StaticResource OptionFieldLabelStyle}"
                                 Text="Forget session" />
                             <TextBox
                                 Width="auto"
@@ -295,11 +287,10 @@
                                 Text="{Binding MediaLinkSettings.SessionTimeout, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                 TextAlignment="Center" />
                             <TextBlock
+                                Margin="0"
                                 Padding="5,0,5,0"
                                 VerticalAlignment="Center"
-                                FontFamily="Albert Sans Thin"
-                                FontSize="15"
-                                Foreground="{StaticResource TextLabelBrush}"
+                                Style="{StaticResource OptionFieldLabelStyle}"
                                 Text="seconds after disconnect" />
 
                         </StackPanel>
@@ -441,7 +432,7 @@
                                                 Width="auto"
                                                 Padding="2,0,2,0"
                                                 VerticalAlignment="Center"
-                                                FontFamily="Albert Sans Thin"
+                                                FontFamily="/Fonts/#Albert Sans"
                                                 FontSize="13"
                                                 Foreground="{StaticResource TextLabelBrush}"
                                                 Text="Filled:" />
@@ -458,7 +449,7 @@
                                                 Width="auto"
                                                 Padding="2,0,2,0"
                                                 VerticalAlignment="Center"
-                                                FontFamily="Albert Sans Thin"
+                                                FontFamily="/Fonts/#Albert Sans"
                                                 FontSize="13"
                                                 Foreground="{StaticResource TextLabelBrush}"
                                                 Text="Middle:" />
@@ -475,7 +466,7 @@
                                                 Width="auto"
                                                 Padding="2,0,2,0"
                                                 VerticalAlignment="Center"
-                                                FontFamily="Albert Sans Thin"
+                                                FontFamily="/Fonts/#Albert Sans"
                                                 FontSize="13"
                                                 Foreground="{StaticResource TextLabelBrush}"
                                                 Text="Non Filled:" />
@@ -495,7 +486,7 @@
                                         <TextBlock
                                             Height="25"
                                             Padding="0,6,2,0"
-                                            FontFamily="Albert Sans Thin"
+                                            FontFamily="/Fonts/#Albert Sans"
                                             FontSize="13"
                                             Foreground="{StaticResource TextLabelBrush}"
                                             Text="Time Prefix:" />
@@ -512,7 +503,7 @@
                                             Height="25"
                                             Padding="5,6,2,0"
                                             VerticalAlignment="Center"
-                                            FontFamily="Albert Sans Thin"
+                                            FontFamily="/Fonts/#Albert Sans"
                                             FontSize="13"
                                             Foreground="{StaticResource TextLabelBrush}"
                                             Text="Time Suffix:" />
@@ -529,11 +520,10 @@
                                     <StackPanel Margin="0,0,0,0" Orientation="Horizontal">
                                         <TextBlock
                                             Height="25"
+                                            Margin="0"
                                             Padding="0,5,5,0"
                                             VerticalAlignment="Center"
-                                            FontFamily="Albert Sans Thin"
-                                            FontSize="15"
-                                            Foreground="{StaticResource TextLabelBrush}"
+                                            Style="{StaticResource OptionFieldLabelStyle}"
                                             Text="Progress bar length:" />
                                         <TextBox
                                             Width="auto"

@@ -33,9 +33,6 @@
                 Width="Auto"
                 Height="30"
                 HorizontalAlignment="Left"
-                FontSize="15"
-                FontWeight="Bold"
-                Foreground="{StaticResource TextSectionHeaderBrush}"
                 IsChecked="{Binding AppSettings.Settings_Chatting, Mode=TwoWay}"
                 Style="{StaticResource ExpandCollapseToggleButtonStyle}"
                 Tag="Chatting options"
@@ -50,15 +47,13 @@
                 <StackPanel>
                     <TextBlock
                         Grid.Column="0"
+                        Margin="2,8,0,5"
                         Padding="0,0,0,0"
-                        FontFamily="Albert Sans Thin"
-                        FontSize="15"
-                        Foreground="{StaticResource TextLabelBrush}"
-                        Style="{StaticResource OptionSubsectionHeaderStyle}"
+                        Style="{StaticResource OptionFieldLabelStyle}"
                         Text="Chat timeout" />
                     <TextBlock
                         Margin="0,0,0,3"
-                        FontFamily="Albert Sans Thin"
+                        FontFamily="/Fonts/#Albert Sans"
                         FontSize="12"
                         Foreground="{StaticResource TextMutedBrush}"
                         Text="How many seconds the chatbox stays visible in VRChat after you send a message."
@@ -97,17 +92,14 @@
 
                     <TextBlock
                         Margin="0,10,0,0"
-                        FontFamily="Albert Sans Thin"
-                        FontSize="15"
-                        Foreground="{StaticResource TextLabelBrush}"
-                        Style="{StaticResource OptionSubsectionHeaderStyle}"
+                        Style="{StaticResource OptionFieldLabelStyle}"
                         Text="Inline autocomplete" />
                     <CheckBox IsChecked="{Binding ChatSettings.ChatAutocompleteEnabled, Mode=TwoWay}" Style="{DynamicResource SettingsCheckbox}">
                         Show ghost text suggestions while typing
                     </CheckBox>
                     <TextBlock
                         Margin="0,0,0,8"
-                        FontFamily="Albert Sans Thin"
+                        FontFamily="/Fonts/#Albert Sans"
                         FontSize="12"
                         Foreground="{StaticResource TextMutedBrush}"
                         Text="Suggestions are subtle and only apply when you press Tab. Local history mode never calls OpenAI."
@@ -120,7 +112,7 @@
                             <TextBlock
                                 Width="125"
                                 VerticalAlignment="Center"
-                                FontFamily="Albert Sans Thin"
+                                FontFamily="/Fonts/#Albert Sans"
                                 FontSize="13"
                                 Foreground="{StaticResource TextLabelBrush}"
                                 Text="Suggestion mode" />
@@ -140,7 +132,7 @@
                             <TextBlock
                                 Width="125"
                                 VerticalAlignment="Center"
-                                FontFamily="Albert Sans Thin"
+                                FontFamily="/Fonts/#Albert Sans"
                                 FontSize="13"
                                 Foreground="{StaticResource TextLabelBrush}"
                                 Text="OpenAI model" />
@@ -160,7 +152,7 @@
                             <TextBlock
                                 Width="125"
                                 VerticalAlignment="Center"
-                                FontFamily="Albert Sans Thin"
+                                FontFamily="/Fonts/#Albert Sans"
                                 FontSize="13"
                                 Foreground="{StaticResource TextLabelBrush}"
                                 Text="Minimum letters"
@@ -175,7 +167,7 @@
                             <TextBlock
                                 Width="125"
                                 VerticalAlignment="Center"
-                                FontFamily="Albert Sans Thin"
+                                FontFamily="/Fonts/#Albert Sans"
                                 FontSize="13"
                                 Foreground="{StaticResource TextLabelBrush}"
                                 Text="Max words"
@@ -190,7 +182,7 @@
                             <TextBlock
                                 Width="125"
                                 VerticalAlignment="Center"
-                                FontFamily="Albert Sans Thin"
+                                FontFamily="/Fonts/#Albert Sans"
                                 FontSize="13"
                                 Foreground="{StaticResource TextLabelBrush}"
                                 Text="OpenAI delay"
@@ -202,9 +194,9 @@
                                 Text="{Binding ChatSettings.ChatAutocompleteDelayMs, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                             <TextBlock
                                 Margin="5,5,0,0"
-                                FontFamily="Albert Sans Thin"
+                                FontFamily="/Fonts/#Albert Sans"
                                 FontSize="12"
-                                Foreground="{StaticResource BorderMutedBrush}"
+                                Foreground="{StaticResource TextMutedBrush}"
                                 Text="ms" />
                         </StackPanel>
                     </StackPanel>
@@ -232,12 +224,10 @@
                     <StackPanel Visibility="{Binding ChatSettings.ChatAddSmallDelay, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
                         <TextBlock
                             Width="auto"
+                            Margin="2,8,0,5"
                             Padding="0,0"
                             VerticalAlignment="Center"
-                            FontFamily="Albert Sans Thin"
-                            FontSize="15"
-                            Foreground="{StaticResource TextLabelBrush}"
-                            Style="{StaticResource OptionSubsectionHeaderStyle}"
+                            Style="{StaticResource OptionFieldLabelStyle}"
                             Text="Delay before sending" />
                         <StackPanel Margin="0,0,0,7" Orientation="Horizontal">
                             <Slider
@@ -255,17 +245,17 @@
                                 Width="auto"
                                 Padding="5,0"
                                 VerticalAlignment="Center"
-                                FontFamily="Albert Sans Thin"
+                                FontFamily="/Fonts/#Albert Sans"
                                 FontSize="13"
-                                Foreground="{StaticResource BorderMutedBrush}"
+                                Foreground="{StaticResource TextMutedBrush}"
                                 Text="{Binding ChatSettings.ChatAddSmallDelayTIME, UpdateSourceTrigger=PropertyChanged}" />
                             <TextBlock
                                 Width="auto"
                                 Margin="-2,5"
                                 VerticalAlignment="Center"
-                                FontFamily="Albert Sans Thin"
+                                FontFamily="/Fonts/#Albert Sans"
                                 FontSize="13"
-                                Foreground="{StaticResource BorderMutedBrush}"
+                                Foreground="{StaticResource TextMutedBrush}"
                                 Text="sec" />
                         </StackPanel>
                     </StackPanel>
@@ -278,12 +268,10 @@
                     <StackPanel Visibility="{Binding ChatSettings.KeepUpdatingChat, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
                         <TextBlock
                             Width="auto"
+                            Margin="2,8,0,5"
                             Padding="0,0"
                             VerticalAlignment="Center"
-                            FontFamily="Albert Sans Thin"
-                            FontSize="15"
-                            Foreground="{StaticResource TextLabelBrush}"
-                            Style="{StaticResource OptionSubsectionHeaderStyle}"
+                            Style="{StaticResource OptionFieldLabelStyle}"
                             Text="Update rate of active chat message" />
                         <StackPanel Margin="0,0,0,7" Orientation="Horizontal">
                             <Slider
@@ -301,17 +289,17 @@
                                 Width="auto"
                                 Padding="5,0"
                                 VerticalAlignment="Center"
-                                FontFamily="Albert Sans Thin"
+                                FontFamily="/Fonts/#Albert Sans"
                                 FontSize="13"
-                                Foreground="{StaticResource BorderMutedBrush}"
+                                Foreground="{StaticResource TextMutedBrush}"
                                 Text="{Binding ChatSettings.ChattingUpdateRate, UpdateSourceTrigger=PropertyChanged}" />
                             <TextBlock
                                 Width="auto"
                                 Margin="-2,5"
                                 VerticalAlignment="Center"
-                                FontFamily="Albert Sans Thin"
+                                FontFamily="/Fonts/#Albert Sans"
                                 FontSize="13"
-                                Foreground="{StaticResource BorderMutedBrush}"
+                                Foreground="{StaticResource TextMutedBrush}"
                                 Text="sec" />
                         </StackPanel>
                     </StackPanel>

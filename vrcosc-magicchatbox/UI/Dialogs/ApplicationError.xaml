@@ -10,6 +10,7 @@
     Title="Application Error"
     Width="700"
     Height="auto"
+    FontFamily="{DynamicResource FontPrimary}"
     Icon="/Img/MagicOSC_icon.png"
     ResizeMode="NoResize"
     SizeToContent="Height"
@@ -96,7 +97,7 @@
                     <TextBlock
                         Margin="5,1,0,0"
                         VerticalAlignment="Center"
-                        FontFamily="Albert Sans Thin"
+                        FontFamily="/Fonts/#Albert Sans"
                         FontSize="12"
                         Foreground="{StaticResource TextLabelLightBrush}"
                         RenderOptions.BitmapScalingMode="NearestNeighbor"
@@ -115,7 +116,7 @@
                         Margin="5,0,0,0"
                         VerticalAlignment="Center"
                         Cursor="Hand"
-                        FontFamily="Albert Sans Thin"
+                        FontFamily="/Fonts/#Albert Sans"
                         FontSize="12"
                         Foreground="{Binding UpdateState.VersionTxtColor}"
                         MouseUp="NewVersion_MouseUp"
@@ -182,7 +183,7 @@
                     Margin="6,1,0,0"
                     HorizontalAlignment="Center"
                     VerticalAlignment="Center"
-                    FontFamily="Albert Sans Thin"
+                    FontFamily="/Fonts/#Albert Sans"
                     FontSize="14"
                     Foreground="#FFFFBBA5"
                     RenderOptions.BitmapScalingMode="NearestNeighbor"
@@ -214,9 +215,9 @@
                 Margin="10,18,10,0"
                 HorizontalAlignment="Center"
                 VerticalAlignment="Top"
-                FontFamily="Comfortaa Light"
+                FontFamily="/Fonts/#Comfortaa"
                 FontSize="25"
-                FontWeight="DemiBold"
+                FontWeight="SemiBold"
                 Foreground="Yellow"
                 LineHeight="15"
                 RenderOptions.BitmapScalingMode="NearestNeighbor"
@@ -242,7 +243,7 @@
                 BorderThickness="1"
                 CornerRadius="8">
                 <TextBlock
-                    FontFamily="Albert Sans Thin"
+                    FontFamily="/Fonts/#Albert Sans"
                     FontSize="13"
                     Foreground="LightYellow"
                     TextWrapping="Wrap">
@@ -257,7 +258,7 @@
                 Margin="15,0"
                 HorizontalAlignment="Center"
                 VerticalAlignment="Top"
-                FontFamily="Calibri"
+                FontFamily="/Fonts/#Albert Sans"
                 FontSize="15"
                 FontWeight="Light"
                 Foreground="LightYellow"
@@ -415,7 +416,7 @@
                 BorderThickness="1"
                 CornerRadius="8">
                 <TextBlock
-                    FontFamily="Albert Sans Thin"
+                    FontFamily="/Fonts/#Albert Sans"
                     FontSize="13"
                     Foreground="{StaticResource TextPrimaryBrush}"
                     TextWrapping="Wrap">

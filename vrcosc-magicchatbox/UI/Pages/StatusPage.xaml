@@ -1,4 +1,4 @@
-﻿<UserControl
+<UserControl
     x:Class="vrcosc_magicchatbox.UI.Pages.StatusPage"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -9,6 +9,7 @@
     d:DataContext="{d:DesignInstance Type=vm:StatusPageViewModel,
                                      IsDesignTimeCreatable=False}"
     Background="{StaticResource SurfaceCardBrush}"
+    FontFamily="{DynamicResource FontPrimary}"
     mc:Ignorable="d">
     <UserControl.Resources>
         <ResourceDictionary>
@@ -21,7 +22,7 @@
                 BasedOn="{StaticResource Status_Toggle_style}"
                 TargetType="ToggleButton">
                 <Setter Property="Foreground" Value="#FFB9B5C1" />
-                <Setter Property="FontFamily" Value="Albert Sans Thin" />
+                <Setter Property="FontFamily" Value="/Fonts/#Albert Sans" />
                 <Setter Property="FontSize" Value="12" />
                 <Setter Property="Padding" Value="12,0" />
                 <Setter Property="Template">
@@ -64,7 +65,7 @@
 
             <Style x:Key="StatusPopupMiniToggleStyle" TargetType="ToggleButton">
                 <Setter Property="Foreground" Value="#E7DDFB" />
-                <Setter Property="FontFamily" Value="Albert Sans Thin" />
+                <Setter Property="FontFamily" Value="/Fonts/#Albert Sans" />
                 <Setter Property="FontSize" Value="10" />
                 <Setter Property="Padding" Value="6,0" />
                 <Setter Property="Cursor" Value="Hand" />
@@ -270,7 +271,7 @@
                     <TextBlock
                         Margin="0,0,5,0"
                         VerticalAlignment="Center"
-                        FontFamily="Albert Sans Thin"
+                        FontFamily="/Fonts/#Albert Sans"
                         FontSize="11"
                         Foreground="#66FFFFFF"
                         Text="Group:" />
@@ -603,7 +604,7 @@
                         Style="{DynamicResource Status_Button_style}" />
                     <TextBlock
                         VerticalAlignment="Center"
-                        FontFamily="Albert Sans Thin"
+                        FontFamily="/Fonts/#Albert Sans"
                         FontSize="13"
                         Foreground="#AAA3B7"
                         Text="{Binding SelectedItems.Count, StringFormat='{}{0} selected'}" />
@@ -689,7 +690,7 @@
                             <StackPanel>
                                 <TextBlock
                                     Margin="6,2,6,6"
-                                    FontFamily="Albert Sans Thin"
+                                    FontFamily="/Fonts/#Albert Sans"
                                     FontSize="10"
                                     Foreground="#66FFFFFF"
                                     Text="Move selected items to:" />
@@ -973,7 +974,7 @@
                                     Grid.Column="2"
                                     Margin="8,0,0,0"
                                     VerticalAlignment="Center"
-                                    FontFamily="Comfortaa Light"
+                                    FontFamily="/Fonts/#Comfortaa"
                                     FontSize="16"
                                     Foreground="DarkSlateBlue"
                                     Style="{StaticResource ActiveStatusTextShadow}"
@@ -983,7 +984,7 @@
                                     Grid.Column="2"
                                     Margin="8,0,0,0"
                                     VerticalAlignment="Center"
-                                    FontFamily="Comfortaa Light"
+                                    FontFamily="/Fonts/#Comfortaa"
                                     FontSize="16"
                                     Style="{StaticResource ActiveStatusText}"
                                     Text="{Binding msg}"
@@ -995,7 +996,7 @@
                                     VerticalAlignment="Center"
                                     local:TextBoxBehaviour.HandleEnterKey="True"
                                     Background="Transparent"
-                                    FontFamily="Comfortaa Light"
+                                    FontFamily="/Fonts/#Comfortaa"
                                     FontSize="16"
                                     FontWeight="Medium"
                                     IsReadOnly="{Binding IsEditing, Converter={StaticResource InvertBooleanConverter}, UpdateSourceTrigger=PropertyChanged}"
@@ -1110,7 +1111,7 @@
                 Margin="16,0,0,0"
                 HorizontalAlignment="Left"
                 VerticalAlignment="Center"
-                FontFamily="Albert Sans Thin"
+                FontFamily="/Fonts/#Albert Sans"
                 FontSize="16"
                 Foreground="{StaticResource TextLabelBrush}"
                 Text="{Binding ChatStatus.StatusTopBarTxt}" />
@@ -1154,7 +1155,7 @@
                     Padding="0,3,0,0"
                     HorizontalAlignment="Right"
                     VerticalAlignment="Center"
-                    FontFamily="Albert Sans Thin"
+                    FontFamily="/Fonts/#Albert Sans"
                     FontSize="12"
                     Foreground="{Binding ChatStatus.StatusBoxColor}"
                     Text="{Binding ChatStatus.StatusBoxCount}" />

@@ -1,4 +1,4 @@
-﻿<UserControl
+<UserControl
     x:Class="vrcosc_magicchatbox.UI.Pages.ChattingPage"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -8,6 +8,7 @@
     d:DataContext="{d:DesignInstance Type=vm:ChattingPageViewModel,
                                      IsDesignTimeCreatable=False}"
     Background="{StaticResource SurfaceCardBrush}"
+    FontFamily="{DynamicResource FontPrimary}"
     mc:Ignorable="d">
     <UserControl.Resources>
         <ResourceDictionary>
@@ -57,7 +58,7 @@
                 HorizontalAlignment="Left"
                 VerticalAlignment="Center"
                 d:Text="You're soaring past the 140 char limit by {overmax}."
-                FontFamily="Albert Sans Thin"
+                FontFamily="/Fonts/#Albert Sans"
                 FontSize="14"
                 Foreground="#FFF3E8FF"
                 Text="{Binding ChatStatus.ChatTopBarTxt}">
@@ -134,7 +135,7 @@
                     Margin="0,0,98,0"
                     HorizontalAlignment="Right"
                     VerticalAlignment="Center"
-                    FontFamily="Albert Sans Thin"
+                    FontFamily="/Fonts/#Albert Sans"
                     FontSize="10"
                     Foreground="{StaticResource TextMutedBrush}"
                     IsHitTestVisible="False"
@@ -153,7 +154,7 @@
                     Padding="0,0,3,0"
                     HorizontalAlignment="Right"
                     VerticalAlignment="Center"
-                    FontFamily="Albert Sans Thin"
+                    FontFamily="/Fonts/#Albert Sans"
                     FontSize="12"
                     Foreground="{Binding ChatStatus.ChatBoxColor}"
                     Text="{Binding ChatStatus.ChatBoxCount}" />
@@ -262,7 +263,7 @@
                 <TextBlock
                     Margin="8,0,0,0"
                     d:Text="Chat feedback"
-                    FontFamily="Albert Sans Thin"
+                    FontFamily="/Fonts/#Albert Sans"
                     FontSize="16"
                     Foreground="{StaticResource TextLabelBrush}"
                     Text="{Binding ChatStatus.ChatFeedbackTxt}"
@@ -272,7 +273,7 @@
                     HorizontalAlignment="Right"
                     VerticalAlignment="Center"
                     d:Text="Connecting with OpenAI..."
-                    FontFamily="Albert Sans Thin"
+                    FontFamily="/Fonts/#Albert Sans"
                     FontSize="16"
                     Text="{Binding Modules.IntelliChat.Settings.IntelliChatUILabelTxt, UpdateSourceTrigger=PropertyChanged}"
                     Visibility="{Binding Modules.IntelliChat.Settings.IntelliChatUILabel, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
@@ -305,7 +306,7 @@
                     Margin="4,0,0,0"
                     HorizontalAlignment="Left"
                     VerticalAlignment="Center"
-                    FontFamily="Albert Sans Thin"
+                    FontFamily="/Fonts/#Albert Sans"
                     FontSize="14"
                     Foreground="{StaticResource TextLabelBrush}"
                     Text="Visible for " />
@@ -314,7 +315,7 @@
                     Margin="0,0,0,0"
                     HorizontalAlignment="Left"
                     VerticalAlignment="Center"
-                    FontFamily="Albert Sans Thin"
+                    FontFamily="/Fonts/#Albert Sans"
                     FontSize="14"
                     Foreground="{StaticResource TextLabelBrush}"
                     Text="{Binding ChatStatus.ScanPauseCountDown, UpdateSourceTrigger=PropertyChanged}" />
@@ -323,7 +324,7 @@
                     Margin="0,0,157,0"
                     HorizontalAlignment="Left"
                     VerticalAlignment="Center"
-                    FontFamily="Albert Sans Thin"
+                    FontFamily="/Fonts/#Albert Sans"
                     FontSize="14"
                     Foreground="{StaticResource TextLabelBrush}"
                     Text=" seconds"
@@ -412,7 +413,7 @@
                                             Padding="15,15,0,15"
                                             HorizontalAlignment="Stretch"
                                             Background="Transparent"
-                                            FontFamily="Albert Sans Thin"
+                                            FontFamily="/Fonts/#Albert Sans"
                                             FontSize="18"
                                             Foreground="LightGray"
                                             RenderOptions.BitmapScalingMode="NearestNeighbor"
@@ -435,9 +436,9 @@
                                             Height="Auto"
                                             Padding="13,15,0,15"
                                             HorizontalAlignment="Stretch"
-                                            FontFamily="Albert Sans Thin"
+                                            FontFamily="/Fonts/#Albert Sans"
                                             FontSize="18"
-                                            FontWeight="DemiBold"
+                                            FontWeight="SemiBold"
                                             Foreground="#6FC2EC"
                                             IsReadOnly="{Binding CanLiveEditRun, Converter={StaticResource InvertBooleanConverter}, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"
                                             KeyDown="EditChatTextBox_KeyDown"
@@ -577,7 +578,7 @@
                             HorizontalAlignment="Stretch"
                             VerticalAlignment="Center"
                             Background="Transparent"
-                            FontFamily="Albert Sans Thin"
+                            FontFamily="/Fonts/#Albert Sans"
                             FontSize="15"
                             Foreground="AntiqueWhite"
                             Text="{Binding Modules.IntelliChat.Settings.IntelliChatTxt, UpdateSourceTrigger=PropertyChanged}"
@@ -616,7 +617,7 @@
                                 HorizontalAlignment="Stretch"
                                 VerticalAlignment="Center"
                                 Background="Transparent"
-                                FontFamily="Albert Sans Thin"
+                                FontFamily="/Fonts/#Albert Sans"
                                 FontSize="18"
                                 Foreground="{StaticResource TextChatAccentBrush}"
                                 Text="IntelliChat">
@@ -636,7 +637,7 @@
                                 HorizontalAlignment="Stretch"
                                 VerticalAlignment="Center"
                                 Background="Transparent"
-                                FontFamily="Albert Sans Thin"
+                                FontFamily="/Fonts/#Albert Sans"
                                 FontSize="12"
                                 Foreground="{StaticResource TextChatAccentBrush}"
                                 Opacity="0.6"
@@ -648,7 +649,7 @@
                                 HorizontalAlignment="Stretch"
                                 VerticalAlignment="Center"
                                 Background="Transparent"
-                                FontFamily="Albert Sans Thin"
+                                FontFamily="/Fonts/#Albert Sans"
                                 FontSize="12"
                                 Foreground="{StaticResource TextChatAccentBrush}"
                                 Opacity="0.6"
@@ -660,7 +661,7 @@
                                 HorizontalAlignment="Stretch"
                                 VerticalAlignment="Center"
                                 Background="Transparent"
-                                FontFamily="Albert Sans Thin"
+                                FontFamily="/Fonts/#Albert Sans"
                                 FontSize="12"
                                 Foreground="{StaticResource TextChatAccentBrush}"
                                 Opacity="0.6"
@@ -672,7 +673,7 @@
                                 HorizontalAlignment="Stretch"
                                 VerticalAlignment="Center"
                                 Background="Transparent"
-                                FontFamily="Albert Sans Thin"
+                                FontFamily="/Fonts/#Albert Sans"
                                 FontSize="12"
                                 Foreground="{StaticResource TextChatAccentBrush}"
                                 Opacity="0.6"
@@ -684,7 +685,7 @@
                                 HorizontalAlignment="Stretch"
                                 VerticalAlignment="Center"
                                 Background="Transparent"
-                                FontFamily="Albert Sans Thin"
+                                FontFamily="/Fonts/#Albert Sans"
                                 FontSize="12"
                                 Foreground="{StaticResource TextChatAccentBrush}"
                                 Opacity="0.3"
@@ -696,7 +697,7 @@
                                 HorizontalAlignment="Stretch"
                                 VerticalAlignment="Center"
                                 Background="Transparent"
-                                FontFamily="Albert Sans Thin"
+                                FontFamily="/Fonts/#Albert Sans"
                                 FontSize="12"
                                 Foreground="{StaticResource TextChatAccentBrush}"
                                 Opacity="0.3"
@@ -707,7 +708,7 @@
                                 Padding="5,10,0,15"
                                 HorizontalAlignment="Stretch"
                                 VerticalAlignment="Center"
-                                FontFamily="Albert Sans Thin"
+                                FontFamily="/Fonts/#Albert Sans"
                                 FontSize="12"
                                 Style="{StaticResource CharacterCountTextStyle}"
                                 Text="Characters:" />
@@ -717,7 +718,7 @@
                                 Padding="5,10,0,15"
                                 HorizontalAlignment="Stretch"
                                 VerticalAlignment="Center"
-                                FontFamily="Albert Sans Thin"
+                                FontFamily="/Fonts/#Albert Sans"
                                 FontSize="12"
                                 Style="{StaticResource CharacterCountTextStyle}"
                                 Text="{Binding Modules.IntelliChat.Settings.IntelliChatTxt.Length, UpdateSourceTrigger=PropertyChanged}" />
@@ -727,7 +728,7 @@
                                 Padding="0,10,0,15"
                                 HorizontalAlignment="Stretch"
                                 VerticalAlignment="Center"
-                                FontFamily="Albert Sans Thin"
+                                FontFamily="/Fonts/#Albert Sans"
                                 FontSize="12"
                                 Style="{StaticResource CharacterCountTextStyle}"
                                 Text="/144" />
@@ -741,7 +742,7 @@
                             HorizontalAlignment="Right"
                             VerticalAlignment="Center"
                             Background="Transparent"
-                            FontFamily="Albert Sans Thin"
+                            FontFamily="/Fonts/#Albert Sans"
                             FontSize="12"
                             Foreground="{StaticResource TextChatAccentBrush}"
                             Opacity="0.3"
@@ -768,7 +769,7 @@
                                     <TextBlock
                                         Padding="3,0"
                                         VerticalAlignment="Center"
-                                        FontFamily="Albert Sans Thin"
+                                        FontFamily="/Fonts/#Albert Sans"
                                         FontSize="13"
                                         Foreground="{StaticResource TextSecondaryBrush}"
                                         Text="Sent" />
@@ -848,7 +849,7 @@
                                 HorizontalAlignment="Stretch"
                                 VerticalAlignment="Center"
                                 Background="Transparent"
-                                FontFamily="Albert Sans Thin"
+                                FontFamily="/Fonts/#Albert Sans"
                                 FontSize="16"
                                 FontWeight="Bold"
                                 Foreground="MediumVioletRed"
@@ -937,7 +938,7 @@
                         <TextBlock
                             Padding="3,0"
                             VerticalAlignment="Center"
-                            FontFamily="Albert Sans Thin"
+                            FontFamily="/Fonts/#Albert Sans"
                             FontSize="13"
                             Foreground="{StaticResource TextSecondaryBrush}"
                             Text="Spel/Grammer check" />
@@ -970,7 +971,7 @@
                         <TextBlock
                             Padding="3,0"
                             VerticalAlignment="Center"
-                            FontFamily="Albert Sans Thin"
+                            FontFamily="/Fonts/#Albert Sans"
                             FontSize="13"
                             Foreground="{StaticResource TextSecondaryBrush}"
                             RenderOptions.BitmapScalingMode="NearestNeighbor"
@@ -1005,7 +1006,7 @@
                         <TextBlock
                             Padding="3,0"
                             VerticalAlignment="Center"
-                            FontFamily="Albert Sans Thin"
+                            FontFamily="/Fonts/#Albert Sans"
                             FontSize="13"
                             Foreground="{StaticResource TextSecondaryBrush}"
                             RenderOptions.BitmapScalingMode="NearestNeighbor"
@@ -1040,7 +1041,7 @@
                         <TextBlock
                             Padding="3,0"
                             VerticalAlignment="Center"
-                            FontFamily="Albert Sans Thin"
+                            FontFamily="/Fonts/#Albert Sans"
                             FontSize="13"
                             Foreground="{StaticResource TextSecondaryBrush}"
                             RenderOptions.BitmapScalingMode="NearestNeighbor"
@@ -1075,7 +1076,7 @@
                         <TextBlock
                             Padding="3,0"
                             VerticalAlignment="Center"
-                            FontFamily="Albert Sans Thin"
+                            FontFamily="/Fonts/#Albert Sans"
                             FontSize="13"
                             Foreground="{StaticResource TextSecondaryBrush}"
                             RenderOptions.BitmapScalingMode="NearestNeighbor"
@@ -1111,7 +1112,7 @@
                         <TextBlock
                             Padding="3,0"
                             VerticalAlignment="Center"
-                            FontFamily="Albert Sans Thin"
+                            FontFamily="/Fonts/#Albert Sans"
                             FontSize="13"
                             Foreground="{StaticResource TextSecondaryBrush}"
                             RenderOptions.BitmapScalingMode="NearestNeighbor"
@@ -1147,7 +1148,7 @@
                         <TextBlock
                             Padding="3,0"
                             VerticalAlignment="Center"
-                            FontFamily="Albert Sans Thin"
+                            FontFamily="/Fonts/#Albert Sans"
                             FontSize="13"
                             Foreground="{StaticResource TextSecondaryBrush}"
                             RenderOptions.BitmapScalingMode="NearestNeighbor"
@@ -1193,7 +1194,7 @@
                         <TextBlock
                             Padding="3,0"
                             VerticalAlignment="Center"
-                            FontFamily="Albert Sans Thin"
+                            FontFamily="/Fonts/#Albert Sans"
                             FontSize="13"
                             Foreground="{StaticResource TextSecondaryBrush}"
                             RenderOptions.BitmapScalingMode="NearestNeighbor"

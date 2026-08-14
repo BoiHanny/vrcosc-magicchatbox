@@ -32,9 +32,6 @@
                 Width="Auto"
                 Height="30"
                 HorizontalAlignment="Left"
-                FontSize="15"
-                FontWeight="Bold"
-                Foreground="{StaticResource TextSectionHeaderBrush}"
                 IsChecked="{Binding AppSettings.Settings_ComponentStats, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                 Style="{StaticResource ExpandCollapseToggleButtonStyle}"
                 Tag="Component stats options"
@@ -71,10 +68,9 @@
                         VerticalAlignment="Center"
                         Orientation="Horizontal">
                         <TextBlock
+                            Margin="0"
                             VerticalAlignment="Center"
-                            FontFamily="Albert Sans Thin"
-                            FontSize="15"
-                            Foreground="{StaticResource TextLabelBrush}"
+                            Style="{StaticResource OptionFieldLabelStyle}"
                             Text="Stats separator" />
                         <TextBox
                             x:Name="StatsSeparatorTextBox"
@@ -106,7 +102,7 @@
                         Grid.Row="0"
                         Margin="5,5"
                         VerticalAlignment="Center"
-                        FontFamily="Comfortaa Light"
+                        FontFamily="/Fonts/#Comfortaa"
                         FontSize="20"
                         Foreground="{StaticResource TextSectionHeaderBrush}"
                         RenderOptions.BitmapScalingMode="NearestNeighbor"
@@ -157,10 +153,9 @@
                                 VerticalAlignment="Center"
                                 Orientation="Horizontal">
                                 <TextBlock
+                                    Margin="0"
                                     VerticalAlignment="Center"
-                                    FontFamily="Albert Sans Thin"
-                                    FontSize="15"
-                                    Foreground="{StaticResource TextLabelBrush}"
+                                    Style="{StaticResource OptionFieldLabelStyle}"
                                     Text="Custom hardware name" />
                                 <TextBox
                                     x:Name="CPUCustomHardwareName"
@@ -182,7 +177,7 @@
                         Grid.Row="0"
                         Margin="5,5"
                         VerticalAlignment="Center"
-                        FontFamily="Comfortaa Light"
+                        FontFamily="/Fonts/#Comfortaa"
                         FontSize="20"
                         Foreground="{StaticResource TextSectionHeaderBrush}"
                         RenderOptions.BitmapScalingMode="NearestNeighbor"
@@ -296,10 +291,9 @@
                                 VerticalAlignment="Center"
                                 Orientation="Horizontal">
                                 <TextBlock
+                                    Margin="0"
                                     VerticalAlignment="Center"
-                                    FontFamily="Albert Sans Thin"
-                                    FontSize="15"
-                                    Foreground="{StaticResource TextLabelBrush}"
+                                    Style="{StaticResource OptionFieldLabelStyle}"
                                     Text="Custom hardware name" />
                                 <TextBox
                                     x:Name="GPUCustomHardwareName"
@@ -321,7 +315,7 @@
                         Grid.Row="0"
                         Margin="5,5"
                         VerticalAlignment="Center"
-                        FontFamily="Comfortaa Light"
+                        FontFamily="/Fonts/#Comfortaa"
                         FontSize="20"
                         Foreground="{StaticResource TextSectionHeaderBrush}"
                         RenderOptions.BitmapScalingMode="NearestNeighbor"
@@ -385,10 +379,9 @@
                                 VerticalAlignment="Center"
                                 Orientation="Horizontal">
                                 <TextBlock
+                                    Margin="0"
                                     VerticalAlignment="Center"
-                                    FontFamily="Albert Sans Thin"
-                                    FontSize="15"
-                                    Foreground="{StaticResource TextLabelBrush}"
+                                    Style="{StaticResource OptionFieldLabelStyle}"
                                     Text="Custom hardware name" />
                                 <TextBox
                                     x:Name="VRAMCustomHardwareName"
@@ -410,7 +403,7 @@
                         Grid.Row="0"
                         Margin="5,5"
                         VerticalAlignment="Center"
-                        FontFamily="Comfortaa Light"
+                        FontFamily="/Fonts/#Comfortaa"
                         FontSize="20"
                         Foreground="{StaticResource TextSectionHeaderBrush}"
                         RenderOptions.BitmapScalingMode="NearestNeighbor"
@@ -474,10 +467,9 @@
                                 VerticalAlignment="Center"
                                 Orientation="Horizontal">
                                 <TextBlock
+                                    Margin="0"
                                     VerticalAlignment="Center"
-                                    FontFamily="Albert Sans Thin"
-                                    FontSize="15"
-                                    Foreground="{StaticResource TextLabelBrush}"
+                                    Style="{StaticResource OptionFieldLabelStyle}"
                                     Text="Custom hardware name" />
                                 <TextBox
                                     x:Name="RAMCustomHardwareName"

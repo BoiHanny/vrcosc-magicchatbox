@@ -32,9 +32,6 @@
                 Width="Auto"
                 Height="30"
                 HorizontalAlignment="Left"
-                FontSize="15"
-                FontWeight="Bold"
-                Foreground="{StaticResource TextSectionHeaderBrush}"
                 IsChecked="{Binding AppSettings.Settings_Status, Mode=TwoWay}"
                 Style="{StaticResource ExpandCollapseToggleButtonStyle}"
                 Tag="Status options"
@@ -76,7 +73,7 @@
                                 Width="auto"
                                 Padding="4,0,0,0"
                                 VerticalAlignment="Center"
-                                FontFamily="Albert Sans Thin"
+                                FontFamily="/Fonts/#Albert Sans"
                                 FontSize="13"
                                 Foreground="{StaticResource TextLabelBrush}"
                                 Style="{StaticResource OptionHelpTextStyle}"
@@ -94,7 +91,7 @@
                                 Width="auto"
                                 Padding="4,5,0,0"
                                 VerticalAlignment="Center"
-                                FontFamily="Albert Sans Thin"
+                                FontFamily="/Fonts/#Albert Sans"
                                 FontSize="13"
                                 Foreground="{StaticResource TextLabelBrush}"
                                 Style="{StaticResource OptionHelpTextStyle}"
@@ -175,11 +172,10 @@
                 <Border Style="{StaticResource OptionCardStyle}" Visibility="{Binding AppSettings.CycleStatus, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
                     <StackPanel Margin="5" Orientation="Horizontal">
                         <TextBlock
+                            Margin="0"
                             Padding="0,0,9,0"
                             VerticalAlignment="Center"
-                            FontFamily="Albert Sans Thin"
-                            FontSize="15"
-                            Foreground="{StaticResource TextLabelBrush}"
+                            Style="{StaticResource OptionFieldLabelStyle}"
                             Text="Cycle to the next every" />
                         <TextBox
                             x:Name="SwitchStatusInterval"
@@ -193,11 +189,10 @@
                             Text="{Binding AppSettings.SwitchStatusInterval, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                             TextAlignment="Center" />
                         <TextBlock
+                            Margin="0"
                             Padding="5,0,5,0"
                             VerticalAlignment="Center"
-                            FontFamily="Albert Sans Thin"
-                            FontSize="15"
-                            Foreground="{StaticResource TextLabelBrush}"
+                            Style="{StaticResource OptionFieldLabelStyle}"
                             Text="seconds" />
 
                     </StackPanel>
@@ -209,7 +204,7 @@
                         <TextBlock
                             Padding="2,0,0,0"
                             VerticalAlignment="Center"
-                            FontFamily="Albert Sans Thin"
+                            FontFamily="/Fonts/#Albert Sans"
                             FontSize="20"
                             Foreground="{StaticResource TextLabelBrush}"
                             Style="{StaticResource OptionSubsectionHeaderStyle}"
@@ -219,7 +214,7 @@
                             Width="auto"
                             Padding="2,3,0,0"
                             VerticalAlignment="Center"
-                            FontFamily="Albert Sans Thin"
+                            FontFamily="/Fonts/#Albert Sans"
                             FontSize="13"
                             FontStyle="Italic"
                             Foreground="{StaticResource TextLabelBrush}"
@@ -245,11 +240,10 @@
 
                         <StackPanel Margin="5" Orientation="Horizontal">
                             <TextBlock
+                                Margin="0"
                                 Padding="0,0,4,0"
                                 VerticalAlignment="Center"
-                                FontFamily="Albert Sans Thin"
-                                FontSize="15"
-                                Foreground="{StaticResource TextLabelBrush}"
+                                Style="{StaticResource OptionFieldLabelStyle}"
                                 Text="Timeout time in" />
                             <TextBox
                                 x:Name="TimeoutTime"
@@ -264,17 +258,16 @@
                                 TextAlignment="Center" />
 
                             <TextBlock
+                                Margin="0"
                                 Padding="4,0,2,0"
                                 VerticalAlignment="Center"
-                                FontFamily="Albert Sans Thin"
-                                FontSize="15"
-                                Foreground="{StaticResource TextLabelBrush}"
+                                Style="{StaticResource OptionFieldLabelStyle}"
                                 Text="seconds" />
 
                             <TextBlock
                                 Margin="0,-5,0,0"
                                 VerticalAlignment="Center"
-                                FontFamily="Albert Sans Thin"
+                                FontFamily="/Fonts/#Albert Sans"
                                 FontSize="12"
                                 FontStyle="Italic"
                                 Foreground="{StaticResource TextLabelBrush}"
@@ -297,7 +290,7 @@
                               ====================================================================  -->
                         <TextBlock
                             Padding="4,15,9,0"
-                            FontFamily="Albert Sans Thin"
+                            FontFamily="/Fonts/#Albert Sans"
                             FontSize="19"
                             Foreground="{StaticResource TextLabelBrush}"
                             Style="{StaticResource OptionSubsectionHeaderStyle}"
@@ -305,7 +298,7 @@
 
                         <TextBlock
                             Padding="4,0,9,8"
-                            FontFamily="Albert Sans Thin"
+                            FontFamily="/Fonts/#Albert Sans"
                             FontSize="13"
                             FontStyle="Italic"
                             Foreground="{StaticResource TextLabelBrush}"
@@ -364,7 +357,7 @@
 
                         <TextBlock
                             Margin="4,0,4,6"
-                            FontFamily="Albert Sans Thin"
+                            FontFamily="/Fonts/#Albert Sans"
                             FontSize="11"
                             FontStyle="Italic"
                             Foreground="#FFFFD79A"
@@ -398,7 +391,7 @@
                                 Grid.Column="0"
                                 Margin="0,0,10,6"
                                 VerticalAlignment="Center"
-                                FontFamily="Albert Sans Thin"
+                                FontFamily="/Fonts/#Albert Sans"
                                 FontSize="14"
                                 Foreground="{StaticResource TextLabelBrush}"
                                 Text="Name" />
@@ -461,7 +454,7 @@
                                 Grid.Column="0"
                                 Margin="0,0,10,6"
                                 VerticalAlignment="Center"
-                                FontFamily="Albert Sans Thin"
+                                FontFamily="/Fonts/#Albert Sans"
                                 FontSize="14"
                                 Foreground="{StaticResource TextLabelBrush}"
                                 Text="No clock" />
@@ -485,14 +478,14 @@
                             CornerRadius="6">
                             <StackPanel>
                                 <TextBlock
-                                    FontFamily="Comfortaa Light"
+                                    FontFamily="/Fonts/#Comfortaa"
                                     FontSize="15"
                                     Foreground="White"
                                     Text="{Binding AfkStyles.PreviewLine}"
                                     TextWrapping="Wrap" />
                                 <TextBlock
                                     Margin="0,4,0,0"
-                                    FontFamily="Albert Sans Thin"
+                                    FontFamily="/Fonts/#Albert Sans"
                                     FontSize="11"
                                     Foreground="{StaticResource TextMutedBrush}"
                                     Text="{Binding AfkStyles.PreviewCost}" />
@@ -507,13 +500,11 @@
                               ====================================================================  -->
                         <TextBlock
                             Padding="4,16,9,0"
-                            FontFamily="Albert Sans Thin"
-                            FontSize="15"
-                            Foreground="{StaticResource TextLabelBrush}"
+                            Style="{StaticResource OptionFieldLabelStyle}"
                             Text="Make fancy text" />
                         <TextBlock
                             Padding="4,0,9,6"
-                            FontFamily="Albert Sans Thin"
+                            FontFamily="/Fonts/#Albert Sans"
                             FontSize="12"
                             FontStyle="Italic"
                             Foreground="{StaticResource TextLabelBrush}"
@@ -552,14 +543,14 @@
                             CornerRadius="6">
                             <StackPanel>
                                 <TextBlock
-                                    FontFamily="Comfortaa Light"
+                                    FontFamily="/Fonts/#Comfortaa"
                                     FontSize="15"
                                     Foreground="White"
                                     Text="{Binding AfkStyles.ComposerOutput}"
                                     TextWrapping="Wrap" />
                                 <TextBlock
                                     Margin="0,4,0,0"
-                                    FontFamily="Albert Sans Thin"
+                                    FontFamily="/Fonts/#Albert Sans"
                                     FontSize="11"
                                     Foreground="{StaticResource TextMutedBrush}"
                                     Text="{Binding AfkStyles.ComposerCost}" />
@@ -599,7 +590,7 @@
                             <TextBlock
                                 Padding="4,15,9,0"
                                 VerticalAlignment="Center"
-                                FontFamily="Albert Sans Thin"
+                                FontFamily="/Fonts/#Albert Sans"
                                 FontSize="19"
                                 Foreground="{StaticResource TextLabelBrush}"
                                 Style="{StaticResource OptionSubsectionHeaderStyle}"

@@ -4,7 +4,7 @@ namespace vrcosc_magicchatbox.Services;
 
 public interface IOscSender
 {
-    Task<bool> SendOSCMessage(bool fx, int delay = 0, bool force = false);
+    Task<bool> SendOSCMessage(bool fx, int delay = 0, bool force = false, string? explicitText = null);
     void SendOscParam(string address, float value);
     void SendOscParam(string address, int value);
     void SendOscParam(string address, bool value);

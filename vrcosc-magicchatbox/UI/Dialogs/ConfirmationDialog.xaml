@@ -5,6 +5,7 @@
     Title="Confirm"
     Width="520"
     Background="{StaticResource SurfaceCardBrush}"
+    FontFamily="{DynamicResource FontPrimary}"
     ResizeMode="NoResize"
     SizeToContent="Height"
     WindowStyle="None">
@@ -45,7 +46,7 @@
                     x:Name="TitleTextBlock"
                     Margin="6,1,0,0"
                     VerticalAlignment="Center"
-                    FontFamily="Albert Sans Thin"
+                    FontFamily="/Fonts/#Albert Sans"
                     FontSize="14"
                     Foreground="White" />
             </StackPanel>
@@ -67,14 +68,14 @@
         <StackPanel Grid.Row="1" Margin="22,18,22,10">
             <TextBlock
                 x:Name="MessageTextBlock"
-                FontFamily="Albert Sans Thin"
+                FontFamily="/Fonts/#Albert Sans"
                 FontSize="14"
                 Foreground="{StaticResource TextPrimaryBrush}"
                 TextWrapping="Wrap" />
             <TextBlock
                 x:Name="HintTextBlock"
                 Margin="0,10,0,0"
-                FontFamily="Albert Sans Thin"
+                FontFamily="/Fonts/#Albert Sans"
                 FontSize="12"
                 Foreground="{StaticResource TextMutedBrush}"
                 TextWrapping="Wrap" />

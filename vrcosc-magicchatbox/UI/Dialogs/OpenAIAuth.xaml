@@ -9,6 +9,7 @@
     Width="700"
     Height="250"
     Background="#41375B"
+    FontFamily="{DynamicResource FontPrimary}"
     ResizeMode="NoResize"
     mc:Ignorable="d">
 
@@ -51,7 +52,7 @@
                     Margin="6,1,0,0"
                     HorizontalAlignment="Center"
                     VerticalAlignment="Center"
-                    FontFamily="Albert Sans Thin"
+                    FontFamily="/Fonts/#Albert Sans"
                     FontSize="14"
                     Foreground="White"
                     RenderOptions.BitmapScalingMode="NearestNeighbor"
@@ -75,7 +76,7 @@
                     Margin="18"
                     HorizontalAlignment="Center"
                     VerticalAlignment="Top"
-                    FontFamily="Comfortaa Light"
+                    FontFamily="/Fonts/#Comfortaa"
                     FontSize="15"
                     Foreground="LightYellow"
                     LineHeight="15"
@@ -84,20 +85,20 @@
                     TextWrapping="Wrap">
                     <Run
                         FontSize="23"
-                        FontWeight="DemiBold"
+                        FontWeight="SemiBold"
                         Text="Welcome to the OpenAI connection setup! 🌟" />
                     <LineBreak />
                     <LineBreak />
 
 
                     <Run
-                        FontWeight="DemiBold"
+                        FontWeight="SemiBold"
                         Foreground="Yellow"
                         Text="Just a heads-up, this setup uses around 5 units of your tokens (costs are $0.0015 per 1K tokens)" />
                     <LineBreak />
 
                     <Run
-                        FontWeight="DemiBold"
+                        FontWeight="SemiBold"
                         Foreground="LightBlue"
                         Text="Costs are super low, so no need to fret. You're always in control of your usage." />
                     <LineBreak />
@@ -163,8 +164,9 @@
                     Margin="25"
                     HorizontalAlignment="Center"
                     VerticalAlignment="Top"
-                    FontFamily="Comfortaa Light"
+                    FontFamily="/Fonts/#Comfortaa"
                     FontSize="20"
+                    FontWeight="SemiBold"
                     Foreground="White"
                     RenderOptions.BitmapScalingMode="NearestNeighbor"
                     Text="Please provide your Organization ID">
@@ -246,8 +248,9 @@
                     Margin="25"
                     HorizontalAlignment="Center"
                     VerticalAlignment="Top"
-                    FontFamily="Comfortaa Light"
+                    FontFamily="/Fonts/#Comfortaa"
                     FontSize="20"
+                    FontWeight="SemiBold"
                     Foreground="White"
                     RenderOptions.BitmapScalingMode="NearestNeighbor"
                     Text="Please create a secret API key for MagicChatbox">
