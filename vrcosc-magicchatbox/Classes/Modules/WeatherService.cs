@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using vrcosc_magicchatbox.Classes.DataAndSecurity;
 using vrcosc_magicchatbox.Classes.Utilities;
 using vrcosc_magicchatbox.Core.Configuration;
+using vrcosc_magicchatbox.Core.Osc.Text;
 using vrcosc_magicchatbox.Core.Privacy;
 using vrcosc_magicchatbox.Core.State;
 using vrcosc_magicchatbox.Core.Toast;
@@ -284,14 +285,13 @@ public class WeatherService : IWeatherService
         {
             string windUnit = ResolveWindUnit(unit);
             double windValue = ConvertWindSpeed(snapshot.WindSpeedKph.Value, windUnit);
-            string windValueRaw = FormatWindSpeed(windValue);
-            windText = $"{windValueRaw}{ToSmallText(windUnit)}";
+            windText = Measure(FormatWindSpeed(windValue), windUnit);
         }
 
         string tempValue = tempValueRaw;
         string unitText = ToSmallText(unit);
-        string tempWithUnit = $"{tempValueRaw}{unitText}";
-        string feelsValue = string.IsNullOrWhiteSpace(feelsValueRaw) ? string.Empty : $"{feelsValueRaw}{unitText}";
+        string tempWithUnit = Measure(tempValueRaw, unit);
+        string feelsValue = string.IsNullOrWhiteSpace(feelsValueRaw) ? string.Empty : Measure(feelsValueRaw, unit);
         string conditionSmall = ToSmallTextPreserveEmoji(conditionText);
         string humiditySmall = string.IsNullOrWhiteSpace(humidityText) ? string.Empty : humidityText;
         string windSmall = string.IsNullOrWhiteSpace(windText) ? string.Empty : windText;
@@ -329,15 +329,15 @@ public class WeatherService : IWeatherService
         }
         if (Settings.ShowWeatherFeelsLike && !string.IsNullOrWhiteSpace(feels))
         {
-            secondaryParts.Add($"{ToSmallText("Feels")} {feels}");
+            secondaryParts.Add(Stat("Feels", feels));
         }
         if (Settings.ShowWeatherWind && !string.IsNullOrWhiteSpace(wind))
         {
-            secondaryParts.Add($"{ToSmallText("Wind")} {wind}");
+            secondaryParts.Add(Stat("Wind", wind));
         }
         if (Settings.ShowWeatherHumidity && !string.IsNullOrWhiteSpace(humidity))
         {
-            secondaryParts.Add($"{ToSmallText("Hum")} {humidity}");
+            secondaryParts.Add(Stat("Hum", humidity));
         }
 
         string separator = ignoreCustomSeparators ? " " : GetWeatherStatsSeparator();
@@ -363,6 +363,14 @@ public class WeatherService : IWeatherService
 
         return string.Join(separator, primaryParts.Concat(secondaryParts));
     }
+
+    /// <summary>A reading and its unit. The unit is raised and glued on; the number is not touched.</summary>
+    private static string Measure(string value, string unit)
+        => new SegmentWriter().Field(OscText.Value(value), OscText.Unit(unit)).Text;
+
+    /// <summary>A named reading. The label is raised and the writer places the single space.</summary>
+    private static string Stat(string label, string value)
+        => new SegmentWriter().Field(OscText.Label(label), OscText.Value(value)).Text;
 
     private string FormatTemperature(double value)
     {

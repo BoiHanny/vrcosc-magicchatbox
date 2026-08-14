@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using vrcosc_magicchatbox.Classes.DataAndSecurity;
 using vrcosc_magicchatbox.Core.Configuration;
+using vrcosc_magicchatbox.Core.Osc.Text;
 using vrcosc_magicchatbox.ViewModels;
 
 namespace vrcosc_magicchatbox.Classes.Modules;
@@ -30,6 +31,44 @@ public static class WeatherUnitResolver
         };
 }
 
+/// <summary>
+/// What Weather is allowed to spend of the chatbox line.
+/// </summary>
+/// <remarks>
+/// Weather is on for almost everyone, so every character it takes is taken from something else.
+/// Its one unbounded input is the user's template: nothing capped it, and a long one pushed every
+/// integration after it off the line rather than shortening itself.
+/// </remarks>
+public static class WeatherBudget
+{
+    /// <summary>A template longer than the whole line cannot render, it can only crowd the line out.</summary>
+    public const int MaxTemplateLength = Core.Constants.OscMaxMessageLength;
+
+    /// <summary>Half the line. Past this Weather shortens itself instead of squeezing its neighbours.</summary>
+    public const int MaxSegmentLength = 72;
+
+    /// <summary>What the segment may spend: the room actually left, and never more than the share.</summary>
+    public static string Bound(string? text, int roomOnTheLine)
+        => SegmentWriter.Truncate(text, Math.Min(MaxSegmentLength, roomOnTheLine));
+
+    /// <summary>
+    /// Caps stored input. No ellipsis and no trimming - this is text the user is still editing, and
+    /// it is bounded where it is stored so the worst case cannot be authored in the first place.
+    /// </summary>
+    public static string CapTemplate(string? text)
+    {
+        string value = text ?? string.Empty;
+        if (value.Length <= MaxTemplateLength)
+            return value;
+
+        int cut = MaxTemplateLength;
+        if (char.IsHighSurrogate(value[cut - 1]))
+            cut--;
+
+        return value[..cut];
+    }
+}
+
 public partial class WeatherSettings : VersionedSettings
 {
     public static IEnumerable<WeatherLayoutMode> AvailableLayoutModes { get; } = Enum.GetValues(typeof(WeatherLayoutMode)).Cast<WeatherLayoutMode>().ToList();
@@ -48,7 +87,6 @@ public partial class WeatherSettings : VersionedSettings
     [ObservableProperty] private bool _showWeatherFeelsLike = false;
     [ObservableProperty] private string _weatherSeparator = " | ";
     [ObservableProperty] private string _weatherStatsSeparator = " ";
-    [ObservableProperty] private string _weatherTemplate = string.Empty;
     [ObservableProperty] private string _weatherConditionOverrides = string.Empty;
     [ObservableProperty] private bool _weatherCustomOverridesEnabled = false;
     [ObservableProperty] private WeatherLayoutMode _weatherLayoutMode = WeatherLayoutMode.SingleLine;
@@ -70,6 +108,28 @@ public partial class WeatherSettings : VersionedSettings
         {
             if (value < 1) value = 10;
             if (SetProperty(ref _weatherUpdateIntervalMinutes, value)) { }
+        }
+    }
+
+    // Hand-written rather than generated because the value is capped on the way in - the generated
+    // setter has nowhere to do that.
+    private string _weatherTemplate = string.Empty;
+    public string WeatherTemplate
+    {
+        get => _weatherTemplate;
+        set
+        {
+            string capped = WeatherBudget.CapTemplate(value);
+            if (SetProperty(ref _weatherTemplate, capped))
+            {
+                OnPropertyChanged(nameof(WeatherTemplateIsEmpty));
+                OnPropertyChanged(nameof(WeatherTemplateHasValue));
+            }
+            else if (capped.Length != value?.Length)
+            {
+                // The editor is holding text that was not stored, so it has to be told to re-read.
+                OnPropertyChanged();
+            }
         }
     }
 
@@ -111,12 +171,6 @@ public partial class WeatherSettings : VersionedSettings
     [JsonIgnore] public bool WeatherLocationModeIsIPBased => WeatherLocationMode == WeatherLocationMode.IPBased;
     [JsonIgnore] public bool WeatherIpConsentMissing => WeatherLocationMode == WeatherLocationMode.IPBased && !WeatherAllowIPLocation;
     [JsonIgnore] public bool WeatherLocationModeUsesCity => WeatherLocationMode == WeatherLocationMode.CustomCity || WeatherLocationMode == WeatherLocationMode.IPBased;
-
-    partial void OnWeatherTemplateChanged(string value)
-    {
-        OnPropertyChanged(nameof(WeatherTemplateIsEmpty));
-        OnPropertyChanged(nameof(WeatherTemplateHasValue));
-    }
 
     partial void OnWeatherLocationModeChanged(WeatherLocationMode value)
     {

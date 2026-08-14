@@ -234,6 +234,30 @@ public class VrPerformanceFormatterTests
         Assert.Contains("14/ᵐⁱⁿ", VrPerformanceFormatter.Build(Snapshot(dropped: 14), textSettings, false));
     }
 
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void NoReadingIsEverRaised(bool emoji)
+    {
+        // The rule for the whole chatbox: the value stays full size and only the label and the unit
+        // are raised. A raised digit anywhere in this row means a number was shrunk.
+        var settings = Settings();
+        settings.UseEmojisForVrPerf = emoji;
+        settings.ShowTargetHz = true;
+        settings.ShowDroppedFrames = true;
+        settings.ShowMotionSmoothing = true;
+        settings.ShowAppGpuMs = true;
+        settings.ShowCompositorGpuMs = true;
+        settings.ShowHeadroom = true;
+        settings.ShowCpuTiming = true;
+
+        string text = VrPerformanceFormatter.Build(
+            VrPerformanceFormatter.SampleSnapshot(degraded: true), settings, isDegraded: true);
+
+        foreach (char raised in "⁰¹²³⁴⁵⁶⁷⁸⁹")
+            Assert.DoesNotContain(raised.ToString(), text);
+    }
+
     [Fact]
     public void SeparatorIsHonoured()
     {
