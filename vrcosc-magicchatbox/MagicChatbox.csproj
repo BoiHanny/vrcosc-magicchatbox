@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-	<Version>0.9.216</Version>
+	<Version>0.9.217</Version>
     <TargetFramework>net10.0-windows10.0.26100.0</TargetFramework>
     <RootNamespace>vrcosc_magicchatbox</RootNamespace>
     <Nullable>enable</Nullable>
@@ -232,6 +232,7 @@
 	  <PackageReference Include="System.Management" Version="10.0.11" />
     <PackageReference Include="TwitchLib.Api" Version="3.10.2" />
     <PackageReference Include="OpenVR.NET" Version="0.8.5" />
+    <PackageReference Include="SixLabors.ImageSharp" Version="2.1.13" />
     <PackageReference Include="System.Security.Cryptography.ProtectedData" Version="10.0.11" />
     <PackageReference Include="TikTokLive_Sharp" Version="1.2.3" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.11" />
