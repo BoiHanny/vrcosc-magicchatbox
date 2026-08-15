@@ -175,34 +175,11 @@
                         WindowChrome.IsHitTestVisibleInChrome="True">
                         <Button
                             Name="MenuButton_0"
-                            Margin="0,0,0,0"
-                            Background="{StaticResource SurfaceDarkBrush}"
-                            BorderThickness="0"
                             Command="{Binding ChangeMenuCommand}"
                             CommandParameter="0"
                             Content="Integrations"
-                            Cursor="Hand"
-                            FontFamily="/Fonts/#Comfortaa"
-                            FontSize="18"
-                            Foreground="White">
-                            <!--  The selected tab carries SemiBold; the 4px highlight bar alone was the only cue.  -->
-                            <Button.Style>
-                                <Style BasedOn="{StaticResource MenuItemStyle}" TargetType="Button">
-                                    <Setter Property="FontWeight" Value="Normal" />
-                                    <Style.Triggers>
-                                        <DataTrigger Binding="{Binding SelectedMenuIndex}" Value="0">
-                                            <Setter Property="FontWeight" Value="SemiBold" />
-                                        </DataTrigger>
-                                    </Style.Triggers>
-                                </Style>
-                            </Button.Style>
-                        </Button>
-                        <Border
-                            Height="4"
-                            VerticalAlignment="Top"
-                            Background="{StaticResource ButtonHighlightBrush}"
-                            IsHitTestVisible="False"
-                            Visibility="{Binding SelectedMenuIndex, Converter={StaticResource IndexToVisibilityConverter}, FallbackValue=Collapsed, ConverterParameter=0}" />
+                            Style="{StaticResource TopBarTabStyle}"
+                            local:ButtonProperties.IsActive="{Binding SelectedMenuIndex, Converter={StaticResource IndexToBoolConverter}, ConverterParameter=0}" />
                     </Grid>
                     <Grid
                         Grid.Column="2"
@@ -210,33 +187,11 @@
                         WindowChrome.IsHitTestVisibleInChrome="True">
                         <Button
                             Name="MenuButton_1"
-                            Margin="0,0,0,0"
-                            Background="{StaticResource SurfaceDarkBrush}"
-                            BorderThickness="0"
                             Command="{Binding ChangeMenuCommand}"
                             CommandParameter="1"
                             Content="Status"
-                            Cursor="Hand"
-                            FontFamily="/Fonts/#Comfortaa"
-                            FontSize="18"
-                            Foreground="White">
-                            <Button.Style>
-                                <Style BasedOn="{StaticResource MenuItemStyle}" TargetType="Button">
-                                    <Setter Property="FontWeight" Value="Normal" />
-                                    <Style.Triggers>
-                                        <DataTrigger Binding="{Binding SelectedMenuIndex}" Value="1">
-                                            <Setter Property="FontWeight" Value="SemiBold" />
-                                        </DataTrigger>
-                                    </Style.Triggers>
-                                </Style>
-                            </Button.Style>
-                        </Button>
-                        <Border
-                            Height="4"
-                            VerticalAlignment="Top"
-                            Background="{StaticResource ButtonHighlightBrush}"
-                            IsHitTestVisible="False"
-                            Visibility="{Binding SelectedMenuIndex, Converter={StaticResource IndexToVisibilityConverter}, FallbackValue=Collapsed, ConverterParameter=1}" />
+                            Style="{StaticResource TopBarTabStyle}"
+                            local:ButtonProperties.IsActive="{Binding SelectedMenuIndex, Converter={StaticResource IndexToBoolConverter}, ConverterParameter=1}" />
                     </Grid>
                     <Grid
                         Grid.Column="3"
@@ -244,33 +199,11 @@
                         WindowChrome.IsHitTestVisibleInChrome="True">
                         <Button
                             Name="MenuButton_2"
-                            Margin="0,0,0,0"
-                            Background="{StaticResource SurfaceDarkBrush}"
-                            BorderThickness="0"
                             Command="{Binding ChangeMenuCommand}"
                             CommandParameter="2"
                             Content="Chatting"
-                            Cursor="Hand"
-                            FontFamily="/Fonts/#Comfortaa"
-                            FontSize="18"
-                            Foreground="White">
-                            <Button.Style>
-                                <Style BasedOn="{StaticResource MenuItemStyle}" TargetType="Button">
-                                    <Setter Property="FontWeight" Value="Normal" />
-                                    <Style.Triggers>
-                                        <DataTrigger Binding="{Binding SelectedMenuIndex}" Value="2">
-                                            <Setter Property="FontWeight" Value="SemiBold" />
-                                        </DataTrigger>
-                                    </Style.Triggers>
-                                </Style>
-                            </Button.Style>
-                        </Button>
-                        <Border
-                            Height="4"
-                            VerticalAlignment="Top"
-                            Background="{StaticResource ButtonHighlightBrush}"
-                            IsHitTestVisible="False"
-                            Visibility="{Binding SelectedMenuIndex, Converter={StaticResource IndexToVisibilityConverter}, FallbackValue=Collapsed, ConverterParameter=2}" />
+                            Style="{StaticResource TopBarTabStyle}"
+                            local:ButtonProperties.IsActive="{Binding SelectedMenuIndex, Converter={StaticResource IndexToBoolConverter}, ConverterParameter=2}" />
                     </Grid>
                     <Grid
                         Grid.Column="4"
@@ -278,33 +211,11 @@
                         WindowChrome.IsHitTestVisibleInChrome="True">
                         <Button
                             Name="MenuButton_3"
-                            Margin="0,0,0,0"
-                            Background="{StaticResource SurfaceDarkBrush}"
-                            BorderThickness="0"
                             Command="{Binding ChangeMenuCommand}"
                             CommandParameter="3"
                             Content="Options"
-                            Cursor="Hand"
-                            FontFamily="/Fonts/#Comfortaa"
-                            FontSize="18"
-                            Foreground="White">
-                            <Button.Style>
-                                <Style BasedOn="{StaticResource MenuItemStyle}" TargetType="Button">
-                                    <Setter Property="FontWeight" Value="Normal" />
-                                    <Style.Triggers>
-                                        <DataTrigger Binding="{Binding SelectedMenuIndex}" Value="3">
-                                            <Setter Property="FontWeight" Value="SemiBold" />
-                                        </DataTrigger>
-                                    </Style.Triggers>
-                                </Style>
-                            </Button.Style>
-                        </Button>
-                        <Border
-                            Height="4"
-                            VerticalAlignment="Top"
-                            Background="{StaticResource ButtonHighlightBrush}"
-                            IsHitTestVisible="False"
-                            Visibility="{Binding SelectedMenuIndex, Converter={StaticResource IndexToVisibilityConverter}, FallbackValue=Collapsed, ConverterParameter=3}" />
+                            Style="{StaticResource TopBarTabStyle}"
+                            local:ButtonProperties.IsActive="{Binding SelectedMenuIndex, Converter={StaticResource IndexToBoolConverter}, ConverterParameter=3}" />
                     </Grid>
 
                     <!--

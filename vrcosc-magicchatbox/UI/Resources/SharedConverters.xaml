@@ -14,6 +14,7 @@
     <conv:EnumDescriptionConverter x:Key="EnumDescriptionConverter" />
     <conv:TwitchAnnouncementColorToBrushConverter x:Key="TwitchAnnouncementColorToBrushConverter" />
     <conv:IndexToVisibilityConverter x:Key="IndexToVisibilityConverter" />
+    <conv:IndexToBoolConverter x:Key="IndexToBoolConverter" />
     <conv:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" />
     <conv:ColumnWidthConverter x:Key="ColumnWidthConverter" />
     <conv:MaskedWeatherCityConverter x:Key="MaskedWeatherCityConverter" />

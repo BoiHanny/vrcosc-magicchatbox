@@ -1,6 +1,7 @@
 ﻿<ResourceDictionary
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:xaml="clr-namespace:vrcosc_magicchatbox.Classes"
     xmlns:sys="clr-namespace:System;assembly=System.Runtime">
 
     <!--
@@ -701,6 +702,216 @@
         header was separated from the thing it labels by weight and a slightly brighter brush
         alone. One step of size makes the hierarchy survive a squint.
     -->
+    <!--
+        The top bar tabs.
+
+        Three layers, all animated, none of them abrupt: a purple wash that fades in under the
+        cursor, a soft bloom behind the word, and an underline that grows from the middle. Selected
+        holds all three at full strength; hover shows them at about a third, so moving along the bar
+        previews the tab you are about to land on rather than flashing at you.
+
+        The old style was the stock WPF button template, which is why hovering a tab produced the
+        grey Aero highlight on a purple bar.
+
+        Everything is a scale or an opacity - both compose on the render thread, so the bar keeps
+        animating while the UI thread is busy, which during a scan tick it often is. Animating width
+        or colour here would stutter in exactly the moments the app is working hardest.
+    -->
+    <Style x:Key="TopBarTabStyle" TargetType="{x:Type Button}">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="FontFamily" Value="{StaticResource FontSecondary}" />
+        <Setter Property="FontSize" Value="{StaticResource FontSizeHeading}" />
+        <Setter Property="Foreground" Value="{StaticResource TextLightPurpleBrush}" />
+        <Setter Property="SnapsToDevicePixels" Value="True" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type Button}">
+                    <Grid Background="Transparent">
+
+                        <!--  The wash. Brightest at the bottom so the tab reads as lit from the underline up.  -->
+                        <Border x:Name="Wash" Opacity="0">
+                            <Border.Background>
+                                <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                                    <GradientStop Offset="0" Color="#00AEA7ED" />
+                                    <GradientStop Offset="1" Color="#3AAEA7ED" />
+                                </LinearGradientBrush>
+                            </Border.Background>
+                        </Border>
+
+                        <!--  The bloom. Blurred rather than drawn, so it has no edge of its own.  -->
+                        <Border
+                            x:Name="Bloom"
+                            Margin="10,6"
+                            Background="#66C9B8FF"
+                            CornerRadius="10"
+                            Opacity="0">
+                            <Border.Effect>
+                                <BlurEffect KernelType="Gaussian" Radius="22" />
+                            </Border.Effect>
+                        </Border>
+
+                        <ContentPresenter
+                            x:Name="Label"
+                            Margin="{TemplateBinding Padding}"
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Center"
+                            Focusable="False"
+                            RecognizesAccessKey="True" />
+
+                        <!--  Grown from the centre rather than faded in: the movement is what reads
+                              as a tab being chosen.  -->
+                        <Border
+                            x:Name="Underline"
+                            Height="3"
+                            VerticalAlignment="Bottom"
+                            CornerRadius="2"
+                            Opacity="0"
+                            RenderTransformOrigin="0.5,0.5">
+                            <Border.Background>
+                                <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                                    <GradientStop Offset="0" Color="#006E63C8" />
+                                    <GradientStop Offset="0.5" Color="#FFCFC6FF" />
+                                    <GradientStop Offset="1" Color="#006E63C8" />
+                                </LinearGradientBrush>
+                            </Border.Background>
+                            <Border.RenderTransform>
+                                <ScaleTransform x:Name="UnderlineScale" ScaleX="0" />
+                            </Border.RenderTransform>
+                        </Border>
+                    </Grid>
+
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Trigger.EnterActions>
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <DoubleAnimation
+                                            Storyboard.TargetName="Wash"
+                                            Storyboard.TargetProperty="Opacity"
+                                            To="0.55"
+                                            Duration="0:0:0.18" />
+                                        <DoubleAnimation
+                                            Storyboard.TargetName="Bloom"
+                                            Storyboard.TargetProperty="Opacity"
+                                            To="0.30"
+                                            Duration="0:0:0.22" />
+                                        <DoubleAnimation
+                                            Storyboard.TargetName="Underline"
+                                            Storyboard.TargetProperty="Opacity"
+                                            To="0.5"
+                                            Duration="0:0:0.18" />
+                                        <DoubleAnimation
+                                            Storyboard.TargetName="UnderlineScale"
+                                            Storyboard.TargetProperty="ScaleX"
+                                            To="0.45"
+                                            Duration="0:0:0.22">
+                                            <DoubleAnimation.EasingFunction>
+                                                <CubicEase EasingMode="EaseOut" />
+                                            </DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.EnterActions>
+                            <Trigger.ExitActions>
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <DoubleAnimation
+                                            Storyboard.TargetName="Wash"
+                                            Storyboard.TargetProperty="Opacity"
+                                            Duration="0:0:0.25" />
+                                        <DoubleAnimation
+                                            Storyboard.TargetName="Bloom"
+                                            Storyboard.TargetProperty="Opacity"
+                                            Duration="0:0:0.25" />
+                                        <DoubleAnimation
+                                            Storyboard.TargetName="Underline"
+                                            Storyboard.TargetProperty="Opacity"
+                                            Duration="0:0:0.25" />
+                                        <DoubleAnimation
+                                            Storyboard.TargetName="UnderlineScale"
+                                            Storyboard.TargetProperty="ScaleX"
+                                            Duration="0:0:0.25">
+                                            <DoubleAnimation.EasingFunction>
+                                                <CubicEase EasingMode="EaseIn" />
+                                            </DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.ExitActions>
+                            <Setter Property="Foreground" Value="White" />
+                        </Trigger>
+
+                        <!--  Selected wins: its storyboard runs after the hover one and holds the
+                              same three layers at full strength, so leaving the cursor cannot fade
+                              the current tab out from under itself.  -->
+                        <Trigger Property="xaml:ButtonProperties.IsActive" Value="True">
+                            <Trigger.EnterActions>
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <DoubleAnimation
+                                            Storyboard.TargetName="Wash"
+                                            Storyboard.TargetProperty="Opacity"
+                                            To="1"
+                                            Duration="0:0:0.28" />
+                                        <DoubleAnimation
+                                            Storyboard.TargetName="Bloom"
+                                            Storyboard.TargetProperty="Opacity"
+                                            To="0.85"
+                                            Duration="0:0:0.34" />
+                                        <DoubleAnimation
+                                            Storyboard.TargetName="Underline"
+                                            Storyboard.TargetProperty="Opacity"
+                                            To="1"
+                                            Duration="0:0:0.2" />
+                                        <DoubleAnimation
+                                            Storyboard.TargetName="UnderlineScale"
+                                            Storyboard.TargetProperty="ScaleX"
+                                            To="1"
+                                            Duration="0:0:0.34">
+                                            <DoubleAnimation.EasingFunction>
+                                                <BackEase Amplitude="0.35" EasingMode="EaseOut" />
+                                            </DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.EnterActions>
+                            <Trigger.ExitActions>
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <DoubleAnimation
+                                            Storyboard.TargetName="Wash"
+                                            Storyboard.TargetProperty="Opacity"
+                                            Duration="0:0:0.25" />
+                                        <DoubleAnimation
+                                            Storyboard.TargetName="Bloom"
+                                            Storyboard.TargetProperty="Opacity"
+                                            Duration="0:0:0.25" />
+                                        <DoubleAnimation
+                                            Storyboard.TargetName="Underline"
+                                            Storyboard.TargetProperty="Opacity"
+                                            Duration="0:0:0.25" />
+                                        <DoubleAnimation
+                                            Storyboard.TargetName="UnderlineScale"
+                                            Storyboard.TargetProperty="ScaleX"
+                                            Duration="0:0:0.25" />
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.ExitActions>
+                            <Setter Property="Foreground" Value="White" />
+                            <Setter Property="FontWeight" Value="SemiBold" />
+                        </Trigger>
+
+                        <Trigger Property="IsPressed" Value="True">
+                            <Setter TargetName="Bloom" Property="Opacity" Value="1" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
     <!--
         Introduces a run of related sections on the options page. Bigger and quieter than a
         subsection header: it names the group, it is not a setting.
