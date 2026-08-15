@@ -466,10 +466,26 @@ namespace vrcosc_magicchatbox
         /// </summary>
         public void PrepareHiddenStart()
         {
-            Opacity = 0;
+            // Parking is what hides the window; opacity is deliberately left alone. A window held at
+            // zero opacity is never composited, so it never produces a rendered frame - and the
+            // reveal then shows the blank surface the OS created the HWND with, which is white. Off
+            // the desktop at full opacity it renders everything properly, unseen, and the reveal has
+            // a finished frame to show.
+            if (WindowState != WindowState.Maximized)
+            {
+                _revealLeft = double.IsNaN(Left) ? null : Left;
+                _revealTop = double.IsNaN(Top) ? null : Top;
+                _parkedOffScreen = true;
 
-            if (WindowState == WindowState.Maximized)
+                WindowStartupLocation = WindowStartupLocation.Manual;
+                Left = SystemParameters.VirtualScreenLeft - Width - 400;
+                Top = SystemParameters.VirtualScreenTop - Height - 400;
                 return;
+            }
+
+            // Maximized cannot be parked - Windows snaps it back to a monitor - so that one case
+            // still has to hide behind opacity, and still pays the blank first frame.
+            Opacity = 0;
 
             _revealLeft = double.IsNaN(Left) ? null : Left;
             _revealTop = double.IsNaN(Top) ? null : Top;
@@ -497,6 +513,10 @@ namespace vrcosc_magicchatbox
             if (_parkedOffScreen)
             {
                 _parkedOffScreen = false;
+
+                // Taken to zero only now, with a rendered frame already behind it, so the fade has
+                // the finished window to reveal rather than an unpainted surface.
+                Opacity = 0;
 
                 if (_revealLeft is { } left && _revealTop is { } top)
                 {
