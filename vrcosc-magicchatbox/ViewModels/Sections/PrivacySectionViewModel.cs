@@ -13,10 +13,6 @@ public partial class PrivacySectionViewModel : ObservableObject
 
     public AppSettings AppSettings { get; }
 
-    /// <summary>
-    /// Kept as a passthrough so navigation can still ask for the section to open, but the state now
-    /// lives on the same persisted flag as the other twenty-one sections.
-    /// </summary>
     public bool IsExpanded
     {
         get => AppSettings.Settings_Privacy;

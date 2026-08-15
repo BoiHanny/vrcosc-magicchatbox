@@ -64,7 +64,6 @@ public sealed class StatusOscProvider : IOscProvider
 
         if (afk != null && afk.IsAfk && afk.Settings.EnableAfkDetection)
         {
-            // The AFK styles lay out their own spacing, so this only cuts - it does not tidy.
             string afkText = SegmentWriter.Truncate(afk.GenerateAFKString(), budget);
             if (!string.IsNullOrEmpty(afkText))
                 return new OscSegment { Text = afkText };
@@ -85,12 +84,6 @@ public sealed class StatusOscProvider : IOscProvider
         return string.IsNullOrEmpty(text) ? null : new OscSegment { Text = text };
     }
 
-    /// <summary>
-    /// The room the line has left. Status is first in the default order, so that is normally the
-    /// whole line - but when nothing is left it takes a line's worth anyway rather than standing
-    /// aside for segments it outranks. Status has the lowest Priority number in the app; deciding
-    /// who goes when the line is full is the builder's job, not this one's.
-    /// </summary>
     private static int ResolveBudget(OscBuildContext context)
     {
         int room = context.RemainingCharsIf(string.Empty);
@@ -119,7 +112,6 @@ public sealed class StatusOscProvider : IOscProvider
                 CycleItems(overrideItems);
                 return;
             }
-
         }
 
         var activeGroupIds = _chatStatus.GroupList

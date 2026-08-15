@@ -27,7 +27,6 @@ public partial class AppOptionsSectionViewModel : ObservableObject
     private readonly IMenuNavigationService _menuNav;
     private readonly INavigationService _nav;
 
-    /// <summary>The sample line shown under the prefix, suffix and separator boxes.</summary>
     [ObservableProperty] private string _linePreview = string.Empty;
 
     public AppSettings AppSettings { get; }

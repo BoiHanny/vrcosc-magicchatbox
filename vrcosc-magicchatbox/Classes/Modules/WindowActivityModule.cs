@@ -21,31 +21,15 @@ using vrcosc_magicchatbox.ViewModels.State;
 
 namespace vrcosc_magicchatbox.Classes.Modules;
 
-/// <summary>
-/// The text work behind the focused-app readout, kept out of the module so it can be tested without
-/// a foreground window, a dispatcher and a consent service behind it.
-/// </summary>
 public static class WindowActivityText
 {
-    /// <summary>
-    /// An app name arrives from a file description, a shell display name or a UWP automation
-    /// element, and none of those are bounded. This is generous but finite.
-    /// </summary>
     public const int MaxAppNameChars = 48;
 
-    /// <summary>
-    /// What the title is allowed to cost. Nothing longer than the whole chatbox line can ever be
-    /// shown, so that stays the ceiling even when the user turned the per-app limit off.
-    /// </summary>
     public static int TitleCap(bool limitOn, int configured)
         => limitOn
             ? Math.Clamp(configured, 0, Constants.OscMaxMessageLength)
             : Constants.OscMaxMessageLength;
 
-    /// <summary>
-    /// The app name, with its title in brackets after it. Both are values - the reader is here to
-    /// find out which app, not to be told the word "app" - so neither gets raised.
-    /// </summary>
     public static string Compose(string? appName, string? windowTitle)
     {
         string name = SegmentWriter.Truncate(SegmentWriter.Tidy(appName), MaxAppNameChars);
@@ -189,8 +173,6 @@ public class WindowActivityModule : vrcosc_magicchatbox.Services.IWindowActivity
 
                 bool titleCheck = CheckTitleCondition(existingProcessInfo, windowTitle);
 
-                // The two branches used to bracket the title differently - one of them opened with
-                // "( " - so the same app printed a stray space depending on whether it was renamed.
                 string title = titleCheck && Settings.TitleScan ? windowTitle : string.Empty;
 
                 return existingProcessInfo.ApplyCustomAppName && !string.IsNullOrEmpty(existingProcessInfo.CustomAppName)
@@ -207,7 +189,6 @@ public class WindowActivityModule : vrcosc_magicchatbox.Services.IWindowActivity
             FireWaErrorToast();
             return processName;
         }
-
     }
 
     private string ApplyGlobalRegex(string windowTitle)
@@ -249,8 +230,6 @@ public class WindowActivityModule : vrcosc_magicchatbox.Services.IWindowActivity
                 return string.Empty;
         }
 
-        // The old cut spent three characters saying what one ellipsis says, and a raw Substring can
-        // land between the two halves of an emoji and print a replacement box.
         return SegmentWriter.Truncate(
             fullTitle,
             WindowActivityText.TitleCap(Settings.LimitTitleOnApp, Settings.MaxShowTitleCount));
@@ -380,8 +359,6 @@ public class WindowActivityModule : vrcosc_magicchatbox.Services.IWindowActivity
 
     private string GetProcessName(IntPtr hwnd, Process process, int attempts)
     {
-
-
         string processName = "Unknown";
         try
         {
@@ -408,7 +385,6 @@ public class WindowActivityModule : vrcosc_magicchatbox.Services.IWindowActivity
             FireWaErrorToast();
             return processName;
         }
-
     }
 
     [System.Runtime.InteropServices.DllImport("user32.dll", CharSet = System.Runtime.InteropServices.CharSet.Auto, SetLastError = true)]
@@ -443,7 +419,6 @@ public class WindowActivityModule : vrcosc_magicchatbox.Services.IWindowActivity
             FireWaErrorToast();
             return "";
         }
-
     }
 
     private string RemoveExeExtension(string processName)
@@ -527,8 +502,6 @@ public class WindowActivityModule : vrcosc_magicchatbox.Services.IWindowActivity
         return removed;
     }
 
-
-
     public string GetForegroundProcessName()
     {
         if (!_consentService.IsApproved(PrivacyHook.WindowActivity))
@@ -581,7 +554,6 @@ public class WindowActivityModule : vrcosc_magicchatbox.Services.IWindowActivity
                 }
                 WA.ErrorInWindowActivity = false;
                 return ConstructReturnString(existingProcessInfo, processName, windowTitle);
-
             }
 
             WA.ErrorInWindowActivity = true;
@@ -605,12 +577,10 @@ public class WindowActivityModule : vrcosc_magicchatbox.Services.IWindowActivity
 
             string errormsg = errorMsgBuilder.ToString();
 
-
             Logging.WriteException(new Exception(errormsg), MSGBox: false);
             WA.ErrorInWindowActivityMsg = errormsg;
             FireWaErrorToast();
             return "'An app'";
-
         }
         catch (Exception ex)
         {
@@ -669,7 +639,6 @@ public class WindowActivityModule : vrcosc_magicchatbox.Services.IWindowActivity
         _toast.Show("🪟 Window Activity", WA.ErrorInWindowActivityMsg, ToastType.Warning, key: "window-activity-error");
     }
 
-
     public int ResetWindowActivity()
     {
         int removed = 0;
@@ -686,8 +655,6 @@ public class WindowActivityModule : vrcosc_magicchatbox.Services.IWindowActivity
         }
         return removed;
     }
-
-
 
     public int SmartCleanup()
     {
@@ -718,5 +685,4 @@ public class WindowActivityModule : vrcosc_magicchatbox.Services.IWindowActivity
         [System.Runtime.InteropServices.MarshalAs(System.Runtime.InteropServices.UnmanagedType.ByValTStr, SizeConst = 80)]
         public string szTypeName;
     }
-
 }

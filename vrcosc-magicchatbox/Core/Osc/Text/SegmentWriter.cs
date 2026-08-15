@@ -5,20 +5,10 @@ using System.Text;
 
 namespace vrcosc_magicchatbox.Core.Osc.Text;
 
-/// <summary>
-/// Builds one integration's segment: joins its fields, keeps the whitespace clean, and reports what
-/// it costs of the line.
-/// </summary>
-/// <remarks>
-/// Nine integrations grew their own version of this and each got a different part of it wrong -
-/// double spaces, a gap between a number and its unit, a truncation that could split a surrogate
-/// pair. Doing it once means those are not defects to fix but shapes that cannot be written.
-/// </remarks>
 public sealed class SegmentWriter
 {
     private readonly List<string> _fields = [];
 
-    /// <summary>Adds one field. Parts are placed by role: a unit glues on, anything else takes a space.</summary>
     public SegmentWriter Field(params OscText[] parts)
     {
         if (parts is null || parts.Length == 0)
@@ -31,7 +21,6 @@ public sealed class SegmentWriter
             if (part.IsEmpty)
                 continue;
 
-            // A unit belongs to the number in front of it. Everything else is its own word.
             if (field.Length > 0 && part.Role != OscTextRole.Unit)
                 field.Append(' ');
 
@@ -44,24 +33,17 @@ public sealed class SegmentWriter
         return this;
     }
 
-    /// <summary>Adds a field only when the condition holds, so call sites stay flat.</summary>
     public SegmentWriter FieldIf(bool condition, params OscText[] parts)
         => condition ? Field(parts) : this;
 
     public string Text => Tidy(string.Join(OscGlyphs.FieldJoin, _fields));
 
-    /// <summary>What this segment spends of the line, before any separator joining it to the next.</summary>
     public int Cost => Text.Length;
 
     public bool IsEmpty => Text.Length == 0;
 
     public override string ToString() => Text;
 
-    /// <summary>
-    /// The longest rendering that still fits, or the shortest one cut to size if none of them do.
-    /// Replaces the bespoke fitting each integration invented, and gives the ones that never had a
-    /// graceful degrade something better than vanishing.
-    /// </summary>
     public static string Fit(int budget, params string[] rungs)
     {
         if (rungs is null || rungs.Length == 0)
@@ -80,10 +62,6 @@ public sealed class SegmentWriter
         return Truncate(tidied[^1], budget);
     }
 
-    /// <summary>
-    /// Cuts to fit, marked so it does not read as the whole value, and never through the middle of
-    /// a surrogate pair. Prefers a word boundary when one is close enough to be worth it.
-    /// </summary>
     public static string Truncate(string? text, int budget)
     {
         string value = text ?? string.Empty;
@@ -105,7 +83,6 @@ public sealed class SegmentWriter
         return value[..keep].TrimEnd() + OscGlyphs.Ellipsis;
     }
 
-    /// <summary>Collapses runs of whitespace and trims the ends.</summary>
     public static string Tidy(string? text)
     {
         if (string.IsNullOrWhiteSpace(text))
@@ -116,7 +93,6 @@ public sealed class SegmentWriter
 
         foreach (char c in text)
         {
-            // Newlines are meaningful in a chatbox line, so they survive; runs of them do not.
             bool isSpace = c == ' ' || c == '\t';
             if (isSpace && lastWasSpace)
                 continue;

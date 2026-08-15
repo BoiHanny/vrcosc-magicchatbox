@@ -5,14 +5,6 @@ using vrcosc_magicchatbox.Core.Osc;
 
 namespace vrcosc_magicchatbox.UI.Controls;
 
-/// <summary>
-/// Shows what a setting will actually put in the chatbox, and what it costs of the line.
-/// </summary>
-/// <remarks>
-/// Three sections had already hand-rolled this and drifted apart, and the one held up as the model
-/// was the one that forgot to show the cost. A section that cannot answer "what will this look
-/// like?" leaves the user to find out by joining a world and reading their own chatbox.
-/// </remarks>
 public partial class SegmentPreview : UserControl
 {
     public static readonly DependencyProperty CaptionProperty = DependencyProperty.Register(
@@ -33,14 +25,12 @@ public partial class SegmentPreview : UserControl
         Refresh();
     }
 
-    /// <summary>Optional line above the preview saying what is being previewed.</summary>
     public string Caption
     {
         get => (string)GetValue(CaptionProperty);
         set => SetValue(CaptionProperty, value);
     }
 
-    /// <summary>The text as the chatbox would receive it.</summary>
     public string Line
     {
         get => (string)GetValue(LineProperty);
@@ -70,8 +60,6 @@ public partial class SegmentPreview : UserControl
         int length = Line?.Length ?? 0;
         CostText = $"{length}/{OscBuildContext.MaxOscLength}";
 
-        // The count is worth looking at only once the room starts running out, so it stays quiet
-        // until then rather than shouting on every line.
         CostChip.Background = OscPreviewFillLevel.Classify(length) switch
         {
             OscPreviewFill.Full => new SolidColorBrush(Color.FromRgb(0x7A, 0x2E, 0x3E)),

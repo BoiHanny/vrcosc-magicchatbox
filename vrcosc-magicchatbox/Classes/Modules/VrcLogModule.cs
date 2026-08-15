@@ -20,25 +20,12 @@ using vrcosc_magicchatbox.Services;
 
 namespace vrcosc_magicchatbox.Classes.Modules;
 
-/// <summary>
-/// The radar's text work. Everything it prints - world names, display names - comes out of a log
-/// file and has no length of its own, so the bounding lives here where it can be tested on its own.
-/// </summary>
 public static class VrcLogText
 {
-    /// <summary>
-    /// What a name out of the log is allowed to cost. The words the template puts around it are what
-    /// carry the meaning, so a very long name must not be able to push them off the line.
-    /// </summary>
     public const int MaxNameChars = 32;
 
-    /// <summary>A world or display name, cut to something a line can hold.</summary>
     public static string Name(string? name) => SegmentWriter.Truncate(SegmentWriter.Tidy(name), MaxNameChars);
 
-    /// <summary>
-    /// A duration with its unit glued on and raised. The number is what the reader is here for, so
-    /// it stays full size - the radar used to leave both at the same weight.
-    /// </summary>
     public static string Duration(TimeSpan ts)
     {
         if (ts.TotalSeconds < 60)
@@ -54,10 +41,6 @@ public static class VrcLogText
             .Field(OscText.Value(amount.ToString(format, CultureInfo.InvariantCulture)), OscText.Unit(unit))
             .Text;
 
-    /// <summary>
-    /// Renders inside a budget by cutting the one part that has no bound of its own - the world
-    /// name - and only cutting the rendered line itself if that was not enough.
-    /// </summary>
     public static string FitToBudget(Func<string, string> render, string worldName, int budget)
     {
         if (budget <= 0)
@@ -67,7 +50,6 @@ public static class VrcLogText
         if (text.Length <= budget)
             return text;
 
-        // Give back exactly what the line is over, so the template's own words survive intact.
         string shorter = SegmentWriter.Truncate(worldName, worldName.Length - (text.Length - budget));
         if (shorter.Length < worldName.Length)
             text = render(shorter);
@@ -304,7 +286,6 @@ public partial class VrcLogModule : ObservableObject, IModule
         _cts = null;
     }
 
-
     public void PropertyChangedHandler(object? sender, PropertyChangedEventArgs e)
     {
         if (e.PropertyName is "IntgrVrcRadar" or "IntgrVrcRadar_VR" or "IntgrVrcRadar_DESKTOP" or "IsVRRunning")
@@ -332,19 +313,12 @@ public partial class VrcLogModule : ObservableObject, IModule
                (isVR ? _integrationSettings.IntgrVrcRadar_VR : _integrationSettings.IntgrVrcRadar_DESKTOP);
     }
 
-
-    /// <param name="budget">
-    /// How much of the chatbox line is left. The default is the whole line, which is what the
-    /// settings preview wants to see; the OSC provider passes what is actually free.
-    /// </param>
     public string? GetOutputString(int budget = Constants.OscMaxMessageLength)
     {
         lock (_stateLock)
         {
             bool hasTransient = DateTime.Now < _transientExpiry && !string.IsNullOrEmpty(_transientMessage);
 
-            // A transient is already composed by the time it gets here, so the cut is the whole
-            // message. The names inside it were bounded when it was set.
             string? Transient() => SegmentWriter.Truncate(_transientMessage, budget) is { Length: > 0 } t ? t : null;
 
             switch (Settings.DisplayMode)
@@ -384,8 +358,6 @@ public partial class VrcLogModule : ObservableObject, IModule
             .Replace("{world}", worldName)
             .Replace("{count}", PlayerCount.ToString())
             .Replace("{peak}", _peakPlayerCount.ToString())
-            // Three stock presets carry these and nothing ever filled them in, so the chatbox
-            // printed the token itself.
             .Replace("{peak_session}", PeakPlayerCountThisSession.ToString())
             .Replace("{worlds}", _sessionWorldsVisited.ToString())
             .Replace("{players}", _allPlayersSeen.Count.ToString());
@@ -433,7 +405,6 @@ public partial class VrcLogModule : ObservableObject, IModule
 
         return text;
     }
-
 
     private async Task TailLogLoop(CancellationToken ct)
     {
@@ -658,7 +629,6 @@ public partial class VrcLogModule : ObservableObject, IModule
             return 0;
         }
     }
-
 
     private void ParseLogLine(string line, bool isBackfill)
     {
@@ -981,7 +951,6 @@ public partial class VrcLogModule : ObservableObject, IModule
         return (name, userId);
     }
 
-
     private static class TransientPriority
     {
         public const int SessionStats = 1;
@@ -1002,7 +971,6 @@ public partial class VrcLogModule : ObservableObject, IModule
         _transientExpiry = DateTime.Now.AddSeconds(seconds);
         _transientPriority = priority;
     }
-
 
     private void TriggerOscPulse(string address)
     {
@@ -1054,7 +1022,6 @@ public partial class VrcLogModule : ObservableObject, IModule
         }
         catch { return null; }
     }
-
 
     private void CheckSessionTimeout()
     {
@@ -1115,7 +1082,6 @@ public partial class VrcLogModule : ObservableObject, IModule
             InstanceOwnerName = string.Empty;
         });
     }
-
 
     private void RecordEncounter(string userId, string displayName, string worldName)
     {
@@ -1247,7 +1213,6 @@ public partial class VrcLogModule : ObservableObject, IModule
         });
     }
 
-
     private static DateTime ParseLogTimestamp(string line)
     {
         if (line.Length < 19) return DateTime.MinValue;
@@ -1256,7 +1221,6 @@ public partial class VrcLogModule : ObservableObject, IModule
             CultureInfo.InvariantCulture, DateTimeStyles.None, out var ts)
             ? ts : DateTime.MinValue;
     }
-
 
     private sealed class PersistedSession
     {

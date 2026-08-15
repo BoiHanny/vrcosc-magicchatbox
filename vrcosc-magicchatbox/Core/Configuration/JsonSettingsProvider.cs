@@ -14,8 +14,6 @@ namespace vrcosc_magicchatbox.Core.Configuration;
 
 public static class JsonSettingsSerialization
 {
-    // Collections pre-populated with defaults (e.g. IntegrationSettings.SavedSortOrder) must be
-    // replaced by the saved values on load, not appended to - Json.NET's default is to append.
     public static readonly JsonSerializerSettings DeserializerSettings = new()
     {
         ObjectCreationHandling = ObjectCreationHandling.Replace

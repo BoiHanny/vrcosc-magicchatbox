@@ -23,8 +23,6 @@ public sealed class OscBuildContext
         var segments = new List<string>(CurrentSegments) { candidate };
         string joined = string.Join(Separator, segments);
 
-        // The prefix and suffix are always sent, so they always cost. Skipping them while the line
-        // was still empty told the first provider it had more room than it does.
         return MaxOscLength - (Prefix.Length + joined.Length + Suffix.Length);
     }
 

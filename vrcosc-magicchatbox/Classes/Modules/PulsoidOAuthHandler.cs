@@ -187,17 +187,10 @@ public class PulsoidOAuthHandler : IDisposable, IPulsoidTokenValidator
         }
     }
 
-    /// <summary>
-    /// Asks Pulsoid whether the token is still good. Only HTTP 401 (documented as 7005
-    /// token_not_found / 7006 token_expired) or a missing heart-rate scope counts as a rejection —
-    /// 403, 400, 429 and 5xx are request-shaping or availability problems, and everything that
-    /// prevents us from asking at all (offline, DNS, timeout) reports <see cref="PulsoidTokenValidation.Unknown"/>.
-    /// </summary>
     public async Task<PulsoidTokenValidation> ValidateTokenAsync(string accessToken)
     {
         if (string.IsNullOrWhiteSpace(accessToken))
         {
-            // Nothing to ask about. Callers check for an empty token before getting here.
             return PulsoidTokenValidation.Invalid;
         }
 
@@ -215,7 +208,6 @@ public class PulsoidOAuthHandler : IDisposable, IPulsoidTokenValidator
 
                     if (tokenInfo?.Scopes == null)
                     {
-                        // A 200 we cannot read is a Pulsoid-side oddity, not proof of a dead token.
                         Logging.WriteInfo("Pulsoid token validation returned 200 without a scopes array; treating as unverifiable.");
                         return PulsoidTokenValidation.Unknown;
                     }
@@ -250,8 +242,6 @@ public class PulsoidOAuthHandler : IDisposable, IPulsoidTokenValidator
         }
         catch (OperationCanceledException ex)
         {
-            // HttpClient's own timeout surfaces as TaskCanceledException. This is the single most
-            // common startup failure and must never be mistaken for a revoked token.
             Logging.WriteInfo($"Pulsoid token validation timed out: {ex.Message}");
             return PulsoidTokenValidation.Unknown;
         }

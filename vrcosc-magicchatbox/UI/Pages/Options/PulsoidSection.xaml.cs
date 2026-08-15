@@ -11,8 +11,6 @@ public partial class PulsoidSection : UserControl
     {
         InitializeComponent();
 
-        // The heart-rate module registers itself after the view models are built, so the preview is
-        // wired when the section appears rather than when it is constructed.
         Loaded += (_, _) => (DataContext as PulsoidSectionViewModel)?.AttachPreview();
     }
 

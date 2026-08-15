@@ -98,8 +98,6 @@ namespace vrcosc_magicchatbox.ViewModels
                 if (e.PropertyName == nameof(ChatSettings.ChatAutocompleteEnabled) && !CS.ChatAutocompleteEnabled)
                     ClearAutocompleteSuggestion();
 
-                // Switching it on mid-sentence should pick up what is already in the box rather
-                // than waiting for the next keystroke to notice.
                 if (e.PropertyName == nameof(ChatSettings.ChatLiveTyping) && CS.ChatLiveTyping)
                     LiveTyping.Show(_chatStatus.NewChattingTxt);
             };
@@ -116,22 +114,11 @@ namespace vrcosc_magicchatbox.ViewModels
 
         private void OnLiveTypingFinished() => _uiDispatcher.BeginInvoke(FinishLiveLine);
 
-        /// <summary>
-        /// Treats a line that is already showing in VRChat as sent.
-        /// </summary>
-        /// <remarks>
-        /// Pressing Enter is not the only way someone finishes a sentence - they also just stop, or
-        /// click away. Everything downstream of here is the ordinary send, so a line that finished
-        /// on its own lands in the history, holds for the usual countdown, and is the one and only
-        /// point where the notification sound plays. The pushes that got it on screen were silent.
-        /// </remarks>
         public void FinishLiveLine()
         {
             if (!CS.ChatLiveTyping || !CS.ChatLiveTypingAutoFinalize)
                 return;
 
-            // Only a line that is actually showing can be finished. Without this, clicking away from
-            // an empty box, or from one whose text never reached VRChat, would send something.
             if (!LiveTyping.IsHolding || string.IsNullOrWhiteSpace(_chatStatus.NewChattingTxt))
                 return;
 
@@ -212,8 +199,6 @@ namespace vrcosc_magicchatbox.ViewModels
                 return;
             }
 
-            // Say why nothing happened. This used to fall through to a bool nobody read, so a
-            // message one character too long simply did not send and the box gave no sign of it.
             if (_chatStatus.NewChattingTxt.Length > Core.Constants.MaxChatMessageLength)
             {
                 int overmax = _chatStatus.NewChattingTxt.Length - Core.Constants.MaxChatMessageLength;
@@ -237,9 +222,6 @@ namespace vrcosc_magicchatbox.ViewModels
                 item.IsRunning = false;
             }
 
-            // Drop the hold before the send, not after. Sending empties the input box, and an empty
-            // box asks live typing to wipe the chatbox - which would erase the message that was just
-            // put there. Releasing first means that request finds nothing to release.
             LiveTyping.Release(clearChatbox: false);
 
             Osc.CreateChat(true, preserveCurrentInput ? chat : null);
@@ -283,7 +265,6 @@ namespace vrcosc_magicchatbox.ViewModels
         [RelayCommand]
         public void StopChat()
         {
-            // The clear below covers the chatbox, so the hold only has to stop competing for it.
             LiveTyping.Release(clearChatbox: false);
             ChatItem? running = _chatStatus.LastMessages.FirstOrDefault(x => x.IsRunning);
             Osc.ClearChat(running);
@@ -392,8 +373,6 @@ namespace vrcosc_magicchatbox.ViewModels
 
             if (CS.ChatLiveTyping)
             {
-                // The words themselves are the indicator now. Sending the "..." bubble as well would
-                // have it flicker off on every push and back on with every keystroke.
                 LiveTyping.Show(text);
             }
             else if (count > 0)
@@ -597,21 +576,10 @@ namespace vrcosc_magicchatbox.ViewModels
 
         #region Chat edit state machine
 
-        // Every one of these acts on the message the user actually opened, rather than looking up
-        // whichever message happens to be running. The two are normally the same one - only the
-        // running message can be edited - but "normally" is not a guarantee, and the failure mode
-        // when they diverge is silently rewriting a different message than the one on screen.
-
         public void BeginChatEdit(ChatItem item)
         {
-            // Opening the edit is what this call means, so it says so rather than trusting that the
-            // toggle already flipped the flag on its way here. The rest of the state machine reads
-            // that flag to tell a keystroke from the markup resetting itself, and an ordering it
-            // depends on but does not set is one a future call site can quietly get wrong.
             item.CanLiveEditRun = true;
 
-            // A trailing space so the caret lands ready to keep typing. It is scaffolding for the
-            // edit box only, and comes back off before anything is committed.
             item.MsgReplace = item.Msg.EndsWith(" ") ? item.Msg : item.Msg + " ";
             item.Opacity_backup = item.Opacity;
             item.Opacity = "1";
@@ -660,11 +628,6 @@ namespace vrcosc_magicchatbox.ViewModels
 
         public void HandleEditTextChanged(ChatItem? item, string newText)
         {
-            // CanLiveEditRun is the load-bearing part. Nothing types into an edit box that is not
-            // open, so a text change arriving while it is closed is the markup resetting itself -
-            // and tearing an open edit down does exactly that. Sending the next message clears the
-            // scratch buffer, the empty box reports a change, and taking that for a keystroke wrote
-            // an empty string straight over the message that had just been committed.
             if (!CS.RealTimeChatEdit || item is null || !item.IsRunning || !item.CanLiveEditRun)
                 return;
 
@@ -677,9 +640,6 @@ namespace vrcosc_magicchatbox.ViewModels
         {
             string edited = TrimEdit(text);
 
-            // Committing nothing is never what anyone meant. An empty message shows nothing in the
-            // chatbox and leaves a blank row in the history, and Stop is how you take a message down.
-            // This is also the backstop for the commit racing the teardown that empties the edit box.
             if (edited.Length == 0)
             {
                 item.CanLiveEditRun = false;
@@ -691,10 +651,6 @@ namespace vrcosc_magicchatbox.ViewModels
             item.CanLiveEditRun = false;
         }
 
-        /// <summary>
-        /// Trailing whitespace is invisible in the chatbox but still spends the character budget, and
-        /// the edit box adds a space of its own on open. Neither belongs in the message.
-        /// </summary>
         private static string TrimEdit(string? text) => (text ?? string.Empty).TrimEnd();
 
         #endregion

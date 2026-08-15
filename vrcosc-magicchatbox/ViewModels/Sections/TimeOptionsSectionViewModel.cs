@@ -21,15 +21,9 @@ public partial class TimeOptionsSectionViewModel : ObservableObject
         TimeSettings = timeSettingsProvider.Value;
         _timeFormatting = timeFormatting;
 
-        // Every setting here changes the shape of one short line, so the preview is the whole
-        // explanation - re-read it whenever any of them moves.
         TimeSettings.PropertyChanged += (_, _) => OnPropertyChanged(nameof(OutputPreview));
     }
 
-    /// <summary>
-    /// The clock exactly as the chatbox would receive it right now. No network and no scan loop is
-    /// involved, so it reads correctly whether or not the integration is switched on.
-    /// </summary>
     public string OutputPreview =>
         TimeSegmentFormatter.Compose(_timeFormatting.GetFormattedCurrentTime(), TimeSettings.PrefixTime);
 }

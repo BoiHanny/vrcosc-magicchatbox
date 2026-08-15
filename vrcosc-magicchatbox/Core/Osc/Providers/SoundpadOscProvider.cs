@@ -8,13 +8,10 @@ namespace vrcosc_magicchatbox.Core.Osc.Providers;
 
 public sealed class SoundpadOscProvider : IOscProvider
 {
-    /// <summary>The icon the segment has always carried. Outside the basic plane, so it costs two.</summary>
     private const string Icon = "🎶";
 
-    /// <summary>The icon plus the space the writer puts after it.</summary>
     private const int IconCost = 3;
 
-    /// <summary>The two quotes around the title.</summary>
     private const int QuoteCost = 2;
 
     private readonly Lazy<IModuleHost> _modules;
@@ -45,30 +42,17 @@ public sealed class SoundpadOscProvider : IOscProvider
         string playingSong = _modules.Value.Soundpad?.GetPlayingSong();
         if (string.IsNullOrEmpty(playingSong)) return null;
 
-        // A clip name is whatever the file was called, so the segment used to be however long that
-        // was and the rest of the line paid for it.
         string text = BuildSegment(playingSong, _app.PrefixIconSoundpad, context.RemainingCharsIf(string.Empty));
         if (string.IsNullOrEmpty(text)) return null;
 
         return new OscSegment { Text = text };
     }
 
-    /// <summary>
-    /// The clip title in quotes, inside <paramref name="budget"/> characters.
-    /// </summary>
-    /// <remarks>
-    /// The title is the value and stays full size. Longest rung first: the whole title, then the
-    /// title cut to what is left, then the same with the icon given up so the title keeps its three
-    /// characters. There is nothing else in this segment, so a title that will not fit shortens
-    /// rather than taking Soundpad off the line.
-    /// </remarks>
     public static string BuildSegment(string? title, bool withIcon, int budget)
     {
         if (budget <= 0)
             return string.Empty;
 
-        // Tidied before it is measured, otherwise the room reserved for the title is spent on
-        // whitespace the writer is about to collapse anyway.
         string clean = SegmentWriter.Tidy(title);
         if (clean.Length == 0)
             return string.Empty;
@@ -80,7 +64,6 @@ public sealed class SoundpadOscProvider : IOscProvider
             Compose(SegmentWriter.Truncate(clean, TitleRoom(budget, false)), false));
     }
 
-    /// <summary>The icon and the quotes are fixed cost; what is left belongs to the title.</summary>
     private static int TitleRoom(int budget, bool withIcon)
         => budget - QuoteCost - (withIcon ? IconCost : 0);
 

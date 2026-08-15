@@ -28,17 +28,10 @@ public partial class DiscordModule : ObservableObject, IModule
     private Timer? _channelRefreshTimer;
     private const int ChannelRefreshIntervalMs = 30_000;
 
-    // Discord allows a 100 character channel name and a 32 character nickname, and ten speakers can
-    // be shown at once. None of that was capped, so a busy voice channel could hand the builder
-    // roughly 470 characters and take every other integration off the line.
     private const int MaxChannelChars = 24;
     private const int MinChannelChars = 12;
     private const int MaxSpeakerNameChars = 16;
 
-    /// <summary>
-    /// Stands in for someone whose name never arrived. The id is a snowflake and it identifies the
-    /// account it belongs to, so it is not something to print into a public chatbox.
-    /// </summary>
     public const string UnknownSpeaker = "someone";
 
     private readonly ConcurrentDictionary<string, CancellationTokenSource> _speakerDebounce = new();
@@ -154,14 +147,6 @@ public partial class DiscordModule : ObservableObject, IModule
             Settings, CurrentChannelName, VoiceChannelCount, names, IsSelfMuted, IsSelfDeafened, budget);
     }
 
-    /// <summary>
-    /// Renders the user's template into a line that fits <paramref name="budget"/> characters.
-    /// </summary>
-    /// <remarks>
-    /// Every part of this comes from somewhere else - a channel name, other people's nicknames, a
-    /// head count - and none of it had a limit. The names are capped, then the speaker list gives
-    /// way before the channel does, and whatever is left is cut rather than dropped whole.
-    /// </remarks>
     public static string BuildOutputString(
         DiscordSettings settings,
         string channelName,
@@ -198,8 +183,6 @@ public partial class DiscordModule : ObservableObject, IModule
             int take = Math.Clamp(show, 1, names.Count);
             string shown = string.Join(", ", names.Take(take));
 
-            // The names are what the reader is here for, so they stay full size. How many did not
-            // fit is not, so it is raised.
             return names.Count > take
                 ? new SegmentWriter().Field(OscText.Value(shown), State($"(+{names.Count - take})")).Text
                 : shown;
@@ -216,9 +199,6 @@ public partial class DiscordModule : ObservableObject, IModule
                 .Replace("{voice_state}", State(voiceState).Rendered)
                 .Replace("\\n", "\n").Replace("/n", "\n");
 
-        // Longest first: the whole speaker list, then one name and a count of the rest, then the
-        // count on its own, then the same with the channel name cut back. Fit takes the first that
-        // fits, and tidying it also clears the trailing space three of the presets leave behind.
         return SegmentWriter.Fit(
             budget,
             Render(channel, Speakers(settings.MaxSpeakingUsersToShow)),
@@ -227,11 +207,6 @@ public partial class DiscordModule : ObservableObject, IModule
             Render(SegmentWriter.Truncate(channel, MinChannelChars), names.Count.ToString()));
     }
 
-    /// <summary>
-    /// Raises a state word the app chose itself - but only when every character has a raised form.
-    /// One full-size letter stranded in raised text reads as a rendering fault, and there is no
-    /// raised q, which is exactly what "quiet" starts with.
-    /// </summary>
     private static OscText State(string? word)
     {
         string text = word?.Trim() ?? string.Empty;
@@ -245,9 +220,6 @@ public partial class DiscordModule : ObservableObject, IModule
         return OscText.Label(text);
     }
 
-    /// <summary>
-    /// The best name Discord gave us for someone, or a stand-in. Never the raw id.
-    /// </summary>
     public static string ResolveDisplayName(string? nick, string? globalName, string? username)
         => !string.IsNullOrWhiteSpace(nick) ? nick
          : !string.IsNullOrWhiteSpace(globalName) ? globalName
@@ -280,7 +252,6 @@ public partial class DiscordModule : ObservableObject, IModule
                     if (evt == "ERROR")
                         Logging.WriteInfo($"Discord subscribe error: {data}");
                     break;
-
             }
         }
         catch (Exception ex)

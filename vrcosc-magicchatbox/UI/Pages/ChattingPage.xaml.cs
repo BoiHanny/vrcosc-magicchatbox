@@ -59,7 +59,6 @@ namespace vrcosc_magicchatbox.UI.Pages
         private void CancelEditChatbutton_Click(object sender, RoutedEventArgs e)
             => VM.CancelEditCommand.Execute(EditedItem(sender));
 
-        /// <summary>The message row an edit control belongs to.</summary>
         private static ChatItem? EditedItem(object sender)
             => (sender as FrameworkElement)?.DataContext as ChatItem;
 
@@ -105,15 +104,6 @@ namespace vrcosc_magicchatbox.UI.Pages
             VM.UpdateChatBoxCount(textBox?.Text ?? string.Empty);
         }
 
-        /// <summary>
-        /// Leaving the chat box finishes a line that is being typed live.
-        /// </summary>
-        /// <remarks>
-        /// Only leaving the page counts. Focus also moves every time one of the tools underneath is
-        /// clicked, and "Translate" must not be a send button. Focus going nowhere at all is the
-        /// window being switched away from - which is someone going back to VRChat to read what they
-        /// just wrote, and the clearest finish there is.
-        /// </remarks>
         private void NewChattingTxt_LostKeyboardFocus(object sender, KeyboardFocusChangedEventArgs e)
         {
             if (DataContext is not ChattingPageViewModel vm)

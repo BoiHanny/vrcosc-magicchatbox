@@ -40,9 +40,6 @@ public sealed class ComponentStatsOscProvider : IOscProvider
         if (stats == null)
             return null;
 
-        // An empty candidate measures the room left over including the separator this segment is
-        // about to need, so the writer must not subtract it a second time. With every option on
-        // this readout runs to well over the whole line on its own; it now writes what fits.
         string text = stats.WriteWithin(context.RemainingCharsIf(string.Empty));
         if (string.IsNullOrEmpty(text))
             return null;

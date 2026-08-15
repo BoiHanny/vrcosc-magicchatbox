@@ -164,8 +164,6 @@ public sealed class MediaLinkOscProvider : IOscProvider
 
         IReadOnlyList<string> bodies = BuildBodyLadder(session);
 
-        // Text is the inner loop, so every way of shortening it is tried before the seekbar is
-        // downgraded. A downgrade then restarts the text at full length with the space it freed.
         foreach (MediaLinkTimeSeekbar style in BuildSeekbarLadder(wantsSeekbar))
         {
             foreach (string body in bodies)
@@ -179,21 +177,13 @@ public sealed class MediaLinkOscProvider : IOscProvider
             }
         }
 
-        // Nothing fits. Dropping the seekbar is as far as the old behaviour ever went, so that is
-        // where it stops; only the opt-in shortener cuts into the text to keep the song on screen.
         if (!_mls.ShortenToFit)
             return Line(bodies[0]);
 
-        // Cutting a segment to the room left is no longer this integration's private trick.
         string bare = Line(bodies[^1]);
         return SegmentWriter.Truncate(bare, context.RemainingCharsIf(string.Empty));
     }
 
-    /// <summary>
-    /// Every rendering of "title by artist" worth trying, longest first: upload noise, then the
-    /// featured guest, then spare credits, then the title alone. Switched off it is a single rung,
-    /// which keeps the old all-or-nothing behaviour.
-    /// </summary>
     private IReadOnlyList<string> BuildBodyLadder(MediaSessionInfo session)
     {
         string title = ResolveTitle(session);
@@ -218,20 +208,14 @@ public sealed class MediaLinkOscProvider : IOscProvider
         foreach (string rung in ArtistNameShortener.Ladder(artist))
             Add(Join(plainTitle, rung));
 
-        // Last rung before cutting mid-word: the title on its own still names the song.
         Add(plainTitle);
 
-        // Nothing to say about the track - both switched off, or a session with no metadata. Add()
-        // rejects empty strings, so the list has to be given its one empty rung directly; Line()
-        // turns that into the action text on its own. The ladder must never come back empty,
-        // because the callers index into it.
         if (bodies.Count == 0)
             bodies.Add(string.Empty);
 
         return bodies;
     }
 
-    /// <summary>The title as it should read, with the upload's decoration taken off.</summary>
     private string ResolveTitle(MediaSessionInfo session)
     {
         if (!session.ShowTitle || string.IsNullOrEmpty(session.Title))
@@ -242,7 +226,6 @@ public sealed class MediaLinkOscProvider : IOscProvider
 
         string cleaned = MediaTitleCleaner.Clean(session.Title, session.ShowArtist ? session.Artist : null);
 
-        // A title that is nothing but decoration is better left alone than blanked.
         return cleaned.Length > 0 ? cleaned : session.Title;
     }
 
@@ -278,10 +261,6 @@ public sealed class MediaLinkOscProvider : IOscProvider
 
     #region Timestamp / Progress Bar (budget-aware, moved from OSCController)
 
-    /// <summary>
-    /// Renders the line at one seekbar style. Choosing between the styles is the caller's job, so
-    /// that artist shortening gets its turn before a style is given up.
-    /// </summary>
     private string ApplySeekbar(string text, MediaSessionInfo session, OscBuildContext context, MediaLinkTimeSeekbar style)
     {
         TimeSpan current = session.CurrentTime;

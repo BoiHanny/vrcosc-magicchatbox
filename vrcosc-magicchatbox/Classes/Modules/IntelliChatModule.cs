@@ -30,7 +30,6 @@ public partial class IntelliChatModule : ObservableObject, IModule, IRecipient<I
 
     private const string IntelliChatSettingsFileName = "IntelliChatSettings.json";
 
-    /// <summary>Single BMP glyph, so a trim marker costs one character instead of three.</summary>
     private const string Ellipsis = "…";
 
     private CancellationTokenSource? _cancellationTokenSource;
@@ -49,7 +48,6 @@ public partial class IntelliChatModule : ObservableObject, IModule, IRecipient<I
     public Task StartAsync(CancellationToken ct = default) => Task.CompletedTask;
     public Task StopAsync(CancellationToken ct = default) { CancelAllCurrentTasks(); return Task.CompletedTask; }
     public void Dispose() => _messenger.UnregisterAll(this);
-
 
     public IntelliChatModule(IEnvironmentService env, ChatStatusDisplayState chatStatus, IMenuNavigationService navService, IOpenAiChatService chatService, IMessenger messenger, IUiDispatcher dispatcher, IToastService? toast = null)
     {
@@ -212,7 +210,6 @@ public partial class IntelliChatModule : ObservableObject, IModule, IRecipient<I
             new IntelliChatWritingStyle { ID = 43, StyleName = "Seductive Noir", StyleDescription = "A seductive, mysterious noir style", Temperature = 0.8, IsBuiltIn = true },
             new IntelliChatWritingStyle { ID = 44, StyleName = "Sultry Noir", StyleDescription = "A sultry, mysterious noir style", Temperature = 0.7, IsBuiltIn = true }
         };
-
     }
 
     private void Initialize()
@@ -256,10 +253,8 @@ public partial class IntelliChatModule : ObservableObject, IModule, IRecipient<I
         SaveSettings();
     }
 
-
     private void ProcessError(Exception ex, CancellationTokenSource? requestCts)
     {
-
         if (ex is OperationCanceledException)
         {
             if (requestCts == null || !ReferenceEquals(_cancellationTokenSource, requestCts))
@@ -324,11 +319,6 @@ public partial class IntelliChatModule : ObservableObject, IModule, IRecipient<I
         return FitToChatLimit(RemoveQuotationMarkAroundResponse(response));
     }
 
-    /// <summary>
-    /// Fits a suggestion inside the length the chat send gate accepts. The gate refuses anything
-    /// longer without a word of feedback, so the marker has to come out of the budget rather than
-    /// be added on top of it.
-    /// </summary>
     public static string FitToChatLimit(string? text)
     {
         if (string.IsNullOrEmpty(text) || text.Length <= Core.Constants.MaxChatMessageLength)
@@ -336,16 +326,11 @@ public partial class IntelliChatModule : ObservableObject, IModule, IRecipient<I
 
         int keep = Core.Constants.MaxChatMessageLength - Ellipsis.Length;
 
-        // Cutting between the halves of a surrogate pair leaves a replacement box in the chatbox.
         if (char.IsHighSurrogate(text[keep - 1]))
             keep--;
 
         return text.Substring(0, keep).TrimEnd(' ', '.') + Ellipsis;
     }
-
-
-
-
 
     private void UpdateErrorState(bool hasError, string errorMessage)
     {
@@ -368,8 +353,6 @@ public partial class IntelliChatModule : ObservableObject, IModule, IRecipient<I
         string suggestion = Settings.IntelliChatTxt ?? string.Empty;
         string accepted = FitToChatLimit(suggestion);
 
-        // Last line of defence: the send gate drops an over-long message in silence, so if
-        // anything still arrives here too long, trim it and say so rather than let it vanish.
         if (accepted.Length != suggestion.Length)
         {
             UpdateErrorState(true, $"The suggestion was {suggestion.Length} characters and has been trimmed to the {Core.Constants.MaxChatMessageLength} the chatbox accepts.");
@@ -418,7 +401,6 @@ public partial class IntelliChatModule : ObservableObject, IModule, IRecipient<I
         Settings.IntelliChatErrorTxt = string.Empty;
     }
 
-
     public void EnsureValidSelections()
     {
         var selectedStyle = Settings.SelectedWritingStyle != null
@@ -459,8 +441,6 @@ public partial class IntelliChatModule : ObservableObject, IModule, IRecipient<I
         {
             Settings.PerformModerationCheckModel = IntelliGPTModel.Moderation_Latest;
         }
-
-
     }
 
     public async Task GenerateCompletionOrPredictionAsync(string inputText, bool isNextWordPrediction = false)
@@ -481,7 +461,6 @@ public partial class IntelliChatModule : ObservableObject, IModule, IRecipient<I
         {
             Settings.IntelliChatUILabel = true;
             Settings.IntelliChatUILabelTxt = isNextWordPrediction ? "Predicting next word..." : "Generating completion...";
-
 
             var writingStyle = Settings.SelectedWritingStyle;
             var promptMessage = isNextWordPrediction ? "Predict the next chat message word." : $"Complete the following chat message, max {Core.Constants.MaxChatMessageLength} characters.";
@@ -545,8 +524,6 @@ public partial class IntelliChatModule : ObservableObject, IModule, IRecipient<I
         }
     }
 
-
-
     public async Task GenerateConversationStarterAsync()
     {
         if (!_chatService.IsClientAvailable)
@@ -579,7 +556,6 @@ public partial class IntelliChatModule : ObservableObject, IModule, IRecipient<I
                 var languagesString = string.Join(", ", languages);
                 messages.Add(new SystemChatMessage($"Consider these languages: {languagesString}"));
             }
-
 
             var modelName = GetModelDescription(Settings.GenerateConversationStarterModel);
 
@@ -723,10 +699,6 @@ public partial class IntelliChatModule : ObservableObject, IModule, IRecipient<I
         }
     }
 
-
-
-
-
     public async Task<bool> ModerationCheckPassedAsync(string text, bool cancelAllTasks = true)
     {
         if (cancelAllTasks)
@@ -774,7 +746,6 @@ public partial class IntelliChatModule : ObservableObject, IModule, IRecipient<I
             return true;
         }
     }
-
 
     public async Task PerformBeautifySentenceAsync(string text, IntelliChatWritingStyle intelliChatWritingStyle = null)
     {
@@ -835,8 +806,6 @@ public partial class IntelliChatModule : ObservableObject, IModule, IRecipient<I
             ProcessError(ex, requestCts);
         }
     }
-
-
 
     public async Task PerformLanguageTranslationAsync(string text, SupportedIntelliChatLanguage supportedIntelliChatLanguage = null)
     {
@@ -899,8 +868,6 @@ public partial class IntelliChatModule : ObservableObject, IModule, IRecipient<I
             ProcessError(ex, requestCts);
         }
     }
-
-
 
     public async Task PerformSpellingAndGrammarCheckAsync(string text)
     {
@@ -979,7 +946,6 @@ public partial class IntelliChatModule : ObservableObject, IModule, IRecipient<I
 
         Settings.TokenUsageData.AddTokenUsage(modelName, promptTokens, completionTokens);
     }
-
 
     public void RejectIntelliChatSuggestion()
     {
@@ -1073,8 +1039,6 @@ public partial class IntelliChatModule : ObservableObject, IModule, IRecipient<I
                 ? completion.Content[0].Text ?? string.Empty
                 : string.Empty;
 
-            // Judge the model's own output, not the fitted one: the fitter is a hard clamp, so
-            // retrying on its result would just ask the model to re-shorten a truncation.
             if (shortenedText.Length > limit && retryCount < 2)
             {
                 ProcessUsedTokens(completion);
@@ -1099,10 +1063,7 @@ public partial class IntelliChatModule : ObservableObject, IModule, IRecipient<I
 .Cast<IntelliGPTModel>()
 .Where(m => GetModelType(m) == "STT");
 
-
     public IEnumerable<IntelliGPTModel> AvailableTTSModels => Enum.GetValues(typeof(IntelliGPTModel))
 .Cast<IntelliGPTModel>()
 .Where(m => GetModelType(m) == "TSS");
-
-
 }

@@ -28,7 +28,6 @@ namespace vrcosc_magicchatbox.UI.Dialogs
             Close();
         }
 
-
         private void ConnectWithPulsoidWeb_Click(object sender, RoutedEventArgs e)
         {
             string state = Convert.ToBase64String(Guid.NewGuid().ToByteArray());
@@ -59,8 +58,6 @@ namespace vrcosc_magicchatbox.UI.Dialogs
             Top = bottomY - this.Height;
         }
 
-
-
         private async void Connect_Click(object sender, RoutedEventArgs e)
         {
             string token = ExtractAccessToken(Token.Password);
@@ -83,14 +80,10 @@ namespace vrcosc_magicchatbox.UI.Dialogs
                 _heartRateConnector.Settings.AccessTokenOAuth = token;
                 _heartRateConnector.SaveSettings();
 
-                // An unreachable Pulsoid is not a bad token; keep the sign-in and let the
-                // connection loop confirm it.
                 _setPulsoidAuthState(validation == PulsoidTokenValidation.Unknown
                     ? PulsoidAuthState.Unreachable
                     : PulsoidAuthState.Authenticated);
 
-                // A failed encrypt is a storage problem, not a sign-in problem: the token works
-                // for this session, so it is a warning rather than an "unreadable" lockout.
                 if (_heartRateConnector.Settings.TokenEncryptionFailed)
                 {
                     MessageBox.Show("The token was accepted and heart rate works now, but Windows could not encrypt it for storage, so you will need to reconnect after a restart.", "Pulsoid", MessageBoxButton.OK, MessageBoxImage.Warning);
@@ -104,7 +97,6 @@ namespace vrcosc_magicchatbox.UI.Dialogs
                 MessageBox.Show($"Could not validate the token: {ex.Message}", "Pulsoid connection failed", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
-
 
         private void Token_PasswordChanged(object sender, RoutedEventArgs e)
         {
@@ -147,7 +139,6 @@ namespace vrcosc_magicchatbox.UI.Dialogs
 
             return trimmed.Trim();
         }
-
 
         private void ClearAndPaste_Click(object sender, RoutedEventArgs e)
         {

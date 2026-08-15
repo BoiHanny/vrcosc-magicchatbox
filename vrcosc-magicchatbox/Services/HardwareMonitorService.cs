@@ -37,9 +37,6 @@ public sealed class HardwareMonitorService : IHardwareMonitorService
     private ulong _previousIdleTime;
     private ulong _previousKernelTime;
     private ulong _previousUserTime;
-    // Enumerating the "GPU Engine" performance-counter category walks every engine instance of every
-    // process on every adapter, which costs hundreds of milliseconds and much more on a multi-GPU
-    // machine. Once a second was far more often than a chatbox that refreshes every few seconds needs.
     private static readonly TimeSpan GpuPerformanceCounterRefreshInterval = TimeSpan.FromSeconds(3);
     private static readonly Regex GpuCounterLuidRegex = new(
         @"luid_0x(?<high>[0-9a-f]+)_0x(?<low>[0-9a-f]+)",
@@ -155,11 +152,6 @@ public sealed class HardwareMonitorService : IHardwareMonitorService
 
         PrimeCpuBaseline();
 
-        // The GPU performance-counter baseline is deliberately NOT primed here. Priming it measured
-        // 12584ms of a 12966ms open: it constructs one PerformanceCounter per engine instance per
-        // process and every one of them is new on that first pass. It only seeds the fallback used
-        // when the vendor sensors and the NVIDIA path both come back empty, so the snapshot now
-        // builds its own counters the first time something actually asks for it.
         if (VendorGpuSensorsEnabled)
             _vendorGpu.TryOpen();
     }
@@ -193,13 +185,6 @@ public sealed class HardwareMonitorService : IHardwareMonitorService
     public void UpdateAll()
     {
         PrimeCpuBaseline();
-
-        // The GPU performance-counter snapshot is NOT primed here. Reading it walks every engine
-        // instance of every process on every adapter, measured at ~5.7s on a two-GPU machine, which on
-        // its own exceeded the 5s watchdog and disabled the integration in a loop. It is only ever used
-        // as a fallback for GPU load and VRAM when the vendor sensors and the NVIDIA path both return
-        // nothing, so the consumers pull it lazily instead. On a machine with working vendor sensors it
-        // is now never read at all.
     }
 
     public bool VendorGpuSensorsEnabled { get; set; } = true;
@@ -228,9 +213,6 @@ public sealed class HardwareMonitorService : IHardwareMonitorService
 
         var selected = ResolveGpuInfo(null);
 
-        // Reports only what has already been captured, and never asks for a fresh snapshot. Asking
-        // cost 8.6s of a 9.0s startup: this line runs once on the first open, and building the
-        // counters is precisely the work the fallback exists to avoid until something needs it.
         string counters;
         lock (_lock)
         {
@@ -721,8 +703,6 @@ public sealed class HardwareMonitorService : IHardwareMonitorService
                 return _gpuPerformanceSnapshot;
         }
 
-        // Serialised separately from _lock: the read is the expensive part, and two callers arriving
-        // together used to run it concurrently because the cache check released the lock first.
         lock (_gpuSnapshotReadLock)
         {
             lock (_lock)

@@ -32,9 +32,6 @@ public sealed class TikTokLiveOscProvider : IOscProvider
         if (tikTokLive == null)
             return null;
 
-        // TikTok is the highest Priority number in the app, so it is the first segment the builder
-        // throws away. Shrinking into the room that is left keeps the readout on the line instead of
-        // pushing it over and losing the whole thing. The context has already paid for the separator.
         string text = tikTokLive.GetOutputString(context.RemainingCharsIf(string.Empty));
         if (string.IsNullOrWhiteSpace(text))
             return null;

@@ -16,10 +16,6 @@ using vrcosc_magicchatbox.ViewModels.State;
 
 namespace vrcosc_magicchatbox.ViewModels;
 
-/// <summary>
-/// One entry in the side panel's set picker. A null <see cref="GroupId"/> is the "every set" entry,
-/// which is not a group and never gets one.
-/// </summary>
 public partial class StatusSetOption : ObservableObject
 {
     public StatusSetOption(string? groupId, string name)
@@ -35,11 +31,6 @@ public partial class StatusSetOption : ObservableObject
     [ObservableProperty] private int _cyclingCount;
 }
 
-/// <summary>
-/// Switches which set of statuses goes to the chatbox, from the side panel, without opening the
-/// Status page. It is a view onto the cycle-override settings rather than a second source of truth:
-/// pinning a group on the Status page and choosing it here are the same act, so the two always agree.
-/// </summary>
 public partial class StatusSetSwitcherViewModel : ObservableObject
 {
     private readonly ChatStatusDisplayState _chatStatus;
@@ -84,7 +75,6 @@ public partial class StatusSetSwitcherViewModel : ObservableObject
         _appSettings.CycleStatus,
         _appSettings.SwitchStatusInterval);
 
-    /// <summary>True when the chosen set has nothing that will ever be sent, which is worth flagging.</summary>
     public bool IsEmptySet => (SelectedSet?.CyclingCount ?? 0) == 0;
 
     private void OnChatStatusChanged(object? sender, PropertyChangedEventArgs e)
@@ -98,7 +88,6 @@ public partial class StatusSetSwitcherViewModel : ObservableObject
     {
         switch (e.PropertyName)
         {
-            // Someone else moved the live set - the pin on the Status page, or a group being deleted.
             case nameof(AppSettings.CycleOverrideGroupId):
             case nameof(AppSettings.CycleOverrideCurrentGroup):
                 _dispatcher.BeginInvoke(SyncSelectionFromSettings);
@@ -113,8 +102,6 @@ public partial class StatusSetSwitcherViewModel : ObservableObject
 
     private void Rebuild()
     {
-        // Loading and importing hand back brand new collections rather than mutating the old ones, so
-        // a subscription taken once in the constructor goes stale and the counts quietly freeze.
         ObserveCollections();
 
         Sets.Clear();
@@ -170,7 +157,6 @@ public partial class StatusSetSwitcherViewModel : ObservableObject
         _dispatcher.BeginInvoke(RefreshCounts);
     }
 
-    // Hearting a message or moving it between sets changes what the counts should say.
     private void OnStatusItemChanged(object? sender, PropertyChangedEventArgs e)
     {
         if (e.PropertyName is nameof(StatusItem.UseInCycle) or nameof(StatusItem.GroupId))
@@ -190,8 +176,6 @@ public partial class StatusSetSwitcherViewModel : ObservableObject
         OnPropertyChanged(nameof(IsEmptySet));
     }
 
-    // Mirrors what the OSC provider does when no set is pinned: only groups still marked for cycling
-    // take part, so the count matches what will actually be sent.
     private int CountCyclingAcrossActiveGroups()
     {
         var activeGroupIds = _chatStatus.GroupList
@@ -223,7 +207,6 @@ public partial class StatusSetSwitcherViewModel : ObservableObject
         OnPropertyChanged(nameof(Summary));
         OnPropertyChanged(nameof(IsEmptySet));
 
-        // Only a real user choice writes back; echoing the settings we just read would fight the pin.
         if (_applyingSelection || value == null)
             return;
 
@@ -237,7 +220,6 @@ public partial class StatusSetSwitcherViewModel : ObservableObject
             _appSettings.CycleOverrideCurrentGroup = true;
             _appSettings.CycleOverrideGroupId = value.GroupId!;
 
-            // So the Status page opens on the set you just chose rather than wherever you left it.
             _appSettings.LastSelectedGroupId = value.GroupId!;
         }
 

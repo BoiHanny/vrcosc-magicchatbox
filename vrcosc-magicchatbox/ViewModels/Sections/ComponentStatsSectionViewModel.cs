@@ -9,7 +9,6 @@ using static vrcosc_magicchatbox.Classes.Modules.ComponentStatsModule;
 
 namespace vrcosc_magicchatbox.ViewModels.Sections;
 
-/// <summary>How one component is set to be written, without the reading itself.</summary>
 public readonly record struct StatPreviewShape(
     string ShortName,
     string HardwareName,
@@ -18,7 +17,6 @@ public readonly record struct StatPreviewShape(
     bool RoundNumbers,
     bool ShowMax);
 
-/// <summary>Everything the readout's shape depends on, gathered so the writer needs no sensors.</summary>
 public sealed record ComponentStatsPreviewOptions
 {
     public string Separator { get; init; } = DefaultSeparator;
@@ -41,22 +39,8 @@ public sealed record ComponentStatsPreviewOptions
     public StatPreviewShape Ram { get; init; }
 }
 
-/// <summary>
-/// The component readout written from fixed, plausible sensor values.
-/// </summary>
-/// <remarks>
-/// This is the largest settings surface in the app and around thirty of its switches only ever show
-/// their effect inside a chatbox line. It reuses the module's own writer, so the preview cannot
-/// drift from the output: only the numbers are invented here, never the shape.
-///
-/// It also makes one dependency visible that no label can state briefly. The emoji switch replaces
-/// the temperature and power words with icons, and an icon is never raised - so with emojis on, the
-/// GPU's "small raised labels" switch stops changing anything about those readings.
-/// </remarks>
 public static class ComponentStatsPreview
 {
-    // A machine under a moderate VR load. Chosen so every switch changes something visible: the
-    // loads have fractions to round off, and the memory figures have a capacity to show or hide.
     private const string SampleCpuLoad = "23.4";
     private const string SampleGpuLoad = "61.7";
     private const string SampleVramUsed = "5.7";
@@ -73,7 +57,6 @@ public static class ComponentStatsPreview
     private const string SampleMemoryClock = "9500";
     private const string SampleMemoryLoad = "34.2";
 
-    /// <summary>The raised DDR generation the module appends behind the RAM figure.</summary>
     private const string SampleDdrSuffix = "⁽ᴰᴰᴿ⁵⁾";
 
     private const string PercentUnit = "﹪";
@@ -114,7 +97,6 @@ public static class ComponentStatsPreview
                 suffix: options.ShowDdrVersion ? SampleDdrSuffix : string.Empty),
         };
 
-        // The module's own writer, not a copy of it: the preview cannot disagree with the output.
         return ComponentStatsModule.Render(readings, options.Separator, StatsDetail.Full);
     }
 
@@ -143,10 +125,6 @@ public static class ComponentStatsPreview
         };
     }
 
-    /// <summary>
-    /// Mirrors the module's choice: an emoji stands in for the word and is never raised, so the
-    /// component's raised-label switch stops reaching these readings the moment emojis are on.
-    /// </summary>
     private static StatExtra Extra(ComponentStatsPreviewOptions options, string emoji, string label, string value, string unit)
         => options.UseEmojis
             ? new StatExtra(emoji, RaiseLabel: false, value, unit)
@@ -161,7 +139,6 @@ public static class ComponentStatsPreview
         return Extra(options, emoji, label, value, unit);
     }
 
-    /// <summary>Drops the fraction the same way the sensors do when rounding is on.</summary>
     private static string Round(StatPreviewShape shape, string value)
     {
         if (!shape.RoundNumbers)
@@ -174,10 +151,6 @@ public static class ComponentStatsPreview
 
 public partial class ComponentStatsSectionViewModel : ObservableObject
 {
-    /// <summary>
-    /// Redraw rate while the temperature unit is set to alternate. The unit flips on a clock, so a
-    /// still preview would show one half of a setting whose whole point is that it changes.
-    /// </summary>
     private static readonly TimeSpan TemperatureTick = TimeSpan.FromSeconds(1);
 
     private readonly DispatcherTimer? _temperatureTimer;
@@ -201,8 +174,6 @@ public partial class ComponentStatsSectionViewModel : ObservableObject
         ComponentStats.PropertyChanged += OnAnythingChanged;
         AppSettings.PropertyChanged += OnAppSettingsChanged;
 
-        // Bound to the application's dispatcher rather than whichever thread built the view model:
-        // a timer on a thread with no message pump never ticks.
         var dispatcher = System.Windows.Application.Current?.Dispatcher;
         if (dispatcher != null)
         {
@@ -226,7 +197,6 @@ public partial class ComponentStatsSectionViewModel : ObservableObject
             UpdateTemperatureTimer();
     }
 
-    /// <summary>Only ticks while the panel is open and the unit is actually alternating.</summary>
     private void UpdateTemperatureTimer()
     {
         if (_temperatureTimer == null)
@@ -277,7 +247,6 @@ public partial class ComponentStatsSectionViewModel : ObservableObject
         bool roundNumbers,
         bool showMax)
     {
-        // The custom name only wins once it has something in it - the same test the writer makes.
         string hardware = useCustomName && !string.IsNullOrWhiteSpace(customName)
             ? customName!
             : StatsManager.GetHardwareName(type) ?? shortName;

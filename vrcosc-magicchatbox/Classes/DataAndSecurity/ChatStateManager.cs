@@ -123,21 +123,9 @@ public class ChatStateManager
             _dispatcher.Invoke(Apply);
     }
 
-    /// <summary>
-    /// What the edit button on a live message says. "Live" only when the edit reaches VRChat as it
-    /// is typed, because otherwise the word promises something that does not happen until Enter.
-    /// </summary>
     public static string EditLabel(ChatSettings settings)
         => settings.RealTimeChatEdit ? "Live edit" : "Edit";
 
-    /// <summary>
-    /// Dims the history so the newest message reads as the current one.
-    /// </summary>
-    /// <remarks>
-    /// The newest message stays fully opaque and the floor keeps the oldest legible. The ladder used
-    /// to start below full and run to near-zero, so the message a person had just sent arrived
-    /// already faded and the bottom of the list was invisible rather than merely quiet.
-    /// </remarks>
     public static void FadeOlderMessages(IList<ChatItem> messages)
     {
         const double step = 0.16;

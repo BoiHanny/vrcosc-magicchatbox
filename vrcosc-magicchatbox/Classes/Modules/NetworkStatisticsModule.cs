@@ -109,17 +109,14 @@ public class NetworkStatisticsModule : INotifyPropertyChanged, IModule
 
     public event PropertyChangedEventHandler PropertyChanged;
 
-    /// <summary>A number with its unit glued on, which is where a unit belongs.</summary>
     private string Measure(double amount, string unit)
         => new SegmentWriter()
             .Field(OscText.Value(amount.ToString("N2", CultureInfo.CurrentCulture)), Unit(unit))
             .Text;
 
-    /// <summary>Raised only when the user asked for styled characters; plain text otherwise.</summary>
     private OscText Unit(string unit)
         => Settings.StyledCharacters ? OscText.Unit(unit) : OscText.Raw(unit);
 
-    /// <inheritdoc cref="Unit" />
     private OscText Label(string label)
         => Settings.StyledCharacters ? OscText.Label(label) : OscText.Raw(label);
 
@@ -403,8 +400,6 @@ public class NetworkStatisticsModule : INotifyPropertyChanged, IModule
 
         var networkStatsDescriptions = new List<string>();
 
-        // The label used to carry its own trailing space and the format string added another, so
-        // every reading was written with a double space in it. The writer places the gap.
         void Add(bool show, string label, string value)
         {
             if (show)

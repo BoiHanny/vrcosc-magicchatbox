@@ -170,9 +170,6 @@ public class ModuleBootstrapper
         var timeSettings = _timeSettingsProvider.Value;
         var integrationSettings = _integrationSettingsProvider.Value;
 
-        // Lyrics used to be one flag wearing two switches. Settings written before the split carry
-        // only the master, so the per-source flags are brought into agreement with it here, once,
-        // before anything reads them.
         var lyricSources = LyricsSourceSelection.Reconcile(
             integrationSettings.IntgrLyrics,
             integrationSettings.IntgrLyrics_Spotify,
@@ -264,10 +261,6 @@ public class ModuleBootstrapper
                 _host.RegisterModule(pulsoid);
                 integrationSettings.PropertyChanged += pulsoid.PropertyChangedHandler;
 
-                // Pulsoid was the only credentialed module with no startup restore, which is why a
-                // perfectly good saved token still rendered as "signed out" after every restart.
-                // Reflect the stored credential now, then verify behind the same startup gate the
-                // other modules use so a slow network cannot be mistaken for a lost sign-in.
                 pulsoid.RestoreAuthStateFromSettings();
                 _ = Task.Run(async () =>
                 {

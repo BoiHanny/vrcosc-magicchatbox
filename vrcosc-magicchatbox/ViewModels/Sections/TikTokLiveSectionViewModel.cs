@@ -13,10 +13,6 @@ namespace vrcosc_magicchatbox.ViewModels.Sections;
 
 public partial class TikTokLiveSectionViewModel : ObservableObject
 {
-    /// <summary>
-    /// Stand-in numbers for the previews. Nobody is going to start a livestream to find out what a
-    /// template does, so the section shows the finished line against fixed values instead.
-    /// </summary>
     public const long SampleFollowers = 12_300;
 
     public const long SampleViewers = 842;
@@ -32,16 +28,12 @@ public partial class TikTokLiveSectionViewModel : ObservableObject
     public TikTokLiveSettings TikTokSettings { get; }
     public IModuleHost Modules => _moduleHost.Value;
 
-    /// <summary>The profile half of the line, rendered from the sample numbers.</summary>
     [ObservableProperty] private string _profileSamplePreview = string.Empty;
 
-    /// <summary>The LIVE half of the line.</summary>
     [ObservableProperty] private string _liveSamplePreview = string.Empty;
 
-    /// <summary>Both halves joined the way the order and separator settings say.</summary>
     [ObservableProperty] private string _combinedSamplePreview = string.Empty;
 
-    /// <summary>One of the event lines, so the pop-up templates are not authored blind either.</summary>
     [ObservableProperty] private string _commentSamplePreview = string.Empty;
 
     public TikTokLiveDisplayMode[] DisplayModes { get; } =
@@ -72,10 +64,6 @@ public partial class TikTokLiveSectionViewModel : ObservableObject
         RefreshPreviews();
     }
 
-    /// <summary>
-    /// The sample token table. Public and static so a test can prove that every token the help text
-    /// advertises actually has a value behind it.
-    /// </summary>
     public static Dictionary<string, string> BuildSampleTokens(TikTokLiveSettings settings)
     {
         string profile = string.IsNullOrWhiteSpace(settings.ProfileUserName)
@@ -112,7 +100,6 @@ public partial class TikTokLiveSectionViewModel : ObservableObject
         };
     }
 
-    /// <summary>Joins the two halves exactly the way the module does, so the preview cannot lie.</summary>
     public static string CombineSample(TikTokLiveSettings settings, string profileLine, string liveLine)
     {
         string first = settings.OutputOrder == TikTokOutputOrder.ProfileThenLive ? profileLine : liveLine;
@@ -170,8 +157,6 @@ public partial class TikTokLiveSectionViewModel : ObservableObject
             ? TikTokLiveOutput.Render(TikTokSettings.ProfileTemplate, tokens)
             : string.Empty;
 
-        // The LIVE half only reaches the chatbox when the connector is on, so the preview says the
-        // same thing rather than promising a line that would never appear.
         LiveSamplePreview = TikTokSettings.EnableLiveConnector
             ? TikTokLiveOutput.Render(TikTokSettings.SummaryTemplate, tokens)
             : string.Empty;

@@ -15,22 +15,12 @@ using static vrcosc_magicchatbox.Classes.Modules.MediaLinkModule;
 
 namespace vrcosc_magicchatbox.ViewModels.Sections;
 
-/// <summary>
-/// Draws a progress bar from a style without needing a song to be playing.
-/// </summary>
-/// <remarks>
-/// Every knob in the editor - the three characters, the width, the marks, the raised digits - only
-/// shows its effect in the finished bar, and until this existed the only way to see that effect was
-/// to start some music, join a world and read your own chatbox.
-/// </remarks>
 public static class SeekbarPreviewBuilder
 {
-    /// <summary>Far enough in that the filled and empty halves are both clearly visible.</summary>
     public static readonly TimeSpan SampleElapsed = TimeSpan.FromSeconds(83);
 
     public static readonly TimeSpan SampleLength = TimeSpan.FromSeconds(225);
 
-    /// <summary>Empty when the style cannot be drawn, which happens while a character box is blank.</summary>
     public static string Build(MediaLinkStyle? style)
     {
         if (style == null)
@@ -54,7 +44,6 @@ public static class SeekbarPreviewBuilder
         });
     }
 
-    /// <summary>Says which moment is being drawn, or why nothing is.</summary>
     public static string Caption(string bar)
         => string.IsNullOrEmpty(bar)
             ? "Fill in all three characters below to see the bar"
@@ -93,7 +82,6 @@ public partial class MediaLinkSectionViewModel : ObservableObject
         WatchSelectedStyle();
     }
 
-    /// <summary>The selected progress bar as the chatbox would draw it, at a fixed sample position.</summary>
     public string SeekbarPreview => SeekbarPreviewBuilder.Build(MediaLink.SelectedMediaLinkSeekbarStyle);
 
     public string SeekbarPreviewCaption => SeekbarPreviewBuilder.Caption(SeekbarPreview);
@@ -107,10 +95,6 @@ public partial class MediaLinkSectionViewModel : ObservableObject
         RefreshSeekbarPreview();
     }
 
-    /// <summary>
-    /// The style object raises its own changes, so the preview has to follow whichever one is
-    /// selected rather than the collection it came from.
-    /// </summary>
     private void WatchSelectedStyle()
     {
         if (_watchedStyle != null)

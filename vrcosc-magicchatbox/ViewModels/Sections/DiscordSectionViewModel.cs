@@ -29,10 +29,6 @@ public partial class DiscordSectionViewModel : ObservableObject
 
     public DiscordSettings? DiscordModuleSettings => _moduleHost.Value.Discord?.Settings;
 
-    /// <summary>
-    /// Stand-in call for the preview. The template is edited long before anyone is in a voice
-    /// channel, and a blank preview teaches nothing about what the template will do.
-    /// </summary>
     public const string SampleChannelName = "general";
 
     public const int SampleChannelCount = 4;
@@ -311,10 +307,6 @@ public partial class DiscordSectionViewModel : ObservableObject
         }
     }
 
-    /// <summary>
-    /// Renders the template against the stand-in call. Pure, so a test can hold it to the same
-    /// result the chatbox would produce from the same names.
-    /// </summary>
     public static string BuildSampleLine(DiscordSettings settings)
         => DiscordModule.BuildOutputString(
             settings,
@@ -335,8 +327,6 @@ public partial class DiscordSectionViewModel : ObservableObject
             return;
         }
 
-        // Real names once there are real names; stand-ins the rest of the time, so the template is
-        // never edited against a blank line.
         OutputPreview = discord.IsInVoiceChannel
             ? discord.GetOutputString()
             : BuildSampleLine(discord.Settings);

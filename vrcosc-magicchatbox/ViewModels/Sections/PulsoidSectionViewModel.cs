@@ -14,20 +14,8 @@ using vrcosc_magicchatbox.ViewModels.State;
 
 namespace vrcosc_magicchatbox.ViewModels.Sections;
 
-/// <summary>
-/// The heart-rate line written from a fixed, plausible beat instead of a live one.
-/// </summary>
-/// <remarks>
-/// Nobody configures this while wearing the band: the sensor is usually offline and the readout is
-/// empty, so the settings have nothing to show for themselves. The sample is a projection of the
-/// real settings rather than a copy of the formatter - it hands the module's own public writer a
-/// throwaway settings object carrying only the display choices, so the preview cannot drift, and the
-/// live trend arrow (which is empty most of the time, at rest) is stood in for so the switch that
-/// turns it on visibly does something.
-/// </remarks>
 public static class PulsoidPreview
 {
-    /// <summary>A resting-but-active beat: above the "sleepy" default, below the "hot" one.</summary>
     public const int SampleHeartRate = 88;
 
     private static readonly PulsoidStatisticsResponse SampleStats = new()
@@ -44,11 +32,6 @@ public static class PulsoidPreview
             ? string.Empty
             : PulsoidModule.BuildHeartRateString(Project(live), SampleHeartRate, deviceOnline: true, SampleStats);
 
-    /// <summary>
-    /// A throwaway copy carrying only what shapes the line. Deliberately field by field: the live
-    /// object also holds the access token, and serialising it to clone it would put the credential
-    /// through DPAPI for the sake of a preview.
-    /// </summary>
     private static PulsoidModuleSettings Project(PulsoidModuleSettings live)
     {
         var symbols = live.SelectedPulsoidTrendSymbol ?? new PulsoidTrendSymbolSet();
@@ -79,12 +62,8 @@ public static class PulsoidPreview
             TrendIndicatorBehindStats = live.TrendIndicatorBehindStats,
             SelectedPulsoidTrendSymbol = symbols,
 
-            // The live arrow is blank whenever the rate is steady, which is most of the time while
-            // someone is sitting in the settings. The sample shows a rising beat so the setting can
-            // be judged on what it looks like when it fires.
             HeartRateTrendIndicator = symbols.UpwardTrendSymbol,
 
-            // Offline detection would blank the whole preview; the sample device is always present.
             EnableHeartRateOfflineCheck = false,
         };
     }
@@ -130,11 +109,6 @@ public partial class PulsoidSectionViewModel : ObservableObject
         _toast = toast;
     }
 
-    /// <summary>
-    /// Starts keeping the preview in step with the settings. Called when the section appears rather
-    /// than from the constructor: the module registers itself with the host after the view models
-    /// are built, so there is nothing to watch yet at that point.
-    /// </summary>
     public void AttachPreview()
     {
         var settings = _moduleHost.Value.Pulsoid?.Settings;
@@ -215,8 +189,6 @@ public partial class PulsoidSectionViewModel : ObservableObject
                     return;
                 }
 
-                // Valid, or unverifiable because Pulsoid is unreachable — either way the user just
-                // completed a live sign-in, so keep the token rather than throwing it away.
                 pulsoid.Settings.AccessTokenOAuth = accessToken;
                 pulsoid.SaveSettings();
 
@@ -230,8 +202,6 @@ public partial class PulsoidSectionViewModel : ObservableObject
                     PulsoidAuthState = PulsoidAuthState.Authenticated;
                 }
 
-                // A failed encrypt is a storage problem, not a sign-in problem: the token works
-                // for this session. Reporting it as "unreadable" threw away a live sign-in.
                 if (pulsoid.Settings.TokenEncryptionFailed)
                 {
                     _toast.Show("Pulsoid", "Signed in, but Windows could not encrypt the token for storage — heart rate works now, and you will need to reconnect after a restart.", ToastType.Warning, key: "pulsoid-token-protect-failed");
@@ -258,8 +228,6 @@ public partial class PulsoidSectionViewModel : ObservableObject
     {
         var pulsoid = _moduleHost.Value.Pulsoid;
         if (pulsoid == null) return;
-        // Unconditional: after a failed decrypt the plaintext is already empty while the ciphertext
-        // is not, so assigning string.Empty here matched the old value-guard and cleared nothing.
         pulsoid.Settings.ClearStoredToken();
         pulsoid.SaveSettings();
         PulsoidAuthState = PulsoidAuthState.NoToken;

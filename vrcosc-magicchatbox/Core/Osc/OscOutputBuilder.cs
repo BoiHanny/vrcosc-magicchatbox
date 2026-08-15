@@ -12,7 +12,6 @@ public sealed class OscOutputBuilder
 {
     private const string DefaultSeparator = " ┆ ";
 
-    /// <summary>One character, and already in use elsewhere in the app's chatbox output.</summary>
     private const string ClipMark = "…";
 
     private readonly IEnumerable<IOscProvider> _providers;
@@ -122,8 +121,6 @@ public sealed class OscOutputBuilder
 
         var trimmed = new List<string>();
 
-        // Segments are still dropped whole by priority, but never the last one standing: one long
-        // window title used to take the entire chatbox dark. The survivor gets clipped instead.
         while (collected.Count > 1)
         {
             string message = AssembleMessage(collected.Select(c => c.Text), separator, prefix, suffix);
@@ -146,8 +143,6 @@ public sealed class OscOutputBuilder
         {
             var survivor = collected[0];
 
-            // The prefix and suffix are the user's own text and stay whole; the segment gets the rest.
-            // With one segment there is no separator to account for.
             string fitted = ClipToBudget(survivor.Text, OscBuildContext.MaxOscLength - prefix.Length - suffix.Length);
             if (fitted.Length != survivor.Text.Length)
             {
@@ -155,8 +150,6 @@ public sealed class OscOutputBuilder
                 segmentLengths[survivor.UiKey] = fitted.Length;
                 collected[0] = (fitted, survivor.UiKey, survivor.Priority);
 
-                // A prefix and suffix that fill the line on their own leave the segment nothing, so it
-                // really is gone - but they still go out, and ClampToOscLimit names them in the log.
                 if (fitted.Length == 0)
                     trimmed.Add(survivor.UiKey);
             }
@@ -182,14 +175,9 @@ public sealed class OscOutputBuilder
 
     private static string AssembleMessage(IEnumerable<string> segments, string separator, string prefix, string suffix)
     {
-        // Only called once something was collected, so the prefix and suffix always apply - including
-        // when the one segment left was clipped away to nothing.
         return $"{prefix}{string.Join(separator, segments)}{suffix}";
     }
 
-    /// <summary>
-    /// Shortens a segment to <paramref name="budget"/> characters without splitting a surrogate pair.
-    /// </summary>
     internal static string ClipToBudget(string text, int budget)
     {
         if (budget <= 0)
@@ -198,7 +186,6 @@ public sealed class OscOutputBuilder
         if (text.Length <= budget)
             return text;
 
-        // The mark costs one of the budget, so it is only worth spending if a character survives beside it.
         bool mark = budget >= 2;
         int cut = mark ? budget - 1 : budget;
         if (char.IsHighSurrogate(text[cut - 1]))

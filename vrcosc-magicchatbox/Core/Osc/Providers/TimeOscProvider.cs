@@ -30,12 +30,9 @@ public sealed class TimeOscProvider : IOscProvider
 
     public OscSegment? TryBuild(OscBuildContext context)
     {
-        // The clock starts out empty and is only ever assigned, so a null check never fired: with the
-        // prefix on, the label went out on its own before the first scan filled the clock in.
         if (!_intgr.IntgrScanWindowTime || string.IsNullOrEmpty(_display.CurrentTime))
             return null;
 
-        // Composed by the shared formatter so the Time settings preview shows this exact line.
         return new OscSegment { Text = TimeSegmentFormatter.Compose(_display.CurrentTime, _time.PrefixTime) };
     }
 }

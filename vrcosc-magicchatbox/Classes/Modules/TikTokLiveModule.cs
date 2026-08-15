@@ -285,7 +285,6 @@ public sealed partial class TikTokLiveModule : ObservableObject, IModule
         return !string.IsNullOrWhiteSpace(ResolveLiveHostUserName());
     }
 
-    /// <summary>The segment, cut to the room the line has left rather than handed over oversized.</summary>
     public string GetOutputString(int budget)
     {
         lock (_stateLock)
@@ -887,7 +886,6 @@ public sealed partial class TikTokLiveModule : ObservableObject, IModule
                 BuildEventTokens(
                     user: ExtractUserName(gift.User),
                     uniqueId: ExtractUniqueId(gift.User),
-                    // A gift name comes off the wire with no length at all attached to it.
                     giftName: Truncate(gift.Gift?.Name, TikTokLiveOutput.GiftNameLength),
                     count: count.ToString(CultureInfo.InvariantCulture),
                     amount: gift.Amount.ToString(CultureInfo.InvariantCulture)));
@@ -1005,8 +1003,6 @@ public sealed partial class TikTokLiveModule : ObservableObject, IModule
         string profileOutput = BuildProfileOutput_NoLock(profileSummary);
         string liveOutput = Settings.EnableLiveConnector && _live ? BuildLiveOutput_NoLock(liveSummary) : string.Empty;
 
-        // The preview is shown with no other integration on the line, so it gets the whole line -
-        // it still never shows a length the chatbox would refuse.
         string output = TikTokLiveOutput.Fit(
             Constants.OscMaxMessageLength,
             BuildOutput_NoLock(profileOutput, liveOutput),
@@ -1476,18 +1472,12 @@ public sealed partial class TikTokLiveModule : ObservableObject, IModule
     private static string RenderTemplate(string? template, IReadOnlyDictionary<string, string> tokens)
         => TikTokLiveOutput.Render(template, tokens);
 
-    /// <summary>
-    /// The shared cut: one character for the mark instead of three, and it will not slice through a
-    /// surrogate pair, which the old copy did to any nickname that ended on an emoji.
-    /// </summary>
     private static string Truncate(string? value, int maxLength)
         => SegmentWriter.Truncate((value ?? string.Empty).Trim(), maxLength);
 
-    /// <summary>The count for a settings panel.</summary>
     private static string FormatCount(long value, bool compact)
         => TikTokLiveOutput.Count(value, compact);
 
-    /// <summary>The count for the chatbox, where the compact suffix is a unit and gets raised.</summary>
     private static string FormatChatCount(long value, bool compact)
         => TikTokLiveOutput.ChatCount(value, compact);
 
@@ -1524,36 +1514,21 @@ public sealed partial class TikTokLiveModule : ObservableObject, IModule
         string OutputPreview);
 }
 
-/// <summary>
-/// The decisions a TikTok segment makes about its own text: how a count is styled, how a template
-/// is filled, and what it gives up when the line runs out of room.
-/// </summary>
-/// <remarks>
-/// Kept out of the module because the module needs a live client behind it and none of this does.
-/// The lengths this integration can reach are the thing worth measuring, and until now nothing
-/// measured them - the segment could hand the builder more than the whole 144 on its own.
-/// </remarks>
 public static class TikTokLiveOutput
 {
-    /// <summary>How much of a name or a nickname an event line shows.</summary>
     public const int UserPreviewLength = 24;
 
-    /// <summary>How much of a comment an event line shows.</summary>
     public const int CommentPreviewLength = 60;
 
-    /// <summary>A gift name arrives from TikTok unbounded, so it gets the same room as a name.</summary>
     public const int GiftNameLength = 24;
 
     private static readonly Regex MultiSpaceRegex = new("[ \t]{2,}", RegexOptions.Compiled);
 
-    /// <summary>The count as a settings panel shows it - every digit, or a compact suffix.</summary>
     public static string Count(long value, bool compact)
     {
         if (!compact)
             return value.ToString(CultureInfo.InvariantCulture);
 
-        // Invariant, like the plain branch below it. These three used the current culture, so a
-        // Dutch machine printed "2,4M" beside a "7.2" from every other integration on the line.
         if (value >= 1_000_000_000)
             return string.Create(CultureInfo.InvariantCulture, $"{value / 1_000_000_000d:0.#}B");
         if (value >= 1_000_000)
@@ -1564,15 +1539,10 @@ public static class TikTokLiveOutput
         return value.ToString(CultureInfo.InvariantCulture);
     }
 
-    /// <summary>
-    /// The same count for the chatbox: the number at full size and the compact suffix raised, because
-    /// the K is the unit and the number is what the reader is there for.
-    /// </summary>
     public static string ChatCount(long value, bool compact)
     {
         string text = Count(value, compact);
 
-        // Only the compact form carries a suffix, and it is always one letter.
         if (text.Length < 2 || !char.IsLetter(text[^1]))
             return text;
 
@@ -1581,7 +1551,6 @@ public static class TikTokLiveOutput
             .Text;
     }
 
-    /// <summary>Fills a user template. The tokens are values, so nothing here restyles them.</summary>
     public static string Render(string? template, IReadOnlyDictionary<string, string> tokens)
     {
         string rendered = template ?? string.Empty;
@@ -1594,11 +1563,6 @@ public static class TikTokLiveOutput
         return rendered.Trim();
     }
 
-    /// <summary>
-    /// Both halves when they fit, otherwise the live half on its own - it is the one that changes.
-    /// What is left over is cut, not dropped: the segment disappearing whole is what made the readout
-    /// blink out every time a comment arrived.
-    /// </summary>
     public static string Fit(int budget, string? combined, string? profileOutput, string? liveOutput)
     {
         string essential = string.IsNullOrWhiteSpace(liveOutput)

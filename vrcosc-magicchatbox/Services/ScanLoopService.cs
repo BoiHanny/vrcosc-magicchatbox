@@ -22,9 +22,6 @@ public sealed class ScanLoopService : IDisposable
     private static readonly TimeSpan VrCheckTimeout = TimeSpan.FromSeconds(2);
     private static readonly TimeSpan HardwareStatsTimeout = TimeSpan.FromSeconds(5);
 
-    // Opening the sensor library is a one-off that measured ~14.6s on a two-GPU machine. Holding the
-    // first tick to the steady-state watchdog tripped it three times and disabled the integration
-    // before it had ever produced a reading.
     private static readonly TimeSpan HardwareStatsFirstRunTimeout = TimeSpan.FromSeconds(45);
     private readonly IAppState _appState;
     private readonly ChatStatusDisplayState _chatStatus;
@@ -141,9 +138,6 @@ public sealed class ScanLoopService : IDisposable
         if (!_started || _disposed)
             return;
 
-        // A line still being typed holds the chatbox too, but it is not a sent message: there is no
-        // countdown to run down and nothing to re-send on a schedule. The integrations simply wait
-        // until the line is sent or abandoned.
         if (LiveTyping.IsHolding)
         {
             StopPauseTimer();
@@ -257,10 +251,6 @@ public sealed class ScanLoopService : IDisposable
 
             if (_integrationSettings.IntgrComponentStats)
             {
-                // The in-flight guard is the point. A hardware read that outruns the tick interval used
-                // to start a second one on top of it, and the sensor service is not built for concurrent
-                // reads: the reads pile up, each one slower than the last, until every one of them blows
-                // the 5s timeout and the guard disables the integration for two minutes.
                 if (IsComponentStatsDue()
                     && Interlocked.CompareExchange(ref _componentStatsInFlight, 1, 0) == 0)
                 {
@@ -269,8 +259,6 @@ public sealed class ScanLoopService : IDisposable
             }
             else if (_statsModule.IsValueCreated && _integrationDisplay.ComponentStatsRunning)
             {
-                // Turning the integration off stops the tick, so nothing was left to run the module's own
-                // stop path: it kept reporting itself as running and held the sensor service open.
                 tasks.Add(_faultTracker.RunGuardedAsync(
                     "HardwareStatsStop",
                     () => Task.Run(() => _statsModule.Value.StopAndClear()),
@@ -329,7 +317,6 @@ public sealed class ScanLoopService : IDisposable
         }
         finally
         {
-            // Stamped on completion, not on dispatch, so a slow read cannot be immediately re-queued.
             _lastComponentStatsUpdateUtc = DateTime.UtcNow;
             Interlocked.Exchange(ref _componentStatsInFlight, 0);
         }
@@ -404,9 +391,6 @@ public sealed class ScanLoopService : IDisposable
                 var lastSendChat = _chatStatus.LastMessages.FirstOrDefault(x => x.IsRunning);
                 _chatStatus.ScanPauseCountDown--;
 
-                // The countdown used to be written into the edit button's own label once a second.
-                // The strip above the list already shows how long the message has left, and a button
-                // whose caption changes under the cursor is a button people stop trusting.
                 if (lastSendChat != null)
                     lastSendChat.CanLiveEdit = CS.ChatLiveEdit;
 

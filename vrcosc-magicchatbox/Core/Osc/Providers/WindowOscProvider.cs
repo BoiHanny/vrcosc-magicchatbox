@@ -33,8 +33,6 @@ public sealed class WindowOscProvider : IOscProvider
         if (!_intgr.IntgrScanWindowActivity || _chatStatus.FocusedWindow.Length == 0)
             return null;
 
-        // The user's own wording, already styled the way they typed it - VR and desktop both ship a
-        // raised focus word - so it is placed as-is rather than raised a second time.
         string heading = context.IsVRRunning ? _waSettings.VrTitle : _waSettings.DesktopTitle;
         string focusWord = context.IsVRRunning ? _waSettings.VrFocusTitle : _waSettings.DesktopFocusTitle;
         bool showFocus = context.IsVRRunning ? _intgr.IntgrScanForce : _waSettings.ShowFocusedApp;
@@ -47,8 +45,6 @@ public sealed class WindowOscProvider : IOscProvider
         int budget = context.RemainingCharsIf(string.Empty);
         string app = _chatStatus.FocusedWindow;
 
-        // A browser tab title can outrun the whole line on its own, so the app name is cut to what
-        // is left rather than the builder having to delete the segment - or everyone else's.
         string text = showFocus
             ? SegmentWriter.Fit(
                 budget,

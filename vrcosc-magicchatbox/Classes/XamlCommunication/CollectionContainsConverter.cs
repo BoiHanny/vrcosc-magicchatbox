@@ -6,11 +6,6 @@ using System.Windows.Data;
 
 namespace vrcosc_magicchatbox.Classes;
 
-/// <summary>
-/// True when the bound collection contains the key passed as the converter parameter. Lets sixteen
-/// tiles each ask "am I in this set" against one published collection, rather than the state object
-/// carrying sixteen near-identical booleans.
-/// </summary>
 public class CollectionContainsConverter : IValueConverter
 {
     public object Convert(object value, Type targetType, object parameter, CultureInfo culture)

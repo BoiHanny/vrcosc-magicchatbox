@@ -29,16 +29,9 @@ public partial class WeatherSectionViewModel : ObservableObject
         IntegrationDisplay = integrationDisplay;
         WeatherOverride = weatherOverride;
 
-        // The template alone has nine placeholders and no other feedback. Every setting on this
-        // page reshapes one line, so the preview has to move the moment any of them does - the
-        // custom icon and text boxes included, which write through WeatherConditionOverrides.
         WeatherSettings.PropertyChanged += (_, _) => OnPropertyChanged(nameof(OutputPreview));
     }
 
-    /// <summary>
-    /// The weather line as the chatbox would receive it, built from fixed sample readings so it
-    /// works before the first sync and with no location shared.
-    /// </summary>
     public string OutputPreview => _weatherService.BuildSampleWeatherText();
 
     [RelayCommand]

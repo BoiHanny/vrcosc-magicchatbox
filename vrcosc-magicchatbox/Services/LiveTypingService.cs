@@ -6,16 +6,6 @@ using vrcosc_magicchatbox.ViewModels.State;
 
 namespace vrcosc_magicchatbox.Services;
 
-/// <summary>
-/// Streams the line being typed straight into the chatbox.
-/// </summary>
-/// <remarks>
-/// Keystrokes arrive far faster than the chatbox will accept them, so this is a rate limiter with a
-/// send attached rather than a send with a rate limit attached: the first keystroke goes out at once
-/// and everything after it collapses into one trailing push per interval. The trailing push is the
-/// part that matters - without it the last few characters someone types before they stop would never
-/// reach the chatbox, which is precisely the state they are left looking at.
-/// </remarks>
 public sealed class LiveTypingService : ILiveTypingService, IDisposable
 {
     private readonly ChatSettings _chatSettings;
@@ -50,12 +40,6 @@ public sealed class LiveTypingService : ILiveTypingService, IDisposable
         };
     }
 
-    /// <remarks>
-    /// The master switch is part of the answer. Nothing reaches VRChat while it is off, so a line
-    /// held from before it was thrown is holding the chatbox against no one - and since the hold is
-    /// only ever refreshed by a keystroke, it would keep the integrations parked indefinitely for
-    /// someone who simply stopped typing and turned sending off.
-    /// </remarks>
     public bool IsHolding => _holding && _appState.MasterSwitch;
 
     public void Show(string text)
@@ -69,8 +53,6 @@ public sealed class LiveTypingService : ILiveTypingService, IDisposable
             return;
         }
 
-        // An empty box is not a line being typed, it is a line abandoned. Hand the chatbox back
-        // rather than parking an empty string in it.
         string line = (text ?? string.Empty).TrimEnd();
         if (line.Length == 0)
         {
@@ -78,9 +60,6 @@ public sealed class LiveTypingService : ILiveTypingService, IDisposable
             return;
         }
 
-        // No chat icon prefix here on purpose. The icon rotation advances every time it is asked for
-        // a glyph, so prefixing each push would spin through the whole collection mid-sentence, and
-        // the icon reads as a marker of a message that has been sent rather than one being written.
         if (line.Length > Core.Constants.OscMaxMessageLength)
             line = line[..Core.Constants.OscMaxMessageLength];
 
@@ -89,8 +68,6 @@ public sealed class LiveTypingService : ILiveTypingService, IDisposable
             _pending = line;
             _holding = true;
 
-            // Restarted by every keystroke, so the pause is measured from the last thing typed and
-            // not from the last thing sent.
             ArmIdleLocked();
 
             var wait = _lastPushUtc.AddMilliseconds(_chatSettings.ChatLiveTypingRateMs) - DateTime.UtcNow;
@@ -170,8 +147,6 @@ public sealed class LiveTypingService : ILiveTypingService, IDisposable
                     return;
             }
 
-            // Raised outside the lock. Whoever handles this will send, and sending comes back
-            // through Release on another thread - which wants the same lock.
             FinalizeRequested?.Invoke();
         };
 
@@ -215,9 +190,6 @@ public sealed class LiveTypingService : ILiveTypingService, IDisposable
         _oscDisplay.OscMsgCount = line.Length;
         _oscDisplay.OscMsgCountUI = $"{line.Length}/{Core.Constants.OscMaxMessageLength}";
 
-        // No notification sound. That chime is for a message someone chose to send, and firing it
-        // once a second while a sentence is being written is the fastest way to make everyone
-        // nearby mute the app.
         _ = _oscSender.Value.SendOSCMessage(fx: false, delay: 0, force: true, explicitText: line);
     }
 }

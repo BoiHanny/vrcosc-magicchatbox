@@ -3,9 +3,6 @@ using System.Windows.Controls;
 
 namespace vrcosc_magicchatbox.UI.Controls;
 
-/// <summary>
-/// Introduces a run of related sections on the options page.
-/// </summary>
 public partial class OptionGroupHeader : UserControl
 {
     public static readonly DependencyProperty TitleProperty = DependencyProperty.Register(

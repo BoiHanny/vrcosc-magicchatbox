@@ -98,19 +98,8 @@ public partial class IntegrationDisplayState : ObservableObject
     [ObservableProperty] private string _soundpadOpacity = "1";
     [ObservableProperty] private string _mediaLinkOpacity = "1";
 
-    /// <summary>
-    /// The UiKeys of the integrations whose text is in the line VRChat is actually receiving right
-    /// now. Not the same question as "is this switched on": an integration can be on and contribute
-    /// nothing, be excluded by its desktop/VR routing, or be trimmed to fit the 144 characters, and
-    /// in all three cases nothing of it is reaching the chatbox.
-    /// </summary>
     [ObservableProperty] private IReadOnlyCollection<string> _liveOutputKeys = Array.Empty<string>();
 
-    /// <summary>
-    /// The UiKeys dropped from this build to fit the 144 characters. They are switched on, they
-    /// produced text, and it did not make it - which is worth saying out loud rather than leaving as
-    /// a slightly faded tile.
-    /// </summary>
     [ObservableProperty] private IReadOnlyCollection<string> _trimmedOutputKeys = Array.Empty<string>();
 
     [ObservableProperty] private string _currentTime = string.Empty;
@@ -121,8 +110,6 @@ public partial class IntegrationDisplayState : ObservableObject
     [ObservableProperty] private string _componentStatCombined = string.Empty;
     [ObservableProperty] private bool _componentStatsRunning;
 
-    // Null until a reading actually lands. It used to default to DateTime.Now, so the tile showed the
-    // time the app started as though it were the time the stats last refreshed.
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(ComponentStatsStatusText))]
     private DateTime? _componentStatsLastUpdate;

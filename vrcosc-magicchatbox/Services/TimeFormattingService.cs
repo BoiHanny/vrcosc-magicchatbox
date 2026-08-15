@@ -18,18 +18,14 @@ public sealed class TimeFormattingService : ITimeFormattingService
 
     public string GetFormattedCurrentTime() => GetFormattedTime(DateTimeOffset.Now);
 
-    // Takes the instant so the daylight saving behaviour can be checked at any point in the year.
     public string GetFormattedTime(DateTimeOffset instant)
     {
         try
         {
-            // Without a custom zone the machine's own clock is what we report.
             var (zone, standardAbbr, daylightAbbr) = _ts.TimeShowTimeZone
                 ? ResolveTimeZone(_ts.SelectedTimeZone)
                 : (TimeZoneInfo.Local, string.Empty, string.Empty);
 
-            // Whether daylight saving is running is the zone's business, not the user's - the
-            // setting only chooses between following the zone and staying on standard time.
             bool isDst = _ts.UseDaylightSavingTime && zone.IsDaylightSavingTime(instant);
             TimeSpan offset = isDst ? zone.GetUtcOffset(instant) : zone.BaseUtcOffset;
 

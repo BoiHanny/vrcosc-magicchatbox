@@ -14,7 +14,6 @@ namespace vrcosc_magicchatbox.ViewModels.Sections;
 
 public partial class StatusSectionViewModel : ObservableObject
 {
-    /// <summary>Ordinary words nobody has to recognise, long enough to look like a real status.</summary>
     internal const string SampleStatus = "chilling in the plaza";
 
     private readonly Lazy<IModuleHost> _moduleHost;
@@ -25,7 +24,6 @@ public partial class StatusSectionViewModel : ObservableObject
     public IAppState AppState { get; }
     public AfkModule Afk => _moduleHost.Value.Afk;
 
-    /// <summary>Shared with the side panel switch, so an edit here shows up there straight away.</summary>
     public AfkStyleViewModel AfkStyles { get; }
 
     public StatusSectionViewModel(
@@ -45,15 +43,9 @@ public partial class StatusSectionViewModel : ObservableObject
 
         AppSettings.PropertyChanged += OnAppSettingChanged;
 
-        // Editing the icon list changes the collection, not the property holding it, so nothing
-        // else would tell the preview the icon it is showing has just been replaced.
         AppSettings.EmojiCollection.CollectionChanged += (_, _) => OnPropertyChanged(nameof(StatusPreview));
     }
 
-    /// <summary>
-    /// A sample status put through the same composer the real line uses, so the icon switches can
-    /// be judged here rather than by joining a world and reading your own chatbox.
-    /// </summary>
     public string StatusPreview => StatusLine.Compose(
         SampleStatus,
         ChatLinePreview.ResolveIcon(AppSettings.EnableEmojiShuffle, shuffleInChats: true, AppSettings.EmojiCollection),

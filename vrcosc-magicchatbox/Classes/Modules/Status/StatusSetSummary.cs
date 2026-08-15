@@ -2,11 +2,6 @@ using System;
 
 namespace vrcosc_magicchatbox.Classes.Modules.Status;
 
-/// <summary>
-/// The line under the set switcher in the side panel. It answers the only question worth asking of
-/// that control - is anything actually going to the chatbox from this set - and says why not when
-/// the answer is no.
-/// </summary>
 public static class StatusSetSummary
 {
     public static string Describe(int cyclingCount, bool cycleEnabled, int intervalSeconds)

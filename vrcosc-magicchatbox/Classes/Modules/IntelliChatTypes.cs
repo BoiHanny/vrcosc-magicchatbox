@@ -33,24 +33,12 @@ public class ModelCapabilitiesAttribute : Attribute
     public static readonly ModelCapabilitiesAttribute Default = new(supportsSamplingParams: true, minOutputTokens: 0);
 }
 
-/// <summary>
-/// Reasoning models reject sampling parameters (temperature, top-p, penalties) and spend output
-/// tokens on hidden reasoning before any visible text appears, so a budget sized for a classic
-/// sampling model gets consumed entirely by reasoning and the reply comes back empty.
-/// </summary>
 [AttributeUsage(AttributeTargets.Field)]
 public class ReasoningModelAttribute : ModelCapabilitiesAttribute
 {
     public ReasoningModelAttribute() : base(supportsSamplingParams: false, minOutputTokens: 1000) { }
 }
 
-/// <summary>
-/// Every value here is written out explicitly and must never be reused or renumbered. The selected
-/// model is persisted as its number, so inserting a member in the middle would silently move every
-/// existing user onto whatever now sits at their saved number - a settings file that said whisper-1
-/// yesterday could ask for a chat model today, and transcription would simply stop working.
-/// New models take the next free number at the end, whatever order they read in.
-/// </summary>
 public enum IntelliGPTModel
 {
     [Description("gpt-5.2"), ModelTypeInfo("Chat"), ReasoningModel]
@@ -95,8 +83,6 @@ public enum IntelliGPTModel
     [Description("o3-mini"), ModelTypeInfo("Chat"), ReasoningModel]
     o3_mini = 13,
 
-    // Still supported, and the only transcription model that can translate to English, return
-    // word-level timestamps or produce subtitles.
     [Description("whisper-1"), ModelTypeInfo("STT")]
     whisper1 = 14,
 
@@ -106,15 +92,12 @@ public enum IntelliGPTModel
     [Description("gpt-4o-transcribe"), ModelTypeInfo("STT")]
     gpt_4o_transcribe = 16,
 
-    // Returns speaker-labelled segments rather than a plain transcript.
     [Description("gpt-4o-transcribe-diarize"), ModelTypeInfo("STT")]
     gpt_4o_transcribe_diarize = 17,
 
     [Description("omni-moderation-latest"), ModelTypeInfo("Moderation")]
     Moderation_Latest = 18,
 
-    // OpenAI's current recommendation for transcribing recorded speech, and what the 4o transcribe
-    // models are now described as legacy against.
     [Description("gpt-transcribe"), ModelTypeInfo("STT")]
     gpt_transcribe = 19,
 }

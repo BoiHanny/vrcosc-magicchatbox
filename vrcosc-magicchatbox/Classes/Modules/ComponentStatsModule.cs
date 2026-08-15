@@ -49,8 +49,6 @@ public class ComponentStatsModule : IModule
     private readonly IHardwareMonitorService _hwService;
     private readonly List<ComponentStatsItem> _componentStats = new List<ComponentStatsItem>();
 
-    // The tick collects, the OSC build writes, and they are not the same thread. The list is only
-    // ever replaced wholesale, so the reference is all that has to be published.
     private volatile IReadOnlyList<StatReading> _lastReadings;
 
     private string _ramDDRVersion = "Unknown";
@@ -234,10 +232,6 @@ public class ComponentStatsModule : IModule
         }
     }
 
-    /// <summary>
-    /// One extra reading, kept as parts. The emoji is placed as-is; the words are raised only when
-    /// the component is set to small names, which is the choice this integration has always made.
-    /// </summary>
     private StatExtra Extra(ComponentStatsItem item, string emoji, string label, string value, string unit)
         => Settings.UseEmojisForTempAndPower
             ? new StatExtra(emoji, RaiseLabel: false, value, unit)
@@ -282,7 +276,6 @@ public class ComponentStatsModule : IModule
         return Extra(item, "🧊", "mem temp", FormatTemperature(item, rawCelsius.Value, out string unitSymbol), unitSymbol);
     }
 
-    /// <summary>The reading in the unit that is currently on show, and the symbol that goes with it.</summary>
     private string FormatTemperature(ComponentStatsItem item, float rawCelsius, out string unitSymbol)
     {
         string unit = Settings.TemperatureUnit;
@@ -314,8 +307,6 @@ public class ComponentStatsModule : IModule
             return "N/A";
         }
     }
-
-
 
     private StatExtra? FetchHotspotTemperatureStat(ComponentStatsItem item)
     {
@@ -448,7 +439,6 @@ public class ComponentStatsModule : IModule
         }
     }
 
-
     private string GetDedicatedGPUName()
     {
         try
@@ -558,8 +548,6 @@ public class ComponentStatsModule : IModule
 
         if (_hwService.IsOpen)
         {
-            // Announced before the close rather than after, so the tile says what it is doing while
-            // the sensor service is being torn down instead of going blank and looking hung.
             _integrationDisplay.ComponentStatsPhase = ComponentStatsPhase.Stopping;
             StopMonitoringComponents();
         }
@@ -589,9 +577,6 @@ public class ComponentStatsModule : IModule
 
         if (!_hwService.IsOpen)
         {
-            // Running is claimed only once the sensors are actually up. It used to be set on entry,
-            // which lit the tile and its component panel for the whole of a start that had not
-            // produced a single reading yet.
             _integrationDisplay.ComponentStatsPhase = ComponentStatsPhase.Starting;
             StartMonitoringComponents();
 
@@ -631,68 +616,35 @@ public class ComponentStatsModule : IModule
 
     #region Writing the readout
 
-    /// <summary>The default, and what an empty or over-long setting falls back to.</summary>
     public const string DefaultSeparator = " ¦ ";
 
-    /// <summary>
-    /// The percent sign this readout already uses for the CPU and GPU load. One integration putting
-    /// two different percent glyphs on the same line reads as a rendering fault.
-    /// </summary>
     private const string PercentUnit = "﹪";
 
-    /// <summary>
-    /// A separator is punctuation, not content. Longer than this and three of them eat a fifth of
-    /// the line before a single reading has been written.
-    /// </summary>
     public const int MaxSeparatorLength = 8;
 
-    /// <summary>One extra reading, held as parts so the writer places the spacing.</summary>
     public readonly record struct StatExtra(string Label, bool RaiseLabel, string Value, string Unit);
 
-    /// <summary>
-    /// What one component reported on a tick, held as parts rather than a finished string.
-    /// </summary>
-    /// <remarks>
-    /// The OSC build has to be able to write this shorter when the line is full, and it must not go
-    /// back to the sensors to do it: the temperature unit alternates on a clock, so a second read is
-    /// a different reading, and the sensor call is not free either.
-    /// </remarks>
     public sealed record StatReading
     {
-        /// <summary>The hardware or custom name, plain. Raising is the writer's decision, not the store's.</summary>
         public required string Name { get; init; }
 
-        /// <summary>The three-letter name the shorter rungs fall back to.</summary>
         public required string ShortName { get; init; }
 
         public bool RaiseName { get; init; }
 
         public required string Value { get; init; }
 
-        /// <summary>The capacity behind the reading, or null when it is not shown.</summary>
         public string? Max { get; init; }
 
         public string Unit { get; init; } = string.Empty;
 
-        /// <summary>The memory generation, already raised and bracketed.</summary>
         public string Suffix { get; init; } = string.Empty;
 
-        /// <summary>Temperature, hotspot and power - what the component itself is set to report.</summary>
         public IReadOnlyList<StatExtra> CoreExtras { get; init; } = [];
 
-        /// <summary>Fan, clocks and memory load - the diagnostics the sensor panel added later.</summary>
         public IReadOnlyList<StatExtra> OtherExtras { get; init; } = [];
     }
 
-    /// <summary>
-    /// How much of the readout one rung writes.
-    /// </summary>
-    /// <remarks>
-    /// Ordered longest first, and what goes first is what costs most for what it tells you: a card
-    /// name is thirty characters that never change, then the fixed facts beside the live number
-    /// (capacity, memory generation), then the diagnostics, and only last the loads the integration
-    /// exists to show.
-    /// </remarks>
     public readonly record struct StatsDetail(
         bool LongNames,
         bool Capacity,
@@ -708,7 +660,6 @@ public class ComponentStatsModule : IModule
         public static StatsDetail Bare => new(false, false, false, false, false);
     }
 
-    /// <summary>Keeps a pasted separator from crowding out the readings it is meant to divide.</summary>
     public static string ClampSeparator(string? configured)
     {
         if (string.IsNullOrWhiteSpace(configured))
@@ -724,7 +675,6 @@ public class ComponentStatsModule : IModule
         return configured[..cut];
     }
 
-    /// <summary>Writes the readings at one level of detail. Every space is placed by the writer.</summary>
     public static string Render(IReadOnlyList<StatReading> readings, string separator, StatsDetail detail)
     {
         if (readings is null || readings.Count == 0)
@@ -741,10 +691,6 @@ public class ComponentStatsModule : IModule
         return string.Join(ClampSeparator(separator), written);
     }
 
-    /// <summary>
-    /// The longest rung that still fits the room the line has left. Nothing here touches a sensor,
-    /// so the OSC build may call it as often as it likes.
-    /// </summary>
     public static string FitToBudget(IReadOnlyList<StatReading> readings, string separator, int budget)
         => SegmentWriter.Fit(
             budget,
@@ -762,8 +708,6 @@ public class ComponentStatsModule : IModule
         string name = detail.LongNames ? reading.Name : reading.ShortName;
         if (!string.IsNullOrWhiteSpace(name))
         {
-            // Small names are the label form. The full-size form keeps the colon that stands in for
-            // the raise, so the name still reads as a name and not as part of the number.
             parts.Add(reading.RaiseName ? OscText.Label(name) : OscText.Raw(name.Trim() + ":"));
         }
 
@@ -795,10 +739,6 @@ public class ComponentStatsModule : IModule
         }
     }
 
-    /// <summary>
-    /// Drops the fraction on the shortest rung. Cut off the written text rather than reformatted,
-    /// because the reading was already written in the user's culture.
-    /// </summary>
     private static string Number(string? value, StatsDetail detail)
     {
         string text = value ?? string.Empty;
@@ -811,10 +751,6 @@ public class ComponentStatsModule : IModule
 
     private string GetEffectiveSeparator() => ClampSeparator(Settings.StatsSeparator);
 
-    /// <summary>
-    /// The readout as configured - what the tile and the rich presence show, where there is room for
-    /// all of it. The chatbox goes through <see cref="WriteWithin"/> instead.
-    /// </summary>
     public string GenerateStatsDescription()
     {
         var readings = CollectReadings();
@@ -825,7 +761,6 @@ public class ComponentStatsModule : IModule
         return Render(readings, GetEffectiveSeparator(), StatsDetail.Full);
     }
 
-    /// <summary>The last reading, written short enough to fit <paramref name="budget"/> characters.</summary>
     public string WriteWithin(int budget)
     {
         var readings = _lastReadings;
@@ -852,8 +787,6 @@ public class ComponentStatsModule : IModule
 
             if (stat.ComponentType == StatsComponentType.CPU && hasCpu)
             {
-                // The CPU has never reported a temperature or a wattage here, so an older settings
-                // file that has them switched on gets corrected rather than obeyed.
                 if (stat.ShowWattage) stat.ShowWattage = false;
                 if (stat.ShowTemperature) stat.ShowTemperature = false;
                 if (stat.cantShowWattage) stat.cantShowWattage = false;
@@ -957,7 +890,6 @@ public class ComponentStatsModule : IModule
         return sb.ToString();
     }
 
-
     public string GetHardwareName(StatsComponentType type)
     {
         var item = _componentStats.FirstOrDefault(stat => stat.ComponentType == type);
@@ -1030,7 +962,6 @@ public class ComponentStatsModule : IModule
         var item = _componentStats.FirstOrDefault(stat => stat.ComponentType == type);
         return item?.ComponentValue;
     }
-
 
     public string GetWhitchComponentsAreNotAvailableString()
     {
@@ -1190,7 +1121,6 @@ public class ComponentStatsModule : IModule
 
                 if (needsResave || loadedStats.Any(s => s.ComponentType == StatsComponentType.FPS))
                     SaveComponentStats();
-
             }
             else
             {
@@ -1405,10 +1335,6 @@ public class ComponentStatsModule : IModule
         }
     }
 
-    /// <summary>
-    /// Runs the stop path from outside the tick. Turning the integration off stops the tick itself, so
-    /// without this nothing ever closed the sensor service or cleared the "running" state.
-    /// </summary>
     public void StopAndClear()
     {
         PerformStopActions();
@@ -1436,11 +1362,6 @@ public class ComponentStatsModule : IModule
             item.IsEnabled = !item.IsEnabled;
         }
     }
-
-
-
-
-
 
     public bool UpdateStats()
     {

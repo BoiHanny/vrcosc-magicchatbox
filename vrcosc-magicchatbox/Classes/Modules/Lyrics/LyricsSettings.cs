@@ -18,8 +18,6 @@ public enum LyricsMediaCoexistence
 
 public partial class LyricsSettings : VersionedSettings
 {
-    // Only new installs feel this. An existing settings file already holds an explicit OffsetMs, so
-    // anyone who had tuned it - or deliberately left it at zero - keeps what they chose.
     [ObservableProperty] private int _offsetMs = LyricsTuning.DefaultOffsetMs;
     [ObservableProperty] private bool _showNoteIcon = true;
     [ObservableProperty] private bool _showGapMarker = true;
@@ -34,13 +32,10 @@ public partial class LyricsSettings : VersionedSettings
 
     [ObservableProperty] private LyricsInstrumentalMarker _instrumentalMarker = LyricsInstrumentalMarker.TrailingDots;
 
-    // Backing vocals arrive in brackets. Raising them separates them from the main line.
     [ObservableProperty] private bool _superscriptAsides = true;
 
     [ObservableProperty] private LyricsMatchStrictness _matchStrictness = LyricsMatchStrictness.Balanced;
 
-    // When the exact title finds nothing, search again without the version in the name. The running
-    // time then has to agree closely, so this widens the search without loosening the match.
     [ObservableProperty] private bool _broadenSearchWhenNoMatch = true;
 
     public static IEnumerable<LyricsInstrumentalMarker> AvailableInstrumentalMarkers { get; } =

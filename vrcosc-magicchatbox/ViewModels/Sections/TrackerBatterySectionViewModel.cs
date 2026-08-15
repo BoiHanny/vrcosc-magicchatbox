@@ -34,17 +34,11 @@ public partial class TrackerBatterySectionViewModel : ObservableObject
         IntegrationDisplay = integrationDisplay;
         Tracker = trackerDisplay;
 
-        // The whole section is a template editor, and the batteries it reads only exist while
-        // SteamVR is running, so the sample line is the only feedback a desktop user ever gets.
         Settings.PropertyChanged += (_, _) => OnPropertyChanged(nameof(SamplePreview));
     }
 
     public TrackerBatterySettings Settings => _settingsProvider.Value;
 
-    /// <summary>
-    /// The line built from three plausible devices, so the template and the show/sort/limit boxes
-    /// can be judged without a headset on.
-    /// </summary>
     public string SamplePreview => TrackerBatteryModule.BuildSampleMessage(Settings);
 
     [RelayCommand]

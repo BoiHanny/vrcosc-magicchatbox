@@ -9,18 +9,8 @@ using vrcosc_magicchatbox.Core.Osc.Text;
 
 namespace vrcosc_magicchatbox.ViewModels.Sections;
 
-/// <summary>
-/// The network readout written from fixed, plausible numbers instead of live ones.
-/// </summary>
-/// <remarks>
-/// The module measures from a running adapter, so with monitoring off every reading is 0,00 and the
-/// preview would answer "what will this look like?" with nothing. Fixed numbers keep the answer
-/// truthful about the shape - labels, units, order and what the styled-characters switch does to
-/// them - which is the part the settings actually control.
-/// </remarks>
 public static class NetworkStatsPreview
 {
-    /// <summary>A busy but unremarkable moment: a download running, a little sent back.</summary>
     private const double SampleDownMbps = 84.3;
     private const double SampleUpMbps = 6.1;
     private const double SampleMaxMbps = 476.9;
@@ -29,7 +19,6 @@ public static class NetworkStatsPreview
     private const double SampleTotalUpMB = 212.5;
     private const double SampleUtilization = 17.68;
 
-    /// <summary>What the chatbox would receive with these settings, at the sample numbers.</summary>
     public static string Render(NetworkStatsSettings settings)
     {
         if (settings is null)
@@ -60,9 +49,6 @@ public static class NetworkStatsPreview
                 .Text);
         }
 
-        // The module wraps at 25 characters onto vertical tabs, which a one-line preview cannot show
-        // without looking like a rendering fault. Joining with the same separator keeps the reading
-        // order and the cost honest.
         return string.Join(" | ", readings);
     }
 

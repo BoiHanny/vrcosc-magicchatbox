@@ -21,15 +21,6 @@ namespace vrcosc_magicchatbox.Classes
         {
         }
 
-        /// <summary>
-        /// Marks the tab the user is currently on.
-        /// </summary>
-        /// <remarks>
-        /// Which tab is selected is decided outside the control template, by a binding against the
-        /// page index. A template cannot see that, so the state is put here where the template can
-        /// trigger on it - and it is a real property rather than a borrowed Tag so nothing else on
-        /// the button quietly fights over it.
-        /// </remarks>
         public static readonly DependencyProperty IsActiveProperty =
             DependencyProperty.RegisterAttached(
                 "IsActive",

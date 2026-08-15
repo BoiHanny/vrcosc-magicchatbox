@@ -5,8 +5,6 @@ using System.Linq;
 
 namespace vrcosc_magicchatbox.Classes.Modules.Lyrics;
 
-// Values are written to the settings file, so they are fixed. The gaps are withdrawn styles;
-// reusing their numbers would change what a saved setting means.
 public enum LyricsInstrumentalMarker
 {
     [Description("Single note ♪")]
@@ -28,16 +26,10 @@ public enum LyricsInstrumentalMarker
     BouncingBall = 9,
 }
 
-/// <summary>
-/// What to show during an intro, an outro or a break between verses. The frame comes from the
-/// playback position rather than a timer of its own, so it advances without one. A frame a second
-/// matches the default OSC tick.
-/// </summary>
 public static class InstrumentalMarker
 {
     public static readonly TimeSpan FrameDuration = TimeSpan.FromSeconds(1);
 
-    // BMP only: these cost one character each of the 144. Emoji would cost two.
     private static readonly IReadOnlyList<string> NoteFrames = ["♪"];
     private static readonly IReadOnlyList<string> BouncingFrames = ["♪", "♫", "♬", "♫"];
     private static readonly IReadOnlyList<string> DotFrames = ["♪", "♪ ·", "♪ · ·", "♪ · · ·"];
@@ -71,6 +63,5 @@ public static class InstrumentalMarker
         return frames[index];
     }
 
-    /// <summary>The widest frame, so a caller can budget before rendering.</summary>
     public static int MaxWidth(LyricsInstrumentalMarker style) => Frames(style).Max(f => f.Length);
 }

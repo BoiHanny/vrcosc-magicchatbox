@@ -38,12 +38,6 @@ public sealed class LyricsOscProvider : IOscProvider
         if (string.IsNullOrWhiteSpace(line))
             return null;
 
-        // The formatter applies MinimumCharacters itself, and only to a lyric line. A break marker
-        // is complete at one character.
-        //
-        // RemainingCharsIf already joins the candidate onto the segments collected so far, so the
-        // separator is in that figure. Subtracting it again cost the lyric a few characters on
-        // every line.
         int budget = context.RemainingCharsIf(string.Empty);
         if (budget <= 0)
             return null;

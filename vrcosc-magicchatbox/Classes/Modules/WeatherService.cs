@@ -239,9 +239,6 @@ public class WeatherService : IWeatherService
         return ComposeWeatherOnly(snapshot);
     }
 
-    // Fixed plausible readings. The formatter is a pure function of the settings plus a snapshot,
-    // so the preview needs no network, no location and no consent - the same reason Spotify can
-    // preview a track while nothing is playing.
     private static readonly WeatherSnapshot SampleSnapshot =
         new(21.4, "Partly cloudy", 2, 63, 11.5, 22.8);
 
@@ -388,11 +385,9 @@ public class WeatherService : IWeatherService
         return string.Join(separator, primaryParts.Concat(secondaryParts));
     }
 
-    /// <summary>A reading and its unit. The unit is raised and glued on; the number is not touched.</summary>
     private static string Measure(string value, string unit)
         => new SegmentWriter().Field(OscText.Value(value), OscText.Unit(unit)).Text;
 
-    /// <summary>A named reading. The label is raised and the writer places the single space.</summary>
     private static string Stat(string label, string value)
         => new SegmentWriter().Field(OscText.Label(label), OscText.Value(value)).Text;
 

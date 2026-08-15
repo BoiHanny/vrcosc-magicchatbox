@@ -9,20 +9,10 @@ using vrcosc_magicchatbox.Core.Services;
 
 namespace vrcosc_magicchatbox.ViewModels.Sections;
 
-/// <summary>
-/// Shows what a sent message will look like, without sending one.
-/// </summary>
-/// <remarks>
-/// This mirrors the decision <see cref="Services.EmojiService.GetNextEmoji" /> makes, minus the
-/// randomness: a preview that changed every time the page redrew would tell the reader nothing
-/// about their settings. When a shuffle is on, the first icon they typed stands in for the run.
-/// </remarks>
 public static class ChatLinePreview
 {
-    /// <summary>The icon the app falls back to whenever a shuffle is not in play.</summary>
     public const string DefaultIcon = "💬";
 
-    /// <summary>Ordinary words, no punctuation tricks, so the count is easy to reason about.</summary>
     public const string SampleMessage = "anyone up for a world hop?";
 
     public static string Build(bool prefixIcon, bool shuffleEnabled, bool shuffleInChats, IEnumerable<string>? icons, string message)
@@ -62,12 +52,9 @@ public partial class ChattingOptionsSectionViewModel : ObservableObject
         ChatSettings.PropertyChanged += OnChatSettingChanged;
         AppSettings.PropertyChanged += OnAppSettingChanged;
 
-        // Adding an icon changes the collection, not the property that holds it, so nothing else
-        // would tell the preview that the icon it is showing has just been replaced.
         AppSettings.EmojiCollection.CollectionChanged += (_, _) => OnPropertyChanged(nameof(ChatPreview));
     }
 
-    /// <summary>A sample message dressed exactly as the real one will be.</summary>
     public string ChatPreview => ChatLinePreview.Build(
         ChatSettings.PrefixChat,
         AppSettings.EnableEmojiShuffle,

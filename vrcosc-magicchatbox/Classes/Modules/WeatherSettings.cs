@@ -10,8 +10,6 @@ using vrcosc_magicchatbox.ViewModels;
 
 namespace vrcosc_magicchatbox.Classes.Modules;
 
-// The global temperature unit can be time-based, so both units have to come from one resolution
-// per render: the wind unit is derived from the temperature unit rather than resolved again.
 public static class WeatherUnitResolver
 {
     public static string Temperature(WeatherUnitOverride unitOverride, string globalUnit)
@@ -31,30 +29,15 @@ public static class WeatherUnitResolver
         };
 }
 
-/// <summary>
-/// What Weather is allowed to spend of the chatbox line.
-/// </summary>
-/// <remarks>
-/// Weather is on for almost everyone, so every character it takes is taken from something else.
-/// Its one unbounded input is the user's template: nothing capped it, and a long one pushed every
-/// integration after it off the line rather than shortening itself.
-/// </remarks>
 public static class WeatherBudget
 {
-    /// <summary>A template longer than the whole line cannot render, it can only crowd the line out.</summary>
     public const int MaxTemplateLength = Core.Constants.OscMaxMessageLength;
 
-    /// <summary>Half the line. Past this Weather shortens itself instead of squeezing its neighbours.</summary>
     public const int MaxSegmentLength = 72;
 
-    /// <summary>What the segment may spend: the room actually left, and never more than the share.</summary>
     public static string Bound(string? text, int roomOnTheLine)
         => SegmentWriter.Truncate(text, Math.Min(MaxSegmentLength, roomOnTheLine));
 
-    /// <summary>
-    /// Caps stored input. No ellipsis and no trimming - this is text the user is still editing, and
-    /// it is bounded where it is stored so the worst case cannot be authored in the first place.
-    /// </summary>
     public static string CapTemplate(string? text)
     {
         string value = text ?? string.Empty;
@@ -111,8 +94,6 @@ public partial class WeatherSettings : VersionedSettings
         }
     }
 
-    // Hand-written rather than generated because the value is capped on the way in - the generated
-    // setter has nowhere to do that.
     private string _weatherTemplate = string.Empty;
     public string WeatherTemplate
     {
@@ -127,7 +108,6 @@ public partial class WeatherSettings : VersionedSettings
             }
             else if (capped.Length != value?.Length)
             {
-                // The editor is holding text that was not stored, so it has to be told to re-read.
                 OnPropertyChanged();
             }
         }

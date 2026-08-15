@@ -14,16 +14,10 @@ public enum LyricsMatchStrictness
     Strict,
 }
 
-/// <summary>How hard a candidate has to work to be accepted.</summary>
 public readonly record struct LyricsMatchOptions
 {
-    /// <summary>Total score a candidate must reach. Zero means the balanced default.</summary>
     public double AcceptThreshold { get; init; }
 
-    /// <summary>
-    /// Set when the search that produced the candidates had detail removed from the title, which
-    /// leaves the running time as the only evidence that this is the same recording.
-    /// </summary>
     public bool RequireCloseDuration { get; init; }
 
     public static LyricsMatchOptions For(LyricsMatchStrictness strictness, bool requireCloseDuration = false)

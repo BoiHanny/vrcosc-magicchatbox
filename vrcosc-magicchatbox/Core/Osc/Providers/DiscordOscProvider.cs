@@ -31,8 +31,6 @@ public sealed class DiscordOscProvider : IOscProvider
         var discord = _modules.Value.Discord;
         if (discord == null || !discord.IsRunning || !discord.IsAuthenticated) return null;
 
-        // The channel name, the nicknames and the template are all somebody else's text. Telling
-        // the module how much room is actually left is what stops it filling the line on its own.
         int budget = context.RemainingCharsIf(string.Empty);
         if (budget <= 0) return null;
 

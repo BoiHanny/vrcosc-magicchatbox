@@ -4,10 +4,6 @@ using System.Collections.Generic;
 
 namespace vrcosc_magicchatbox.Classes.Modules.Afk;
 
-/// <summary>
-/// One saved way of saying you are away. Everything the chatbox line is built from lives here, so a
-/// style can be swapped whole from the side panel without opening Options and editing four fields.
-/// </summary>
 public partial class AfkStyle : ObservableObject
 {
     [ObservableProperty] private string _id = Guid.NewGuid().ToString();
@@ -20,7 +16,6 @@ public partial class AfkStyle : ObservableObject
     [ObservableProperty] private string _messageWithTime = "ᶜᵘʳʳᵉⁿᵗˡʸ AFK ᶠᵒʳ ";
     [ObservableProperty] private string _messageWithoutTime = "ᶜᵘʳʳᵉⁿᵗˡʸ AFK";
 
-    /// <summary>Shipped styles can be edited freely but not deleted, so the list can never end up empty.</summary>
     [ObservableProperty] private bool _isBuiltIn;
 
     public AfkStyle Clone(string newName) => new()
@@ -35,11 +30,6 @@ public partial class AfkStyle : ObservableObject
         IsBuiltIn = false,
     };
 
-    /// <summary>
-    /// Builds the line exactly as the chatbox will receive it. Taking a duration rather than reading
-    /// the clock keeps this a pure function, which is what makes the Options preview and the real
-    /// output impossible to drift apart - they call the same code.
-    /// </summary>
     public string Render(string? elapsed)
     {
         string body = ShowTime && !string.IsNullOrWhiteSpace(elapsed)
@@ -58,7 +48,6 @@ public static class AfkStylePresets
 {
     public const string ClassicId = "builtin-classic";
 
-    /// <summary>The long-standing defaults, kept exactly so upgrading changes nothing on screen.</summary>
     public const string ClassicPrefix = "💤";
     public const string ClassicWithTime = "ᶜᵘʳʳᵉⁿᵗˡʸ AFK ᶠᵒʳ ";
     public const string ClassicWithoutTime = "ᶜᵘʳʳᵉⁿᵗˡʸ AFK";
@@ -110,10 +99,6 @@ public static class AfkStylePresets
             MessageWithTime = "ᶻᶻᶻ ᶠᵒʳ ",
             MessageWithoutTime = "ᶻᶻᶻ",
         },
-        // The playful ones all follow the shape the original default set: the sentence rides high and
-        // small in superscript and the one word that carries the joke drops back to full size. Your
-        // eye lands on that word first and reads the rest only if it cares, which is the whole trick
-        // behind "ᶜᵘʳʳᵉⁿᵗˡʸ AFK ᶠᵒʳ".
         new()
         {
             Id = "builtin-grass",
@@ -170,8 +155,6 @@ public static class AfkStylePresets
         },
         new()
         {
-            // Pairing this one with the clock is the entire joke: it gets funnier the longer you are
-            // gone, and it writes itself.
             Id = "builtin-oneminute",
             Name = "One minute",
             IsBuiltIn = true,

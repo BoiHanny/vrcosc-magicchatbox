@@ -137,10 +137,6 @@ public partial class LyricsModule : ObservableObject, IModule
                 return;
             }
 
-            // Paused keeps the track loaded - resuming should not cost another lookup - but stops the
-            // words. Position is frozen while paused, so the scheduler would resolve the same lyric
-            // forever, and a visible lyric also hides the song title, which is why pausing used to
-            // leave a stale line on screen with no sign that anything had stopped.
             if (!source.IsPlaying)
             {
                 _display.Position = source.Position;
@@ -162,8 +158,6 @@ public partial class LyricsModule : ObservableObject, IModule
                 TimeSpan.FromSeconds(Math.Max(1, Settings.GapThresholdSeconds)),
                 TimeSpan.FromSeconds(Math.Max(1, Settings.LineHoldSeconds)));
 
-            // An instrumental stretch needs text of its own. Leaving it blank switched IsShowingLine
-            // off and the OSC provider drops the segment on that, so the marker never got out.
             string line = cursor.Kind switch
             {
                 LyricCursorKind.Line => LyricSegmentFormatter.PrepareLine(cursor.Text, Settings),
@@ -178,8 +172,6 @@ public partial class LyricsModule : ObservableObject, IModule
             _display.IsShowingLine = line.Length > 0;
             _display.PositionSource = source.SourceName;
 
-            // Only a real lyric earns the song title's place. Hiding it for a marker would leave the
-            // line saying nothing but the marker.
             _display.SuppressMediaTitle =
                 Settings.Coexistence == LyricsMediaCoexistence.PreferLyrics
                 && cursor.Kind == LyricCursorKind.Line
@@ -255,8 +247,6 @@ public partial class LyricsModule : ObservableObject, IModule
             hasMediaSource: source != null && source.SourceName != SpotifySourceName,
             mediaLinkEnabled: _integrationSettings.IntgrScanMediaLink,
             spotifyEnabled: _integrationSettings.IntgrSpotify,
-            // Kept separate from the integration switches on purpose: a card with nothing playing may
-            // only park where lyrics are actually switched on.
             lyricsOnMediaLink: _integrationSettings.IntgrLyrics_MediaLink,
             lyricsOnSpotify: _integrationSettings.IntgrLyrics_Spotify);
 

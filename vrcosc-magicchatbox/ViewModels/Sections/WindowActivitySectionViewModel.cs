@@ -10,21 +10,11 @@ using vrcosc_magicchatbox.ViewModels.State;
 
 namespace vrcosc_magicchatbox.ViewModels.Sections;
 
-/// <summary>
-/// The focused-app line written from a stand-in app, so the wording boxes can be judged while the
-/// app being looked at is the settings window itself.
-/// </summary>
 public static class WindowActivityPreview
 {
-    /// <summary>An app and a title long enough to show what shortening does, and no longer.</summary>
     public const string SampleApp = "Firefox";
     public const string SampleTitle = "Weather forecast for the weekend";
 
-    /// <summary>
-    /// The same three parts the builder assembles, in the same order and with the same spacing: the
-    /// heading, the word joining it to the app, and the app itself. The heading and the joining word
-    /// are the user's own text, already styled the way they typed it, so neither is raised again.
-    /// </summary>
     public static string Render(string? heading, string? focusWord, string? app, bool nameTheApp)
         => new SegmentWriter()
             .Field(
@@ -33,7 +23,6 @@ public static class WindowActivityPreview
                 OscText.Value(nameTheApp ? app : null))
             .Text;
 
-    /// <summary>What a title looks like once the per-app length limit has had it.</summary>
     public static string Title(bool limitOn, int configured)
         => SegmentWriter.Truncate(SampleTitle, WindowActivityText.TitleCap(limitOn, configured));
 }
@@ -72,8 +61,6 @@ public partial class WindowActivitySectionViewModel : ObservableObject
 
     private void RefreshPreviews()
     {
-        // The app name is what the module puts in the slot; the window title rides along behind it
-        // when the user asked for it, and is cut to the length they set.
         string title = WindowActivitySettings.TitleScan
             ? WindowActivityPreview.Title(WindowActivitySettings.LimitTitleOnApp, WindowActivitySettings.MaxShowTitleCount)
             : string.Empty;

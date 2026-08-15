@@ -26,9 +26,6 @@ public partial class PulsoidModule : ObservableObject, IModule
     private readonly IToastService? _toast;
     private volatile bool _pulsoidErrorShown;
     private volatile bool _statsErrorShown;
-    // Set when Pulsoid refuses to serve statistics for this token. Statistics are optional, so
-    // this disables that one feature for the session instead of re-asking (and re-failing) every
-    // 30 seconds. Cleared whenever the socket comes up or the token changes.
     private volatile bool _statisticsUnavailable;
 
     private readonly IOscSender _oscSender;
@@ -56,9 +53,6 @@ public partial class PulsoidModule : ObservableObject, IModule
     private DateTime _lastTokenValidationUtc = DateTime.MinValue;
     private DateTime _lastInactivityLogUtc = DateTime.MinValue;
     private static readonly TimeSpan _statsFetchInterval = TimeSpan.FromSeconds(30);
-    // An idle strap used to trigger 120 validate calls an hour. Pulsoid documents no rate limit,
-    // so this is undocumented risk landing on the code path that decides whether to sign the user
-    // out; five minutes is plenty to notice a revoked token while the device is offline anyway.
     private static readonly TimeSpan _tokenValidationInterval = TimeSpan.FromMinutes(5);
     private static readonly TimeSpan _inactivityLogInterval = TimeSpan.FromSeconds(30);
     private int _previousHeartRate = -1;
@@ -95,18 +89,10 @@ public partial class PulsoidModule : ObservableObject, IModule
     public bool IsRunning => isMonitoringStarted;
     public Task InitializeAsync(CancellationToken ct = default) => Task.CompletedTask;
 
-    /// <summary>
-    /// First network work happens here, not in the constructor, so the bootstrapper can hold it
-    /// until the app (and the network stack) is actually up — the same gate Spotify and Discord use.
-    /// </summary>
     public Task StartAsync(CancellationToken ct = default) => CheckMonitoringConditionsAsync();
 
     public async Task StopAsync(CancellationToken ct = default) { await StopMonitoringHeartRateAsync(); }
 
-    /// <summary>
-    /// Writes settings straight through, cancelling any pending debounce. The access token must be
-    /// on disk the moment it is set or cleared, not two seconds later when the app might be closing.
-    /// </summary>
     public void SaveSettings() => _settingsProvider.FlushPendingSave();
 
     public PulsoidModule(IAppState appState, IPulsoidClient client, IUiDispatcher dispatcher, IOscSender oscSender, IntegrationSettings integrationSettings, PulsoidOAuthHandler oAuth, ISettingsProvider<PulsoidModuleSettings> settingsProvider, IToastService? toast = null)
@@ -126,9 +112,6 @@ public partial class PulsoidModule : ObservableObject, IModule
         _client.ConnectionFailed += OnConnectionFailed;
         _client.ConnectionStateChanged += OnConnectionStateChanged;
 
-        // The token itself has to be a trigger. Nothing was ever subscribed to the module's own
-        // settings, so the AccessTokenOAuth branch in PropertyChangedHandler was unreachable and a
-        // re-authentication during an outage left the retry loop hammering the superseded token.
         Settings.PropertyChanged += PropertyChangedHandler;
 
         _processDataTimer = new System.Timers.Timer
@@ -144,15 +127,8 @@ public partial class PulsoidModule : ObservableObject, IModule
         RestoreAuthStateFromSettings();
     }
 
-    /// <summary>
-    /// Seeds the sign-in state from what is on disk, synchronously and without touching the network.
-    /// The token has always survived restarts; the flag describing it did not, because nothing ever
-    /// derived it from the stored credential. That is the whole "authentication lost on restart" bug.
-    /// </summary>
     public void RestoreAuthStateFromSettings()
     {
-        // Only "nothing usable in memory" blocks. An encrypt failure cannot occur before the first
-        // assignment, and would not be a reason to refuse a working token if it could.
         if (Settings.StoredTokenUnreadable)
         {
             SetAuthState(PulsoidAuthState.Unreadable);
@@ -168,8 +144,6 @@ public partial class PulsoidModule : ObservableObject, IModule
             return;
         }
 
-        // Optimistic on purpose: a stored token is a sign-in until Pulsoid says otherwise, so an
-        // offline or slow launch still shows "connected" instead of demanding a pointless re-auth.
         SetAuthState(PulsoidAuthState.Unverified);
         PulsoidAccessError = false;
         PulsoidAccessErrorTxt = string.Empty;
@@ -183,10 +157,6 @@ public partial class PulsoidModule : ObservableObject, IModule
 
     private void OnConnectionFailed(PulsoidConnectionError error, string message)
     {
-        // Statistics are an optional extra (the token is allowed to lack data:statistics:read).
-        // Losing them says nothing about the session's sign-in, and the live socket is the
-        // authoritative liveness signal — escalating this used to drop heart rate out of the
-        // chatbox while beats were still streaming in.
         if (error == PulsoidConnectionError.StatisticsUnavailable)
         {
             _statisticsUnavailable = true;
@@ -214,11 +184,6 @@ public partial class PulsoidModule : ObservableObject, IModule
             PulsoidAccessError = true;
             PulsoidAccessErrorTxt = message;
 
-            // Only an unambiguous rejection demotes the sign-in. A plan problem is a conclusion
-            // about the account, not an outage, so it leaves the sign-in state alone and lets the
-            // error text carry it: saying "we'll keep retrying" would be a lie, the loop has
-            // stopped. Everything else is Pulsoid or the network being unavailable, which keeps
-            // the credential and keeps retrying.
             if (error == PulsoidConnectionError.TokenInvalid)
                 SetAuthState(PulsoidAuthState.Rejected);
             else if (error != PulsoidConnectionError.SubscriptionRequired)
@@ -231,16 +196,12 @@ public partial class PulsoidModule : ObservableObject, IModule
         if (connected)
         {
             _pulsoidErrorShown = false;
-            // A fresh socket is a fresh chance for statistics too (a plan change or a re-grant
-            // between attempts is exactly the case a session-long latch would hide).
             _statsErrorShown = false;
             _statisticsUnavailable = false;
             _dispatcher.BeginInvoke(() =>
             {
                 PulsoidAccessError = false;
                 PulsoidAccessErrorTxt = "";
-                // A completed handshake is the strongest proof the token works, so this is where
-                // the sign-in becomes confirmed. Previously nothing ever set it back to true.
                 SetAuthState(PulsoidAuthState.Authenticated);
             });
             _processDataTimer.Start();
@@ -302,12 +263,6 @@ public partial class PulsoidModule : ObservableObject, IModule
         return slope;
     }
 
-    /// <summary>
-    /// Tears the client down and brings it back up around a changed credential. Re-checking the
-    /// monitoring conditions alone is not enough: the connect loop only returns on cancellation or
-    /// a definitive rejection, so without the stop it keeps retrying with the token it captured —
-    /// which, after a re-authentication during an outage, is the dead one.
-    /// </summary>
     private async Task RestartForNewTokenAsync()
     {
         try
@@ -371,9 +326,6 @@ public partial class PulsoidModule : ObservableObject, IModule
         );
     }
 
-
-
-
     private int GetOSCHeartRate()
     {
         lock (_oscHeartRatesLock)
@@ -386,7 +338,6 @@ public partial class PulsoidModule : ObservableObject, IModule
             return (int)Math.Round(_oscHeartRates.Average());
         }
     }
-
 
     private void ResetIntervalFlag()
     {
@@ -484,9 +435,6 @@ public partial class PulsoidModule : ObservableObject, IModule
         isMonitoringStarted = true;
         string accessToken = Settings.AccessTokenOAuth;
 
-        // Only an unreadable store blocks: there is genuinely nothing to connect with. An encrypt
-        // failure leaves a perfectly good token in memory and must not disable heart rate for the
-        // session — that is handled below, as a warning, after this token has been used.
         if (Settings.StoredTokenUnreadable)
         {
             _dispatcher.BeginInvoke(() =>
@@ -506,8 +454,6 @@ public partial class PulsoidModule : ObservableObject, IModule
 
         if (Settings.TokenEncryptionFailed && !string.IsNullOrEmpty(accessToken))
         {
-            // Non-blocking on purpose: the credential works right now, it just was not written to
-            // disk. Saying "could not be decrypted" here was both wrong and terminal.
             Logging.WriteInfo("Pulsoid: token could not be encrypted for storage; connecting with the in-memory token for this session.");
         }
 
@@ -549,8 +495,6 @@ public partial class PulsoidModule : ObservableObject, IModule
 
         if (validation == PulsoidTokenValidation.Unknown)
         {
-            // Could not verify — offline, timeout, 429, 5xx. Keep the sign-in and connect anyway:
-            // the socket handshake is itself an auth check and owns the retry/backoff loop.
             Logging.WriteInfo("Pulsoid token could not be verified right now; connecting with the saved sign-in anyway.");
             _dispatcher.BeginInvoke(() =>
             {
@@ -675,10 +619,6 @@ public partial class PulsoidModule : ObservableObject, IModule
     public string GetHeartRateString()
         => BuildHeartRateString(Settings, HeartRate, PulsoidDeviceOnline, PulsoidStatistics);
 
-    /// <summary>
-    /// Pure formatter for the chatbox segment. Every number stays at full size and only the word
-    /// beside it is raised — the beats per minute is the part the reader came for.
-    /// </summary>
     public static string BuildHeartRateString(
         PulsoidModuleSettings settings,
         int heartRate,
@@ -774,7 +714,6 @@ public partial class PulsoidModule : ObservableObject, IModule
         return displayTextBuilder.ToString();
     }
 
-    /// <summary>One statistic, value first and full size, label raised behind it.</summary>
     private static string Stat(string value, string label)
         => $"{value} {TextUtilities.TransformToSuperscript(label)}";
 
@@ -859,8 +798,6 @@ public partial class PulsoidModule : ObservableObject, IModule
 
                     if (validation == PulsoidTokenValidation.Unknown)
                     {
-                        // An idle strap is not an auth event, and neither is a validate call we
-                        // could not complete. Keep the session; say so plainly.
                         _dispatcher.BeginInvoke(() =>
                         {
                             MarkUnreachableIfSignedIn();
@@ -1059,17 +996,12 @@ public partial class PulsoidModule : ObservableObject, IModule
                _integrationSettings.IntgrHeartRate_OSC;
     }
 
-    /// <summary>Writes the one value that decides whether the user is signed in to Pulsoid.</summary>
     public void SetAuthState(PulsoidAuthState newState)
     {
         if (_appState.PulsoidAuthState != newState)
             _appState.PulsoidAuthState = newState;
     }
 
-    /// <summary>
-    /// Downgrades a working sign-in to "can't reach Pulsoid" without ever signing the user out.
-    /// A rejected or absent token is left alone: those are conclusions, not outages.
-    /// </summary>
     private void MarkUnreachableIfSignedIn()
     {
         if (_appState.PulsoidAuthState is PulsoidAuthState.Authenticated or PulsoidAuthState.Unverified)

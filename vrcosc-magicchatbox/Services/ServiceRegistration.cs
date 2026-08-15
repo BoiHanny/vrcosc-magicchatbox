@@ -673,8 +673,6 @@ public static class ServiceRegistration
             sp.GetRequiredService<IntegrationDisplayState>(),
             sp.GetRequiredService<ISettingsProvider<AppSettings>>(),
             sp.GetRequiredService<ModuleFaultTracker>()));
-        // IAppState resolves to the root view model, which is built from most of the container, so it
-        // is taken lazily to keep the presenter out of that construction order.
         services.AddSingleton<OscBuildResultPresenter>(sp => new OscBuildResultPresenter(
             sp.GetRequiredService<OscDisplayState>(),
             sp.GetRequiredService<IntegrationDisplayState>(),

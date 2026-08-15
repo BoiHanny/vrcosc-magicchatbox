@@ -59,11 +59,6 @@ namespace vrcosc_magicchatbox
             this.StateChanged += MainWindow_StateChanged;
         }
 
-        /// <summary>
-        /// Puts the window back where it was, including which monitor. Restores nothing if that place no
-        /// longer exists - an unplugged second monitor would otherwise leave the window off-screen with
-        /// no way to drag it back.
-        /// </summary>
         private void RestoreWindowPlacement()
         {
             try
@@ -110,8 +105,6 @@ namespace vrcosc_magicchatbox
                 var settings = _appSettingsProvider?.Value;
                 if (settings == null) return;
 
-                // Minimised carries no useful geometry, and while maximised the live Left/Top/Width/Height
-                // describe the maximised frame rather than the size to come back to.
                 if (WindowState == WindowState.Minimized)
                     return;
 
@@ -176,8 +169,6 @@ namespace vrcosc_magicchatbox
             return IntPtr.Zero;
         }
 
-
-
         private void OnStartResize()
         {
             WindowChrome windowChrome = WindowChrome.GetWindowChrome(this);
@@ -189,9 +180,6 @@ namespace vrcosc_magicchatbox
             WindowChrome windowChrome = WindowChrome.GetWindowChrome(this);
             windowChrome.GlassFrameThickness = new Thickness(1);
         }
-
-
-
 
         public MainWindow(
             ScanLoopService scanLoop,
@@ -212,9 +200,6 @@ namespace vrcosc_magicchatbox
             _hotkeyManagement = hotkeyManagement;
             _appSettingsProvider = appSettingsProvider;
 
-            // Before Show(), so the window opens where it was left instead of appearing centred and
-            // then jumping. DataContext is not assigned until after Show(), which is why this reads
-            // the settings directly rather than going through the view model.
             RestoreWindowPlacement();
 
             Closing += MainWindow_ClosingAsync;
@@ -268,7 +253,6 @@ namespace vrcosc_magicchatbox
             Dispatcher.BeginInvoke(() => VM.Chatting.OnTranscriptionReceived(newTranscription));
         }
 
-
         public async Task InitializeAsync()
         {
             _bootstrapper.CreateLateModules();
@@ -293,7 +277,6 @@ namespace vrcosc_magicchatbox
 
         private void Button_minimize_Click(object sender, RoutedEventArgs e)
         { this.WindowState = WindowState.Minimized; }
-
 
         private void Drag_area_MouseDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
         {
@@ -334,8 +317,6 @@ namespace vrcosc_magicchatbox
 
         private async void MainWindow_ClosingAsync(object sender, System.ComponentModel.CancelEventArgs e)
         {
-            // Captured before the tray branch: closing to tray is still the last place the user put the
-            // window, and it is the geometry they expect back when it reopens.
             SaveWindowPlacement();
 
             if (VM.AppSettingsInstance.CloseToTray && !_isTrayClosing)
@@ -374,7 +355,6 @@ namespace vrcosc_magicchatbox
             }
         }
 
-
         public async Task SaveDataToDiskAsync()
         {
             await _persistence.PrepareForShutdownAsync();
@@ -396,7 +376,6 @@ namespace vrcosc_magicchatbox
             base.OnClosed(e);
         }
 
-
         private void TikTokTTSVoices_combo_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             if (sender is ComboBox comboBox && comboBox.SelectedItem is Voice voice)
@@ -414,7 +393,6 @@ namespace vrcosc_magicchatbox
                 }
             }
         }
-
 
         public static double ShadowOpacity
         {
@@ -457,22 +435,8 @@ namespace vrcosc_magicchatbox
         private double? _revealTop;
         private bool _parkedOffScreen;
 
-        /// <summary>
-        /// Hides the window for the several seconds it spends laying itself out. Zero opacity alone
-        /// was not enough: the window still gets an HWND, and the desktop compositor paints its frame
-        /// before WPF has drawn anything into it, which reads as a black rectangle appearing behind
-        /// the splash. Parked off the virtual desktop as well, there is nothing to see at all.
-        ///
-        /// A maximized window cannot be parked - Windows snaps it back to a monitor - so that case
-        /// relies on opacity alone.
-        /// </summary>
         public void PrepareHiddenStart()
         {
-            // Parking is what hides the window; opacity is deliberately left alone. A window held at
-            // zero opacity is never composited, so it never produces a rendered frame - and the
-            // reveal then shows the blank surface the OS created the HWND with, which is white. Off
-            // the desktop at full opacity it renders everything properly, unseen, and the reveal has
-            // a finished frame to show.
             if (WindowState != WindowState.Maximized)
             {
                 _revealLeft = double.IsNaN(Left) ? null : Left;
@@ -485,20 +449,9 @@ namespace vrcosc_magicchatbox
                 return;
             }
 
-            // Maximized cannot be parked - Windows snaps it back to a monitor - so that one case
-            // hides behind opacity instead. The reveal still waits for a rendered frame.
             Opacity = 0;
         }
 
-        /// <summary>
-        /// True once WPF has drawn this window at least once.
-        /// </summary>
-        /// <remarks>
-        /// The reveal has to wait for this. Startup runs a lot of work on the UI thread, and while
-        /// the dispatcher is busy it cannot service the render queue - so "the window has existed
-        /// for several seconds" says nothing about whether anything has been painted into it. Reveal
-        /// before the first frame and the desktop shows the blank surface the HWND was created with.
-        /// </remarks>
         private bool _hasRendered;
         private bool _revealWanted;
         private DispatcherTimer? _revealSafetyNet;
@@ -513,18 +466,6 @@ namespace vrcosc_magicchatbox
                 Reveal();
         }
 
-        /// <summary>
-        /// Puts the window back where it belongs and brings it up, then hands opacity back to its
-        /// binding so the user's own window opacity setting takes over again. Clearing the local
-        /// value matters: leaving one behind would pin the window at full opacity forever and quietly
-        /// break that setting.
-        /// </summary>
-        /// <param name="onVisible">
-        /// Runs once the window is actually up. The splash has to close on this rather than on a
-        /// fixed line of the startup sequence: the reveal waits for the first frame, so anything
-        /// that assumes it happened already will run too early and leave a gap with nothing on
-        /// screen.
-        /// </param>
         public void FadeInAfterStartup(Action? onVisible = null)
         {
             if (!Dispatcher.CheckAccess())
@@ -541,8 +482,6 @@ namespace vrcosc_magicchatbox
                 return;
             }
 
-            // Nothing has been painted yet. Wait for the first frame rather than showing the blank
-            // surface, but do not wait forever - an app that never appears is worse than a flash.
             _revealWanted = true;
 
             _revealSafetyNet?.Stop();
@@ -557,13 +496,6 @@ namespace vrcosc_magicchatbox
                 Dispatcher);
         }
 
-        /// <summary>
-        /// Gives up on the reveal and puts the window back where it belongs without showing it.
-        /// </summary>
-        /// <remarks>
-        /// Starting in the background still has to undo the parking. Leaving the window sitting off
-        /// the virtual desktop would mean the tray icon later opens it somewhere nobody can see.
-        /// </remarks>
         public void AbandonHiddenStart()
         {
             if (!Dispatcher.CheckAccess())
@@ -597,7 +529,6 @@ namespace vrcosc_magicchatbox
                 return;
             }
 
-            // No saved placement, so honour what the XAML asked for and centre it.
             var area = SystemParameters.WorkArea;
             Left = area.Left + ((area.Width - Width) / 2);
             Top = area.Top + ((area.Height - Height) / 2);
@@ -611,8 +542,6 @@ namespace vrcosc_magicchatbox
 
             if (_parkedOffScreen)
             {
-                // Taken to zero only now, with a rendered frame already behind it, so the fade has
-                // the finished window to reveal rather than an unpainted surface.
                 Opacity = 0;
                 UnparkOffScreen();
             }
@@ -627,8 +556,6 @@ namespace vrcosc_magicchatbox
                 BeginAnimation(OpacityProperty, null);
                 ClearValue(OpacityProperty);
 
-                // The window is up and holding its own loading screen, so the splash can go now and
-                // the handover reads as one continuous thing rather than two that flicker past.
                 Action? handover = _onVisible;
                 _onVisible = null;
                 handover?.Invoke();
@@ -660,6 +587,5 @@ namespace vrcosc_magicchatbox
         }
 
         #endregion
-
     }
 }

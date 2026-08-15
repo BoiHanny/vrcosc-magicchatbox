@@ -58,7 +58,6 @@ public partial class OptionsPage : UserControl
             ["Settings_VrPerformance"] = OptionsWrapper_VrPerformance,
             ["Settings_Lyrics"] = OptionsWrapper_Lyrics,
             ["Settings_Privacy"] = OptionsWrapper_Privacy,
-            // Soundpad has no section of its own, only this permission row.
             [MenuNavigationService.PrivacySoundpadTarget] = PrivacySectionControl.SoundpadBridgeRow,
             ["Settings_WindowActivity"] = OptionsWrapper_WindowActivity,
         };

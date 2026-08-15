@@ -283,11 +283,6 @@ namespace vrcosc_magicchatbox
                 loadingWindow.UpdateProgress("Rolling out the red carpet... Here comes the UI!", 99, "Wiring up the final UI bits... Almost there!");
                 loadingWindow.SetTopmostFromAnyThread(true);
 
-                // Shown, but not yet visible. The window has to be on screen for WPF to lay it out at
-                // all, and that first layout is the slowest part of starting up - several seconds
-                // during which it would otherwise sit there assembling itself in front of the user
-                // while the splash is still up saying it is loading. At zero opacity it does all of
-                // that work unseen and is faded in below, once there is something worth looking at.
                 Logging.WriteInfo("[Startup] Showing MainWindow (empty shell)...");
                 mainWindow.PrepareHiddenStart();
                 mainWindow.Show();
@@ -323,15 +318,8 @@ namespace vrcosc_magicchatbox
                 if (mainWindow.WindowState == WindowState.Minimized)
                     mainWindow.WindowState = WindowState.Normal;
 
-                // One handover instead of three things racing. The window comes up behind the splash
-                // still showing its own loading screen, so there is never a moment with nothing on
-                // screen; the splash then closes onto it and the loading screen dissolves into the
-                // finished interface. All of it hangs off the reveal, which waits for the first
-                // frame and so cannot be timed from here.
                 if (vm.AppSettingsInstance.StartInBackground)
                 {
-                    // Nothing to hand over to. The reveal is never asked for, so it cannot fire
-                    // later and pull the window up behind the user's back.
                     mainWindow.AbandonHiddenStart();
                     mainWindow.Hide();
                     loadingWindow.CloseFromAnyThread();
@@ -345,8 +333,6 @@ namespace vrcosc_magicchatbox
                         Logging.WriteInfo("[Startup] Splash closed.");
                         mainWindow.HideStartupOverlay();
 
-                        // Focus belongs with the window actually being on screen, not with a line
-                        // that runs while it is still parked off the desktop.
                         mainWindow.Activate();
                         mainWindow.Focus();
                     });
@@ -696,8 +682,6 @@ namespace vrcosc_magicchatbox
             return true;
         }
 
-
-
         private void CurrentDomain_FirstChanceException(object? sender, FirstChanceExceptionEventArgs e)
         {
             if (!ShouldLogFirstChanceException(e.Exception))
@@ -807,8 +791,6 @@ namespace vrcosc_magicchatbox
             Logging.WriteException(ex: e.ExceptionObject as Exception, MSGBox: true, exitapp: true, log: false);
         }
 
-
-
         private void InitializeUserMonitoring()
         {
             var allowedService = Services.GetRequiredService<IAllowedForUsingService>();
@@ -821,7 +803,6 @@ namespace vrcosc_magicchatbox
             };
             allowedService.StartUserMonitoring(Core.Constants.AutoUpdateCheckInterval);
         }
-
 
         private async Task RunOptionalStartupTaskAsync(
             string taskName,

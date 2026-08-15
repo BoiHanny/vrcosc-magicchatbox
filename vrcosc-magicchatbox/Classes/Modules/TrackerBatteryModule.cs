@@ -300,10 +300,6 @@ namespace vrcosc_magicchatbox.Classes.Modules
             return message.Trim();
         }
 
-        /// <summary>
-        /// Renders the chosen devices and joins them into the line, with the start and end text
-        /// around it. Pure, so the settings preview shows the real line with no headset connected.
-        /// </summary>
         public static string ComposeMessage(IEnumerable<TrackerDevice> devices, TrackerBatterySettings settings)
         {
             string template = string.IsNullOrWhiteSpace(settings.Template)
@@ -343,14 +339,6 @@ namespace vrcosc_magicchatbox.Classes.Modules
             return message;
         }
 
-        /// <summary>
-        /// The line built from three plausible devices instead of real ones.
-        /// </summary>
-        /// <remarks>
-        /// Battery levels only exist while SteamVR is running, so configuring this section on a
-        /// desktop meant editing a template against a blank box. The sample runs the same filter,
-        /// sort and limit the live path does, so every box on the page visibly moves the line.
-        /// </remarks>
         public static string BuildSampleMessage(TrackerBatterySettings settings)
         {
             var sample = new List<TrackerDevice>
@@ -570,7 +558,6 @@ namespace vrcosc_magicchatbox.Classes.Modules
 
         private bool ShouldIncludeDevice(TrackerDevice device) => ShouldIncludeDevice(device, Settings);
 
-        /// <summary>Which devices the four "show" boxes let onto the line. Pure, so the preview agrees with the chatbox.</summary>
         public static bool ShouldIncludeDevice(TrackerDevice device, TrackerBatterySettings settings)
         {
             if (device.IsHidden)
@@ -744,10 +731,6 @@ namespace vrcosc_magicchatbox.Classes.Modules
             return System.Text.RegularExpressions.Regex.Replace(value.Trim(), @"\s+", " ");
         }
 
-        /// <summary>
-        /// Renders one device against the template. Pure, so the value/label rule can be checked
-        /// without SteamVR running.
-        /// </summary>
         public static string BuildEntry(TrackerDevice device, string template, TrackerBatterySettings settings, bool isLow)
         {
             string displayName = string.IsNullOrWhiteSpace(device.DisplayName)
@@ -794,10 +777,6 @@ namespace vrcosc_magicchatbox.Classes.Modules
             return TrimEntry(entry, settings.MaxEntryLength);
         }
 
-        /// <summary>
-        /// Small text is only ever applied to the words around a reading — the battery percentage,
-        /// the low-battery tag and the icon are what the user is looking for, so they stay full size.
-        /// </summary>
         private static string Raise(string value, bool small)
         {
             if (!small || string.IsNullOrEmpty(value))

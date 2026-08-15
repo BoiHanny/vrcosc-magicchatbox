@@ -585,10 +585,6 @@ public sealed partial class TwitchModule : ObservableObject, IModule
     private string BuildOutputString()
         => BuildOutputString(Settings, GameName, ViewerCount, FollowerCount, StreamTitle, IsLive);
 
-    /// <summary>
-    /// Pure formatter for the chatbox segment — everything it reads is passed in, so the
-    /// value/label rule can be exercised without a live channel.
-    /// </summary>
     public static string BuildOutputString(
         TwitchSettings settings,
         string gameName,
@@ -689,8 +685,6 @@ public sealed partial class TwitchModule : ObservableObject, IModule
     {
         bool useSmallText = settings.UseSmallText;
 
-        // The live marker is the one word on the line that has to be spotted, so it is never
-        // raised. Small text is for the labels sitting beside a value.
         string live = string.Empty;
         if (settings.ShowLiveIndicator)
         {

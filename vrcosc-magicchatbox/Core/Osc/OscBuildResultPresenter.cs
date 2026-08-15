@@ -27,9 +27,6 @@ public sealed class OscBuildResultPresenter
     {
         _integrationDisplay.ResetAllOpacity();
 
-        // The build runs whether or not anything is being sent, so the master switch decides this
-        // rather than the build does. With it off nothing reaches VRChat, and no integration should
-        // be claiming otherwise.
         _integrationDisplay.LiveOutputKeys = _appState.Value.MasterSwitch
             ? result.IncludedProviders
             : NothingLive;

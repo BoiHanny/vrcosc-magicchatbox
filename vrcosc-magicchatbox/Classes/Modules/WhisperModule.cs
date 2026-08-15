@@ -62,11 +62,6 @@ namespace vrcosc_magicchatbox.Classes.Modules
         [ObservableProperty]
         private bool translateToCustomLanguage = false;
 
-        /// <summary>
-        /// Comes from code, not from the settings file, so updating the app updates the list. Ordered
-        /// deliberately rather than by enum value: new models take the next free number at the end to
-        /// keep saved selections stable, which would otherwise bury the recommended one at the bottom.
-        /// </summary>
         [JsonIgnore]
         public IEnumerable<IntelliGPTModel> AvailableSTTModels => SpeechToTextModels.Ordered;
 
@@ -181,8 +176,6 @@ namespace vrcosc_magicchatbox.Classes.Modules
                     {
                         settings.RefreshSpeechToTextLanguages();
 
-                        // A saved model that is no longer offered would fail every transcription with
-                        // an error from the API rather than anything the user could act on.
                         settings.SpeechToTextModel = SpeechToTextModels.Resolve(settings.SpeechToTextModel);
                         return settings;
                     }

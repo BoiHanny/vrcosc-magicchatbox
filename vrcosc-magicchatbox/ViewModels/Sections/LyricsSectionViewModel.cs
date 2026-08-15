@@ -32,8 +32,6 @@ public partial class LyricsSectionViewModel : ObservableObject
         Settings.PropertyChanged += (_, _) => RefreshPreview();
         IntegrationSettings.PropertyChanged += (_, e) =>
         {
-            // The master can move without this section touching it (privacy, the Integrations page),
-            // and the per-source flags have to follow it back.
             if (e.PropertyName == nameof(IntegrationSettings.IntgrLyrics))
                 LyricsSourceCoordinator.SyncWithMaster(IntegrationSettings);
 
@@ -68,10 +66,6 @@ public partial class LyricsSectionViewModel : ObservableObject
         OnPropertyChanged(nameof(HostSummary));
     }
 
-    /// <summary>
-    /// Says what will actually happen, which means answering two separate questions: whether lyrics
-    /// are switched on for a player, and whether that player is switched on in the first place.
-    /// </summary>
     public string HostSummary
     {
         get
@@ -117,13 +111,8 @@ public partial class LyricsSectionViewModel : ObservableObject
 
     public string OffsetSummary => LyricsTuning.FormatOffsetSummary(Settings.OffsetMs);
 
-    /// <summary>
-    /// Compact form for the Integrations ribbon pill; <see cref="OffsetSummary" /> stays the long
-    /// form for the Options page, which has a whole card to spend on it.
-    /// </summary>
     public string OffsetChip => LyricsTuning.FormatOffsetChip(Settings.OffsetMs);
 
-    /// <summary>Non-null when the hold silently disables the ♪ break marker.</summary>
     public string? TimingWarning
         => LyricsTuning.DescribeTimingConflict(Settings.GapThresholdSeconds, Settings.LineHoldSeconds);
 
@@ -139,10 +128,6 @@ public partial class LyricsSectionViewModel : ObservableObject
         _settingsProvider.Save();
     }
 
-    /// <summary>
-    /// Back to the shipped offset, not to zero. Zero is not neutral - it is where the words arrive
-    /// late - so resetting to it would undo the correction.
-    /// </summary>
     [RelayCommand]
     private void ResetOffset()
     {

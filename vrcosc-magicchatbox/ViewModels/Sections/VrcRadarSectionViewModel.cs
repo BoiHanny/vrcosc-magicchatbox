@@ -24,13 +24,10 @@ public partial class VrcRadarSectionViewModel : ObservableObject
     [ObservableProperty] private bool _isStarting;
     [ObservableProperty] private string? _selectedWorldPresetName;
 
-    /// <summary>The world line as it would read from a stand-in room.</summary>
     [ObservableProperty] private string _worldSamplePreview = string.Empty;
 
-    /// <summary>The same for someone walking in, which is the line people see most.</summary>
     [ObservableProperty] private string _joinSamplePreview = string.Empty;
 
-    /// <summary>And the end-of-session line, which nobody can trigger on demand to check.</summary>
     [ObservableProperty] private string _sessionStatsSamplePreview = string.Empty;
 
     public RadarDisplayMode[] DisplayModes { get; } =
@@ -115,15 +112,6 @@ public partial class VrcRadarSectionViewModel : ObservableObject
     }
 }
 
-/// <summary>
-/// Fills a radar template with a stand-in room so the settings page can show a finished line.
-/// </summary>
-/// <remarks>
-/// The module's own renderer needs a live VRChat log behind it and a room to be in, which is the
-/// one thing a user configuring the templates does not have. This mirrors the tidy-up the module
-/// applies on the way out - the empty-field collapse in particular, because turning the instance
-/// type off is exactly the kind of change whose effect the user cannot otherwise see.
-/// </remarks>
 public static class RadarSampleLine
 {
     public const string SampleWorld = "Midnight Rooftop";
@@ -153,8 +141,6 @@ public static class RadarSampleLine
             .Replace("{worlds}", "3")
             .Replace("{players}", "27");
 
-        // These two are the switches directly above the template box, so the preview has to obey
-        // them or the switches look dead.
         text = text.Replace("{type}", settings.ShowInstanceType ? SampleType : string.Empty);
         text = text.Replace("{region}", settings.ShowRegion ? SampleRegion : string.Empty);
 

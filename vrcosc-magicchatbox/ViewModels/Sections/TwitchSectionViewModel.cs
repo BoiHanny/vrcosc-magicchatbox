@@ -11,11 +11,6 @@ namespace vrcosc_magicchatbox.ViewModels.Sections;
 
 public partial class TwitchSectionViewModel : ObservableObject
 {
-    /// <summary>
-    /// Stand-in values for the preview. Twitch asks the user to lay out a line before they have
-    /// ever been live, so the preview uses fixed plausible numbers rather than showing nothing -
-    /// the same trick that lets the Spotify section preview with no track playing.
-    /// </summary>
     public const string SampleGame = "Beat Saber";
 
     public const int SampleViewerCount = 1234;
@@ -29,10 +24,8 @@ public partial class TwitchSectionViewModel : ObservableObject
     public ISettingsProvider<TwitchSettings> TwitchSettingsProvider { get; }
     public INavigationService Navigation { get; }
 
-    /// <summary>The line as the chatbox would get it while the channel is live.</summary>
     [ObservableProperty] private string _livePreview = string.Empty;
 
-    /// <summary>The same line once the stream ends - empty means Twitch shows nothing at all.</summary>
     [ObservableProperty] private string _offlinePreview = string.Empty;
 
     public TwitchSectionViewModel(
@@ -46,15 +39,10 @@ public partial class TwitchSectionViewModel : ObservableObject
         TwitchSettingsProvider = twitchSettingsProvider;
         Navigation = nav;
 
-        // Every control in the section shapes the same line, so one subscription covers them all.
         TwitchSettingsProvider.Value.PropertyChanged += OnTwitchSettingsChanged;
         RefreshPreview();
     }
 
-    /// <summary>
-    /// Renders the user's current layout against the sample values. Pure, so a test can prove the
-    /// preview and the chatbox agree without a Twitch account.
-    /// </summary>
     public static string BuildSampleLine(TwitchSettings settings, bool isLive)
         => TwitchModule.BuildOutputString(
             settings,

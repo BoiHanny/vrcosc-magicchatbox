@@ -48,7 +48,6 @@ public class MediaLinkModule : vrcosc_magicchatbox.Services.IMediaLinkService
 
     public DateTime LastMediaChangeTime { get; private set; } = DateTime.UtcNow;
 
-
     public MediaLinkModule(
         bool shouldStart,
         IPrivacyConsentService consentService,
@@ -224,8 +223,6 @@ public class MediaLinkModule : vrcosc_magicchatbox.Services.IMediaLinkService
     {
         try
         {
-            // A session that is being torn down can answer GetPlaybackInfo with null
-            // rather than throwing, so this is a routine race, not an error worth logging.
             var playbackInfo = session.ControlSession?.GetPlaybackInfo();
             if (playbackInfo == null)
                 return;
@@ -410,8 +407,6 @@ public class MediaLinkModule : vrcosc_magicchatbox.Services.IMediaLinkService
             Logging.WriteException(ex, MSGBox: false);
         }
     }
-
-
 
     private async void MediaManager_OnAnySessionClosed(MediaSession session)
     {
@@ -717,11 +712,7 @@ public class MediaLinkModule : vrcosc_magicchatbox.Services.IMediaLinkService
         {
             await S.ControlSession.TrySkipPreviousAsync();
         }
-
     }
-
-
-
 
     public async Task MediaManager_SeekTo(MediaSessionInfo sessionInfo, double position)
     {
@@ -743,13 +734,6 @@ public class MediaLinkModule : vrcosc_magicchatbox.Services.IMediaLinkService
             Logging.WriteInfo($"Unable to seek media session {S.Id}: {ex.Message}");
         }
     }
-
-
-
-
-
-
-
 
     public void SessionRestore(MediaSessionInfo session)
     {
@@ -803,8 +787,6 @@ public class MediaLinkModule : vrcosc_magicchatbox.Services.IMediaLinkService
             Logging.WriteException(ex, MSGBox: false);
         }
     }
-
-
 
     public class MediaLinkStyle : INotifyPropertyChanged
     {
@@ -886,7 +868,6 @@ public class MediaLinkModule : vrcosc_magicchatbox.Services.IMediaLinkService
             get => showTimeInSuperscript;
             set => SetProperty(ref showTimeInSuperscript, value);
         }
-
 
         public bool SpaceAgainObjects
         {
@@ -974,5 +955,4 @@ public class MediaLinkModule : vrcosc_magicchatbox.Services.IMediaLinkService
             set => SetProperty(ref timeSuffix, value);
         }
     }
-
 }
