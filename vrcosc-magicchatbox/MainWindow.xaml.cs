@@ -7,6 +7,7 @@ using System.Windows.Input;
 using System.Windows.Interop;
 using System.Windows.Media.Animation;
 using System.Windows.Shell;
+using System.Windows.Threading;
 using vrcosc_magicchatbox.Classes.DataAndSecurity;
 using vrcosc_magicchatbox.Classes.Modules;
 using vrcosc_magicchatbox.Core.Configuration;
@@ -218,6 +219,7 @@ namespace vrcosc_magicchatbox
 
             Closing += MainWindow_ClosingAsync;
             PreviewMouseDown += MainWindow_PreviewMouseDown;
+            ContentRendered += OnFirstContentRendered;
         }
 
         public void ApplyIntegrationOrder()
@@ -484,16 +486,30 @@ namespace vrcosc_magicchatbox
             }
 
             // Maximized cannot be parked - Windows snaps it back to a monitor - so that one case
-            // still has to hide behind opacity, and still pays the blank first frame.
+            // hides behind opacity instead. The reveal still waits for a rendered frame.
             Opacity = 0;
+        }
 
-            _revealLeft = double.IsNaN(Left) ? null : Left;
-            _revealTop = double.IsNaN(Top) ? null : Top;
-            _parkedOffScreen = true;
+        /// <summary>
+        /// True once WPF has drawn this window at least once.
+        /// </summary>
+        /// <remarks>
+        /// The reveal has to wait for this. Startup runs a lot of work on the UI thread, and while
+        /// the dispatcher is busy it cannot service the render queue - so "the window has existed
+        /// for several seconds" says nothing about whether anything has been painted into it. Reveal
+        /// before the first frame and the desktop shows the blank surface the HWND was created with.
+        /// </remarks>
+        private bool _hasRendered;
+        private bool _revealWanted;
+        private DispatcherTimer? _revealSafetyNet;
 
-            WindowStartupLocation = WindowStartupLocation.Manual;
-            Left = SystemParameters.VirtualScreenLeft - Width - 400;
-            Top = SystemParameters.VirtualScreenTop - Height - 400;
+        private void OnFirstContentRendered(object? sender, EventArgs e)
+        {
+            ContentRendered -= OnFirstContentRendered;
+            _hasRendered = true;
+
+            if (_revealWanted)
+                Reveal();
         }
 
         /// <summary>
@@ -509,6 +525,34 @@ namespace vrcosc_magicchatbox
                 Dispatcher.BeginInvoke(FadeInAfterStartup);
                 return;
             }
+
+            if (_hasRendered)
+            {
+                Reveal();
+                return;
+            }
+
+            // Nothing has been painted yet. Wait for the first frame rather than showing the blank
+            // surface, but do not wait forever - an app that never appears is worse than a flash.
+            _revealWanted = true;
+
+            _revealSafetyNet?.Stop();
+            _revealSafetyNet = new DispatcherTimer(
+                TimeSpan.FromSeconds(5),
+                DispatcherPriority.Normal,
+                (_, _) =>
+                {
+                    Logging.WriteInfo("[Startup] First frame never arrived; revealing the window anyway.");
+                    Reveal();
+                },
+                Dispatcher);
+        }
+
+        private void Reveal()
+        {
+            _revealWanted = false;
+            _revealSafetyNet?.Stop();
+            _revealSafetyNet = null;
 
             if (_parkedOffScreen)
             {
