@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Collections.ObjectModel;
+using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using vrcosc_magicchatbox.Classes.Modules;
@@ -92,7 +92,8 @@ public class ChatStateManager
             CreationDate = DateTime.Now,
             ID = randomId,
             IsRunning = true,
-            CanLiveEdit = _chatSettings.ChatLiveEdit
+            CanLiveEdit = _chatSettings.ChatLiveEdit,
+            LiveEditButtonTxt = EditLabel(_chatSettings)
         };
 
         void Apply()
@@ -113,19 +114,40 @@ public class ChatStateManager
             if (_chatStatus.LastMessages.Count > 5)
                 _chatStatus.LastMessages.RemoveAt(0);
 
-            double opacity = 1;
-            foreach (var item in _chatStatus.LastMessages.AsEnumerable().Reverse())
-            {
-                opacity -= 0.18;
-                item.Opacity = opacity.ToString("F1", CultureInfo.InvariantCulture);
-            }
-
-            _chatStatus.LastMessages = new ObservableCollection<ChatItem>(_chatStatus.LastMessages);
+            FadeOlderMessages(_chatStatus.LastMessages);
         }
 
         if (_dispatcher.CheckAccess())
             Apply();
         else
             _dispatcher.Invoke(Apply);
+    }
+
+    /// <summary>
+    /// What the edit button on a live message says. "Live" only when the edit reaches VRChat as it
+    /// is typed, because otherwise the word promises something that does not happen until Enter.
+    /// </summary>
+    public static string EditLabel(ChatSettings settings)
+        => settings.RealTimeChatEdit ? "Live edit" : "Edit";
+
+    /// <summary>
+    /// Dims the history so the newest message reads as the current one.
+    /// </summary>
+    /// <remarks>
+    /// The newest message stays fully opaque and the floor keeps the oldest legible. The ladder used
+    /// to start below full and run to near-zero, so the message a person had just sent arrived
+    /// already faded and the bottom of the list was invisible rather than merely quiet.
+    /// </remarks>
+    public static void FadeOlderMessages(IList<ChatItem> messages)
+    {
+        const double step = 0.16;
+        const double floor = 0.36;
+
+        double opacity = 1;
+        for (int i = messages.Count - 1; i >= 0; i--)
+        {
+            messages[i].Opacity = opacity.ToString("F2", CultureInfo.InvariantCulture);
+            opacity = Math.Max(floor, opacity - step);
+        }
     }
 }

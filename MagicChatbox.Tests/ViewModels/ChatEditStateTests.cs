@@ -1,0 +1,220 @@
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Globalization;
+using System.Linq;
+using vrcosc_magicchatbox.Classes.DataAndSecurity;
+using vrcosc_magicchatbox.Classes.Modules;
+using vrcosc_magicchatbox.Core.Configuration;
+using vrcosc_magicchatbox.Core.Services;
+using vrcosc_magicchatbox.Core.State;
+using vrcosc_magicchatbox.Services;
+using vrcosc_magicchatbox.ViewModels;
+using vrcosc_magicchatbox.ViewModels.Models;
+using vrcosc_magicchatbox.ViewModels.State;
+using Xunit;
+
+namespace MagicChatbox.Tests.ViewModels;
+
+/// <summary>
+/// Editing a message that is still showing in VRChat.
+/// </summary>
+public class ChatEditStateTests
+{
+    private sealed class StubSettingsProvider<T> : ISettingsProvider<T> where T : class, new()
+    {
+        public T Value { get; } = new T();
+        public void Save() { }
+        public void FlushPendingSave() { }
+        public void Reload() { }
+        public event EventHandler SettingsChanged { add { } remove { } }
+    }
+
+    private sealed class FakeAppState : IAppState
+    {
+        public bool MasterSwitch { get; set; } = true;
+        public bool IsVRRunning { get; set; }
+        public bool BussyBoysMode { get; set; }
+        public bool Egg_Dev { get; set; }
+        public bool PulsoidAuthConnected { get; set; }
+        public PulsoidAuthState PulsoidAuthState { get; set; }
+        public int MainWindowBlurEffect { get; set; }
+        public event PropertyChangedEventHandler? PropertyChanged { add { } remove { } }
+    }
+
+    private readonly ChatStatusDisplayState _chatStatus = new();
+    private readonly StubSettingsProvider<ChatSettings> _chatSettings = new();
+    private readonly ChattingPageViewModel _vm;
+
+    public ChatEditStateTests()
+    {
+        // Only the edit state machine is under test here and it touches nothing but the message and
+        // the chat settings, so the collaborators behind it are never resolved.
+        _vm = new ChattingPageViewModel(
+            _chatStatus,
+            new FakeAppState(),
+            Unused<IModuleHost>(),
+            _chatSettings,
+            new StubSettingsProvider<TtsSettings>(),
+            Unused<ScanLoopService>(),
+            Unused<OSCController>(),
+            Unused<IChatHistoryService>(),
+            Unused<IAudioService>(),
+            Unused<IOscSender>(),
+            Unused<ITtsPlaybackService>(),
+            Unused<ILiveTypingService>(),
+            null!,
+            null!);
+    }
+
+    private static Lazy<T> Unused<T>() where T : class
+        => new(() => throw new InvalidOperationException(typeof(T).Name + " should not be needed to edit a message."));
+
+    private ChatItem Running(string message)
+    {
+        var item = new ChatItem(_chatStatus)
+        {
+            Msg = message,
+            MainMsg = message,
+            IsRunning = true,
+            CanLiveEdit = true,
+            Opacity = "1",
+        };
+
+        _chatStatus.LastMessages.Add(item);
+        return item;
+    }
+
+    [Fact]
+    public void Opening_an_edit_leaves_the_caret_a_space_to_carry_on_from()
+    {
+        var item = Running("hello");
+
+        _vm.BeginChatEdit(item);
+
+        Assert.Equal("hello ", item.MsgReplace);
+    }
+
+    [Fact]
+    public void Closing_an_edit_untouched_does_not_smuggle_that_space_into_the_message()
+    {
+        // The space is scaffolding for the edit box. Committing it spends a character of the 141 on
+        // something nobody can see, and makes an unchanged message look changed.
+        var item = Running("hello");
+        _vm.BeginChatEdit(item);
+
+        _vm.ConfirmChatEdit(item);
+
+        Assert.Equal("hello", item.Msg);
+        Assert.Equal("hello", item.MainMsg);
+    }
+
+    [Fact]
+    public void Confirming_an_edit_puts_the_new_text_on_the_message()
+    {
+        var item = Running("hello");
+        _vm.BeginChatEdit(item);
+        item.MsgReplace = "hello there ";
+
+        _vm.ConfirmChatEdit(item);
+
+        Assert.Equal("hello there", item.Msg);
+        Assert.Equal("hello there", item.MainMsg);
+        Assert.False(item.CanLiveEditRun);
+    }
+
+    [Fact]
+    public void Closing_an_edit_puts_the_row_back_to_the_opacity_it_had()
+    {
+        var item = Running("hello");
+        item.Opacity = "0.68";
+        _vm.BeginChatEdit(item);
+        Assert.Equal("1", item.Opacity);
+
+        _vm.ConfirmChatEdit(item);
+
+        Assert.Equal("0.68", item.Opacity);
+    }
+
+    [Fact]
+    public void Escape_puts_the_message_back_the_way_it_was()
+    {
+        _chatSettings.Value.RealTimeChatEdit = true;
+        var item = Running("hello");
+        _vm.BeginChatEdit(item);
+
+        _vm.HandleEditTextChanged(item, "hello wor");
+        Assert.Equal("hello wor", item.Msg);
+
+        _vm.HandleEditEscape(item);
+        _vm.ConfirmChatEdit(item);
+
+        Assert.Equal("hello", item.Msg);
+        Assert.False(item.CancelLiveEdit);
+    }
+
+    [Fact]
+    public void An_edit_never_lands_on_a_message_other_than_the_one_that_was_opened()
+    {
+        // Only the running message is editable, so in practice these are the same row. The guard is
+        // for when they are not: silently rewriting a different message is the worst thing this
+        // could do, and it is invisible when it happens.
+        var running = Running("the live one");
+        var old = new ChatItem(_chatStatus) { Msg = "an older one", MainMsg = "an older one" };
+        _chatStatus.LastMessages.Add(old);
+
+        Assert.False(_vm.HandleEditEnter(old, "rewritten"));
+
+        Assert.Equal("an older one", old.Msg);
+        Assert.Equal("the live one", running.Msg);
+    }
+
+    [Fact]
+    public void Enter_commits_to_the_message_it_was_typed_in()
+    {
+        var item = Running("hello");
+        _vm.BeginChatEdit(item);
+
+        Assert.True(_vm.HandleEditEnter(item, "hello there "));
+
+        Assert.Equal("hello there", item.Msg);
+        Assert.False(item.CanLiveEditRun);
+    }
+
+    [Fact]
+    public void The_edit_button_only_promises_live_when_edits_really_go_out_live()
+    {
+        Assert.Equal("Live edit", ChatStateManager.EditLabel(new ChatSettings { RealTimeChatEdit = true }));
+        Assert.Equal("Edit", ChatStateManager.EditLabel(new ChatSettings { RealTimeChatEdit = false }));
+    }
+
+    [Fact]
+    public void The_newest_message_is_never_pre_faded_and_the_oldest_stays_readable()
+    {
+        // The ladder used to start at 0.82 and run down to 0.10, and the row applied it twice - so
+        // a message arrived at 0.67 and the bottom of the list rendered at 0.01.
+        var messages = Enumerable.Range(0, 5)
+            .Select(_ => new ChatItem(_chatStatus))
+            .ToList();
+
+        ChatStateManager.FadeOlderMessages(messages);
+
+        var values = messages
+            .Select(m => double.Parse(m.Opacity, CultureInfo.InvariantCulture))
+            .ToList();
+
+        Assert.Equal(1.0, values[^1]);
+        Assert.True(values[0] >= 0.3, "the oldest message faded to " + values[0]);
+        Assert.True(values.SequenceEqual(values.OrderBy(v => v)), "the fade is not monotonic: " + string.Join(", ", values));
+    }
+
+    [Fact]
+    public void Fading_a_single_message_leaves_it_alone()
+    {
+        var only = new List<ChatItem> { new(_chatStatus) };
+
+        ChatStateManager.FadeOlderMessages(only);
+
+        Assert.Equal(1.0, double.Parse(only[0].Opacity, CultureInfo.InvariantCulture));
+    }
+}

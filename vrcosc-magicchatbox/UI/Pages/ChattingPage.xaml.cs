@@ -57,7 +57,11 @@ namespace vrcosc_magicchatbox.UI.Pages
             => VM.SendChat();
 
         private void CancelEditChatbutton_Click(object sender, RoutedEventArgs e)
-            => VM.CancelEditCommand.Execute(null);
+            => VM.CancelEditCommand.Execute(EditedItem(sender));
+
+        /// <summary>The message row an edit control belongs to.</summary>
+        private static ChatItem? EditedItem(object sender)
+            => (sender as FrameworkElement)?.DataContext as ChatItem;
 
         private void ClearChat_Click(object sender, RoutedEventArgs e)
             => VM.ClearChatCommand.Execute(null);
@@ -106,21 +110,24 @@ namespace vrcosc_magicchatbox.UI.Pages
             var textbox = sender as TextBox;
             if (e.Key == Key.Enter)
             {
-                if (VM.HandleEditEnter(textbox?.Text ?? ""))
+                if (VM.HandleEditEnter(EditedItem(sender), textbox?.Text ?? ""))
                 {
                     NewChattingTxt.Focus();
                     NewChattingTxt.CaretIndex = NewChattingTxt.Text.Length;
                 }
+                e.Handled = true;
             }
             if (e.Key == Key.Escape)
-                VM.HandleEditEscape();
+            {
+                VM.HandleEditEscape(EditedItem(sender));
+                e.Handled = true;
+            }
         }
 
         private void EditChatTextBox_TextChanged(object sender, TextChangedEventArgs e)
         {
-            var textbox = sender as TextBox;
-            if (textbox != null)
-                VM.HandleEditTextChanged(textbox.Text);
+            if (sender is TextBox textbox)
+                VM.HandleEditTextChanged(EditedItem(sender), textbox.Text);
         }
 
         private void ToggleButton_Checked(object sender, RoutedEventArgs e)

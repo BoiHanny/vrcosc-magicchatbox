@@ -24,7 +24,7 @@ namespace vrcosc_magicchatbox.ViewModels.Models
         private bool _IsRunning = false;
 
 
-        private string _LiveEditButtonTxt = "Sending...";
+        private string _LiveEditButtonTxt = "Edit";
 
         private string _MainMsg = "";
         private string _msg = "";

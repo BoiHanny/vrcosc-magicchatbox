@@ -47,6 +47,9 @@ namespace vrcosc_magicchatbox.ViewModels
         private readonly Lazy<ITtsPlaybackService> _ttsPlayback;
         private ITtsPlaybackService TtsPlayback => _ttsPlayback.Value;
 
+        private readonly Lazy<ILiveTypingService> _liveTyping;
+        private ILiveTypingService LiveTyping => _liveTyping.Value;
+
         private readonly ChatSettings CS;
         private readonly TtsSettings TTS;
 
@@ -70,6 +73,7 @@ namespace vrcosc_magicchatbox.ViewModels
             Lazy<IAudioService> audioSvc,
             Lazy<IOscSender> oscSender,
             Lazy<ITtsPlaybackService> ttsPlayback,
+            Lazy<ILiveTypingService> liveTyping,
             IOpenAiChatService openAiChatService,
             IUiDispatcher uiDispatcher)
         {
@@ -88,10 +92,16 @@ namespace vrcosc_magicchatbox.ViewModels
             _audioSvc = audioSvc;
             _oscSender = oscSender;
             _ttsPlayback = ttsPlayback;
+            _liveTyping = liveTyping;
             CS.PropertyChanged += (_, e) =>
             {
                 if (e.PropertyName == nameof(ChatSettings.ChatAutocompleteEnabled) && !CS.ChatAutocompleteEnabled)
                     ClearAutocompleteSuggestion();
+
+                // Switching it on mid-sentence should pick up what is already in the box rather
+                // than waiting for the next keystroke to notice.
+                if (e.PropertyName == nameof(ChatSettings.ChatLiveTyping) && CS.ChatLiveTyping)
+                    LiveTyping.Show(_chatStatus.NewChattingTxt);
             };
 
             if (_appState is INotifyPropertyChanged notifier)
@@ -201,6 +211,11 @@ namespace vrcosc_magicchatbox.ViewModels
                 item.IsRunning = false;
             }
 
+            // Drop the hold before the send, not after. Sending empties the input box, and an empty
+            // box asks live typing to wipe the chatbox - which would erase the message that was just
+            // put there. Releasing first means that request finds nothing to release.
+            LiveTyping.Release(clearChatbox: false);
+
             Osc.CreateChat(true, preserveCurrentInput ? chat : null);
             int smalldelay = CS.ChatAddSmallDelay ? (int)(CS.ChatAddSmallDelayTIME * 1000) : 0;
             _ = SendOscMessageWithFeedbackAsync(CS.ChatFX, smalldelay);
@@ -242,6 +257,8 @@ namespace vrcosc_magicchatbox.ViewModels
         [RelayCommand]
         public void StopChat()
         {
+            // The clear below covers the chatbox, so the hold only has to stop competing for it.
+            LiveTyping.Release(clearChatbox: false);
             ChatItem? running = _chatStatus.LastMessages.FirstOrDefault(x => x.IsRunning);
             Osc.ClearChat(running);
             int smalldelay = CS.ChatAddSmallDelay ? (int)(CS.ChatAddSmallDelayTIME * 1000) : 0;
@@ -280,7 +297,7 @@ namespace vrcosc_magicchatbox.ViewModels
 
                 item.CanLiveEdit = CS.ChatLiveEdit;
                 item.MainMsg = item.Msg;
-                item.LiveEditButtonTxt = "Sending...";
+                item.LiveEditButtonTxt = ChatStateManager.EditLabel(CS);
                 item.IsRunning = true;
 
                 Osc.CreateChat(false, item.Msg);
@@ -316,12 +333,7 @@ namespace vrcosc_magicchatbox.ViewModels
         {
             try
             {
-                ChatItem? running = _chatStatus.LastMessages.FirstOrDefault(x => x.IsRunning);
-                if (running != null && !string.IsNullOrEmpty(running.MainMsg))
-                {
-                    running.CancelLiveEdit = true;
-                    running.CanLiveEditRun = false;
-                }
+                HandleEditEscape(item);
             }
             catch (Exception ex)
             {
@@ -352,10 +364,20 @@ namespace vrcosc_magicchatbox.ViewModels
                 _chatStatus.ChatTopBarTxt = string.Empty;
             }
 
-            if (count > 0)
+            if (CS.ChatLiveTyping)
+            {
+                // The words themselves are the indicator now. Sending the "..." bubble as well would
+                // have it flicker off on every push and back on with every keystroke.
+                LiveTyping.Show(text);
+            }
+            else if (count > 0)
+            {
                 _oscSender.Value.SendTypingIndicatorAsync();
+            }
             else
+            {
                 _oscSender.Value.StopTypingIndicator();
+            }
 
             UpdateAutocompleteSuggestion(text);
         }
@@ -549,67 +571,85 @@ namespace vrcosc_magicchatbox.ViewModels
 
         #region Chat edit state machine
 
+        // Every one of these acts on the message the user actually opened, rather than looking up
+        // whichever message happens to be running. The two are normally the same one - only the
+        // running message can be edited - but "normally" is not a guarantee, and the failure mode
+        // when they diverge is silently rewriting a different message than the one on screen.
+
         public void BeginChatEdit(ChatItem item)
         {
+            // A trailing space so the caret lands ready to keep typing. It is scaffolding for the
+            // edit box only, and comes back off before anything is committed.
             item.MsgReplace = item.Msg.EndsWith(" ") ? item.Msg : item.Msg + " ";
             item.Opacity_backup = item.Opacity;
             item.Opacity = "1";
         }
 
-        public bool ConfirmChatEdit(ChatItem item)
+        public bool ConfirmChatEdit(ChatItem? item)
         {
-            ChatItem? running = _chatStatus.LastMessages.FirstOrDefault(x => x.IsRunning);
-            if (item != null && running != null)
+            if (item is null)
+                return true;
+
+            if (item.IsRunning)
             {
-                if (running.Msg != item.MsgReplace && !running.CancelLiveEdit)
-                {
-                    running.MainMsg = item.MsgReplace;
-                    running.Msg = item.MsgReplace;
-                    running.CanLiveEditRun = false;
-                }
-                else if (running.CancelLiveEdit)
+                if (item.CancelLiveEdit)
                 {
                     if (CS.RealTimeChatEdit)
-                        running.Msg = running.MainMsg;
-                    running.CancelLiveEdit = false;
+                        item.Msg = item.MainMsg;
+                    item.CancelLiveEdit = false;
+                }
+                else
+                {
+                    CommitEdit(item, item.MsgReplace);
                 }
             }
-            if (item != null)
-                item.Opacity = item.Opacity_backup;
+
+            item.Opacity = item.Opacity_backup;
             return true;
         }
 
-        public bool HandleEditEnter(string editText)
+        public bool HandleEditEnter(ChatItem? item, string editText)
         {
-            ChatItem? running = _chatStatus.LastMessages.FirstOrDefault(x => x.IsRunning);
-            if (running == null) return false;
+            if (item is null || !item.IsRunning)
+                return false;
 
-            if (CS.RealTimeChatEdit || running.Msg != editText)
-            {
-                running.MainMsg = editText;
-                if (!CS.RealTimeChatEdit) running.Msg = editText;
-                running.CanLiveEditRun = false;
-            }
+            CommitEdit(item, editText);
             return true;
         }
 
-        public void HandleEditEscape()
+        public void HandleEditEscape(ChatItem? item)
         {
-            ChatItem? running = _chatStatus.LastMessages.FirstOrDefault(x => x.IsRunning);
-            if (running != null && !string.IsNullOrEmpty(running.MainMsg))
-            {
-                running.CancelLiveEdit = true;
-                running.CanLiveEditRun = false;
-            }
+            if (item is null || !item.IsRunning || string.IsNullOrEmpty(item.MainMsg))
+                return;
+
+            item.CancelLiveEdit = true;
+            item.CanLiveEditRun = false;
         }
 
-        public void HandleEditTextChanged(string newText)
+        public void HandleEditTextChanged(ChatItem? item, string newText)
         {
-            if (!CS.RealTimeChatEdit) return;
-            ChatItem? running = _chatStatus.LastMessages.FirstOrDefault(x => x.IsRunning);
-            if (running != null && running.Msg != newText)
-                running.Msg = newText;
+            if (!CS.RealTimeChatEdit || item is null || !item.IsRunning)
+                return;
+
+            string edited = TrimEdit(newText);
+            if (item.Msg != edited)
+                item.Msg = edited;
         }
+
+        private static void CommitEdit(ChatItem item, string text)
+        {
+            string edited = TrimEdit(text);
+
+            item.MainMsg = edited;
+            item.Msg = edited;
+            item.CanLiveEditRun = false;
+        }
+
+        /// <summary>
+        /// Trailing whitespace is invisible in the chatbox but still spends the character budget, and
+        /// the edit box adds a space of its own on open. Neither belongs in the message.
+        /// </summary>
+        private static string TrimEdit(string? text) => (text ?? string.Empty).TrimEnd();
 
         #endregion
     }
