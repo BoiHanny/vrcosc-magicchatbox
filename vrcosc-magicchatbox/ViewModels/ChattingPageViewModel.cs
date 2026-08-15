@@ -104,12 +104,38 @@ namespace vrcosc_magicchatbox.ViewModels
                     LiveTyping.Show(_chatStatus.NewChattingTxt);
             };
 
+            liveTyping.Value.FinalizeRequested += OnLiveTypingFinished;
+
             if (_appState is INotifyPropertyChanged notifier)
                 notifier.PropertyChanged += (_, e) =>
                 {
                     if (e.PropertyName == nameof(IAppState.IsVRRunning))
                         OnPropertyChanged(nameof(IsVRRunning));
                 };
+        }
+
+        private void OnLiveTypingFinished() => _uiDispatcher.BeginInvoke(FinishLiveLine);
+
+        /// <summary>
+        /// Treats a line that is already showing in VRChat as sent.
+        /// </summary>
+        /// <remarks>
+        /// Pressing Enter is not the only way someone finishes a sentence - they also just stop, or
+        /// click away. Everything downstream of here is the ordinary send, so a line that finished
+        /// on its own lands in the history, holds for the usual countdown, and is the one and only
+        /// point where the notification sound plays. The pushes that got it on screen were silent.
+        /// </remarks>
+        public void FinishLiveLine()
+        {
+            if (!CS.ChatLiveTyping || !CS.ChatLiveTypingAutoFinalize)
+                return;
+
+            // Only a line that is actually showing can be finished. Without this, clicking away from
+            // an empty box, or from one whose text never reached VRChat, would send something.
+            if (!LiveTyping.IsHolding || string.IsNullOrWhiteSpace(_chatStatus.NewChattingTxt))
+                return;
+
+            SendChat();
         }
 
         [RelayCommand]

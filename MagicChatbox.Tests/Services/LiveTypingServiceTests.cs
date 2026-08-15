@@ -244,6 +244,96 @@ public class LiveTypingServiceTests : IDisposable
         Assert.Equal(ChatSettings.ChatLiveTypingRateMaxMs, settings.ChatLiveTypingRateMs);
     }
 
+    [Fact]
+    public void The_fastest_allowed_rate_stays_inside_the_chatbox_meter()
+    {
+        // VRChat meters the chatbox and puts you on a cooldown for going over. Its sustained
+        // allowance works out at about a message a second, so a floor below that would eventually
+        // silence the chatbox rather than merely stutter.
+        Assert.True(
+            ChatSettings.ChatLiveTypingRateMinMs >= 1000,
+            $"a {ChatSettings.ChatLiveTypingRateMinMs}ms floor is {5000.0 / ChatSettings.ChatLiveTypingRateMinMs:N1} messages every 5 seconds");
+    }
+
+    [Fact]
+    public async Task Stopping_typing_asks_for_the_line_to_be_finished()
+    {
+        _settings.Value.ChatLiveTypingFinalizeMs = ChatSettings.ChatLiveTypingFinalizeMinMs;
+        int asked = 0;
+        _live.FinalizeRequested += () => Interlocked.Increment(ref asked);
+
+        _live.Show("all done");
+        await WaitFor(() => Volatile.Read(ref asked) > 0, ChatSettings.ChatLiveTypingFinalizeMinMs + 2000);
+
+        Assert.Equal(1, Volatile.Read(ref asked));
+    }
+
+    [Fact]
+    public async Task Carrying_on_typing_pushes_the_finish_back()
+    {
+        _settings.Value.ChatLiveTypingFinalizeMs = ChatSettings.ChatLiveTypingFinalizeMinMs;
+        int asked = 0;
+        _live.FinalizeRequested += () => Interlocked.Increment(ref asked);
+
+        // Keep typing across what would otherwise have been the deadline. A pause is measured from
+        // the last thing typed, or a slow sentence would be cut in half while it was being written.
+        _live.Show("still");
+        await Task.Delay(ChatSettings.ChatLiveTypingFinalizeMinMs / 2);
+        _live.Show("still going");
+        await Task.Delay(ChatSettings.ChatLiveTypingFinalizeMinMs / 2 + 200);
+
+        Assert.Equal(0, Volatile.Read(ref asked));
+    }
+
+    [Fact]
+    public async Task A_line_that_was_sent_is_not_finished_again()
+    {
+        _settings.Value.ChatLiveTypingFinalizeMs = ChatSettings.ChatLiveTypingFinalizeMinMs;
+        int asked = 0;
+        _live.FinalizeRequested += () => Interlocked.Increment(ref asked);
+
+        _live.Show("sent by hand");
+        _live.Release(clearChatbox: false);
+
+        await Task.Delay(ChatSettings.ChatLiveTypingFinalizeMinMs + 500);
+
+        Assert.Equal(0, Volatile.Read(ref asked));
+    }
+
+    [Fact]
+    public async Task Nothing_finishes_on_its_own_when_that_is_switched_off()
+    {
+        _settings.Value.ChatLiveTypingAutoFinalize = false;
+        _settings.Value.ChatLiveTypingFinalizeMs = ChatSettings.ChatLiveTypingFinalizeMinMs;
+        int asked = 0;
+        _live.FinalizeRequested += () => Interlocked.Increment(ref asked);
+
+        _live.Show("this one waits for Enter");
+        await Task.Delay(ChatSettings.ChatLiveTypingFinalizeMinMs + 500);
+
+        Assert.Equal(0, Volatile.Read(ref asked));
+        Assert.True(_live.IsHolding);
+    }
+
+    [Fact]
+    public void The_pause_that_counts_as_finished_cannot_be_a_thinking_pause()
+    {
+        var settings = new ChatSettings { ChatLiveTypingFinalizeMs = 1 };
+        Assert.Equal(ChatSettings.ChatLiveTypingFinalizeMinMs, settings.ChatLiveTypingFinalizeMs);
+
+        settings.ChatLiveTypingFinalizeMs = 100_000;
+        Assert.Equal(ChatSettings.ChatLiveTypingFinalizeMaxMs, settings.ChatLiveTypingFinalizeMs);
+
+        Assert.True(ChatSettings.ChatLiveTypingFinalizeMinMs >= 2000);
+    }
+
+    private static async Task WaitFor(Func<bool> condition, int timeoutMs)
+    {
+        var deadline = DateTime.UtcNow.AddMilliseconds(timeoutMs);
+        while (!condition() && DateTime.UtcNow < deadline)
+            await Task.Delay(25);
+    }
+
     private async Task WaitForSendCount(int count)
     {
         var deadline = DateTime.UtcNow.AddSeconds(5);

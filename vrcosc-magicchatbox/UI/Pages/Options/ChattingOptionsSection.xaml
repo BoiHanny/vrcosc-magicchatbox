@@ -98,6 +98,45 @@
                             Text="People around you read the line as it appears instead of waiting for you to finish. Pressing Enter still sends it as a normal message. There is a LIVE button on the chat page that switches this on and off without coming here." />
 
                         <StackPanel Margin="12,4,0,0" Visibility="{Binding ChatSettings.ChatLiveTyping, Converter={StaticResource BoolToVisibilityConverter}}">
+                            <CheckBox IsChecked="{Binding ChatSettings.ChatLiveTypingAutoFinalize, Mode=TwoWay}">
+                                Count it as sent when I stop typing or click away
+                            </CheckBox>
+                            <TextBlock
+                                Style="{StaticResource OptionHelpTextStyle}"
+                                Text="Your words are already on screen, so this is what adds the message to your history, plays the send sound once, and starts the countdown. Without it the line stays up until you press Enter." />
+
+                            <StackPanel Margin="12,2,0,6" Visibility="{Binding ChatSettings.ChatLiveTypingAutoFinalize, Converter={StaticResource BoolToVisibilityConverter}}">
+                                <TextBlock
+                                    Margin="2,4,0,3"
+                                    Style="{StaticResource OptionFieldLabelStyle}"
+                                    Text="Count it as finished after" />
+                                <TextBlock
+                                    Style="{StaticResource OptionHelpTextStyle}"
+                                    Text="Give yourself room to think. If this is shorter than your pauses, the box clears mid-sentence and the rest arrives as a second message." />
+                                <StackPanel Margin="0,3,0,0" Orientation="Horizontal">
+                                    <Slider
+                                        x:Name="ChatLiveTypingFinalizeSlider"
+                                        Width="134.5"
+                                        Height="12"
+                                        Margin="2.2,0,4.5,0"
+                                        IsSnapToTickEnabled="True"
+                                        Maximum="20000"
+                                        Minimum="2000"
+                                        Style="{StaticResource CustomSlider}"
+                                        TickFrequency="500"
+                                        Value="{Binding Path=ChatSettings.ChatLiveTypingFinalizeMs, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                    <TextBlock
+                                        Padding="5,0"
+                                        VerticalAlignment="Center"
+                                        Style="{StaticResource OptionFieldLabelStyle}"
+                                        Text="{Binding ChatSettings.ChatLiveTypingFinalizeMs, UpdateSourceTrigger=PropertyChanged}" />
+                                    <TextBlock
+                                        VerticalAlignment="Center"
+                                        Style="{StaticResource OptionFieldLabelStyle}"
+                                        Text="ms of not typing" />
+                                </StackPanel>
+                            </StackPanel>
+
                             <TextBlock
                                 Margin="2,4,0,3"
                                 Style="{StaticResource OptionFieldLabelStyle}"
@@ -113,7 +152,7 @@
                                     Margin="2.2,0,4.5,0"
                                     IsSnapToTickEnabled="True"
                                     Maximum="3000"
-                                    Minimum="800"
+                                    Minimum="1000"
                                     Style="{StaticResource CustomSlider}"
                                     TickFrequency="100"
                                     Value="{Binding Path=ChatSettings.ChatLiveTypingRateMs, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />

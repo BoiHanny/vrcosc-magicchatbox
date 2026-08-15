@@ -42,6 +42,15 @@ public partial class ChatSettings : VersionedSettings
     /// </summary>
     [ObservableProperty] private int _chatLiveTypingRateMs = 1200;
 
+    /// <summary>
+    /// Treat the line as sent once the person stops typing or leaves the box, without waiting for
+    /// Enter. This is the only point at which the notification sound plays.
+    /// </summary>
+    [ObservableProperty] private bool _chatLiveTypingAutoFinalize = true;
+
+    /// <summary>How long a live line may sit untouched before it counts as finished.</summary>
+    [ObservableProperty] private int _chatLiveTypingFinalizeMs = 6000;
+
     [JsonIgnore]
     public bool ChatAutocompleteUsesOpenAI => ChatAutocompleteMode == ChatAutocompleteMode.OpenAI;
 
@@ -89,10 +98,37 @@ public partial class ChatSettings : VersionedSettings
         else if (value > ChatLiveTypingRateMaxMs) ChatLiveTypingRateMs = ChatLiveTypingRateMaxMs;
     }
 
-    // VRChat drops chatbox messages that arrive faster than roughly one a second, so the floor sits
-    // just above that. The ceiling is where "live" stops feeling live.
-    public const int ChatLiveTypingRateMinMs = 800;
+    partial void OnChatLiveTypingFinalizeMsChanged(int value)
+    {
+        if (value < ChatLiveTypingFinalizeMinMs) ChatLiveTypingFinalizeMs = ChatLiveTypingFinalizeMinMs;
+        else if (value > ChatLiveTypingFinalizeMaxMs) ChatLiveTypingFinalizeMs = ChatLiveTypingFinalizeMaxMs;
+    }
+
+    /// <summary>
+    /// The fastest the chatbox may be pushed while a line is being typed.
+    /// </summary>
+    /// <remarks>
+    /// VRChat meters the chatbox and puts you on a cooldown for going over, and the sustained rate it
+    /// allows works out at about one message a second - the same figure the integration tick has run
+    /// at for years without trouble. Anything below this is a floor that would eventually silence the
+    /// chatbox entirely, which is a worse outcome than a slightly less smooth line.
+    /// </remarks>
+    public const int ChatLiveTypingRateMinMs = 1000;
+
+    /// <summary>Past this, "live" has stopped being live.</summary>
     public const int ChatLiveTypingRateMaxMs = 3000;
+
+    /// <summary>
+    /// Bounds on the pause that counts as "finished".
+    /// </summary>
+    /// <remarks>
+    /// The floor is deliberately well above a thinking pause. Finishing early is not harmless: the
+    /// box clears, so the rest of the sentence becomes a second message and the thought arrives
+    /// split in two.
+    /// </remarks>
+    public const int ChatLiveTypingFinalizeMinMs = 2000;
+
+    public const int ChatLiveTypingFinalizeMaxMs = 20000;
 }
 
 public enum ChatAutocompleteMode

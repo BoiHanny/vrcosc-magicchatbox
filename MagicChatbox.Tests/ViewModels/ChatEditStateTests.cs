@@ -42,6 +42,24 @@ public class ChatEditStateTests
         public event PropertyChangedEventHandler? PropertyChanged { add { } remove { } }
     }
 
+    /// <summary>
+    /// Live typing is wired up when the page's view model is built, so it cannot be one of the
+    /// collaborators below that throw on touch. Editing a message must still not reach it.
+    /// </summary>
+    private sealed class SilentLiveTyping : ILiveTypingService
+    {
+        public event Action? FinalizeRequested { add { } remove { } }
+
+        public bool IsHolding { get; set; }
+
+        public int Interactions { get; private set; }
+
+        public void Show(string text) => Interactions++;
+
+        public void Release(bool clearChatbox) => Interactions++;
+    }
+
+    private readonly SilentLiveTyping _liveTyping = new();
     private readonly ChatStatusDisplayState _chatStatus = new();
     private readonly StubSettingsProvider<ChatSettings> _chatSettings = new();
     private readonly ChattingPageViewModel _vm;
@@ -62,7 +80,7 @@ public class ChatEditStateTests
             Unused<IAudioService>(),
             Unused<IOscSender>(),
             Unused<ITtsPlaybackService>(),
-            Unused<ILiveTypingService>(),
+            new Lazy<ILiveTypingService>(() => _liveTyping),
             null!,
             null!);
     }
@@ -216,5 +234,43 @@ public class ChatEditStateTests
         ChatStateManager.FadeOlderMessages(only);
 
         Assert.Equal(1.0, double.Parse(only[0].Opacity, CultureInfo.InvariantCulture));
+    }
+
+    [Fact]
+    public void Editing_a_message_never_touches_the_chatbox()
+    {
+        // Editing rewrites a message that is already out there; the update goes through the running
+        // message, not by shoving text at the chatbox behind the send path's back.
+        var item = Running("hello");
+
+        _vm.BeginChatEdit(item);
+        _vm.HandleEditTextChanged(item, "hello there");
+        _vm.HandleEditEnter(item, "hello there");
+        _vm.ConfirmChatEdit(item);
+
+        Assert.Equal(0, _liveTyping.Interactions);
+    }
+
+    [Theory]
+    [InlineData(true, true, true, "", "an empty box")]
+    [InlineData(true, true, true, "   ", "a box holding only spaces")]
+    [InlineData(true, true, false, "real words", "a line that never reached VRChat")]
+    [InlineData(true, false, true, "real words", "finishing on its own switched off")]
+    [InlineData(false, true, true, "real words", "live typing switched off")]
+    public void Nothing_is_posted_when_there_is_no_live_line_to_finish(
+        bool liveTyping, bool autoFinalize, bool holding, string text, string because)
+    {
+        // FinishLiveLine fires on a timer and on losing focus, so it runs constantly in situations
+        // where there is nothing to send. Every collaborator behind the send path throws on touch,
+        // so reaching it at all fails this - which is the point: an accidental send is a message to
+        // other people that nobody asked for.
+        _chatSettings.Value.ChatLiveTyping = liveTyping;
+        _chatSettings.Value.ChatLiveTypingAutoFinalize = autoFinalize;
+        _liveTyping.IsHolding = holding;
+        _chatStatus.NewChattingTxt = text;
+
+        _vm.FinishLiveLine();
+
+        Assert.True(_chatStatus.LastMessages.Count == 0, "something was posted for " + because);
     }
 }

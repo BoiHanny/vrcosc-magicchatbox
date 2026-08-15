@@ -88,7 +88,7 @@
                         Margin="6,0,2,0"
                         IsChecked="{Binding ChatSettings.ChatLiveTyping, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                         Style="{StaticResource LiveTypingChip}"
-                        ToolTip="Show what you are typing in VRChat as you type it, instead of only when you send. Press Enter and it becomes a normal message." />
+                        ToolTip="Show what you are typing in VRChat as you type it, instead of only when you send. Those updates are silent - the message counts as sent, and makes its sound, when you press Enter, stop typing, or click away." />
 
                     <Grid Grid.Column="1" Margin="4,0,0,0">
                         <TextBox
@@ -99,6 +99,7 @@
                             FontSize="{StaticResource FontSizeBody}"
                             Foreground="{StaticResource ChatTextBrush}"
                             KeyDown="NewChattingTxt_KeyDown"
+                            LostKeyboardFocus="NewChattingTxt_LostKeyboardFocus"
                             MaxLength="144"
                             Style="{StaticResource InlineTransparentTextBox}"
                             Text="{Binding ChatStatus.NewChattingTxt, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"

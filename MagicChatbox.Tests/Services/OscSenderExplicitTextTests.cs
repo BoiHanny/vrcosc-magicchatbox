@@ -99,6 +99,25 @@ public class OscSenderExplicitTextTests : IDisposable
     }
 
     [Fact]
+    public async Task A_silent_send_tells_VRChat_not_to_play_the_notification()
+    {
+        // The third argument of /chatbox/input is the notification SFX, and it is the only thing
+        // standing between live typing and a chime once a second for as long as someone is writing.
+        // Asserting it on the wire rather than on the call: this is what VRChat actually reads.
+        Assert.True(await _sender.SendOSCMessage(fx: false, explicitText: "still writing this"));
+
+        Assert.Contains(",sTF", await ReceiveTextAsync());
+    }
+
+    [Fact]
+    public async Task A_real_send_still_asks_for_it()
+    {
+        Assert.True(await _sender.SendOSCMessage(fx: true, explicitText: "and that is the message"));
+
+        Assert.Contains(",sTT", await ReceiveTextAsync());
+    }
+
+    [Fact]
     public async Task Duplicate_suppression_tracks_the_text_that_was_actually_sent()
     {
         Assert.True(await _sender.SendOSCMessage(false, explicitText: "hello there"));

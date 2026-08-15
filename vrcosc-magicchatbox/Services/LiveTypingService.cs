@@ -25,6 +25,7 @@ public sealed class LiveTypingService : ILiveTypingService, IDisposable
 
     private readonly object _gate = new();
     private System.Timers.Timer? _trailing;
+    private System.Timers.Timer? _idle;
     private string _pending = string.Empty;
     private string _pushed = string.Empty;
     private DateTime _lastPushUtc = DateTime.MinValue;
@@ -88,6 +89,10 @@ public sealed class LiveTypingService : ILiveTypingService, IDisposable
             _pending = line;
             _holding = true;
 
+            // Restarted by every keystroke, so the pause is measured from the last thing typed and
+            // not from the last thing sent.
+            ArmIdleLocked();
+
             var wait = _lastPushUtc.AddMilliseconds(_chatSettings.ChatLiveTypingRateMs) - DateTime.UtcNow;
             if (wait <= TimeSpan.Zero)
                 PushLocked();
@@ -95,6 +100,8 @@ public sealed class LiveTypingService : ILiveTypingService, IDisposable
                 ArmTrailingLocked(wait);
         }
     }
+
+    public event Action? FinalizeRequested;
 
     public void Release(bool clearChatbox)
     {
@@ -106,6 +113,7 @@ public sealed class LiveTypingService : ILiveTypingService, IDisposable
             _pending = string.Empty;
             _pushed = string.Empty;
             _trailing?.Stop();
+            _idle?.Stop();
         }
 
         if (!wasHolding || !clearChatbox)
@@ -130,7 +138,44 @@ public sealed class LiveTypingService : ILiveTypingService, IDisposable
             _trailing?.Stop();
             _trailing?.Dispose();
             _trailing = null;
+
+            _idle?.Stop();
+            _idle?.Dispose();
+            _idle = null;
         }
+    }
+
+    private void ArmIdleLocked()
+    {
+        if (!_chatSettings.ChatLiveTypingAutoFinalize)
+        {
+            _idle?.Stop();
+            return;
+        }
+
+        _idle ??= BuildIdleTimer();
+        _idle.Stop();
+        _idle.Interval = _chatSettings.ChatLiveTypingFinalizeMs;
+        _idle.Start();
+    }
+
+    private System.Timers.Timer BuildIdleTimer()
+    {
+        var timer = new System.Timers.Timer { AutoReset = false };
+        timer.Elapsed += (_, _) =>
+        {
+            lock (_gate)
+            {
+                if (_disposed || !_holding || !_chatSettings.ChatLiveTypingAutoFinalize)
+                    return;
+            }
+
+            // Raised outside the lock. Whoever handles this will send, and sending comes back
+            // through Release on another thread - which wants the same lock.
+            FinalizeRequested?.Invoke();
+        };
+
+        return timer;
     }
 
     private void ArmTrailingLocked(TimeSpan due)
