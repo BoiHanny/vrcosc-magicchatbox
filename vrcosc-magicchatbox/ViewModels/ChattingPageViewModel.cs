@@ -604,6 +604,12 @@ namespace vrcosc_magicchatbox.ViewModels
 
         public void BeginChatEdit(ChatItem item)
         {
+            // Opening the edit is what this call means, so it says so rather than trusting that the
+            // toggle already flipped the flag on its way here. The rest of the state machine reads
+            // that flag to tell a keystroke from the markup resetting itself, and an ordering it
+            // depends on but does not set is one a future call site can quietly get wrong.
+            item.CanLiveEditRun = true;
+
             // A trailing space so the caret lands ready to keep typing. It is scaffolding for the
             // edit box only, and comes back off before anything is committed.
             item.MsgReplace = item.Msg.EndsWith(" ") ? item.Msg : item.Msg + " ";
@@ -654,7 +660,12 @@ namespace vrcosc_magicchatbox.ViewModels
 
         public void HandleEditTextChanged(ChatItem? item, string newText)
         {
-            if (!CS.RealTimeChatEdit || item is null || !item.IsRunning)
+            // CanLiveEditRun is the load-bearing part. Nothing types into an edit box that is not
+            // open, so a text change arriving while it is closed is the markup resetting itself -
+            // and tearing an open edit down does exactly that. Sending the next message clears the
+            // scratch buffer, the empty box reports a change, and taking that for a keystroke wrote
+            // an empty string straight over the message that had just been committed.
+            if (!CS.RealTimeChatEdit || item is null || !item.IsRunning || !item.CanLiveEditRun)
                 return;
 
             string edited = TrimEdit(newText);
@@ -665,6 +676,15 @@ namespace vrcosc_magicchatbox.ViewModels
         private static void CommitEdit(ChatItem item, string text)
         {
             string edited = TrimEdit(text);
+
+            // Committing nothing is never what anyone meant. An empty message shows nothing in the
+            // chatbox and leaves a blank row in the history, and Stop is how you take a message down.
+            // This is also the backstop for the commit racing the teardown that empties the edit box.
+            if (edited.Length == 0)
+            {
+                item.CanLiveEditRun = false;
+                return;
+            }
 
             item.MainMsg = edited;
             item.Msg = edited;

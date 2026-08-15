@@ -237,6 +237,70 @@ public class ChatEditStateTests
     }
 
     [Fact]
+    public void Sending_the_next_message_does_not_blank_the_one_being_edited()
+    {
+        // The exact order the UI tears an open edit down in when a new message is sent. The last two
+        // steps are what the markup does on its own: clearing the scratch buffer empties the edit
+        // box, and the box reports that as a text change.
+        _chatSettings.Value.RealTimeChatEdit = true;
+        var item = Running("hello");
+        _vm.BeginChatEdit(item);
+        item.CanLiveEditRun = true;
+
+        item.CanLiveEdit = false;
+        item.CanLiveEditRun = false;
+        _vm.ConfirmChatEdit(item);
+        item.MsgReplace = string.Empty;
+        _vm.HandleEditTextChanged(item, string.Empty);
+        item.IsRunning = false;
+
+        Assert.Equal("hello", item.Msg);
+        Assert.Equal("hello", item.MainMsg);
+    }
+
+    [Fact]
+    public void An_edit_committed_empty_leaves_the_message_alone()
+    {
+        // The backstop for the same failure: if the commit ever runs after the scratch buffer has
+        // been cleared rather than before, it must not take that for "make this message blank".
+        var item = Running("hello");
+        _vm.BeginChatEdit(item);
+        item.MsgReplace = "   ";
+
+        _vm.ConfirmChatEdit(item);
+
+        Assert.Equal("hello", item.Msg);
+        Assert.Equal("hello", item.MainMsg);
+    }
+
+    [Fact]
+    public void A_closed_edit_box_cannot_rewrite_the_message()
+    {
+        // Nothing types into an edit box that is not open. A text change arriving then is the markup
+        // resetting itself, and taking it for a person's edit is how the message ended up blank.
+        _chatSettings.Value.RealTimeChatEdit = true;
+        var item = Running("hello");
+        item.CanLiveEditRun = false;
+
+        _vm.HandleEditTextChanged(item, "not typed by anyone");
+
+        Assert.Equal("hello", item.Msg);
+    }
+
+    [Fact]
+    public void An_open_edit_box_still_rewrites_as_it_is_typed()
+    {
+        _chatSettings.Value.RealTimeChatEdit = true;
+        var item = Running("hello");
+        _vm.BeginChatEdit(item);
+        item.CanLiveEditRun = true;
+
+        _vm.HandleEditTextChanged(item, "hello there");
+
+        Assert.Equal("hello there", item.Msg);
+    }
+
+    [Fact]
     public void Editing_a_message_never_touches_the_chatbox()
     {
         // Editing rewrites a message that is already out there; the update goes through the running

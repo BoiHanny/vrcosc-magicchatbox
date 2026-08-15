@@ -304,22 +304,28 @@
                             <Border Opacity="{Binding Opacity}" Style="{StaticResource ChatMessageCard}">
                                 <Grid>
                                     <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="Auto" />
+                                        <!--
+                                            Fixed, not Auto. Every row reserves the marker's width
+                                            whether or not it has one, so the text starts on the same
+                                            pixel down the whole list instead of stepping sideways as
+                                            the live message moves.
+                                        -->
+                                        <ColumnDefinition Width="4" />
                                         <ColumnDefinition Width="*" />
                                         <ColumnDefinition Width="Auto" />
                                     </Grid.ColumnDefinitions>
 
                                     <!--
                                         Which message is currently in the chatbox. The row already
-                                        carries a lit edge, but that reads as hover; a bar that only
-                                        the live row has cannot be mistaken for one.
+                                        carries a lit edge, but that reads as hover; a bar only the
+                                        live row has cannot be mistaken for one. Flush to the card and
+                                        full height, with the card's radius less its border, so it
+                                        reads as part of the edge rather than a dash floating near it.
                                     -->
                                     <Border
                                         Grid.Column="0"
-                                        Width="3"
-                                        Margin="7,10,0,10"
                                         Background="{StaticResource FeatureOnEdgeBrush}"
-                                        CornerRadius="2"
+                                        CornerRadius="7,0,0,7"
                                         Visibility="{Binding IsRunning, Converter={StaticResource BoolToVisibilityConverter}, UpdateSourceTrigger=PropertyChanged}" />
 
                                     <TextBlock

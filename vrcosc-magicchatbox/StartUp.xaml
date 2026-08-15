@@ -301,12 +301,34 @@
                             Opacity="0"
                             Orientation="Horizontal">
                             <TextBlock
-                                Margin="0,0,6,0"
+                                Margin="0,0,4,0"
+                                VerticalAlignment="Center"
+                                FontFamily="/Fonts/#Albert Sans"
+                                FontSize="14"
+                                Foreground="#FF7964C7"
+                                Text="Made with" />
+                            <TextBlock
+                                Margin="0,0,3,0"
+                                VerticalAlignment="Center"
+                                FontFamily="/Fonts/#Albert Sans"
+                                FontSize="17"
+                                Text="♥">
+                                <TextBlock.Foreground>
+                                    <LinearGradientBrush StartPoint="0,1" EndPoint="1,0">
+                                        <GradientStop Offset="0" Color="#3FE0D2" />
+                                        <GradientStop Offset="0.35" Color="#6E9BFF" />
+                                        <GradientStop Offset="0.65" Color="#B96BFF" />
+                                        <GradientStop Offset="1" Color="#FF6FC7" />
+                                    </LinearGradientBrush>
+                                </TextBlock.Foreground>
+                            </TextBlock>
+                            <TextBlock
+                                Margin="0,0,4,0"
                                 VerticalAlignment="Center"
                                 FontFamily="/Fonts/#Albert Sans"
                                 FontSize="13"
-                                Foreground="#6A5F94"
-                                Text="Made with ♥ by" />
+                                Foreground="#FF7964C7"
+                                Text="by" />
                             <!--
                                 The holo treatment the Lyrics chip wears: the same four-stop ramp, drifting
                                 under the letters, with a sheen that crosses them. It is the last thing
@@ -350,6 +372,7 @@
                                     VerticalAlignment="Center"
                                     FontFamily="/Fonts/#Comfortaa"
                                     FontSize="16"
+                                    FontWeight="Bold"
                                     Foreground="#FFFFFFFF"
                                     IsHitTestVisible="False"
                                     Text="BoiHanny">
