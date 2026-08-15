@@ -502,6 +502,7 @@ namespace vrcosc_magicchatbox
         private bool _hasRendered;
         private bool _revealWanted;
         private DispatcherTimer? _revealSafetyNet;
+        private Action? _onVisible;
 
         private void OnFirstContentRendered(object? sender, EventArgs e)
         {
@@ -518,13 +519,21 @@ namespace vrcosc_magicchatbox
         /// value matters: leaving one behind would pin the window at full opacity forever and quietly
         /// break that setting.
         /// </summary>
-        public void FadeInAfterStartup()
+        /// <param name="onVisible">
+        /// Runs once the window is actually up. The splash has to close on this rather than on a
+        /// fixed line of the startup sequence: the reveal waits for the first frame, so anything
+        /// that assumes it happened already will run too early and leave a gap with nothing on
+        /// screen.
+        /// </param>
+        public void FadeInAfterStartup(Action? onVisible = null)
         {
             if (!Dispatcher.CheckAccess())
             {
-                Dispatcher.BeginInvoke(FadeInAfterStartup);
+                Dispatcher.BeginInvoke(() => FadeInAfterStartup(onVisible));
                 return;
             }
+
+            _onVisible = onVisible;
 
             if (_hasRendered)
             {
@@ -548,6 +557,52 @@ namespace vrcosc_magicchatbox
                 Dispatcher);
         }
 
+        /// <summary>
+        /// Gives up on the reveal and puts the window back where it belongs without showing it.
+        /// </summary>
+        /// <remarks>
+        /// Starting in the background still has to undo the parking. Leaving the window sitting off
+        /// the virtual desktop would mean the tray icon later opens it somewhere nobody can see.
+        /// </remarks>
+        public void AbandonHiddenStart()
+        {
+            if (!Dispatcher.CheckAccess())
+            {
+                Dispatcher.BeginInvoke(AbandonHiddenStart);
+                return;
+            }
+
+            _revealWanted = false;
+            _onVisible = null;
+            _revealSafetyNet?.Stop();
+            _revealSafetyNet = null;
+
+            UnparkOffScreen();
+
+            BeginAnimation(OpacityProperty, null);
+            ClearValue(OpacityProperty);
+        }
+
+        private void UnparkOffScreen()
+        {
+            if (!_parkedOffScreen)
+                return;
+
+            _parkedOffScreen = false;
+
+            if (_revealLeft is { } left && _revealTop is { } top)
+            {
+                Left = left;
+                Top = top;
+                return;
+            }
+
+            // No saved placement, so honour what the XAML asked for and centre it.
+            var area = SystemParameters.WorkArea;
+            Left = area.Left + ((area.Width - Width) / 2);
+            Top = area.Top + ((area.Height - Height) / 2);
+        }
+
         private void Reveal()
         {
             _revealWanted = false;
@@ -556,24 +611,10 @@ namespace vrcosc_magicchatbox
 
             if (_parkedOffScreen)
             {
-                _parkedOffScreen = false;
-
                 // Taken to zero only now, with a rendered frame already behind it, so the fade has
                 // the finished window to reveal rather than an unpainted surface.
                 Opacity = 0;
-
-                if (_revealLeft is { } left && _revealTop is { } top)
-                {
-                    Left = left;
-                    Top = top;
-                }
-                else
-                {
-                    // No saved placement, so honour what the XAML asked for and centre it.
-                    var area = SystemParameters.WorkArea;
-                    Left = area.Left + ((area.Width - Width) / 2);
-                    Top = area.Top + ((area.Height - Height) / 2);
-                }
+                UnparkOffScreen();
             }
 
             var fadeIn = new DoubleAnimation(0, 1, TimeSpan.FromMilliseconds(260))
@@ -585,6 +626,12 @@ namespace vrcosc_magicchatbox
             {
                 BeginAnimation(OpacityProperty, null);
                 ClearValue(OpacityProperty);
+
+                // The window is up and holding its own loading screen, so the splash can go now and
+                // the handover reads as one continuous thing rather than two that flicker past.
+                Action? handover = _onVisible;
+                _onVisible = null;
+                handover?.Invoke();
             };
 
             BeginAnimation(OpacityProperty, fadeIn);

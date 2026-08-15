@@ -323,18 +323,34 @@ namespace vrcosc_magicchatbox
                 if (mainWindow.WindowState == WindowState.Minimized)
                     mainWindow.WindowState = WindowState.Normal;
 
-                // The overlay goes first so the fade reveals the finished interface rather than a
-                // loading screen dissolving into another one.
-                mainWindow.HideStartupOverlay();
-                mainWindow.FadeInAfterStartup();
-
-                loadingWindow.CloseFromAnyThread();
-                Logging.WriteInfo("[Startup] Splash closed.");
-
-                mainWindow.Activate();
-                mainWindow.Focus();
+                // One handover instead of three things racing. The window comes up behind the splash
+                // still showing its own loading screen, so there is never a moment with nothing on
+                // screen; the splash then closes onto it and the loading screen dissolves into the
+                // finished interface. All of it hangs off the reveal, which waits for the first
+                // frame and so cannot be timed from here.
                 if (vm.AppSettingsInstance.StartInBackground)
+                {
+                    // Nothing to hand over to. The reveal is never asked for, so it cannot fire
+                    // later and pull the window up behind the user's back.
+                    mainWindow.AbandonHiddenStart();
                     mainWindow.Hide();
+                    loadingWindow.CloseFromAnyThread();
+                    Logging.WriteInfo("[Startup] Splash closed; started in the background.");
+                }
+                else
+                {
+                    mainWindow.FadeInAfterStartup(() =>
+                    {
+                        loadingWindow.CloseFromAnyThread();
+                        Logging.WriteInfo("[Startup] Splash closed.");
+                        mainWindow.HideStartupOverlay();
+
+                        // Focus belongs with the window actually being on screen, not with a line
+                        // that runs while it is still parked off the desktop.
+                        mainWindow.Activate();
+                        mainWindow.Focus();
+                    });
+                }
 
                 Services.GetRequiredService<ModuleBootstrapper>().SignalStartupComplete();
                 Logging.WriteInfo("[Startup] Startup-complete signal fired.");
