@@ -68,6 +68,23 @@ public class TopBarTabStyleTests
     }
 
     [Fact]
+    public void The_group_header_can_actually_be_built()
+    {
+        // Same trap as every other shared control: its StaticResources resolve when something is
+        // built from it, not when it compiles.
+        Exception? failure = RunOnUiThread(() =>
+        {
+            var header = new vrcosc_magicchatbox.UI.Controls.OptionGroupHeader { Title = "Music" };
+            header.Measure(new Size(600, 60));
+            header.Arrange(new Rect(0, 0, 600, 60));
+
+            Assert.Equal("Music", header.Title);
+        });
+
+        Assert.Null(failure);
+    }
+
+    [Fact]
     public void The_wordmark_fits_the_column_it_sits_in()
     {
         // The first top bar column is a fixed 150px and the wordmark has a 16px left margin. Text

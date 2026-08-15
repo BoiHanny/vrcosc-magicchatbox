@@ -1015,52 +1015,6 @@
     </Style>
 
 
-    <!--
-        Introduces a run of related sections on the options page. Bigger and quieter than a
-        subsection header: it names the group, it is not a setting.
-    -->
-    <Style x:Key="OptionGroupHeaderStyle" TargetType="{x:Type TextBlock}">
-        <Setter Property="FontFamily" Value="{StaticResource FontSecondary}" />
-        <Setter Property="FontSize" Value="{StaticResource FontSizeHeading}" />
-        <Setter Property="FontWeight" Value="SemiBold" />
-        <Setter Property="Foreground" Value="White" />
-    </Style>
-
-    <!--
-        The band a group heading sits in.
-
-        As plain text the heading read as less important than the section rows beneath it - those
-        carry an icon and a brighter colour - so the hierarchy looked upside down. The shading gives
-        the heading a surface of its own and the rule under it closes the group off; both fade out
-        to the right so the page is separated without a hard line ruled across it.
-
-        The spacing is lopsided on purpose: a lot of room above, very little below. A heading that
-        sits equally between two groups belongs to neither.
-    -->
-    <Style x:Key="OptionGroupBandStyle" TargetType="{x:Type Border}">
-        <Setter Property="Margin" Value="8,22,12,2" />
-        <Setter Property="Padding" Value="10,5,10,6" />
-        <Setter Property="CornerRadius" Value="6,6,0,0" />
-        <Setter Property="BorderThickness" Value="0,0,0,1" />
-        <Setter Property="SnapsToDevicePixels" Value="True" />
-        <Setter Property="Background">
-            <Setter.Value>
-                <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
-                    <GradientStop Offset="0" Color="#33AEA7ED" />
-                    <GradientStop Offset="0.75" Color="#0AAEA7ED" />
-                    <GradientStop Offset="1" Color="#00AEA7ED" />
-                </LinearGradientBrush>
-            </Setter.Value>
-        </Setter>
-        <Setter Property="BorderBrush">
-            <Setter.Value>
-                <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
-                    <GradientStop Offset="0" Color="#99AEA7ED" />
-                    <GradientStop Offset="1" Color="#00AEA7ED" />
-                </LinearGradientBrush>
-            </Setter.Value>
-        </Setter>
-    </Style>
 
     <Style x:Key="OptionSubsectionHeaderStyle" TargetType="{x:Type TextBlock}">
         <Setter Property="Margin" Value="2,8,0,5" />
