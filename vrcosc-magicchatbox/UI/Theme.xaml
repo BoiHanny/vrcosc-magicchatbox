@@ -1,4 +1,4 @@
-﻿<ResourceDictionary
+<ResourceDictionary
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:xaml="clr-namespace:vrcosc_magicchatbox.Classes"
@@ -705,17 +705,17 @@
     <!--
         The top bar tabs.
 
-        Three layers, all animated, none of them abrupt: a purple wash that fades in under the
-        cursor, a soft bloom behind the word, and an underline that grows from the middle. Selected
-        holds all three at full strength; hover shows them at about a third, so moving along the bar
-        previews the tab you are about to land on rather than flashing at you.
+        Hover and selected drive SEPARATE elements on purpose. Sharing them means the later
+        storyboard wins on a contested property, so hovering the tab you are already on dimmed it -
+        the hover animation was overwriting the selected one. Kept apart, hovering the current tab
+        simply adds glow on top of it and nothing fights.
 
-        The old style was the stock WPF button template, which is why hovering a tab produced the
-        grey Aero highlight on a purple bar.
+        Hover is deliberately fast - in at 90ms, out at 170ms. In wants to feel instant, out wants to
+        feel like it is trailing your cursor rather than being switched off.
 
-        Everything is a scale or an opacity - both compose on the render thread, so the bar keeps
-        animating while the UI thread is busy, which during a scan tick it often is. Animating width
-        or colour here would stutter in exactly the moments the app is working hardest.
+        Everything animated is a scale or an opacity. Both compose on the render thread, so the bar
+        keeps moving while the UI thread is busy, which during a scan tick it often is; animating
+        width or colour would stutter in exactly the moments the app is working hardest.
     -->
     <Style x:Key="TopBarTabStyle" TargetType="{x:Type Button}">
         <Setter Property="Background" Value="Transparent" />
@@ -728,28 +728,33 @@
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="{x:Type Button}">
-                    <Grid Background="Transparent">
+                    <Grid Background="Transparent" ClipToBounds="False">
 
-                        <!--  The wash. Brightest at the bottom so the tab reads as lit from the underline up.  -->
-                        <Border x:Name="Wash" Opacity="0">
+                        <!--  SELECTED: the wash. Brightest at the bottom, so the tab reads as lit
+                              from its underline upward.  -->
+                        <Border x:Name="ActiveWash" Opacity="0">
                             <Border.Background>
                                 <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
                                     <GradientStop Offset="0" Color="#00AEA7ED" />
-                                    <GradientStop Offset="1" Color="#3AAEA7ED" />
+                                    <GradientStop Offset="1" Color="#42AEA7ED" />
                                 </LinearGradientBrush>
                             </Border.Background>
                         </Border>
 
-                        <!--  The bloom. Blurred rather than drawn, so it has no edge of its own.  -->
+                        <!--  HOVER: blurred rather than drawn, so it has no edge of its own.  -->
                         <Border
-                            x:Name="Bloom"
-                            Margin="10,6"
-                            Background="#66C9B8FF"
-                            CornerRadius="10"
-                            Opacity="0">
+                            x:Name="HoverGlow"
+                            Margin="8,4"
+                            Background="#7FCBB9FF"
+                            CornerRadius="12"
+                            Opacity="0"
+                            RenderTransformOrigin="0.5,0.5">
                             <Border.Effect>
-                                <BlurEffect KernelType="Gaussian" Radius="22" />
+                                <BlurEffect KernelType="Gaussian" Radius="26" />
                             </Border.Effect>
+                            <Border.RenderTransform>
+                                <ScaleTransform x:Name="GlowScale" ScaleX="0.75" ScaleY="0.75" />
+                            </Border.RenderTransform>
                         </Border>
 
                         <ContentPresenter
@@ -758,12 +763,33 @@
                             HorizontalAlignment="Center"
                             VerticalAlignment="Center"
                             Focusable="False"
-                            RecognizesAccessKey="True" />
+                            RecognizesAccessKey="True"
+                            RenderTransformOrigin="0.5,0.5">
+                            <ContentPresenter.RenderTransform>
+                                <TransformGroup>
+                                    <ScaleTransform x:Name="LabelScale" />
+                                    <TranslateTransform x:Name="LabelLift" />
+                                </TransformGroup>
+                            </ContentPresenter.RenderTransform>
+                        </ContentPresenter>
 
-                        <!--  Grown from the centre rather than faded in: the movement is what reads
-                              as a tab being chosen.  -->
+                        <!--  HOVER: a short bar that darts out from the middle.  -->
                         <Border
-                            x:Name="Underline"
+                            x:Name="HoverUnderline"
+                            Height="2"
+                            VerticalAlignment="Bottom"
+                            Background="#FFCFC6FF"
+                            CornerRadius="1"
+                            Opacity="0"
+                            RenderTransformOrigin="0.5,0.5">
+                            <Border.RenderTransform>
+                                <ScaleTransform x:Name="HoverUnderlineScale" ScaleX="0" />
+                            </Border.RenderTransform>
+                        </Border>
+
+                        <!--  SELECTED: the full-width one, faded at both ends.  -->
+                        <Border
+                            x:Name="ActiveUnderline"
                             Height="3"
                             VerticalAlignment="Bottom"
                             CornerRadius="2"
@@ -772,12 +798,12 @@
                             <Border.Background>
                                 <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
                                     <GradientStop Offset="0" Color="#006E63C8" />
-                                    <GradientStop Offset="0.5" Color="#FFCFC6FF" />
+                                    <GradientStop Offset="0.5" Color="#FFDCD5FF" />
                                     <GradientStop Offset="1" Color="#006E63C8" />
                                 </LinearGradientBrush>
                             </Border.Background>
                             <Border.RenderTransform>
-                                <ScaleTransform x:Name="UnderlineScale" ScaleX="0" />
+                                <ScaleTransform x:Name="ActiveUnderlineScale" ScaleX="0" />
                             </Border.RenderTransform>
                         </Border>
                     </Grid>
@@ -788,29 +814,61 @@
                                 <BeginStoryboard>
                                     <Storyboard>
                                         <DoubleAnimation
-                                            Storyboard.TargetName="Wash"
+                                            Storyboard.TargetName="HoverGlow"
                                             Storyboard.TargetProperty="Opacity"
-                                            To="0.55"
-                                            Duration="0:0:0.18" />
+                                            To="1"
+                                            Duration="0:0:0.09" />
                                         <DoubleAnimation
-                                            Storyboard.TargetName="Bloom"
-                                            Storyboard.TargetProperty="Opacity"
-                                            To="0.30"
-                                            Duration="0:0:0.22" />
-                                        <DoubleAnimation
-                                            Storyboard.TargetName="Underline"
-                                            Storyboard.TargetProperty="Opacity"
-                                            To="0.5"
-                                            Duration="0:0:0.18" />
-                                        <DoubleAnimation
-                                            Storyboard.TargetName="UnderlineScale"
+                                            Storyboard.TargetName="GlowScale"
                                             Storyboard.TargetProperty="ScaleX"
-                                            To="0.45"
-                                            Duration="0:0:0.22">
+                                            To="1"
+                                            Duration="0:0:0.14">
                                             <DoubleAnimation.EasingFunction>
-                                                <CubicEase EasingMode="EaseOut" />
+                                                <QuarticEase EasingMode="EaseOut" />
                                             </DoubleAnimation.EasingFunction>
                                         </DoubleAnimation>
+                                        <DoubleAnimation
+                                            Storyboard.TargetName="GlowScale"
+                                            Storyboard.TargetProperty="ScaleY"
+                                            To="1"
+                                            Duration="0:0:0.14">
+                                            <DoubleAnimation.EasingFunction>
+                                                <QuarticEase EasingMode="EaseOut" />
+                                            </DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                        <DoubleAnimation
+                                            Storyboard.TargetName="HoverUnderline"
+                                            Storyboard.TargetProperty="Opacity"
+                                            To="0.9"
+                                            Duration="0:0:0.07" />
+                                        <DoubleAnimation
+                                            Storyboard.TargetName="HoverUnderlineScale"
+                                            Storyboard.TargetProperty="ScaleX"
+                                            To="0.62"
+                                            Duration="0:0:0.13">
+                                            <DoubleAnimation.EasingFunction>
+                                                <QuinticEase EasingMode="EaseOut" />
+                                            </DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                        <DoubleAnimation
+                                            Storyboard.TargetName="LabelLift"
+                                            Storyboard.TargetProperty="Y"
+                                            To="-2"
+                                            Duration="0:0:0.11">
+                                            <DoubleAnimation.EasingFunction>
+                                                <BackEase Amplitude="0.6" EasingMode="EaseOut" />
+                                            </DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                        <DoubleAnimation
+                                            Storyboard.TargetName="LabelScale"
+                                            Storyboard.TargetProperty="ScaleX"
+                                            To="1.05"
+                                            Duration="0:0:0.11" />
+                                        <DoubleAnimation
+                                            Storyboard.TargetName="LabelScale"
+                                            Storyboard.TargetProperty="ScaleY"
+                                            To="1.05"
+                                            Duration="0:0:0.11" />
                                     </Storyboard>
                                 </BeginStoryboard>
                             </Trigger.EnterActions>
@@ -818,60 +876,68 @@
                                 <BeginStoryboard>
                                     <Storyboard>
                                         <DoubleAnimation
-                                            Storyboard.TargetName="Wash"
+                                            Storyboard.TargetName="HoverGlow"
                                             Storyboard.TargetProperty="Opacity"
-                                            Duration="0:0:0.25" />
+                                            Duration="0:0:0.17" />
                                         <DoubleAnimation
-                                            Storyboard.TargetName="Bloom"
-                                            Storyboard.TargetProperty="Opacity"
-                                            Duration="0:0:0.25" />
-                                        <DoubleAnimation
-                                            Storyboard.TargetName="Underline"
-                                            Storyboard.TargetProperty="Opacity"
-                                            Duration="0:0:0.25" />
-                                        <DoubleAnimation
-                                            Storyboard.TargetName="UnderlineScale"
+                                            Storyboard.TargetName="GlowScale"
                                             Storyboard.TargetProperty="ScaleX"
-                                            Duration="0:0:0.25">
-                                            <DoubleAnimation.EasingFunction>
-                                                <CubicEase EasingMode="EaseIn" />
-                                            </DoubleAnimation.EasingFunction>
-                                        </DoubleAnimation>
+                                            To="0.75"
+                                            Duration="0:0:0.17" />
+                                        <DoubleAnimation
+                                            Storyboard.TargetName="GlowScale"
+                                            Storyboard.TargetProperty="ScaleY"
+                                            To="0.75"
+                                            Duration="0:0:0.17" />
+                                        <DoubleAnimation
+                                            Storyboard.TargetName="HoverUnderline"
+                                            Storyboard.TargetProperty="Opacity"
+                                            Duration="0:0:0.17" />
+                                        <DoubleAnimation
+                                            Storyboard.TargetName="HoverUnderlineScale"
+                                            Storyboard.TargetProperty="ScaleX"
+                                            Duration="0:0:0.17" />
+                                        <DoubleAnimation
+                                            Storyboard.TargetName="LabelLift"
+                                            Storyboard.TargetProperty="Y"
+                                            Duration="0:0:0.17" />
+                                        <DoubleAnimation
+                                            Storyboard.TargetName="LabelScale"
+                                            Storyboard.TargetProperty="ScaleX"
+                                            To="1"
+                                            Duration="0:0:0.17" />
+                                        <DoubleAnimation
+                                            Storyboard.TargetName="LabelScale"
+                                            Storyboard.TargetProperty="ScaleY"
+                                            To="1"
+                                            Duration="0:0:0.17" />
                                     </Storyboard>
                                 </BeginStoryboard>
                             </Trigger.ExitActions>
                             <Setter Property="Foreground" Value="White" />
                         </Trigger>
 
-                        <!--  Selected wins: its storyboard runs after the hover one and holds the
-                              same three layers at full strength, so leaving the cursor cannot fade
-                              the current tab out from under itself.  -->
                         <Trigger Property="xaml:ButtonProperties.IsActive" Value="True">
                             <Trigger.EnterActions>
                                 <BeginStoryboard>
                                     <Storyboard>
                                         <DoubleAnimation
-                                            Storyboard.TargetName="Wash"
+                                            Storyboard.TargetName="ActiveWash"
                                             Storyboard.TargetProperty="Opacity"
                                             To="1"
-                                            Duration="0:0:0.28" />
+                                            Duration="0:0:0.22" />
                                         <DoubleAnimation
-                                            Storyboard.TargetName="Bloom"
-                                            Storyboard.TargetProperty="Opacity"
-                                            To="0.85"
-                                            Duration="0:0:0.34" />
-                                        <DoubleAnimation
-                                            Storyboard.TargetName="Underline"
+                                            Storyboard.TargetName="ActiveUnderline"
                                             Storyboard.TargetProperty="Opacity"
                                             To="1"
-                                            Duration="0:0:0.2" />
+                                            Duration="0:0:0.12" />
                                         <DoubleAnimation
-                                            Storyboard.TargetName="UnderlineScale"
+                                            Storyboard.TargetName="ActiveUnderlineScale"
                                             Storyboard.TargetProperty="ScaleX"
                                             To="1"
-                                            Duration="0:0:0.34">
+                                            Duration="0:0:0.3">
                                             <DoubleAnimation.EasingFunction>
-                                                <BackEase Amplitude="0.35" EasingMode="EaseOut" />
+                                                <BackEase Amplitude="0.4" EasingMode="EaseOut" />
                                             </DoubleAnimation.EasingFunction>
                                         </DoubleAnimation>
                                     </Storyboard>
@@ -881,21 +947,17 @@
                                 <BeginStoryboard>
                                     <Storyboard>
                                         <DoubleAnimation
-                                            Storyboard.TargetName="Wash"
+                                            Storyboard.TargetName="ActiveWash"
                                             Storyboard.TargetProperty="Opacity"
-                                            Duration="0:0:0.25" />
+                                            Duration="0:0:0.2" />
                                         <DoubleAnimation
-                                            Storyboard.TargetName="Bloom"
+                                            Storyboard.TargetName="ActiveUnderline"
                                             Storyboard.TargetProperty="Opacity"
-                                            Duration="0:0:0.25" />
+                                            Duration="0:0:0.2" />
                                         <DoubleAnimation
-                                            Storyboard.TargetName="Underline"
-                                            Storyboard.TargetProperty="Opacity"
-                                            Duration="0:0:0.25" />
-                                        <DoubleAnimation
-                                            Storyboard.TargetName="UnderlineScale"
+                                            Storyboard.TargetName="ActiveUnderlineScale"
                                             Storyboard.TargetProperty="ScaleX"
-                                            Duration="0:0:0.25" />
+                                            Duration="0:0:0.2" />
                                     </Storyboard>
                                 </BeginStoryboard>
                             </Trigger.ExitActions>
@@ -903,14 +965,55 @@
                             <Setter Property="FontWeight" Value="SemiBold" />
                         </Trigger>
 
+                        <!--  A press should feel like the tab takes the weight.  -->
                         <Trigger Property="IsPressed" Value="True">
-                            <Setter TargetName="Bloom" Property="Opacity" Value="1" />
+                            <Trigger.EnterActions>
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <DoubleAnimation
+                                            Storyboard.TargetName="LabelScale"
+                                            Storyboard.TargetProperty="ScaleX"
+                                            To="0.95"
+                                            Duration="0:0:0.05" />
+                                        <DoubleAnimation
+                                            Storyboard.TargetName="LabelScale"
+                                            Storyboard.TargetProperty="ScaleY"
+                                            To="0.95"
+                                            Duration="0:0:0.05" />
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.EnterActions>
+                            <Trigger.ExitActions>
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <DoubleAnimation
+                                            Storyboard.TargetName="LabelScale"
+                                            Storyboard.TargetProperty="ScaleX"
+                                            To="1.05"
+                                            Duration="0:0:0.16">
+                                            <DoubleAnimation.EasingFunction>
+                                                <BackEase Amplitude="0.8" EasingMode="EaseOut" />
+                                            </DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                        <DoubleAnimation
+                                            Storyboard.TargetName="LabelScale"
+                                            Storyboard.TargetProperty="ScaleY"
+                                            To="1.05"
+                                            Duration="0:0:0.16">
+                                            <DoubleAnimation.EasingFunction>
+                                                <BackEase Amplitude="0.8" EasingMode="EaseOut" />
+                                            </DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.ExitActions>
                         </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>
             </Setter.Value>
         </Setter>
     </Style>
+
 
     <!--
         Introduces a run of related sections on the options page. Bigger and quieter than a
