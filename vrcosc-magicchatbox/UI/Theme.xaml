@@ -1628,6 +1628,292 @@
         </Setter>
     </Style>
 
+    <!--
+        ============================================================================================
+        THE CHAT PAGE. Borrows the deck's edges and accent so a sent message, an integration tile and
+        a settings group all read as the same product. What is new here is the vocabulary of state:
+        a message is either the live one or history, and the page has to say which at a glance.
+        ============================================================================================
+    -->
+    <SolidColorBrush x:Key="ChatCardBrush" Color="#FF332951" />
+    <SolidColorBrush x:Key="ChatCardHoverBrush" Color="#FF3C3160" />
+    <SolidColorBrush x:Key="ChatCardLiveBrush" Color="#FF3A2C63" />
+    <SolidColorBrush x:Key="ChatTextBrush" Color="#FFE2DCF2" />
+    <SolidColorBrush x:Key="ChatEditTextBrush" Color="#FF9FE4FF" />
+
+    <!--
+        The live message and the history behind it. Only the ground and the edge change: keeping the
+        geometry identical is what makes the accent bar the thing the eye lands on.
+    -->
+    <Style x:Key="ChatMessageCard" TargetType="Border">
+        <Setter Property="Margin" Value="8,0,8,6" />
+        <Setter Property="CornerRadius" Value="8" />
+        <Setter Property="Background" Value="{StaticResource ChatCardBrush}" />
+        <Setter Property="BorderBrush" Value="{StaticResource DeckEdgeBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="SnapsToDevicePixels" Value="True" />
+        <Style.Triggers>
+            <DataTrigger Binding="{Binding IsRunning}" Value="True">
+                <Setter Property="Background" Value="{StaticResource ChatCardLiveBrush}" />
+                <Setter Property="BorderBrush" Value="{StaticResource FeatureOnEdgeBrush}" />
+            </DataTrigger>
+            <Trigger Property="IsMouseOver" Value="True">
+                <Setter Property="Background" Value="{StaticResource ChatCardHoverBrush}" />
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+
+    <!--
+        Row actions sit quiet until the row is pointed at. They are always on screen - hiding them
+        outright would make editing undiscoverable - but they are not competing with the message.
+    -->
+    <Style x:Key="ChatRowActions" TargetType="StackPanel">
+        <Setter Property="Orientation" Value="Horizontal" />
+        <Setter Property="VerticalAlignment" Value="Center" />
+        <Setter Property="Margin" Value="0,0,8,0" />
+        <Setter Property="Opacity" Value="0.55" />
+        <Style.Triggers>
+            <DataTrigger Binding="{Binding IsMouseOver, RelativeSource={RelativeSource AncestorType=Border}}" Value="True">
+                <DataTrigger.EnterActions>
+                    <BeginStoryboard>
+                        <Storyboard>
+                            <DoubleAnimation
+                                Storyboard.TargetProperty="Opacity"
+                                To="1"
+                                Duration="0:0:0.10" />
+                        </Storyboard>
+                    </BeginStoryboard>
+                </DataTrigger.EnterActions>
+                <DataTrigger.ExitActions>
+                    <BeginStoryboard>
+                        <Storyboard>
+                            <DoubleAnimation
+                                Storyboard.TargetProperty="Opacity"
+                                To="0.55"
+                                Duration="0:0:0.18" />
+                        </Storyboard>
+                    </BeginStoryboard>
+                </DataTrigger.ExitActions>
+            </DataTrigger>
+        </Style.Triggers>
+    </Style>
+
+    <Style x:Key="ChatRowButton" TargetType="Button">
+        <Setter Property="Height" Value="26" />
+        <Setter Property="Margin" Value="4,0,0,0" />
+        <Setter Property="Padding" Value="10,0" />
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="FontFamily" Value="{StaticResource FontPrimary}" />
+        <Setter Property="FontSize" Value="{StaticResource FontSizeCaption}" />
+        <Setter Property="Foreground" Value="{StaticResource DeckTextBrush}" />
+        <Setter Property="SnapsToDevicePixels" Value="True" />
+        <Setter Property="FocusVisualStyle" Value="{x:Null}" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border
+                        x:Name="face"
+                        Padding="{TemplateBinding Padding}"
+                        Background="#14FFFFFF"
+                        BorderBrush="{StaticResource DeckEdgeBrush}"
+                        BorderThickness="1"
+                        CornerRadius="6"
+                        SnapsToDevicePixels="True">
+                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="face" Property="Background" Value="#2BFFFFFF" />
+                            <Setter TargetName="face" Property="BorderBrush" Value="{StaticResource DeckEdgeHoverBrush}" />
+                        </Trigger>
+                        <Trigger Property="IsPressed" Value="True">
+                            <Setter TargetName="face" Property="Background" Value="{StaticResource DeckSurfacePressedBrush}" />
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter Property="Opacity" Value="0.4" />
+                            <Setter Property="Cursor" Value="Arrow" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style x:Key="ChatRowToggle" TargetType="ToggleButton">
+        <Setter Property="Height" Value="26" />
+        <Setter Property="Margin" Value="4,0,0,0" />
+        <Setter Property="Padding" Value="10,0" />
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="FontFamily" Value="{StaticResource FontPrimary}" />
+        <Setter Property="FontSize" Value="{StaticResource FontSizeCaption}" />
+        <Setter Property="Foreground" Value="{StaticResource DeckTextBrush}" />
+        <Setter Property="SnapsToDevicePixels" Value="True" />
+        <Setter Property="FocusVisualStyle" Value="{x:Null}" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="ToggleButton">
+                    <Border
+                        x:Name="face"
+                        Padding="{TemplateBinding Padding}"
+                        Background="#14FFFFFF"
+                        BorderBrush="{StaticResource DeckEdgeBrush}"
+                        BorderThickness="1"
+                        CornerRadius="6"
+                        SnapsToDevicePixels="True">
+                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="face" Property="Background" Value="#2BFFFFFF" />
+                            <Setter TargetName="face" Property="BorderBrush" Value="{StaticResource DeckEdgeHoverBrush}" />
+                        </Trigger>
+                        <Trigger Property="IsChecked" Value="True">
+                            <Setter TargetName="face" Property="Background" Value="{StaticResource FeatureOnFillBrush}" />
+                            <Setter TargetName="face" Property="BorderBrush" Value="{StaticResource FeatureOnEdgeBrush}" />
+                            <Setter Property="Foreground" Value="{StaticResource FeatureOnTextBrush}" />
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter Property="Opacity" Value="0.4" />
+                            <Setter Property="Cursor" Value="Arrow" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!--
+        The composer is one object, not a text box with things parked on top of it. Everything inside
+        shares its focus ring, so the whole strip lights up when the caret is in the box.
+    -->
+    <Style x:Key="ChatComposerShell" TargetType="Border">
+        <Setter Property="CornerRadius" Value="10" />
+        <Setter Property="Background" Value="#FF3A3060" />
+        <Setter Property="BorderBrush" Value="{StaticResource DeckEdgeBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="SnapsToDevicePixels" Value="True" />
+        <Style.Triggers>
+            <Trigger Property="IsMouseOver" Value="True">
+                <Setter Property="BorderBrush" Value="#FF7C5CBF" />
+            </Trigger>
+            <Trigger Property="IsKeyboardFocusWithin" Value="True">
+                <Setter Property="Background" Value="#FF443A70" />
+                <Setter Property="BorderBrush" Value="#FF9B7FDF" />
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+
+    <!--
+        LIVE. Reaches for the same accent as an enabled feature chip because that is what it is, but
+        it is wider and taller: it sits inside the composer and has to be hittable without aiming.
+    -->
+    <Style x:Key="LiveTypingChip" TargetType="ToggleButton">
+        <Setter Property="Width" Value="52" />
+        <Setter Property="Height" Value="26" />
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="FontFamily" Value="{StaticResource FontPrimary}" />
+        <Setter Property="FontSize" Value="{StaticResource FontSizeMicro}" />
+        <Setter Property="Foreground" Value="{StaticResource DeckTextMutedBrush}" />
+        <Setter Property="Content" Value="LIVE" />
+        <Setter Property="SnapsToDevicePixels" Value="True" />
+        <Setter Property="FocusVisualStyle" Value="{x:Null}" />
+        <Setter Property="ToolTipService.ShowOnDisabled" Value="True" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="ToggleButton">
+                    <Border
+                        x:Name="face"
+                        Background="#14FFFFFF"
+                        BorderBrush="{StaticResource DeckEdgeBrush}"
+                        BorderThickness="1"
+                        CornerRadius="6"
+                        SnapsToDevicePixels="True">
+                        <StackPanel
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Center"
+                            Orientation="Horizontal">
+                            <Ellipse
+                                x:Name="dot"
+                                Width="6"
+                                Height="6"
+                                Margin="0,0,5,0"
+                                Fill="{StaticResource DeckTextMutedBrush}" />
+                            <ContentPresenter VerticalAlignment="Center" />
+                        </StackPanel>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="face" Property="Background" Value="#2BFFFFFF" />
+                            <Setter TargetName="face" Property="BorderBrush" Value="{StaticResource DeckEdgeHoverBrush}" />
+                        </Trigger>
+                        <Trigger Property="IsChecked" Value="True">
+                            <Setter TargetName="face" Property="Background" Value="{StaticResource FeatureOnFillBrush}" />
+                            <Setter TargetName="face" Property="BorderBrush" Value="{StaticResource FeatureOnEdgeBrush}" />
+                            <Setter TargetName="dot" Property="Fill" Value="{StaticResource FeatureOnEdgeBrush}" />
+                            <Setter Property="Foreground" Value="{StaticResource FeatureOnTextBrush}" />
+                            <!--  The pulse is the only thing on the page that says "this is going out right now".  -->
+                            <Trigger.EnterActions>
+                                <BeginStoryboard Name="LivePulse">
+                                    <Storyboard RepeatBehavior="Forever">
+                                        <DoubleAnimation
+                                            AutoReverse="True"
+                                            Storyboard.TargetName="dot"
+                                            Storyboard.TargetProperty="Opacity"
+                                            From="1"
+                                            To="0.25"
+                                            Duration="0:0:0.75" />
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.EnterActions>
+                            <Trigger.ExitActions>
+                                <StopStoryboard BeginStoryboardName="LivePulse" />
+                            </Trigger.ExitActions>
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter Property="Opacity" Value="0.45" />
+                            <Setter Property="Cursor" Value="Arrow" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!--  Icon-only affordances inside the composer: no chrome until pointed at.  -->
+    <Style x:Key="ChatComposerIconButton" TargetType="Button">
+        <Setter Property="Width" Value="30" />
+        <Setter Property="Height" Value="26" />
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="SnapsToDevicePixels" Value="True" />
+        <Setter Property="FocusVisualStyle" Value="{x:Null}" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border
+                        x:Name="face"
+                        Background="Transparent"
+                        CornerRadius="6"
+                        SnapsToDevicePixels="True">
+                        <ContentPresenter
+                            x:Name="glyph"
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Center"
+                            Opacity="0.65" />
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="face" Property="Background" Value="#22FFFFFF" />
+                            <Setter TargetName="glyph" Property="Opacity" Value="1" />
+                        </Trigger>
+                        <Trigger Property="IsPressed" Value="True">
+                            <Setter TargetName="face" Property="Background" Value="{StaticResource DeckSurfacePressedBrush}" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
     <Style x:Key="TileDoorButton" TargetType="Button">
         <Setter Property="Height" Value="22" />
         <Setter Property="Background" Value="{StaticResource DeckSurfaceBrush}" />

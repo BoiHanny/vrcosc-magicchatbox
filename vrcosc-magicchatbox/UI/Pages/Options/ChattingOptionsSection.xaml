@@ -89,6 +89,50 @@
 
                 <Border Style="{StaticResource OptionCardStyle}">
                     <StackPanel>
+                        <TextBlock Style="{StaticResource OptionSubsectionHeaderStyle}" Text="Live typing" />
+                        <CheckBox IsChecked="{Binding ChatSettings.ChatLiveTyping, Mode=TwoWay}">
+                            Show my words in VRChat while I am still typing them
+                        </CheckBox>
+                        <TextBlock
+                            Style="{StaticResource OptionHelpTextStyle}"
+                            Text="People around you read the line as it appears instead of waiting for you to finish. Pressing Enter still sends it as a normal message. There is a LIVE button on the chat page that switches this on and off without coming here." />
+
+                        <StackPanel Margin="12,4,0,0" Visibility="{Binding ChatSettings.ChatLiveTyping, Converter={StaticResource BoolToVisibilityConverter}}">
+                            <TextBlock
+                                Margin="2,4,0,3"
+                                Style="{StaticResource OptionFieldLabelStyle}"
+                                Text="Update the chatbox at most every" />
+                            <TextBlock
+                                Style="{StaticResource OptionHelpTextStyle}"
+                                Text="VRChat throws away chatbox messages that arrive too quickly. Lower is snappier and closer to that limit; raise it if your words stop appearing." />
+                            <StackPanel Margin="0,3,0,4" Orientation="Horizontal">
+                                <Slider
+                                    x:Name="ChatLiveTypingRateSlider"
+                                    Width="134.5"
+                                    Height="12"
+                                    Margin="2.2,0,4.5,0"
+                                    IsSnapToTickEnabled="True"
+                                    Maximum="3000"
+                                    Minimum="800"
+                                    Style="{StaticResource CustomSlider}"
+                                    TickFrequency="100"
+                                    Value="{Binding Path=ChatSettings.ChatLiveTypingRateMs, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                <TextBlock
+                                    Padding="5,0"
+                                    VerticalAlignment="Center"
+                                    Style="{StaticResource OptionFieldLabelStyle}"
+                                    Text="{Binding ChatSettings.ChatLiveTypingRateMs, UpdateSourceTrigger=PropertyChanged}" />
+                                <TextBlock
+                                    VerticalAlignment="Center"
+                                    Style="{StaticResource OptionFieldLabelStyle}"
+                                    Text="ms" />
+                            </StackPanel>
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+
+                <Border Style="{StaticResource OptionCardStyle}">
+                    <StackPanel>
                         <TextBlock Style="{StaticResource OptionSubsectionHeaderStyle}" Text="Finishing your sentences" />
                         <CheckBox IsChecked="{Binding ChatSettings.ChatAutocompleteEnabled, Mode=TwoWay}">
                             Suggest the rest of what I am typing

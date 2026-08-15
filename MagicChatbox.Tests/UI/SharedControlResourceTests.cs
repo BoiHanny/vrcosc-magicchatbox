@@ -21,45 +21,14 @@ namespace MagicChatbox.Tests.UI;
 /// </remarks>
 public class SharedControlResourceTests
 {
-    private static readonly Lock Gate = new();
-
     [Fact]
     public void SegmentPreview_can_actually_be_constructed()
     {
-        Exception? failure = null;
-
-        var thread = new Thread(() =>
+        Exception? failure = WpfHost.Run(() =>
         {
-            try
-            {
-                lock (Gate)
-                {
-                    if (Application.Current == null)
-                    {
-                        var app = new Application();
-                        app.Resources.MergedDictionaries.Add(new ResourceDictionary
-                        {
-                            Source = new Uri("pack://application:,,,/MagicChatbox;component/UI/Theme.xaml"),
-                        });
-                        app.Resources.MergedDictionaries.Add(new ResourceDictionary
-                        {
-                            Source = new Uri("pack://application:,,,/MagicChatbox;component/UI/Resources/SharedConverters.xaml"),
-                        });
-                    }
-
-                    var preview = new vrcosc_magicchatbox.UI.Controls.SegmentPreview { Caption = "x", Line = "hello" };
-                    Assert.Equal("5/144", preview.CostText);
-                }
-            }
-            catch (Exception ex)
-            {
-                failure = ex;
-            }
+            var preview = new vrcosc_magicchatbox.UI.Controls.SegmentPreview { Caption = "x", Line = "hello" };
+            Assert.Equal("5/144", preview.CostText);
         });
-
-        thread.SetApartmentState(ApartmentState.STA);
-        thread.Start();
-        thread.Join();
 
         Assert.True(failure == null, "SegmentPreview did not construct: " + failure);
     }
@@ -75,6 +44,7 @@ public class SharedControlResourceTests
 
     [Theory]
     [InlineData("UI/Controls/SegmentPreview.xaml")]
+    [InlineData("UI/Pages/ChattingPage.xaml")]
     [InlineData("UI/Pages/Options/ChattingOptionsSection.xaml")]
     [InlineData("UI/Pages/Options/StatusSection.xaml")]
     [InlineData("UI/Pages/Options/MediaLinkSection.xaml")]
