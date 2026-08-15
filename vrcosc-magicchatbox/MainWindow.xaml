@@ -14,6 +14,7 @@
     MinWidth="1080"
     MinHeight="500"
     VerticalAlignment="Bottom"
+    Background="{StaticResource SurfaceDarkBrush}"
     d:DataContext="{d:DesignInstance Type=vm:ViewModel,
                                      IsDesignTimeCreatable=True}"
     FontFamily="{DynamicResource FontPrimary}"
