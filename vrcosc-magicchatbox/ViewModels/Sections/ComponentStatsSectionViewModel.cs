@@ -5,6 +5,7 @@ using System.ComponentModel;
 using System.Windows.Threading;
 using vrcosc_magicchatbox.Classes.Modules;
 using vrcosc_magicchatbox.Core.Configuration;
+using vrcosc_magicchatbox.Core.Units;
 using static vrcosc_magicchatbox.Classes.Modules.ComponentStatsModule;
 
 namespace vrcosc_magicchatbox.ViewModels.Sections;
@@ -21,7 +22,8 @@ public sealed record ComponentStatsPreviewOptions
 {
     public string Separator { get; init; } = DefaultSeparator;
     public bool UseEmojis { get; init; }
-    public bool Fahrenheit { get; init; }
+    public TemperatureScale Scale { get; init; } = TemperatureScale.Celsius;
+    public TemperatureCompanion Companion { get; init; } = TemperatureCompanion.None;
 
     public bool ShowGpuTemperature { get; init; }
     public bool ShowGpuHotspot { get; init; }
@@ -132,11 +134,20 @@ public static class ComponentStatsPreview
 
     private static StatExtra Temperature(ComponentStatsPreviewOptions options, string emoji, string label, double celsius)
     {
-        double reading = options.Fahrenheit ? celsius * 9.0 / 5.0 + 32 : celsius;
-        string unit = options.Fahrenheit ? "°F" : "°C";
-        string value = options.Gpu.RoundNumbers ? $"{(int)Math.Round(reading)}" : $"{reading:F1}";
+        string unit = Temperatures.Symbol(options.Scale, degreeSign: true) + Companion(options, celsius);
 
-        return Extra(options, emoji, label, value, unit);
+        return Extra(options, emoji, label, Reading(options, celsius, options.Scale), unit);
+    }
+
+    private static string Companion(ComponentStatsPreviewOptions options, double celsius)
+        => Temperatures.TryCompanion(options.Companion, options.Scale, out TemperatureScale companion)
+            ? $" ({Reading(options, celsius, companion)}{Temperatures.Symbol(companion, degreeSign: true)})"
+            : string.Empty;
+
+    private static string Reading(ComponentStatsPreviewOptions options, double celsius, TemperatureScale scale)
+    {
+        double value = Temperatures.FromCelsius(celsius, scale);
+        return options.Gpu.RoundNumbers ? $"{(int)Math.Round(value)}" : $"{value:F1}";
     }
 
     private static string Round(StatPreviewShape shape, string value)
@@ -202,7 +213,7 @@ public partial class ComponentStatsSectionViewModel : ObservableObject
         if (_temperatureTimer == null)
             return;
 
-        bool wanted = AppSettings.Settings_ComponentStats && StatsManager.Settings.IsTemperatureSwitchEnabled;
+        bool wanted = AppSettings.Settings_ComponentStats && StatsManager.Settings.TemperatureRotates;
         if (wanted == _temperatureTimer.IsEnabled)
             return;
 
@@ -220,7 +231,8 @@ public partial class ComponentStatsSectionViewModel : ObservableObject
         {
             Separator = settings.StatsSeparator,
             UseEmojis = settings.UseEmojisForTempAndPower,
-            Fahrenheit = settings.TemperatureUnit == "F",
+            Scale = settings.CurrentTemperatureScale,
+            Companion = settings.TemperatureCompanionScale,
             ShowGpuTemperature = ComponentStats.ComponentStatGPUTempVisible,
             ShowGpuHotspot = ComponentStats.ComponentStatGPUHotSpotVisible,
             ShowGpuWattage = ComponentStats.ComponentStatGPUWattageVisible,

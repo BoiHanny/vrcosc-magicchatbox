@@ -1,4 +1,5 @@
 using System.Globalization;
+using vrcosc_magicchatbox.Core.Units;
 using vrcosc_magicchatbox.ViewModels.Sections;
 using Xunit;
 
@@ -14,19 +15,23 @@ public sealed class ComponentStatsPreviewTests
 
     private static string F(double value) => value.ToString("F1", CultureInfo.CurrentCulture);
 
+    private static StatPreviewShape Rounded(string name) => new(name, name, false, false, RoundNumbers: true, false);
+
     private static ComponentStatsPreviewOptions Options(
         StatPreviewShape? gpu = null,
         bool useEmojis = false,
         bool showTemperature = false,
         bool showWattage = false,
         bool showDdr = false,
-        bool fahrenheit = false,
+        TemperatureScale scale = TemperatureScale.Celsius,
+        TemperatureCompanion companion = TemperatureCompanion.None,
         string separator = " ¦ ")
         => new()
         {
             Separator = separator,
             UseEmojis = useEmojis,
-            Fahrenheit = fahrenheit,
+            Scale = scale,
+            Companion = companion,
             ShowGpuTemperature = showTemperature,
             ShowGpuWattage = showWattage,
             ShowDdrVersion = showDdr,
@@ -118,7 +123,53 @@ public sealed class ComponentStatsPreviewTests
         // written in the user's own culture, exactly as the module writes it, so it is expected
         // the same way rather than hard-coded to one decimal separator.
         Assert.Contains(F(64.0) + "°ᶜ", ComponentStatsPreview.Render(Options(showTemperature: true)));
-        Assert.Contains(F(147.2) + "°ᶠ", ComponentStatsPreview.Render(Options(showTemperature: true, fahrenheit: true)));
+        Assert.Contains(F(147.2) + "°ᶠ", ComponentStatsPreview.Render(Options(showTemperature: true, scale: TemperatureScale.Fahrenheit)));
+    }
+
+    [Fact]
+    public void KelvinIsNeverGivenTheDegreeSignTheOtherScalesGet()
+    {
+        string line = ComponentStatsPreview.Render(Options(Rounded("GPU"), showTemperature: true, scale: TemperatureScale.Kelvin));
+
+        Assert.Contains("337ᵏ", line);
+        Assert.DoesNotContain("°ᵏ", line);
+    }
+
+    [Fact]
+    public void TheCompanionScaleRidesAlongInBracketsBesideTheFirst()
+    {
+        // Raised along with the unit it belongs to, because it is a second unit and not a second
+        // reading - the full-size number stays the one the user asked for.
+        string line = ComponentStatsPreview.Render(
+            Options(Rounded("GPU"), showTemperature: true, companion: TemperatureCompanion.Fahrenheit));
+
+        Assert.Contains("64°ᶜ ⁽¹⁴⁷°ᶠ⁾", line);
+    }
+
+    [Fact]
+    public void TheCompanionIsDroppedWhenItWouldOnlyRepeatWhatIsAlreadyThere()
+    {
+        string line = ComponentStatsPreview.Render(
+            Options(Rounded("GPU"), showTemperature: true, companion: TemperatureCompanion.Celsius));
+
+        Assert.Contains("64°ᶜ", line);
+        Assert.DoesNotContain("⁽", line);
+    }
+
+    [Fact]
+    public void EveryTemperatureOnTheLineGetsTheSameCompanionTreatment()
+    {
+        // Hotspot and memory temperature are readings in their own right, so a user who asked for
+        // two scales gets two scales everywhere rather than only on the first one.
+        string line = ComponentStatsPreview.Render(Options(Rounded("GPU"), showTemperature: true, companion: TemperatureCompanion.Kelvin) with
+        {
+            ShowGpuHotspot = true,
+            ShowGpuMemoryTemperature = true,
+        });
+
+        Assert.Contains("64°ᶜ ⁽³³⁷ᵏ⁾", line);
+        Assert.Contains("78°ᶜ ⁽³⁵¹ᵏ⁾", line);
+        Assert.Contains("72°ᶜ ⁽³⁴⁵ᵏ⁾", line);
     }
 
     [Fact]

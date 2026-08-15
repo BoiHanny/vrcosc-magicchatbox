@@ -12,6 +12,7 @@ using vrcosc_magicchatbox.Core.Osc.Text;
 using vrcosc_magicchatbox.Core.Privacy;
 using vrcosc_magicchatbox.Core.State;
 using vrcosc_magicchatbox.Core.Toast;
+using vrcosc_magicchatbox.Core.Units;
 using vrcosc_magicchatbox.Services;
 using vrcosc_magicchatbox.ViewModels;
 using vrcosc_magicchatbox.ViewModels.State;
@@ -286,15 +287,14 @@ public class WeatherService : IWeatherService
             return null;
         }
 
-        string unit = ResolveUnit();
-        bool useFahrenheit = unit == "F";
+        TemperatureScale scale = ResolveScale();
+        string unit = Temperatures.Symbol(scale, degreeSign: false);
 
-        string tempValueRaw = FormatTemperature(useFahrenheit ? snapshot.TemperatureC * 9 / 5 + 32 : snapshot.TemperatureC);
+        string tempValueRaw = FormatTemperature(Temperatures.FromCelsius(snapshot.TemperatureC, scale));
         string feelsValueRaw = string.Empty;
         if (Settings.ShowWeatherFeelsLike && snapshot.FeelsLikeC.HasValue)
         {
-            double feelsConverted = useFahrenheit ? snapshot.FeelsLikeC.Value * 9 / 5 + 32 : snapshot.FeelsLikeC.Value;
-            feelsValueRaw = FormatTemperature(feelsConverted);
+            feelsValueRaw = FormatTemperature(Temperatures.FromCelsius(snapshot.FeelsLikeC.Value, scale));
         }
 
         string conditionText = GetConditionText(snapshot);
@@ -304,14 +304,14 @@ public class WeatherService : IWeatherService
         string windText = string.Empty;
         if (Settings.ShowWeatherWind && snapshot.WindSpeedKph.HasValue)
         {
-            string windUnit = ResolveWindUnit(unit);
+            string windUnit = ResolveWindUnit(scale);
             double windValue = ConvertWindSpeed(snapshot.WindSpeedKph.Value, windUnit);
             windText = Measure(FormatWindSpeed(windValue), windUnit);
         }
 
         string tempValue = tempValueRaw;
         string unitText = ToSmallText(unit);
-        string tempWithUnit = Measure(tempValueRaw, unit);
+        string tempWithUnit = Measure(tempValueRaw, unit + CompanionSuffix(snapshot.TemperatureC, scale));
         string feelsValue = string.IsNullOrWhiteSpace(feelsValueRaw) ? string.Empty : Measure(feelsValueRaw, unit);
         string conditionSmall = ToSmallTextPreserveEmoji(conditionText);
         string humiditySmall = string.IsNullOrWhiteSpace(humidityText) ? string.Empty : humidityText;
@@ -405,13 +405,24 @@ public class WeatherService : IWeatherService
             : Math.Round(value).ToString("0", CultureInfo.InvariantCulture);
     }
 
+    private string CompanionSuffix(double celsius, TemperatureScale shown)
+    {
+        if (!Temperatures.TryCompanion(Settings.WeatherCompanionScale, shown, out TemperatureScale companion))
+        {
+            return string.Empty;
+        }
+
+        string value = FormatTemperature(Temperatures.FromCelsius(celsius, companion));
+        return $" ({value}{Temperatures.Symbol(companion, degreeSign: false)})";
+    }
+
     private double ConvertWindSpeed(double speedKph, string unit)
     {
         return unit == "mph" ? speedKph * 0.621371 : speedKph;
     }
 
-    private string ResolveWindUnit(string temperatureUnit)
-        => WeatherUnitResolver.Wind(Settings.WeatherWindUnitOverride, temperatureUnit);
+    private string ResolveWindUnit(TemperatureScale temperatureScale)
+        => WeatherUnitResolver.Wind(Settings.WeatherWindUnitOverride, temperatureScale);
 
     private string GetWeatherStatsSeparator()
     {
@@ -527,8 +538,8 @@ public class WeatherService : IWeatherService
         return false;
     }
 
-    private string ResolveUnit()
-        => WeatherUnitResolver.Temperature(Settings.WeatherUnitOverride, _componentStatsSettings.TemperatureUnit);
+    private TemperatureScale ResolveScale()
+        => WeatherUnitResolver.Temperature(Settings.WeatherUnitOverride, _componentStatsSettings.CurrentTemperatureScale);
 
     private string GetSeparator()
     {

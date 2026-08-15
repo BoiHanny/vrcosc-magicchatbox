@@ -442,6 +442,23 @@
                     <TextBlock
                         Margin="0,6,0,0"
                         Style="{StaticResource OptionFieldLabelStyle}"
+                        Text="And also show, in brackets" />
+                    <ComboBox
+                        Width="200"
+                        Margin="0,4"
+                        HorizontalAlignment="Left"
+                        ItemsSource="{Binding Source={x:Static modules:WeatherSettings.AvailableCompanionScales}}"
+                        SelectedItem="{Binding WeatherSettings.WeatherCompanionScale, Mode=TwoWay}"
+                        ToolTip="Shrunk along with the unit, so 21°C reads as 21ᶜ ⁽²⁹⁵ᵏ⁾. Asking for the scale that is already on screen leaves it off.">
+                        <ComboBox.ItemTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding Converter={StaticResource EnumDescriptionConverter}}" />
+                            </DataTemplate>
+                        </ComboBox.ItemTemplate>
+                    </ComboBox>
+                    <TextBlock
+                        Margin="0,6,0,0"
+                        Style="{StaticResource OptionFieldLabelStyle}"
                         Text="Wind speed in" />
                     <ComboBox
                         Width="220"

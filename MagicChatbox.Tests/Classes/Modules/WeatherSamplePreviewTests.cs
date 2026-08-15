@@ -6,6 +6,7 @@ using vrcosc_magicchatbox.Classes.Modules;
 using vrcosc_magicchatbox.Core.Configuration;
 using vrcosc_magicchatbox.Core.Privacy;
 using vrcosc_magicchatbox.Core.State;
+using vrcosc_magicchatbox.Core.Units;
 using vrcosc_magicchatbox.Services;
 using vrcosc_magicchatbox.ViewModels;
 using vrcosc_magicchatbox.ViewModels.State;
@@ -92,6 +93,39 @@ public sealed class WeatherSamplePreviewTests
         Assert.NotEqual(celsius, fahrenheit);
         Assert.Contains("21", celsius);
         Assert.Contains("71", fahrenheit);
+    }
+
+    [Fact]
+    public void KelvinIsOnOfferAndArrivesWithoutADegreeSign()
+    {
+        var (service, settings) = Build();
+        settings.WeatherUnitOverride = WeatherUnitOverride.Kelvin;
+
+        string line = service.BuildSampleWeatherText();
+
+        Assert.Contains("295ᵏ", line);
+        Assert.DoesNotContain("°", line);
+    }
+
+    [Fact]
+    public void ASecondScaleCanRideAlongInBracketsInsteadOfWaitingForTheSwap()
+    {
+        var (service, settings) = Build();
+        settings.WeatherCompanionScale = TemperatureCompanion.Kelvin;
+
+        Assert.Contains("21ᶜ ⁽²⁹⁵ᵏ⁾", service.BuildSampleWeatherText());
+    }
+
+    [Fact]
+    public void TheUnitPlaceholderStaysOneUnitAndTheCompanionTravelsWithTheReading()
+    {
+        // A template that wants the two apart can have them apart; {unit} would be a poor name for
+        // something that sometimes carries a whole second reading.
+        var (service, settings) = Build();
+        settings.WeatherCompanionScale = TemperatureCompanion.Kelvin;
+        settings.WeatherTemplate = "{temp}|{unit}|{tempWithUnit}";
+
+        Assert.Contains("21|ᶜ|21ᶜ ⁽²⁹⁵ᵏ⁾", service.BuildSampleWeatherText());
     }
 
     [Fact]

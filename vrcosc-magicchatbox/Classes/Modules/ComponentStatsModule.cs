@@ -14,6 +14,7 @@ using vrcosc_magicchatbox.Core.Osc.Text;
 using vrcosc_magicchatbox.Core.Privacy;
 using vrcosc_magicchatbox.Core.State;
 using vrcosc_magicchatbox.Core.Toast;
+using vrcosc_magicchatbox.Core.Units;
 using vrcosc_magicchatbox.Services;
 using vrcosc_magicchatbox.ViewModels;
 using vrcosc_magicchatbox.ViewModels.Models;
@@ -125,6 +126,15 @@ public class ComponentStatsModule : IModule
         _hwService = hwService;
         _consentService = consentService;
         _toast = toast;
+
+        Settings.PropertyChanged += (_, e) =>
+        {
+            if (e.PropertyName != nameof(ComponentStatsSettings.EnableVendorGpuSensors))
+                return;
+
+            if (_hwService.IsOpen)
+                _hwService.Close();
+        };
 
         _consentService.ConsentChanged += (_, e) =>
         {
@@ -278,13 +288,23 @@ public class ComponentStatsModule : IModule
 
     private string FormatTemperature(ComponentStatsItem item, float rawCelsius, out string unitSymbol)
     {
-        string unit = Settings.TemperatureUnit;
-        double temperature = unit == "F" ? rawCelsius * 9.0 / 5.0 + 32 : rawCelsius;
+        TemperatureScale scale = Settings.CurrentTemperatureScale;
+        double temperature = Temperatures.FromCelsius(rawCelsius, scale);
         if (item.RemoveNumberTrailing)
             temperature = Math.Round(temperature);
 
-        unitSymbol = unit == "F" ? "°F" : "°C";
+        unitSymbol = Temperatures.Symbol(scale, degreeSign: true) + CompanionSuffix(item, rawCelsius, scale);
         return item.RemoveNumberTrailing ? $"{(int)temperature}" : $"{temperature:F1}";
+    }
+
+    private string CompanionSuffix(ComponentStatsItem item, float rawCelsius, TemperatureScale shown)
+    {
+        if (!Temperatures.TryCompanion(Settings.TemperatureCompanionScale, shown, out TemperatureScale companion))
+            return string.Empty;
+
+        double temperature = Temperatures.FromCelsius(rawCelsius, companion);
+        string value = item.RemoveNumberTrailing ? $"{(int)Math.Round(temperature)}" : $"{temperature:F1}";
+        return $" ({value}{Temperatures.Symbol(companion, degreeSign: true)})";
     }
 
     private string FetchGPUStat()

@@ -45,6 +45,22 @@ public class SectionBindingCoverageTests
         Assert.True(unreachable.Count == 0, "no control binds: " + string.Join(", ", unreachable));
     }
 
+    [Fact]
+    public void Every_ComponentStats_setting_is_reachable_from_a_control()
+    {
+        // The legacy pair is not settable any more: it is what a pre-scales settings file wrote,
+        // read once on load to work out which scales the user had chosen, and never again.
+        var skip = new HashSet<string> { "IsFahrenheit", "IsTemperatureSwitchEnabled" };
+        string allXaml = string.Concat(AppXamlFiles().Select(File.ReadAllText));
+
+        var unreachable = PersistedProperties(typeof(ComponentStatsSettings))
+            .Where(name => !skip.Contains(name))
+            .Where(name => !allXaml.Contains($"Settings.{name}", StringComparison.Ordinal))
+            .ToList();
+
+        Assert.True(unreachable.Count == 0, "no control binds: " + string.Join(", ", unreachable));
+    }
+
     private static IEnumerable<string> PersistedProperties(Type settingsType)
         => settingsType
             .GetProperties(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly)

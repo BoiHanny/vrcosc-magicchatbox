@@ -59,7 +59,13 @@ namespace vrcosc_magicchatbox.ViewModels
         [Description("Celsius (C)")]
         Celsius,
         [Description("Fahrenheit (F)")]
-        Fahrenheit
+        Fahrenheit,
+        [Description("Kelvin (K)")]
+        Kelvin,
+        [Description("Rankine (R)")]
+        Rankine,
+        [Description("Réaumur (Ré)")]
+        Reaumur
     }
 
     public enum WeatherFallbackMode

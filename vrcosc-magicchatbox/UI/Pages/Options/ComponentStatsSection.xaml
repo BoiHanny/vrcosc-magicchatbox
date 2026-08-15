@@ -5,6 +5,7 @@
     xmlns:controls="clr-namespace:vrcosc_magicchatbox.UI.Controls"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:modules="clr-namespace:vrcosc_magicchatbox.Classes.Modules"
     xmlns:sections="clr-namespace:vrcosc_magicchatbox.ViewModels.Sections"
     d:DataContext="{d:DesignInstance Type=sections:ComponentStatsSectionViewModel,
                                      IsDesignTimeCreatable=False}"
@@ -66,16 +67,6 @@
                     <TextBlock
                         Margin="7,2,0,2"
                         Style="{StaticResource OptionHelpTextStyle}"
-                        Text="Shows the temperature in Celsius for a few seconds, then Fahrenheit, and keeps swapping. Untick it to stay on one." />
-                    <CheckBox
-                        x:Name="IsTemperatureSwitchEnabled_checkbox"
-                        Margin="5,5"
-                        Content="Keep swapping between °C and °F"
-                        IsChecked="{Binding StatsManager.Settings.IsTemperatureSwitchEnabled, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
-
-                    <TextBlock
-                        Margin="7,8,0,2"
-                        Style="{StaticResource OptionHelpTextStyle}"
                         Text="Replaces the words next to the temperature and power readings with icons. An icon is never shrunk, so the 'small raised labels' boxes below stop affecting those readings while this is on." />
                     <CheckBox
                         x:Name="UseEmojisForTempAndPower_checkbox"
@@ -121,6 +112,90 @@
                         ItemsSource="{Binding StatsManager.GPUList}"
                         SelectedItem="{Binding StatsManager.Settings.SelectedGPU, Mode=TwoWay}"
                         Visibility="{Binding StatsManager.Settings.AutoSelectGPU, Converter={StaticResource InverseBoolToVisibilityConverter}, UpdateSourceTrigger=PropertyChanged}" />
+                </StackPanel>
+            </Border>
+
+            <!--  Every temperature the app prints is measured in Celsius and converted here, so this
+                  card decides the units for the readings above and for the weather line as well,
+                  unless the weather section has been given a unit of its own.  -->
+            <Border Style="{StaticResource OptionCardStyle}">
+                <StackPanel>
+                    <TextBlock Style="{StaticResource OptionSubsectionHeaderStyle}" Text="Temperature" />
+
+                    <TextBlock
+                        Margin="7,2,0,6"
+                        Style="{StaticResource OptionHelpTextStyle}"
+                        Text="Tick every scale you want to see. Tick two or more and the reading swaps between them on a timer, in the order below; tick a single one and it stays there. The example beside each is the same 64 degree card." />
+                    <CheckBox
+                        x:Name="TemperatureCelsius_checkbox"
+                        Margin="5,3"
+                        Content="Celsius — 64.0°C"
+                        IsChecked="{Binding StatsManager.Settings.TemperatureCelsius, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                    <CheckBox
+                        x:Name="TemperatureFahrenheit_checkbox"
+                        Margin="5,3"
+                        Content="Fahrenheit — 147.2°F"
+                        IsChecked="{Binding StatsManager.Settings.TemperatureFahrenheit, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                    <CheckBox
+                        x:Name="TemperatureKelvin_checkbox"
+                        Margin="5,3"
+                        Content="Kelvin — 337.2K"
+                        IsChecked="{Binding StatsManager.Settings.TemperatureKelvin, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                        ToolTip="Written without a degree sign, because a kelvin is not a degree. It is an amount of hot, counted up from the coldest anything can be." />
+                    <CheckBox
+                        x:Name="TemperatureRankine_checkbox"
+                        Margin="5,3"
+                        Content="Rankine — 606.9°R"
+                        IsChecked="{Binding StatsManager.Settings.TemperatureRankine, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                        ToolTip="Fahrenheit counted from absolute zero. Chosen by people who wanted Kelvin but could not let go." />
+                    <CheckBox
+                        x:Name="TemperatureReaumur_checkbox"
+                        Margin="5,3"
+                        Content="Réaumur — 51.2°Ré"
+                        IsChecked="{Binding StatsManager.Settings.TemperatureReaumur, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                        ToolTip="Water freezes at 0 and boils at 80. It was briefly the future, in about 1730." />
+
+                    <StackPanel
+                        Margin="5,10,5,2"
+                        VerticalAlignment="Center"
+                        Orientation="Horizontal"
+                        Visibility="{Binding StatsManager.Settings.TemperatureRotates, Converter={StaticResource BoolToVisibilityConverter}, UpdateSourceTrigger=PropertyChanged}">
+                        <TextBlock
+                            VerticalAlignment="Center"
+                            Style="{StaticResource OptionFieldLabelStyle}"
+                            Text="Swap to the next scale every" />
+                        <TextBox
+                            x:Name="TemperatureDisplaySwitchIntervalTextBox"
+                            Width="42"
+                            Margin="5,0"
+                            Padding="3,0"
+                            VerticalAlignment="Center"
+                            FontSize="{StaticResource FontSizeBody}"
+                            Text="{Binding StatsManager.Settings.TemperatureDisplaySwitchInterval, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                            ToolTip="Seconds. The swap is driven by the clock rather than by a timer of its own, so every reading on the line turns over together." />
+                        <TextBlock
+                            VerticalAlignment="Center"
+                            Style="{StaticResource OptionFieldLabelStyle}"
+                            Text="seconds" />
+                    </StackPanel>
+
+                    <TextBlock
+                        Margin="7,10,0,2"
+                        Style="{StaticResource OptionHelpTextStyle}"
+                        Text="A second scale in brackets after every temperature, for reading both at once instead of waiting for the swap. It is shrunk along with the unit, so it costs the line about six characters per reading." />
+                    <ComboBox
+                        x:Name="TemperatureCompanionScaleComboBox"
+                        Width="220"
+                        Margin="5,4"
+                        HorizontalAlignment="Left"
+                        ItemsSource="{Binding Source={x:Static modules:ComponentStatsSettings.AvailableTemperatureCompanions}}"
+                        SelectedItem="{Binding StatsManager.Settings.TemperatureCompanionScale, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}">
+                        <ComboBox.ItemTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding Converter={StaticResource EnumDescriptionConverter}}" />
+                            </DataTemplate>
+                        </ComboBox.ItemTemplate>
+                    </ComboBox>
                 </StackPanel>
             </Border>
 
@@ -266,6 +341,21 @@
                         Margin="5,5"
                         Content="Show how busy the card's memory is"
                         IsChecked="{Binding StatsManager.Settings.ShowGpuMemoryLoad, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+
+                    <!--  Most of the boxes above are answered by this one: the card's own sensor
+                          library is what reports the hotspot, the fan, the clocks and the memory
+                          temperature. Turning it off leaves the readings that Windows can supply on
+                          its own, which is the plain temperature and the load.  -->
+                    <TextBlock
+                        Margin="7,10,0,2"
+                        Style="{StaticResource OptionHelpTextStyle}"
+                        Text="Reads the card's own sensors for the hotspot, the fan, the clocks and the memory. Turn it off if the readings look wrong on a machine with two graphics chips, or if you would rather nothing talked to the card directly; the plain temperature and load carry on either way." />
+                    <CheckBox
+                        x:Name="EnableVendorGpuSensors_checkbox"
+                        Margin="5,5"
+                        Content="Read the card's own sensors"
+                        IsChecked="{Binding StatsManager.Settings.EnableVendorGpuSensors, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                        ToolTip="Takes effect straight away: the hardware monitor is closed and reopened on the next reading." />
 
                     <TextBlock
                         Margin="7,10,0,2"
