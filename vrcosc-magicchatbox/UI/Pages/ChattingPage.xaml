@@ -57,7 +57,7 @@
                 Padding="4,0,50,0"
                 HorizontalAlignment="Left"
                 VerticalAlignment="Center"
-                d:Text="You're soaring past the 140 char limit by {overmax}."
+                d:Text="That is 4 over what the chatbox will take."
                 FontFamily="/Fonts/#Albert Sans"
                 FontSize="14"
                 Foreground="#FFF3E8FF"
@@ -941,7 +941,7 @@
                             FontFamily="/Fonts/#Albert Sans"
                             FontSize="13"
                             Foreground="{StaticResource TextSecondaryBrush}"
-                            Text="Spel/Grammer check" />
+                            Text="Spelling &amp; grammar" />
 
                     </StackPanel>
                     <Button.Effect>

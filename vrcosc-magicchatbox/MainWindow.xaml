@@ -14,9 +14,9 @@
     MinWidth="1080"
     MinHeight="500"
     VerticalAlignment="Bottom"
-    Background="{StaticResource SurfaceDarkBrush}"
     d:DataContext="{d:DesignInstance Type=vm:ViewModel,
                                      IsDesignTimeCreatable=True}"
+    Background="{StaticResource SurfaceDarkBrush}"
     FontFamily="{DynamicResource FontPrimary}"
     IsEnabled="{Binding AppSettingsInstance.AppIsEnabled, UpdateSourceTrigger=PropertyChanged}"
     Opacity="{Binding AppSettingsInstance.AppOpacity, UpdateSourceTrigger=PropertyChanged}"
@@ -132,9 +132,11 @@
                             x:Name="Drag_area"
                             Background="Transparent"
                             MouseDown="Drag_area_MouseDown">
-                            <!--  Stacked rather than two absolutely placed text blocks faking it: one
-                                  was centred and the other pinned top-left, so they never shared an
-                                  edge at any window size.  -->
+                            <!--
+                                Stacked rather than two absolutely placed text blocks faking it: one
+                                was centred and the other pinned top-left, so they never shared an
+                                edge at any window size.
+                            -->
                             <StackPanel
                                 Margin="16,0,0,0"
                                 HorizontalAlignment="Left"
@@ -147,13 +149,15 @@
                                     Foreground="{StaticResource TextSubtlePurpleBrush}"
                                     Text="VRC OSC" />
 
-                                <!--  The wordmark carries the display face and a purple bloom. The
-                                      old glow was LightBlue, which is the haze that sat over this
-                                      corner and belonged to no other part of the app.  -->
+                                <!--
+                                    The wordmark carries the display face and a purple bloom. The
+                                    old glow was LightBlue, which is the haze that sat over this
+                                    corner and belonged to no other part of the app.
+                                -->
                                 <TextBlock
                                     FontFamily="{StaticResource FontSecondary}"
                                     FontSize="{StaticResource FontSizeBody}"
-                                    FontWeight="SemiBold"
+                                    FontWeight="Bold"
                                     Text="MagicChatbox">
                                     <TextBlock.Foreground>
                                         <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
@@ -179,11 +183,11 @@
                         WindowChrome.IsHitTestVisibleInChrome="True">
                         <Button
                             Name="MenuButton_0"
+                            local:ButtonProperties.IsActive="{Binding SelectedMenuIndex, Converter={StaticResource IndexToBoolConverter}, ConverterParameter=0}"
                             Command="{Binding ChangeMenuCommand}"
                             CommandParameter="0"
                             Content="Integrations"
-                            Style="{StaticResource TopBarTabStyle}"
-                            local:ButtonProperties.IsActive="{Binding SelectedMenuIndex, Converter={StaticResource IndexToBoolConverter}, ConverterParameter=0}" />
+                            Style="{StaticResource TopBarTabStyle}" />
                     </Grid>
                     <Grid
                         Grid.Column="2"
@@ -191,11 +195,11 @@
                         WindowChrome.IsHitTestVisibleInChrome="True">
                         <Button
                             Name="MenuButton_1"
+                            local:ButtonProperties.IsActive="{Binding SelectedMenuIndex, Converter={StaticResource IndexToBoolConverter}, ConverterParameter=1}"
                             Command="{Binding ChangeMenuCommand}"
                             CommandParameter="1"
                             Content="Status"
-                            Style="{StaticResource TopBarTabStyle}"
-                            local:ButtonProperties.IsActive="{Binding SelectedMenuIndex, Converter={StaticResource IndexToBoolConverter}, ConverterParameter=1}" />
+                            Style="{StaticResource TopBarTabStyle}" />
                     </Grid>
                     <Grid
                         Grid.Column="3"
@@ -203,11 +207,11 @@
                         WindowChrome.IsHitTestVisibleInChrome="True">
                         <Button
                             Name="MenuButton_2"
+                            local:ButtonProperties.IsActive="{Binding SelectedMenuIndex, Converter={StaticResource IndexToBoolConverter}, ConverterParameter=2}"
                             Command="{Binding ChangeMenuCommand}"
                             CommandParameter="2"
                             Content="Chatting"
-                            Style="{StaticResource TopBarTabStyle}"
-                            local:ButtonProperties.IsActive="{Binding SelectedMenuIndex, Converter={StaticResource IndexToBoolConverter}, ConverterParameter=2}" />
+                            Style="{StaticResource TopBarTabStyle}" />
                     </Grid>
                     <Grid
                         Grid.Column="4"
@@ -215,11 +219,11 @@
                         WindowChrome.IsHitTestVisibleInChrome="True">
                         <Button
                             Name="MenuButton_3"
+                            local:ButtonProperties.IsActive="{Binding SelectedMenuIndex, Converter={StaticResource IndexToBoolConverter}, ConverterParameter=3}"
                             Command="{Binding ChangeMenuCommand}"
                             CommandParameter="3"
                             Content="Options"
-                            Style="{StaticResource TopBarTabStyle}"
-                            local:ButtonProperties.IsActive="{Binding SelectedMenuIndex, Converter={StaticResource IndexToBoolConverter}, ConverterParameter=3}" />
+                            Style="{StaticResource TopBarTabStyle}" />
                     </Grid>
 
                     <!--
@@ -768,8 +772,10 @@
                                             <ColumnDefinition Width="Auto" />
                                         </Grid.ColumnDefinitions>
 
-                                        <!--  A Grid does not clip, so without trimming the label draws
-                                              at its full width and runs under the pill.  -->
+                                        <!--
+                                            A Grid does not clip, so without trimming the label draws
+                                            at its full width and runs under the pill.
+                                        -->
                                         <TextBlock
                                             Grid.Column="0"
                                             Margin="0,0,8,0"
@@ -799,9 +805,11 @@
                                                     </Style.Triggers>
                                                 </Style>
                                             </Border.Style>
-                                            <!--  "HERE" rather than "AT KEYBOARD": the header already
-                                                  says keyboard, and repeating it made the row too
-                                                  wide.  -->
+                                            <!--
+                                                "HERE" rather than "AT KEYBOARD": the header already
+                                                says keyboard, and repeating it made the row too
+                                                wide.
+                                            -->
                                             <TextBlock
                                                 VerticalAlignment="Center"
                                                 FontFamily="/Fonts/#Albert Sans"

@@ -1,4 +1,4 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using OpenAI.Chat;
 using System;
@@ -176,6 +176,15 @@ namespace vrcosc_magicchatbox.ViewModels
                 return;
             }
 
+            // Say why nothing happened. This used to fall through to a bool nobody read, so a
+            // message one character too long simply did not send and the box gave no sign of it.
+            if (_chatStatus.NewChattingTxt.Length > Core.Constants.MaxChatMessageLength)
+            {
+                int overmax = _chatStatus.NewChattingTxt.Length - Core.Constants.MaxChatMessageLength;
+                _chatStatus.ChatFeedbackTxt = $"Too long to send - {overmax} over.";
+                return;
+            }
+
             _ = TrySendChatText(_chatStatus.NewChattingTxt, preserveCurrentInput: false);
         }
 
@@ -323,12 +332,14 @@ namespace vrcosc_magicchatbox.ViewModels
         public void UpdateChatBoxCount(string text)
         {
             int count = text.Length;
-            _chatStatus.ChatBoxCount = $"{count}/140";
-            if (count > 140)
+            int limit = Core.Constants.MaxChatMessageLength;
+
+            _chatStatus.ChatBoxCount = $"{count}/{limit}";
+            if (count > limit)
             {
-                int overmax = count - 140;
+                int overmax = count - limit;
                 _chatStatus.ChatBoxColor = BoxColorWarning;
-                _chatStatus.ChatTopBarTxt = $"You're soaring past the 140 char limit by {overmax}.";
+                _chatStatus.ChatTopBarTxt = $"That is {overmax} over what the chatbox will take.";
             }
             else if (count == 0)
             {
@@ -355,7 +366,7 @@ namespace vrcosc_magicchatbox.ViewModels
             if (string.IsNullOrWhiteSpace(suggestion))
                 return false;
 
-            _chatStatus.NewChattingTxt = TrimToLastMaxCharacters(_chatStatus.NewChattingTxt + suggestion, 140);
+            _chatStatus.NewChattingTxt = TrimToLastMaxCharacters(_chatStatus.NewChattingTxt + suggestion, Core.Constants.MaxChatMessageLength);
             ClearAutocompleteSuggestion();
             return true;
         }
@@ -372,7 +383,7 @@ namespace vrcosc_magicchatbox.ViewModels
             if (!CS.ChatAutocompleteEnabled
                 || string.IsNullOrWhiteSpace(input)
                 || input.Length < CS.ChatAutocompleteMinCharacters
-                || input.Length >= 140)
+                || input.Length >= Core.Constants.MaxChatMessageLength)
             {
                 ClearAutocompleteSuggestion();
                 return;
@@ -501,7 +512,7 @@ namespace vrcosc_magicchatbox.ViewModels
                 && (!preserveContinuation || sourceStartsWithSeparator)
                 && !char.IsPunctuation(limited[0]);
             string result = needsSeparator ? " " + limited : limited;
-            int remaining = Math.Max(0, 140 - input.Length);
+            int remaining = Math.Max(0, Core.Constants.MaxChatMessageLength - input.Length);
             return result.Length <= remaining
                 ? result
                 : result[..remaining].TrimEnd();
@@ -518,7 +529,7 @@ namespace vrcosc_magicchatbox.ViewModels
         public void OnTranscriptionReceived(string newTranscription)
         {
             string current = _chatStatus.NewChattingTxt + " " + newTranscription;
-            _chatStatus.NewChattingTxt = TrimToLastMaxCharacters(current, 140);
+            _chatStatus.NewChattingTxt = TrimToLastMaxCharacters(current, Core.Constants.MaxChatMessageLength);
         }
 
         public void OnWhisperSentChat() => SendChat();
