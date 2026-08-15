@@ -46,12 +46,14 @@
                                     </Border.Effect>
                                 </Border>
 
-                                <!--  Progress only moves when a step reports in, and the longest step by
-                                      far is the first real layout of the main window - several seconds
-                                      during which the bar sat perfectly still and the whole thing read as
-                                      hung. This sweep never stops. The splash owns its own UI thread, so
-                                      it keeps animating while the main one is busy laying out, which is
-                                      exactly when reassurance is needed.  -->
+                                <!--
+                                    Progress only moves when a step reports in, and the longest step by
+                                    far is the first real layout of the main window - several seconds
+                                    during which the bar sat perfectly still and the whole thing read as
+                                    hung. This sweep never stops. The splash owns its own UI thread, so
+                                    it keeps animating while the main one is busy laying out, which is
+                                    exactly when reassurance is needed.
+                                -->
                                 <Border
                                     x:Name="shimmer"
                                     Width="120"
@@ -302,12 +304,14 @@
                                 Margin="0,0,6,0"
                                 VerticalAlignment="Center"
                                 FontFamily="/Fonts/#Albert Sans"
-                                FontSize="12"
+                                FontSize="13"
                                 Foreground="#6A5F94"
                                 Text="Made with ♥ by" />
-                            <!--  The holo treatment the Lyrics chip wears: the same four-stop ramp, drifting
-                                  under the letters, with a sheen that crosses them. It is the last thing
-                                  to arrive on the splash, so it gets to be the flourish.  -->
+                            <!--
+                                The holo treatment the Lyrics chip wears: the same four-stop ramp, drifting
+                                under the letters, with a sheen that crosses them. It is the last thing
+                                to arrive on the splash, so it gets to be the flourish.
+                            -->
                             <Grid>
                                 <TextBlock
                                     x:Name="BylineName"
@@ -333,12 +337,14 @@
                                     </TextBlock.Effect>
                                 </TextBlock>
 
-                                <!--  A white copy of the letters, revealed through a narrow band that
-                                      travels across it. The band is an opacity mask on the text itself,
-                                      so the shine exists only where there are glyphs - the Lyrics chip
-                                      gets away with sweeping a plain rectangle because it crosses a
-                                      filled chip, but over bare text that same rectangle is just a pale
-                                      block sliding past the name.  -->
+                                <!--
+                                    A white copy of the letters, revealed through a narrow band that
+                                    travels across it. The band is an opacity mask on the text itself,
+                                    so the shine exists only where there are glyphs - the Lyrics chip
+                                    gets away with sweeping a plain rectangle because it crosses a
+                                    filled chip, but over bare text that same rectangle is just a pale
+                                    block sliding past the name.
+                                -->
                                 <TextBlock
                                     x:Name="BylineShine"
                                     VerticalAlignment="Center"
@@ -359,14 +365,18 @@
                                 <Grid.Triggers>
                                     <EventTrigger RoutedEvent="Loaded">
                                         <BeginStoryboard>
-                                            <!--  The delay lets the byline finish fading up first. Starting
-                                                  on Loaded put the first pass underneath the reveal, so the
-                                                  two read as one slow fade instead of a glint across a name
-                                                  that is already there.  -->
+                                            <!--
+                                                The delay lets the byline finish fading up first. Starting
+                                                on Loaded put the first pass underneath the reveal, so the
+                                                two read as one slow fade instead of a glint across a name
+                                                that is already there.
+                                            -->
                                             <Storyboard BeginTime="0:0:1.4" RepeatBehavior="Forever">
-                                                <!--  Held at the far side after each pass so the name is
-                                                      its own colours most of the time and the shine reads
-                                                      as an occasional glint rather than a strobe.  -->
+                                                <!--
+                                                    Held at the far side after each pass so the name is
+                                                    its own colours most of the time and the shine reads
+                                                    as an occasional glint rather than a strobe.
+                                                -->
                                                 <DoubleAnimationUsingKeyFrames Storyboard.TargetName="ShineLead" Storyboard.TargetProperty="Offset">
                                                     <LinearDoubleKeyFrame KeyTime="0:0:0" Value="-0.5" />
                                                     <LinearDoubleKeyFrame KeyTime="0:0:1.1" Value="1.0" />

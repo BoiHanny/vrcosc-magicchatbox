@@ -72,22 +72,20 @@
                         Style="{StaticResource OptionFieldLabelStyle}"
                         Text="Show the words while I am on" />
 
+                    <!--
+                        The same two chips the integration tiles use for the same two settings. They
+                        carry their own size, label and tooltip, so there is one place to change what
+                        a route chip looks like.
+                    -->
                     <StackPanel Orientation="Horizontal">
                         <ToggleButton
-                            Width="60"
-                            Height="22"
-                            Margin="0,0,5,0"
                             VerticalAlignment="Center"
-                            Content="DESKTOP"
                             IsChecked="{Binding IntegrationSettings.IntgrLyrics_DESKTOP, Mode=TwoWay}"
-                            Style="{StaticResource GlowyToggleButtonDT}" />
+                            Style="{StaticResource RouteChipDesktop}" />
                         <ToggleButton
-                            Width="30"
-                            Height="22"
                             VerticalAlignment="Center"
-                            Content="VR"
                             IsChecked="{Binding IntegrationSettings.IntgrLyrics_VR, Mode=TwoWay}"
-                            Style="{StaticResource GlowyToggleButtonVR}" />
+                            Style="{StaticResource RouteChipVr}" />
                     </StackPanel>
 
                     <TextBlock

@@ -217,15 +217,23 @@
                                 </DataTemplate>
                             </ItemsControl.ItemTemplate>
                         </ItemsControl>
+                        <!--
+                            Status_Button_style_Small before this, which is not a size - it is the
+                            style for a button sitting on a status item, hidden until its InAppAction
+                            matches the list it is in. Neither of those exists here, so it defaulted
+                            to collapsed and had to be forced visible, while its conditions went on
+                            asking every status item question against a settings view model.
+                        -->
                         <Button
                             Width="140"
+                            Height="24"
                             Margin="0,6,0,0"
                             HorizontalAlignment="Left"
                             Command="{Binding AddTitleFilterCommand}"
                             Content="＋ Add a rule"
-                            Style="{StaticResource Status_Button_style_Small}"
-                            ToolTip="Add a rule that applies to every app"
-                            Visibility="Visible" />
+                            FontSize="{StaticResource FontSizeSecondary}"
+                            Style="{StaticResource Status_Button_style}"
+                            ToolTip="Add a rule that applies to every app" />
                     </StackPanel>
                     <CheckBox
                         Margin="0,10,0,0"
