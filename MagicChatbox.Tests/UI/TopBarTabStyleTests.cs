@@ -3,6 +3,7 @@ using System.Globalization;
 using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Media;
 using vrcosc_magicchatbox.Classes;
 using Xunit;
 
@@ -64,6 +65,46 @@ public class TopBarTabStyleTests
         var converter = new IndexToBoolConverter();
 
         Assert.Equal(expected, converter.Convert(selected, typeof(bool), parameter, CultureInfo.InvariantCulture));
+    }
+
+    [Fact]
+    public void The_wordmark_fits_the_column_it_sits_in()
+    {
+        // The first top bar column is a fixed 150px and the wordmark has a 16px left margin. Text
+        // that outgrows it is clipped silently - no error, no warning, just a missing letter.
+        const double columnWidth = 150;
+        const double leftMargin = 16;
+
+        double measured = 0;
+
+        Exception? failure = RunOnUiThread(() =>
+        {
+            // Touching this registers the pack scheme. Without it the Uri below is parsed as having
+            // a port and throws before the font is ever looked for.
+            _ = System.IO.Packaging.PackUriHelper.UriSchemePack;
+
+            var typeface = new Typeface(
+                new FontFamily(new Uri("pack://application:,,,/MagicChatbox;component/"), "./Fonts/#Comfortaa"),
+                FontStyles.Normal,
+                FontWeights.SemiBold,
+                FontStretches.Normal);
+
+            var text = new FormattedText(
+                "MagicChatbox",
+                CultureInfo.InvariantCulture,
+                FlowDirection.LeftToRight,
+                typeface,
+                15,
+                Brushes.White,
+                1.0);
+
+            measured = text.Width;
+        });
+
+        Assert.Null(failure);
+        Assert.True(
+            measured > 0 && measured <= columnWidth - leftMargin,
+            $"the wordmark measured {measured:N1}px against {columnWidth - leftMargin:N0}px of room");
     }
 
     private static ResourceDictionary LoadTheme() => new()

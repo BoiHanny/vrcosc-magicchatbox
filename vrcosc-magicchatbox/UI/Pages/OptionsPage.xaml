@@ -20,7 +20,9 @@
         HorizontalScrollBarVisibility="Disabled"
         VerticalScrollBarVisibility="Auto">
         <StackPanel>
-            <TextBlock Style="{StaticResource OptionGroupHeaderStyle}" Text="Your message" />
+            <Border Style="{StaticResource OptionGroupBandStyle}">
+                <TextBlock Style="{StaticResource OptionGroupHeaderStyle}" Text="Your message" />
+            </Border>
 
             <ContentControl
                 x:Name="OptionsWrapper_Chatting"
@@ -36,7 +38,11 @@
                 <options:StatusSection x:Name="Section_Status" DataContext="{Binding StatusSection}" />
             </ContentControl>
 
-            <TextBlock Style="{StaticResource OptionGroupHeaderStyle}" Text="Music" />
+            <Border Style="{StaticResource OptionGroupBandStyle}">
+
+                <TextBlock Style="{StaticResource OptionGroupHeaderStyle}" Text="Music" />
+
+            </Border>
 
             <ContentControl
                 x:Name="OptionsWrapper_MediaLink"
@@ -59,7 +65,11 @@
                 <options:LyricsSection x:Name="LyricsSectionControl" DataContext="{Binding LyricsSection}" />
             </ContentControl>
 
-            <TextBlock Style="{StaticResource OptionGroupHeaderStyle}" Text="Streaming and chat" />
+            <Border Style="{StaticResource OptionGroupBandStyle}">
+
+                <TextBlock Style="{StaticResource OptionGroupHeaderStyle}" Text="Streaming and chat" />
+
+            </Border>
 
             <ContentControl
                 x:Name="OptionsWrapper_Twitch"
@@ -89,7 +99,11 @@
                 <options:VrcRadarSection x:Name="Section_VRCRadar" DataContext="{Binding VrcRadarSection}" />
             </ContentControl>
 
-            <TextBlock Style="{StaticResource OptionGroupHeaderStyle}" Text="On screen" />
+            <Border Style="{StaticResource OptionGroupBandStyle}">
+
+                <TextBlock Style="{StaticResource OptionGroupHeaderStyle}" Text="On screen" />
+
+            </Border>
 
             <ContentControl
                 x:Name="OptionsWrapper_Time"
@@ -105,7 +119,11 @@
                 <options:WeatherSection x:Name="Section_Weather" DataContext="{Binding WeatherSection}" />
             </ContentControl>
 
-            <TextBlock Style="{StaticResource OptionGroupHeaderStyle}" Text="Your PC and body" />
+            <Border Style="{StaticResource OptionGroupBandStyle}">
+
+                <TextBlock Style="{StaticResource OptionGroupHeaderStyle}" Text="Your PC and body" />
+
+            </Border>
 
             <ContentControl
                 x:Name="OptionsWrapper_Pulsoid"
@@ -135,7 +153,11 @@
                 <options:WindowActivitySection x:Name="WindowActivitySectionControl" DataContext="{Binding WindowActivitySection}" />
             </ContentControl>
 
-            <TextBlock Style="{StaticResource OptionGroupHeaderStyle}" Text="VR" />
+            <Border Style="{StaticResource OptionGroupBandStyle}">
+
+                <TextBlock Style="{StaticResource OptionGroupHeaderStyle}" Text="VR" />
+
+            </Border>
 
             <ContentControl
                 x:Name="OptionsWrapper_VrPerformance"
@@ -151,7 +173,11 @@
                 <options:TrackerBatterySection x:Name="TrackerBatterySectionControl" DataContext="{Binding TrackerBatterySection}" />
             </ContentControl>
 
-            <TextBlock Style="{StaticResource OptionGroupHeaderStyle}" Text="AI and voice" />
+            <Border Style="{StaticResource OptionGroupBandStyle}">
+
+                <TextBlock Style="{StaticResource OptionGroupHeaderStyle}" Text="AI and voice" />
+
+            </Border>
 
             <ContentControl
                 x:Name="OptionsWrapper_OpenAI"
@@ -167,7 +193,11 @@
                 <options:TtsOptionsSection x:Name="TtsOptionsSectionControl" DataContext="{Binding TtsSection}" />
             </ContentControl>
 
-            <TextBlock Style="{StaticResource OptionGroupHeaderStyle}" Text="App and privacy" />
+            <Border Style="{StaticResource OptionGroupBandStyle}">
+
+                <TextBlock Style="{StaticResource OptionGroupHeaderStyle}" Text="App and privacy" />
+
+            </Border>
 
             <ContentControl
                 x:Name="OptionsWrapper_AppOptions"

@@ -127,45 +127,49 @@
                         <ColumnDefinition />
                     </Grid.ColumnDefinitions>
                     <Border>
-                        <Grid x:Name="Drag_area" MouseDown="Drag_area_MouseDown">
-                            <TextBlock
-                                Grid.Column="0"
-                                Padding="0,12,0,0"
-                                HorizontalAlignment="Center"
-                                VerticalAlignment="Center"
-                                FontFamily="/Fonts/#Albert Sans"
-                                FontSize="16"
-                                Foreground="White"
-                                RenderOptions.BitmapScalingMode="NearestNeighbor"
-                                Text="MagicChatbox">
-                                <TextBlock.Effect>
-                                    <DropShadowEffect
-                                        BlurRadius="15"
-                                        Direction="315"
-                                        Opacity="1"
-                                        ShadowDepth="0"
-                                        Color="LightBlue" />
-                                </TextBlock.Effect>
-                            </TextBlock>
-                            <TextBlock
-                                Grid.Column="0"
-                                Padding="20,12,0,0"
-                                HorizontalAlignment="left"
-                                VerticalAlignment="top"
-                                FontFamily="/Fonts/#Albert Sans"
-                                FontSize="{StaticResource FontSizeMicro}"
-                                Foreground="MediumPurple"
-                                RenderOptions.BitmapScalingMode="NearestNeighbor"
-                                Text="VRC OSC">
-                                <TextBlock.Effect>
-                                    <DropShadowEffect
-                                        BlurRadius="15"
-                                        Direction="315"
-                                        Opacity="1"
-                                        ShadowDepth="0"
-                                        Color="LightBlue" />
-                                </TextBlock.Effect>
-                            </TextBlock>
+                        <!--  Transparent so the whole corner drags, not only the glyphs themselves.  -->
+                        <Grid
+                            x:Name="Drag_area"
+                            Background="Transparent"
+                            MouseDown="Drag_area_MouseDown">
+                            <!--  Stacked rather than two absolutely placed text blocks faking it: one
+                                  was centred and the other pinned top-left, so they never shared an
+                                  edge at any window size.  -->
+                            <StackPanel
+                                Margin="16,0,0,0"
+                                HorizontalAlignment="Left"
+                                VerticalAlignment="Center">
+                                <TextBlock
+                                    Margin="1,0,0,1"
+                                    FontFamily="{StaticResource FontPrimary}"
+                                    FontSize="{StaticResource FontSizeFine}"
+                                    FontWeight="Medium"
+                                    Foreground="{StaticResource TextSubtlePurpleBrush}"
+                                    Text="VRC OSC" />
+
+                                <!--  The wordmark carries the display face and a purple bloom. The
+                                      old glow was LightBlue, which is the haze that sat over this
+                                      corner and belonged to no other part of the app.  -->
+                                <TextBlock
+                                    FontFamily="{StaticResource FontSecondary}"
+                                    FontSize="{StaticResource FontSizeBody}"
+                                    FontWeight="SemiBold"
+                                    Text="MagicChatbox">
+                                    <TextBlock.Foreground>
+                                        <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                                            <GradientStop Offset="0" Color="#FFFFFFFF" />
+                                            <GradientStop Offset="1" Color="#FFCFC6FF" />
+                                        </LinearGradientBrush>
+                                    </TextBlock.Foreground>
+                                    <TextBlock.Effect>
+                                        <DropShadowEffect
+                                            BlurRadius="16"
+                                            Opacity="0.6"
+                                            ShadowDepth="0"
+                                            Color="#FFAEA7ED" />
+                                    </TextBlock.Effect>
+                                </TextBlock>
+                            </StackPanel>
                         </Grid>
                     </Border>
 
