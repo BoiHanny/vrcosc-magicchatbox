@@ -61,6 +61,9 @@ public sealed class ScanLoopService : IDisposable
     private readonly Lazy<IOscSender> _oscSender;
     private IOscSender OscSend => _oscSender.Value;
 
+    private readonly Lazy<ILiveTypingService> _liveTyping;
+    private ILiveTypingService LiveTyping => _liveTyping.Value;
+
     private bool _started;
 
     private static TimeSpan ToOscTickInterval(double seconds)
@@ -88,7 +91,8 @@ public sealed class ScanLoopService : IDisposable
         ISettingsProvider<ChatSettings> chatSettingsProvider,
         ISettingsProvider<AppSettings> appSettingsProvider,
         Lazy<OSCController> osc,
-        Lazy<IOscSender> oscSender)
+        Lazy<IOscSender> oscSender,
+        Lazy<ILiveTypingService> liveTyping)
     {
         _appState = appState;
         _chatStatus = chatStatus;
@@ -106,6 +110,7 @@ public sealed class ScanLoopService : IDisposable
 
         _osc = osc;
         _oscSender = oscSender;
+        _liveTyping = liveTyping;
     }
 
     public void Start()
@@ -136,6 +141,16 @@ public sealed class ScanLoopService : IDisposable
         if (!_started || _disposed)
             return;
 
+        // A line still being typed holds the chatbox too, but it is not a sent message: there is no
+        // countdown to run down and nothing to re-send on a schedule. The integrations simply wait
+        // until the line is sent or abandoned.
+        if (LiveTyping.IsHolding)
+        {
+            StopPauseTimer();
+            StopChatUpdateTimer();
+            return;
+        }
+
         if (IsChatOverrideActive())
         {
             StartPauseTimerIfNeeded();
@@ -151,7 +166,8 @@ public sealed class ScanLoopService : IDisposable
 
     private bool IsChatOverrideActive()
     {
-        return IsChatOverrideActive(_chatStatus.ScanPause, _chatStatus.LastMessages);
+        return LiveTyping.IsHolding
+            || IsChatOverrideActive(_chatStatus.ScanPause, _chatStatus.LastMessages);
     }
 
     public static bool IsChatOverrideActive(bool scanPause, IEnumerable<ChatItem>? lastMessages)
@@ -356,10 +372,6 @@ public sealed class ScanLoopService : IDisposable
         if (_chatUpdateTimer != null) return;
         if (_chatStatus.LastMessages == null) return;
 
-        var lastSend = _chatStatus.LastMessages.FirstOrDefault(x => x.IsRunning);
-        if (lastSend != null)
-            lastSend.LiveEditButtonTxt = "Sending...";
-
         _chatUpdateTimer = new System.Timers.Timer((int)(CS.ChattingUpdateRate * 1000));
         _chatUpdateTimer.Elapsed += OnChatUpdateTimerTick;
         _chatUpdateTimer.Start();
@@ -392,13 +404,11 @@ public sealed class ScanLoopService : IDisposable
                 var lastSendChat = _chatStatus.LastMessages.FirstOrDefault(x => x.IsRunning);
                 _chatStatus.ScanPauseCountDown--;
 
+                // The countdown used to be written into the edit button's own label once a second.
+                // The strip above the list already shows how long the message has left, and a button
+                // whose caption changes under the cursor is a button people stop trusting.
                 if (lastSendChat != null)
-                {
                     lastSendChat.CanLiveEdit = CS.ChatLiveEdit;
-                    lastSendChat.LiveEditButtonTxt = CS.RealTimeChatEdit
-                        ? $"Live Edit ({_chatStatus.ScanPauseCountDown})"
-                        : $"Edit ({_chatStatus.ScanPauseCountDown})";
-                }
 
                 if (_chatStatus.ScanPauseCountDown <= 0 || !_chatStatus.ScanPause)
                 {

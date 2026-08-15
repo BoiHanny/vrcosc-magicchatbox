@@ -31,6 +31,17 @@ public partial class ChatSettings : VersionedSettings
     [ObservableProperty] private int _chatAutocompleteDelayMs = 900;
     [ObservableProperty] private bool _chatAutocompleteShowHint = true;
 
+    /// <summary>
+    /// Push the line to the chatbox while it is still being typed, instead of only on send.
+    /// </summary>
+    [ObservableProperty] private bool _chatLiveTyping = false;
+
+    /// <summary>
+    /// How often an unsent line may be pushed while live typing, in milliseconds. VRChat rate-limits
+    /// the chatbox, so this is a floor on the gap between pushes rather than a per-keystroke send.
+    /// </summary>
+    [ObservableProperty] private int _chatLiveTypingRateMs = 1200;
+
     [JsonIgnore]
     public bool ChatAutocompleteUsesOpenAI => ChatAutocompleteMode == ChatAutocompleteMode.OpenAI;
 
@@ -71,6 +82,17 @@ public partial class ChatSettings : VersionedSettings
         if (value < 250) ChatAutocompleteDelayMs = 250;
         else if (value > 5000) ChatAutocompleteDelayMs = 5000;
     }
+
+    partial void OnChatLiveTypingRateMsChanged(int value)
+    {
+        if (value < ChatLiveTypingRateMinMs) ChatLiveTypingRateMs = ChatLiveTypingRateMinMs;
+        else if (value > ChatLiveTypingRateMaxMs) ChatLiveTypingRateMs = ChatLiveTypingRateMaxMs;
+    }
+
+    // VRChat drops chatbox messages that arrive faster than roughly one a second, so the floor sits
+    // just above that. The ceiling is where "live" stops feeling live.
+    public const int ChatLiveTypingRateMinMs = 800;
+    public const int ChatLiveTypingRateMaxMs = 3000;
 }
 
 public enum ChatAutocompleteMode

@@ -167,6 +167,7 @@ public static class ServiceRegistration
             new Lazy<IAudioService>(() => sp.GetRequiredService<IAudioService>()),
             new Lazy<IOscSender>(() => sp.GetRequiredService<IOscSender>()),
             new Lazy<ITtsPlaybackService>(() => sp.GetRequiredService<ITtsPlaybackService>()),
+            new Lazy<ILiveTypingService>(() => sp.GetRequiredService<ILiveTypingService>()),
             sp.GetRequiredService<IOpenAiChatService>(),
             sp.GetRequiredService<IUiDispatcher>()));
         services.AddSingleton<IntegrationsPageViewModel>(sp => new IntegrationsPageViewModel(
@@ -416,9 +417,15 @@ public static class ServiceRegistration
             sp.GetRequiredService<ISettingsProvider<ChatSettings>>(),
             sp.GetRequiredService<ISettingsProvider<AppSettings>>(),
             new Lazy<OSCController>(() => sp.GetRequiredService<OSCController>()),
-            new Lazy<IOscSender>(() => sp.GetRequiredService<IOscSender>())));
+            new Lazy<IOscSender>(() => sp.GetRequiredService<IOscSender>()),
+            new Lazy<ILiveTypingService>(() => sp.GetRequiredService<ILiveTypingService>())));
 
         services.AddSingleton<IOscSender, OscSenderService>();
+        services.AddSingleton<ILiveTypingService>(sp => new LiveTypingService(
+            sp.GetRequiredService<ISettingsProvider<ChatSettings>>(),
+            sp.GetRequiredService<IAppState>(),
+            new Lazy<IOscSender>(() => sp.GetRequiredService<IOscSender>()),
+            sp.GetRequiredService<OscDisplayState>()));
         services.AddSingleton<Classes.DataAndSecurity.HotkeyManagement>(sp => new Classes.DataAndSecurity.HotkeyManagement(
             sp.GetRequiredService<IEnvironmentService>(),
             sp.GetRequiredService<IOscSender>(),
