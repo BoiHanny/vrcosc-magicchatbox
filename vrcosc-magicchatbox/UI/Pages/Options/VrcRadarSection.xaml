@@ -49,41 +49,6 @@
             <StackPanel>
 
                 <Border
-                    Margin="0,0,0,10"
-                    BorderBrush="#735A41"
-                    BorderThickness="1"
-                    CornerRadius="5"
-                    Style="{StaticResource OptionCardStyle}">
-                    <Border.Background>
-                        <LinearGradientBrush SpreadMethod="Pad" StartPoint="1,1" EndPoint="0,0">
-                            <GradientStop Color="{StaticResource SurfaceGradientStartColor}" />
-                            <GradientStop Offset="1" Color="{StaticResource GradientDeepPurpleColor}" />
-                        </LinearGradientBrush>
-                    </Border.Background>
-                    <TextBlock
-                        FontFamily="{StaticResource FontPrimary}"
-                        FontSize="{StaticResource FontSizeSecondary}"
-                        Foreground="{StaticResource StatusWarningBrush}"
-                        TextWrapping="Wrap">
-                        <Run Text="🧪 Pre-release: The VRChat log reader is still in testing. If you encounter issues, please report them on" />
-                        <Hyperlink
-                            Foreground="{StaticResource AccentTealBrush}"
-                            NavigateUri="https://github.com/BoiHanny/vrcosc-magicchatbox/issues/new/choose"
-                            RequestNavigate="Hyperlink_RequestNavigate">
-                            <Run Text="GitHub" />
-                        </Hyperlink>
-                        <Run Text="or in our" />
-                        <Hyperlink
-                            Foreground="{StaticResource AccentTealBrush}"
-                            NavigateUri="https://discord.gg/ZaSFwBfhvG"
-                            RequestNavigate="Hyperlink_RequestNavigate">
-                            <Run Text="Discord server" />
-                        </Hyperlink>
-                        <Run Text="." />
-                    </TextBlock>
-                </Border>
-
-                <Border
                     Margin="0,0,0,8"
                     Padding="8,5"
                     Style="{StaticResource OptionCardStyle}">
