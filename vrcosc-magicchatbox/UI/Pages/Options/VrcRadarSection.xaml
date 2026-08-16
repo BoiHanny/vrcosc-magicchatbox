@@ -683,24 +683,6 @@
                         Foreground="{StaticResource TextSubtleBrush}"
                         Text="(1–200)" />
                 </StackPanel>
-                <StackPanel Margin="0,2,0,4" Orientation="Horizontal">
-                    <TextBlock
-                        VerticalAlignment="Center"
-                        FontSize="{StaticResource FontSizeCaption}"
-                        Foreground="{StaticResource TextBodyBrush}"
-                        Text="How many log lines to keep in memory: " />
-                    <TextBox
-                        Width="80"
-                        Padding="3,0"
-                        FontSize="{StaticResource FontSizeCaption}"
-                        Text="{Binding RadarSettings.MaxLogEntries, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
-                    <TextBlock
-                        Margin="8,0,0,0"
-                        VerticalAlignment="Center"
-                        FontSize="{StaticResource FontSizeMicro}"
-                        Foreground="{StaticResource TextSubtleBrush}"
-                        Text="(500–100,000)" />
-                </StackPanel>
             </StackPanel>
         </Grid>
     </Grid>

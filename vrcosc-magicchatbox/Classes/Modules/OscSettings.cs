@@ -7,7 +7,6 @@ public partial class OscSettings : VersionedSettings
 {
     [ObservableProperty] private string _oscIP = "127.0.0.1";
     [ObservableProperty] private int _oscPortOut = 9000;
-    [ObservableProperty] private int _oscPortIn = 9001;
     [ObservableProperty] private bool _secOSC = false;
     [ObservableProperty] private string _secOSCIP = "127.0.0.1";
     [ObservableProperty] private int _secOSCPort = 9002;

@@ -64,7 +64,6 @@ public partial class VrcLogSettings : VersionedSettings
     [ObservableProperty] private bool _sendCameraFlashOsc = false;
     [ObservableProperty] private string _oscCameraFlashParam = "/avatar/parameters/CameraFlash";
 
-    [ObservableProperty] private int _maxLogEntries = 50000;
     [ObservableProperty] private int _maxBackfillSizeMb = 10;
 
     public static readonly (string Name, string Value)[] WorldTemplatePresets =

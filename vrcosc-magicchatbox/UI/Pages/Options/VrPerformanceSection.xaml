@@ -91,13 +91,15 @@
                             IsChecked="{Binding Settings.ShowCompositorGpuMs, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                         <CheckBox
                             Margin="0,0,12,4"
-                            Content="Time to spare each frame %"
+                            Content="How full each frame is %"
                             IsChecked="{Binding Settings.ShowHeadroom, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                         <CheckBox
                             Margin="0,0,12,4"
                             Content="Time your PC takes to prepare a frame"
                             IsChecked="{Binding Settings.ShowCpuTiming, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                     </WrapPanel>
+
+                    <TextBlock Style="{StaticResource OptionHelpTextStyle}" Text="&quot;How full each frame is&quot; counts up, not down: it is the share of the frame budget already spent, so a higher number means less room left. Around 65% is comfortable and anything near 100% is about to drop frames." />
 
                     <TextBlock Style="{StaticResource OptionHelpTextStyle}" Text="The chatbox holds 144 characters and every integration shares them. Turning all of these on costs roughly 55-70 of them, which pushes lower-priority integrations off the line." />
                 </StackPanel>
