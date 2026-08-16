@@ -318,9 +318,14 @@ namespace vrcosc_magicchatbox
                 if (mainWindow.WindowState == WindowState.Minimized)
                     mainWindow.WindowState = WindowState.Normal;
 
+                // Before the window can be hidden, so that a background start always
+                // leaves something to click even if a later step fails.
+                Services.GetRequiredService<ITrayIconService>().Initialize(mainWindow);
+
                 if (vm.AppSettingsInstance.StartInBackground)
                 {
                     mainWindow.AbandonHiddenStart();
+                    mainWindow.HideStartupOverlay(animate: false);
                     mainWindow.Hide();
                     loadingWindow.CloseFromAnyThread();
                     Logging.WriteInfo("[Startup] Splash closed; started in the background.");
@@ -378,8 +383,6 @@ namespace vrcosc_magicchatbox
                 {
                     _ = RunDeferredStartupUpdateCheckAsync();
                 }
-
-                Services.GetRequiredService<ITrayIconService>().Initialize(mainWindow);
             }
             catch (OperationCanceledException) when (startupCancellation.IsCancellationRequested)
             {

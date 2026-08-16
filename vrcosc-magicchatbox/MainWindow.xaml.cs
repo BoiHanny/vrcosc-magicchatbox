@@ -564,15 +564,26 @@ namespace vrcosc_magicchatbox
             BeginAnimation(OpacityProperty, fadeIn);
         }
 
-        public void HideStartupOverlay()
+        public void HideStartupOverlay(bool animate = true)
         {
             if (!Dispatcher.CheckAccess())
             {
-                Dispatcher.BeginInvoke(() => HideStartupOverlay());
+                Dispatcher.BeginInvoke(() => HideStartupOverlay(animate));
                 return;
             }
 
             UpdateOverlayProgress("Restoring open page...", 100);
+
+            if (!animate)
+            {
+                // Nobody is watching a hidden window fade, and leaving the overlay up
+                // would greet them with a frozen progress bar the next time it opens.
+                StartupOverlay.BeginAnimation(UIElement.OpacityProperty, null);
+                StartupOverlay.Opacity = 0;
+                StartupOverlay.Visibility = Visibility.Collapsed;
+                StartupOverlay.IsHitTestVisible = false;
+                return;
+            }
 
             var fadeOut = new DoubleAnimation(1, 0, TimeSpan.FromMilliseconds(400))
             {
