@@ -61,7 +61,15 @@ public static class AvatarControlCatalog
         "EyeHeightAsMeters", "EyeHeightAsPercent",
     };
 
+    private static readonly HashSet<string> VrchatOwnedWritables = new(StringComparer.Ordinal)
+    {
+        "VRCEmote", "VRCFaceBlendH", "VRCFaceBlendV",
+    };
+
     public static bool IsBuiltIn(string name) => BuiltIns.Contains(name);
+
+    public static bool IsVrchatOwned(string name)
+        => BuiltIns.Contains(name) || VrchatOwnedWritables.Contains(name);
 
     public static AvatarWidget WidgetFor(SignalKind kind, bool writable, string name)
     {
