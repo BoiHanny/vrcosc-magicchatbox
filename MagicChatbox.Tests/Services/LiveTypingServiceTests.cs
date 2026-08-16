@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Threading;
 using System.Threading.Tasks;
+using MagicChatbox.Tests.TestDoubles;
 using vrcosc_magicchatbox.Classes.Modules;
 using vrcosc_magicchatbox.Core.Configuration;
 using vrcosc_magicchatbox.Core.State;
@@ -38,48 +39,9 @@ public class LiveTypingServiceTests : IDisposable
         public event PropertyChangedEventHandler? PropertyChanged { add { } remove { } }
     }
 
-    private sealed class RecordingSender : IOscSender
-    {
-        private readonly Lock _gate = new();
-        private readonly List<string> _sent = [];
-
-        public int Clears { get; private set; }
-        public bool AnySoundRequested { get; private set; }
-
-        public IReadOnlyList<string> Sent
-        {
-            get { lock (_gate) return _sent.ToArray(); }
-        }
-
-        public Task<bool> SendOSCMessage(bool fx, int delay = 0, bool force = false, string? explicitText = null)
-        {
-            lock (_gate)
-            {
-                if (fx) AnySoundRequested = true;
-                _sent.Add(explicitText ?? string.Empty);
-            }
-
-            return Task.FromResult(true);
-        }
-
-        public void SendOscParam(string address, float value) { }
-        public void SendOscParam(string address, int value) { }
-        public void SendOscParam(string address, bool value) { }
-        public void SendTypingIndicatorAsync() { }
-        public void StopTypingIndicator() { }
-
-        public Task SentClearMessage(int delay)
-        {
-            lock (_gate) Clears++;
-            return Task.CompletedTask;
-        }
-
-        public Task ToggleVoice(bool force = false) => Task.CompletedTask;
-    }
-
     private readonly StubSettingsProvider<ChatSettings> _settings = new();
     private readonly FakeAppState _appState = new();
-    private readonly RecordingSender _sender = new();
+    private readonly FakeOscSender _sender = new();
     private readonly OscDisplayState _oscDisplay = new();
     private readonly LiveTypingService _live;
 

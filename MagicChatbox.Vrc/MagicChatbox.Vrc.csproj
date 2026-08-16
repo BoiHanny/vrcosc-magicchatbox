@@ -1,0 +1,33 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <IsPackable>false</IsPackable>
+    <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+    <!-- CS8509 (a switch expression that misses a named enum member) is an ERROR here, not a warning.
+         VrcTransportReasonMap maps every OscTransportReason onto a ReasonCode with no discard arm, so
+         adding a member to that enum without deciding what it means fails the build. A discard arm
+         falling through to ReasonCode.Ok would turn a future transport failure into a silent success. -->
+    <WarningsAsErrors>$(WarningsAsErrors);CS8509</WarningsAsErrors>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="MagicChatbox.Vrc.Tests" />
+    <!-- Core composes this assembly's counters into signal sources (ClientPulse), and the methods that
+         move those counters are internal on purpose: nothing outside the transport may fabricate a
+         latency or a message count. Core's tests still have to be able to plant one to assert what the
+         source publishes from it. -->
+    <InternalsVisibleTo Include="MagicChatbox.Core.Tests" />
+  </ItemGroup>
+
+  <!-- Vrc is the ONLY assembly that references Osc. Core must not; see D5 and the architecture tests.
+       Vrc's public surface exposes no Osc type either — VrcParameterValue exists precisely so that
+       Core can drop its Osc reference entirely. -->
+  <ItemGroup>
+    <ProjectReference Include="..\MagicChatbox.Osc\MagicChatbox.Osc.csproj" />
+    <ProjectReference Include="..\MagicChatbox.Vocabulary\MagicChatbox.Vocabulary.csproj" />
+  </ItemGroup>
+
+</Project>

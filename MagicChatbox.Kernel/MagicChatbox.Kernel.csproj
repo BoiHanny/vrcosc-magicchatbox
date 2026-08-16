@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <IsPackable>false</IsPackable>
+    <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="MagicChatbox.Kernel.Tests" />
+  </ItemGroup>
+
+  <!-- The kernel knows nothing about VRChat, HTTP, JSON or a socket. Vocabulary is the only reference
+       it is permitted, and the architecture tests enforce that. -->
+  <ItemGroup>
+    <ProjectReference Include="..\MagicChatbox.Vocabulary\MagicChatbox.Vocabulary.csproj" />
+  </ItemGroup>
+
+</Project>

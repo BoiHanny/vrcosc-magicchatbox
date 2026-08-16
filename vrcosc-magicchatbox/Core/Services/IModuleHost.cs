@@ -17,6 +17,7 @@ public interface IModuleHost : INotifyPropertyChanged
     SoundpadModule Soundpad { get; set; }
     TrackerBatteryModule TrackerBattery { get; set; }
     vrcosc_magicchatbox.Classes.Modules.Vr.VrPerformanceModule VrPerformance { get; set; }
+    vrcosc_magicchatbox.Services.Vrc.VrcBridgeModule VrcBridge { get; set; }
     vrcosc_magicchatbox.Classes.Modules.Lyrics.LyricsModule Lyrics { get; set; }
     WhisperModule Whisper { get; set; }
     AfkModule Afk { get; set; }

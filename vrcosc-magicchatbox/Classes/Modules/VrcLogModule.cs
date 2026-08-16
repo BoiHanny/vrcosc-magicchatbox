@@ -1,4 +1,4 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.ComponentModel;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -72,6 +72,7 @@ public partial class VrcLogModule : ObservableObject, IModule
     private readonly IntegrationSettings _integrationSettings;
     private readonly IAppState _appState;
     private readonly IOscSender _oscSender;
+    private readonly Core.Vrc.IAvatarParameterSink _parameterSink;
     private readonly IUiDispatcher _dispatcher;
     private readonly IPrivacyConsentService _consentService;
     private readonly IToastService? _toast;
@@ -107,7 +108,6 @@ public partial class VrcLogModule : ObservableObject, IModule
 
     private bool _avatarBlockedWarnedThisRoom;
 
-    private readonly Dictionary<string, int> _pulseSequence = new();
 
     private readonly HashSet<string> _allPlayersSeen = new();
     private int _sessionWorldsVisited;
@@ -200,12 +200,14 @@ public partial class VrcLogModule : ObservableObject, IModule
         IOscSender oscSender,
         IUiDispatcher dispatcher,
         IPrivacyConsentService consentService,
-        IToastService? toast = null)
+        IToastService? toast = null,
+        Core.Vrc.IAvatarParameterSink? parameterSink = null)
     {
         _settingsProvider = settingsProvider;
         _integrationSettings = integrationSettings;
         _appState = appState;
         _oscSender = oscSender;
+        _parameterSink = parameterSink ?? new Core.Vrc.AvatarParameterRouter(oscSender, () => null);
         _dispatcher = dispatcher;
         _consentService = consentService;
         _toast = toast;
@@ -972,33 +974,7 @@ public partial class VrcLogModule : ObservableObject, IModule
         _transientPriority = priority;
     }
 
-    private void TriggerOscPulse(string address)
-    {
-        int seq;
-        lock (_pulseSequence)
-        {
-            _pulseSequence.TryGetValue(address, out int current);
-            seq = current + 1;
-            _pulseSequence[address] = seq;
-        }
-
-        Task.Run(async () =>
-        {
-            try
-            {
-                _oscSender.SendOscParam(address, true);
-                await Task.Delay(150);
-
-                lock (_pulseSequence)
-                {
-                    if (_pulseSequence.TryGetValue(address, out int latest) && latest != seq)
-                        return;
-                }
-                _oscSender.SendOscParam(address, false);
-            }
-            catch { }
-        });
-    }
+    private void TriggerOscPulse(string address) => _parameterSink.Pulse(address);
 
     private void EvictStaleEncounters()
     {
@@ -1185,7 +1161,6 @@ public partial class VrcLogModule : ObservableObject, IModule
             _sessionTotalJoins = 0;
             _sessionTotalLeaves = 0;
             _previousRoomPresence.Clear();
-            _pulseSequence.Clear();
             _pendingOwnerUserId = string.Empty;
             _peakPlayerCount = 0;
             _peakPlayerCountThisSession = 0;

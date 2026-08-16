@@ -6,6 +6,7 @@ using System.Net;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
+using MagicChatbox.Tests.TestDoubles;
 using vrcosc_magicchatbox.Classes.Modules;
 using vrcosc_magicchatbox.Core.Configuration;
 using vrcosc_magicchatbox.Core.State;
@@ -62,18 +63,6 @@ public sealed class PulsoidModuleAuthRestoreTests : IDisposable
         public bool CheckAccess() => true;
         public void BeginInvoke(Action action) => action();
         public void Shutdown() { }
-    }
-
-    private sealed class NoOpOscSender : IOscSender
-    {
-        public Task<bool> SendOSCMessage(bool fx, int delay = 0, bool force = false, string? explicitText = null) => Task.FromResult(true);
-        public void SendOscParam(string address, float value) { }
-        public void SendOscParam(string address, int value) { }
-        public void SendOscParam(string address, bool value) { }
-        public void SendTypingIndicatorAsync() { }
-        public void StopTypingIndicator() { }
-        public Task SentClearMessage(int delay) => Task.CompletedTask;
-        public Task ToggleVoice(bool force = false) => Task.CompletedTask;
     }
 
     private sealed class NoOpNavigation : INavigationService
@@ -227,7 +216,7 @@ public sealed class PulsoidModuleAuthRestoreTests : IDisposable
             state,
             client,
             new InlineDispatcher(),
-            new NoOpOscSender(),
+            new FakeOscSender(),
             integrations,
             oauth,
             provider);

@@ -1,4 +1,4 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.ComponentModel;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -29,7 +29,9 @@ public partial class PulsoidModule : ObservableObject, IModule
     private volatile bool _statisticsUnavailable;
 
     private readonly IOscSender _oscSender;
+    private readonly Core.Vrc.IAvatarParameterSink _parameterSink;
     private IOscSender OscSender => _oscSender;
+    private Core.Vrc.IAvatarParameterSink Params => _parameterSink;
 
     private readonly IntegrationSettings _integrationSettings;
 
@@ -48,6 +50,7 @@ public partial class PulsoidModule : ObservableObject, IModule
 
     private readonly Queue<int> _oscHeartRates = new();
     private readonly object _oscHeartRatesLock = new object();
+    private bool _heartBeatToggleState;
     private int _isProcessing = 0;
     private DateTime _lastStatsFetchUtc = DateTime.MinValue;
     private DateTime _lastTokenValidationUtc = DateTime.MinValue;
@@ -100,12 +103,13 @@ public partial class PulsoidModule : ObservableObject, IModule
 
     public void SaveSettings() => _settingsProvider.FlushPendingSave();
 
-    public PulsoidModule(IAppState appState, IPulsoidClient client, IUiDispatcher dispatcher, IOscSender oscSender, IntegrationSettings integrationSettings, PulsoidOAuthHandler oAuth, ISettingsProvider<PulsoidModuleSettings> settingsProvider, IToastService? toast = null)
+    public PulsoidModule(IAppState appState, IPulsoidClient client, IUiDispatcher dispatcher, IOscSender oscSender, IntegrationSettings integrationSettings, PulsoidOAuthHandler oAuth, ISettingsProvider<PulsoidModuleSettings> settingsProvider, IToastService? toast = null, Core.Vrc.IAvatarParameterSink? parameterSink = null)
     {
         _appState = appState;
         _client = client;
         _dispatcher = dispatcher;
         _oscSender = oscSender;
+        _parameterSink = parameterSink ?? new Core.Vrc.AvatarParameterRouter(oscSender, () => null);
         _integrationSettings = integrationSettings;
         _oAuth = oAuth;
         _toast = toast;
@@ -349,15 +353,15 @@ public partial class PulsoidModule : ObservableObject, IModule
         GotReadingThisInterval = false;
     }
 
-    private void SendHeartRateDigits(string baseAddress, int hrValue)
+    private void SendHeartRateDigits(string baseName, int hrValue)
     {
         int ones = hrValue % 10;
         int tens = (hrValue / 10) % 10;
         int hundreds = hrValue / 100;
 
-        OscSender.SendOscParam($"{baseAddress}_Ones", ones);
-        OscSender.SendOscParam($"{baseAddress}_Tens", tens);
-        OscSender.SendOscParam($"{baseAddress}_Hundreds", hundreds);
+        Params.Set($"{baseName}_Ones", ones);
+        Params.Set($"{baseName}_Tens", tens);
+        Params.Set($"{baseName}_Hundreds", hundreds);
     }
 
     private void SendHRToOSC(bool isHRBeat)
@@ -370,15 +374,16 @@ public partial class PulsoidModule : ObservableObject, IModule
         int hrValueForOSC = GetOSCHeartRate();
         if (hrValueForOSC <= 0) return;
 
-        float hrPercent = hrValueForOSC / 255f;
-        float fullHRPercent = (hrValueForOSC / 127.5f) - 1f;
+        float normalized = Core.Osc.HeartRateScale.Normalize(hrValueForOSC, Settings.OscHrMin, Settings.OscHrMax);
+        float hrPercent = normalized;
+        float fullHRPercent = Core.Osc.HeartRateScale.ToFullRange(normalized);
 
-        OscSender.SendOscParam("/avatar/parameters/isHRConnected", isHRConnected);
-        OscSender.SendOscParam("/avatar/parameters/isHRActive", isHRActive);
-        OscSender.SendOscParam("/avatar/parameters/isHRBeat", isHRBeat);
-        OscSender.SendOscParam("/avatar/parameters/HRPercent", hrPercent);
-        OscSender.SendOscParam("/avatar/parameters/FullHRPercent", fullHRPercent);
-        OscSender.SendOscParam("/avatar/parameters/HR", hrValueForOSC);
+        Params.Set("isHRConnected", isHRConnected);
+        Params.Set("isHRActive", isHRActive);
+        Params.Set("isHRBeat", isHRBeat);
+        Params.Set("HRPercent", hrPercent);
+        Params.Set("FullHRPercent", fullHRPercent);
+        Params.Set("HR", hrValueForOSC);
 
         if (!Settings.DisableLegacySupport)
         {
@@ -386,15 +391,60 @@ public partial class PulsoidModule : ObservableObject, IModule
             int tens = (hrValueForOSC / 10) % 10;
             int hundreds = hrValueForOSC / 100;
 
-            OscSender.SendOscParam("/avatar/parameters/onesHR", ones);
-            OscSender.SendOscParam("/avatar/parameters/tensHR", tens);
-            OscSender.SendOscParam("/avatar/parameters/hundredsHR", hundreds);
+            Params.Set("onesHR", ones);
+            Params.Set("tensHR", tens);
+            Params.Set("hundredsHR", hundreds);
+        }
+
+        if (Settings.BroadPrefabCompatibility)
+        {
+            SendCompatibilityAliases(hrValueForOSC, normalized, fullHRPercent, isHRConnected, isHRActive, isHRBeat);
         }
 
         if (Settings.SentMCBHeartrateInfo && PulsoidStatistics != null)
         {
             SendMCBHeartRateInfo(hrValueForOSC);
         }
+    }
+
+    private void SendCompatibilityAliases(
+        int heartRate,
+        float normalized,
+        float fullRange,
+        bool isHRConnected,
+        bool isHRActive,
+        bool isHRBeat)
+    {
+        if (isHRBeat)
+            _heartBeatToggleState = !_heartBeatToggleState;
+
+        Params.Set("VRCOSC/Heartrate/Connected", isHRConnected);
+        Params.Set("VRCOSC/Heartrate/Enabled", isHRConnected);
+        Params.Set("VRCOSC/Heartrate/Value", heartRate);
+        Params.Set("VRCOSC/Heartrate/Normalised", normalized);
+        Params.Set("VRCOSC/Heartrate/Beat", isHRBeat);
+
+        Params.Set("VRCOSC/Heartrate/Units", (heartRate % 10) / 10f);
+        Params.Set("VRCOSC/Heartrate/Tens", ((heartRate / 10) % 10) / 10f);
+        Params.Set("VRCOSC/Heartrate/Hundreds", (heartRate / 100) / 10f);
+
+        if (PulsoidStatistics != null)
+            Params.Set("VRCOSC/Heartrate/Average", PulsoidStatistics.average_beats_per_minute);
+
+        Params.Set("HeartRateInt", heartRate);
+        Params.Set("HeartRate3", heartRate);
+        Params.Set("Heartrate3", heartRate);
+
+        Params.Set("HeartRateFloat", fullRange);
+        Params.Set("HeartRate", fullRange);
+
+        Params.Set("HeartRateFloat01", normalized);
+        Params.Set("HeartRate2", normalized);
+
+        Params.Set("HeartBeatToggle", _heartBeatToggleState);
+
+        Params.Set("hr_percent", normalized);
+        Params.Set("hr_connected", isHRConnected);
     }
 
     private void SendMCBHeartRateInfo(int hrValueForOSC)
@@ -405,22 +455,22 @@ public partial class PulsoidModule : ObservableObject, IModule
         bool trendUp = Settings.HeartRateTrendIndicator == Settings.SelectedPulsoidTrendSymbol.UpwardTrendSymbol;
         bool trendDown = Settings.HeartRateTrendIndicator == Settings.SelectedPulsoidTrendSymbol.DownwardTrendSymbol;
 
-        OscSender.SendOscParam("/avatar/parameters/MCB_Heartrate_Hot", isHot);
-        OscSender.SendOscParam("/avatar/parameters/MCB_Heartrate_Sleepy", isSleepy);
-        OscSender.SendOscParam("/avatar/parameters/MCB_Heartrate_TrendUp", trendUp);
-        OscSender.SendOscParam("/avatar/parameters/MCB_Heartrate_TrendDown", trendDown);
+        Params.Set("MCB_Heartrate_Hot", isHot);
+        Params.Set("MCB_Heartrate_Sleepy", isSleepy);
+        Params.Set("MCB_Heartrate_TrendUp", trendUp);
+        Params.Set("MCB_Heartrate_TrendDown", trendDown);
 
         if (!Settings.SentMCBHeartrateInfoLegacy)
         {
-            OscSender.SendOscParam("/avatar/parameters/MCB_Heartrate_Min", PulsoidStatistics.minimum_beats_per_minute);
-            OscSender.SendOscParam("/avatar/parameters/MCB_Heartrate_Max", PulsoidStatistics.maximum_beats_per_minute);
-            OscSender.SendOscParam("/avatar/parameters/MCB_Heartrate_Avg", PulsoidStatistics.average_beats_per_minute);
+            Params.Set("MCB_Heartrate_Min", PulsoidStatistics.minimum_beats_per_minute);
+            Params.Set("MCB_Heartrate_Max", PulsoidStatistics.maximum_beats_per_minute);
+            Params.Set("MCB_Heartrate_Avg", PulsoidStatistics.average_beats_per_minute);
         }
         else
         {
-            SendHeartRateDigits("/avatar/parameters/MCB_Heartrate_Min", PulsoidStatistics.minimum_beats_per_minute);
-            SendHeartRateDigits("/avatar/parameters/MCB_Heartrate_Max", PulsoidStatistics.maximum_beats_per_minute);
-            SendHeartRateDigits("/avatar/parameters/MCB_Heartrate_Avg", PulsoidStatistics.average_beats_per_minute);
+            SendHeartRateDigits("MCB_Heartrate_Min", PulsoidStatistics.minimum_beats_per_minute);
+            SendHeartRateDigits("MCB_Heartrate_Max", PulsoidStatistics.maximum_beats_per_minute);
+            SendHeartRateDigits("MCB_Heartrate_Avg", PulsoidStatistics.average_beats_per_minute);
         }
     }
 

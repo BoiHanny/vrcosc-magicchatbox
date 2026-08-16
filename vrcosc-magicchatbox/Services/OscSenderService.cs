@@ -1,5 +1,6 @@
 ﻿using CoreOSC;
 using System;
+using System.Collections.Generic;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
@@ -18,6 +19,7 @@ public sealed class OscSenderService : IOscSender, IDisposable
     private const string INPUT_VOICE = "/input/Voice";
     private const int TYPING_DURATION = 2000;
     private static readonly TimeSpan DuplicateKeepAliveInterval = TimeSpan.FromSeconds(12);
+    private static readonly TimeSpan SenderRetryCooldown = TimeSpan.FromSeconds(30);
 
     private readonly OscSettings _oscSettings;
     private readonly AppSettings _appSettings;
@@ -30,8 +32,8 @@ public sealed class OscSenderService : IOscSender, IDisposable
     private UDPSender? _oscSender;
     private UDPSender? _secOscSender;
     private UDPSender? _thirdOscSender;
-    private bool _senderRebuildFailureLogged;
-    private string? _lastFailedEndpoint;
+    private readonly Dictionary<string, DateTime> _senderRetryAfterUtc = new(StringComparer.Ordinal);
+    private readonly HashSet<string> _loggedSenderFailures = new(StringComparer.Ordinal);
     private readonly object _senderLock = new();
     private readonly object _typingLock = new();
 
@@ -99,51 +101,21 @@ public sealed class OscSenderService : IOscSender, IDisposable
     {
         if (!_appState.MasterSwitch) return;
 
-        try
-        {
-            var msg = new OscMessage(address, value);
-            PrimarySender?.Send(msg);
-            if (OS.SecOSC) SecondarySender?.Send(msg);
-            if (OS.ThirdOSC) TertiarySender?.Send(msg);
-        }
-        catch (Exception ex)
-        {
-            Logging.WriteException(ex, MSGBox: false);
-        }
+        SendToTargets(new OscMessage(address, value));
     }
 
     public void SendOscParam(string address, int value)
     {
         if (!_appState.MasterSwitch) return;
 
-        try
-        {
-            var msg = new OscMessage(address, value);
-            PrimarySender?.Send(msg);
-            if (OS.SecOSC) SecondarySender?.Send(msg);
-            if (OS.ThirdOSC) TertiarySender?.Send(msg);
-        }
-        catch (Exception ex)
-        {
-            Logging.WriteException(ex, MSGBox: false);
-        }
+        SendToTargets(new OscMessage(address, value));
     }
 
     public void SendOscParam(string address, bool value)
     {
         if (!_appState.MasterSwitch) return;
 
-        try
-        {
-            var msg = new OscMessage(address, value ? 1 : 0);
-            PrimarySender?.Send(msg);
-            if (OS.SecOSC) SecondarySender?.Send(msg);
-            if (OS.ThirdOSC) TertiarySender?.Send(msg);
-        }
-        catch (Exception ex)
-        {
-            Logging.WriteException(ex, MSGBox: false);
-        }
+        SendToTargets(new OscMessage(address, value ? 1 : 0));
     }
 
     public void SendTypingIndicatorAsync()
@@ -265,22 +237,7 @@ public sealed class OscSenderService : IOscSender, IDisposable
             if (delay > 0)
                 await Task.Delay(delay);
 
-            try
-            {
-                UDPSender? primary = PrimarySender;
-                if (primary == null)
-                    return false;
-
-                primary.Send(message);
-                if (OS.SecOSC) SecondarySender?.Send(message);
-                if (OS.ThirdOSC) TertiarySender?.Send(message);
-                return true;
-            }
-            catch (Exception ex)
-            {
-                Logging.WriteException(ex, MSGBox: false);
-                return false;
-            }
+            return SendToTargets(message);
         });
     }
 
@@ -332,22 +289,12 @@ public sealed class OscSenderService : IOscSender, IDisposable
     {
         await Task.Run(() =>
         {
-            try
+            lock (_typingLock)
             {
-                lock (_typingLock)
-                {
-                    if (version != _typingIndicatorVersion)
-                        return;
+                if (version != _typingIndicatorVersion)
+                    return;
 
-                    var message = new OscMessage(CHATBOX_TYPING, isTyping);
-                    PrimarySender?.Send(message);
-                    if (OS.SecOSC) SecondarySender?.Send(message);
-                    if (OS.ThirdOSC) TertiarySender?.Send(message);
-                }
-            }
-            catch (Exception ex)
-            {
-                Logging.WriteException(ex, MSGBox: false);
+                SendToTargets(new OscMessage(CHATBOX_TYPING, isTyping));
             }
         });
     }
@@ -358,22 +305,12 @@ public sealed class OscSenderService : IOscSender, IDisposable
         {
             try
             {
-                if (OS.UnmuteMainOutput)
-                    PrimarySender?.Send(new OscMessage(INPUT_VOICE, 1));
-                if (OS.SecOSC && OS.UnmuteSecOutput)
-                    SecondarySender?.Send(new OscMessage(INPUT_VOICE, 1));
-                if (OS.ThirdOSC && OS.UnmuteThirdOutput)
-                    TertiarySender?.Send(new OscMessage(INPUT_VOICE, 1));
+                SendVoiceToggle(1);
 
                 _ttsAudio.TTSBtnShadow = true;
                 Thread.Sleep(100);
 
-                if (OS.UnmuteMainOutput)
-                    PrimarySender?.Send(new OscMessage(INPUT_VOICE, 0));
-                if (OS.SecOSC && OS.UnmuteSecOutput)
-                    SecondarySender?.Send(new OscMessage(INPUT_VOICE, 0));
-                if (OS.ThirdOSC && OS.UnmuteThirdOutput)
-                    TertiarySender?.Send(new OscMessage(INPUT_VOICE, 0));
+                SendVoiceToggle(0);
             }
             catch (Exception ex)
             {
@@ -386,39 +323,71 @@ public sealed class OscSenderService : IOscSender, IDisposable
         });
     }
 
-    private UDPSender? PrimarySender
+    private UDPSender? PrimaryLocked()
     {
-        get
+        _oscSender = EnsureSender(_oscSender, OS.OscIP, OS.OscPortOut);
+        return _oscSender;
+    }
+
+    private UDPSender? SecondaryLocked()
+    {
+        _secOscSender = EnsureSender(_secOscSender, OS.SecOSCIP, OS.SecOSCPort);
+        return _secOscSender;
+    }
+
+    private UDPSender? TertiaryLocked()
+    {
+        _thirdOscSender = EnsureSender(_thirdOscSender, OS.ThirdOSCIP, OS.ThirdOSCPort);
+        return _thirdOscSender;
+    }
+
+    private bool SendToTargets(OscMessage message)
+    {
+        lock (_senderLock)
         {
-            lock (_senderLock)
-            {
-                _oscSender = EnsureSender(_oscSender, OS.OscIP, OS.OscPortOut);
-                return _oscSender;
-            }
+            bool primarySent = TrySend(PrimaryLocked(), message);
+
+            if (OS.SecOSC)
+                TrySend(SecondaryLocked(), message);
+
+            if (OS.ThirdOSC)
+                TrySend(TertiaryLocked(), message);
+
+            return primarySent;
         }
     }
 
-    private UDPSender? SecondarySender
+    private void SendVoiceToggle(int value)
     {
-        get
+        lock (_senderLock)
         {
-            lock (_senderLock)
-            {
-                _secOscSender = EnsureSender(_secOscSender, OS.SecOSCIP, OS.SecOSCPort);
-                return _secOscSender;
-            }
+            var message = new OscMessage(INPUT_VOICE, value);
+
+            if (OS.UnmuteMainOutput)
+                TrySend(PrimaryLocked(), message);
+
+            if (OS.SecOSC && OS.UnmuteSecOutput)
+                TrySend(SecondaryLocked(), message);
+
+            if (OS.ThirdOSC && OS.UnmuteThirdOutput)
+                TrySend(TertiaryLocked(), message);
         }
     }
 
-    private UDPSender? TertiarySender
+    private static bool TrySend(UDPSender? sender, OscMessage message)
     {
-        get
+        if (sender == null)
+            return false;
+
+        try
         {
-            lock (_senderLock)
-            {
-                _thirdOscSender = EnsureSender(_thirdOscSender, OS.ThirdOSCIP, OS.ThirdOSCPort);
-                return _thirdOscSender;
-            }
+            sender.Send(message);
+            return true;
+        }
+        catch (Exception ex)
+        {
+            Logging.WriteException(ex, MSGBox: false);
+            return false;
         }
     }
 
@@ -431,25 +400,22 @@ public sealed class OscSenderService : IOscSender, IDisposable
             return current;
 
         string endpoint = $"{address}:{port}";
-        if (endpoint == _lastFailedEndpoint)
+        if (_senderRetryAfterUtc.TryGetValue(endpoint, out DateTime retryAfterUtc) && DateTime.UtcNow < retryAfterUtc)
             return current;
 
         try
         {
             var replacement = new UDPSender(address, port);
             current?.Close();
-            _senderRebuildFailureLogged = false;
-            _lastFailedEndpoint = null;
+            _senderRetryAfterUtc.Remove(endpoint);
+            _loggedSenderFailures.Remove(endpoint);
             return replacement;
         }
         catch (Exception ex)
         {
-            _lastFailedEndpoint = endpoint;
-            if (!_senderRebuildFailureLogged)
-            {
-                _senderRebuildFailureLogged = true;
+            _senderRetryAfterUtc[endpoint] = DateTime.UtcNow + SenderRetryCooldown;
+            if (_loggedSenderFailures.Add(endpoint))
                 Logging.WriteException(ex, MSGBox: false);
-            }
             return current;
         }
     }

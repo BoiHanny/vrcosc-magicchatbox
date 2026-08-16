@@ -1,4 +1,4 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.ComponentModel;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Concurrent;
@@ -20,7 +20,10 @@ public partial class DiscordModule : ObservableObject, IModule
 {
     private readonly ISettingsProvider<DiscordSettings> _settingsProvider;
     private readonly IOscSender _oscSender;
+    private readonly Core.Vrc.IAvatarParameterSink _parameterSink;
     private readonly IUiDispatcher _dispatcher;
+
+    private Core.Vrc.IAvatarParameterSink Params => _parameterSink;
 
     private DiscordIpcClient? _ipcClient;
     private string? _currentChannelId;
@@ -60,18 +63,36 @@ public partial class DiscordModule : ObservableObject, IModule
     [ObservableProperty] private int _voiceChannelCount;
     [ObservableProperty] private bool _isSelfMuted;
     [ObservableProperty] private bool _isSelfDeafened;
+    [ObservableProperty] private bool _isAnyoneSpeaking;
     [ObservableProperty] private bool _isAuthenticated;
     [ObservableProperty] private bool _isReady;
+
+    private volatile bool _selfMutedState;
+    private volatile bool _selfDeafenedState;
+    private volatile bool _inVoiceChannelState;
+    private volatile bool _anyoneSpeakingState;
+
+    public bool SelfMutedState => _selfMutedState;
+    public bool SelfDeafenedState => _selfDeafenedState;
+    public bool InVoiceChannelState => _inVoiceChannelState;
+    public bool AnyoneSpeakingState => _anyoneSpeakingState;
+
+    public int VoiceMemberCount
+    {
+        get { lock (_vcLock) return _userIdsInVc.Count; }
+    }
 
     bool IModule.IsRunning => IsRunning;
 
     public DiscordModule(
         ISettingsProvider<DiscordSettings> settingsProvider,
         IOscSender oscSender,
-        IUiDispatcher dispatcher)
+        IUiDispatcher dispatcher,
+        Core.Vrc.IAvatarParameterSink? parameterSink = null)
     {
         _settingsProvider = settingsProvider;
         _oscSender = oscSender;
+        _parameterSink = parameterSink ?? new Core.Vrc.AvatarParameterRouter(oscSender, () => null);
         _dispatcher = dispatcher;
     }
 
@@ -429,11 +450,7 @@ public partial class DiscordModule : ObservableObject, IModule
                         bool selfDeaf = voiceState["self_deaf"]?.Value<bool>() == true;
                         bool serverMute = voiceState["mute"]?.Value<bool>() == true;
                         bool serverDeaf = voiceState["deaf"]?.Value<bool>() == true;
-                        _dispatcher.BeginInvoke(() =>
-                        {
-                            IsSelfMuted = selfMute || serverMute;
-                            IsSelfDeafened = selfDeaf || serverDeaf;
-                        });
+                        SetSelfVoiceFlags(selfMute || serverMute, selfDeaf || serverDeaf);
                     }
                 }
             }
@@ -498,11 +515,7 @@ public partial class DiscordModule : ObservableObject, IModule
             bool serverMute = voiceState["mute"]?.Value<bool>() == true;
             bool serverDeaf = voiceState["deaf"]?.Value<bool>() == true;
 
-            _dispatcher.BeginInvoke(() =>
-            {
-                IsSelfMuted = selfMute || serverMute;
-                IsSelfDeafened = selfDeaf || serverDeaf;
-            });
+            SetSelfVoiceFlags(selfMute || serverMute, selfDeaf || serverDeaf);
 
             EmitMuteDeafenOsc();
         }
@@ -571,6 +584,7 @@ public partial class DiscordModule : ObservableObject, IModule
     {
         bool isNewChannel = _currentChannelId != channelId;
         _currentChannelId = channelId;
+        _inVoiceChannelState = true;
         _dispatcher.BeginInvoke(() =>
         {
             CurrentChannelName = channelName;
@@ -632,6 +646,11 @@ public partial class DiscordModule : ObservableObject, IModule
         _userNames.Clear();
         ClearAllSpeakerDebounce();
 
+        _inVoiceChannelState = false;
+        _selfMutedState = false;
+        _selfDeafenedState = false;
+        _anyoneSpeakingState = false;
+
         _dispatcher.BeginInvoke(() =>
         {
             IsInVoiceChannel = false;
@@ -639,6 +658,7 @@ public partial class DiscordModule : ObservableObject, IModule
             VoiceChannelCount = 0;
             IsSelfMuted = false;
             IsSelfDeafened = false;
+            IsAnyoneSpeaking = false;
         });
 
         ResetAllOscParams();
@@ -692,6 +712,26 @@ public partial class DiscordModule : ObservableObject, IModule
         _dispatcher.BeginInvoke(() => VoiceChannelCount = count);
     }
 
+    private void SetSelfVoiceFlags(bool muted, bool deafened)
+    {
+        _selfMutedState = muted;
+        _selfDeafenedState = deafened;
+        _dispatcher.BeginInvoke(() =>
+        {
+            IsSelfMuted = muted;
+            IsSelfDeafened = deafened;
+        });
+    }
+
+    private void UpdateAnyoneSpeaking(bool speaking)
+    {
+        if (_anyoneSpeakingState == speaking)
+            return;
+
+        _anyoneSpeakingState = speaking;
+        _dispatcher.BeginInvoke(() => IsAnyoneSpeaking = speaking);
+    }
+
     private void CancelSpeakerDebounce(string userId)
     {
         if (_speakerDebounce.TryRemove(userId, out var cts))
@@ -714,33 +754,38 @@ public partial class DiscordModule : ObservableObject, IModule
     private void EmitMuteDeafenOsc()
     {
         if (!Settings.SendMuteDeafenOsc) return;
-        _oscSender.SendOscParam("/avatar/parameters/DiscordMuted", IsSelfMuted);
-        _oscSender.SendOscParam("/avatar/parameters/DiscordDeafened", IsSelfDeafened);
+        Params.Set("DiscordMuted", _selfMutedState);
+        Params.Set("DiscordDeafened", _selfDeafenedState);
     }
 
     private void EmitVoiceStateOsc()
     {
-        if (!Settings.SendVoiceStateOsc) return;
-        _oscSender.SendOscParam("/avatar/parameters/DiscordInVC", IsInVoiceChannel);
-        _oscSender.SendOscParam("/avatar/parameters/DiscordVCCount", (float)VoiceChannelCount);
-
         bool anySpeaking;
         lock (_speakLock) anySpeaking = _speakingUserIds.Count > 0;
-        _oscSender.SendOscParam("/avatar/parameters/DiscordSpeaking", anySpeaking);
+        UpdateAnyoneSpeaking(anySpeaking);
+
+        if (!Settings.SendVoiceStateOsc) return;
+
+        int count;
+        lock (_vcLock) count = _userIdsInVc.Count;
+
+        Params.Set("DiscordInVC", _inVoiceChannelState);
+        Params.Set("DiscordVCCount", (float)count);
+        Params.Set("DiscordSpeaking", anySpeaking);
     }
 
     private void ResetAllOscParams()
     {
         if (Settings.SendMuteDeafenOsc)
         {
-            _oscSender.SendOscParam("/avatar/parameters/DiscordMuted", false);
-            _oscSender.SendOscParam("/avatar/parameters/DiscordDeafened", false);
+            Params.Set("DiscordMuted", false);
+            Params.Set("DiscordDeafened", false);
         }
         if (Settings.SendVoiceStateOsc)
         {
-            _oscSender.SendOscParam("/avatar/parameters/DiscordInVC", false);
-            _oscSender.SendOscParam("/avatar/parameters/DiscordVCCount", 0f);
-            _oscSender.SendOscParam("/avatar/parameters/DiscordSpeaking", false);
+            Params.Set("DiscordInVC", false);
+            Params.Set("DiscordVCCount", 0f);
+            Params.Set("DiscordSpeaking", false);
         }
     }
 

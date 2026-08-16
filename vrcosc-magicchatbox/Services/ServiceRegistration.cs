@@ -254,6 +254,10 @@ public static class ServiceRegistration
             sp.GetRequiredService<ISettingsProvider<IntegrationSettings>>(),
             sp.GetRequiredService<IntegrationDisplayState>(),
             new Lazy<IModuleHost>(() => sp.GetRequiredService<IModuleHost>())));
+        services.AddSingleton<VrcBridgeSectionViewModel>(sp => new VrcBridgeSectionViewModel(
+            sp.GetRequiredService<ISettingsProvider<VrcBridgeSettings>>(),
+            sp.GetRequiredService<ISettingsProvider<AppSettings>>(),
+            new Lazy<IModuleHost>(() => sp.GetRequiredService<IModuleHost>())));
         services.AddSingleton<PulsoidSectionViewModel>(sp => new PulsoidSectionViewModel(
             new Lazy<IModuleHost>(() => sp.GetRequiredService<IModuleHost>()),
             new Lazy<PulsoidOAuthHandler>(() => sp.GetRequiredService<PulsoidOAuthHandler>()),
@@ -313,7 +317,8 @@ public static class ServiceRegistration
             sp.GetRequiredService<IUiDispatcher>(),
             new Lazy<IStatusListService>(() => sp.GetRequiredService<IStatusListService>()),
             sp.GetRequiredService<IMenuNavigationService>(),
-            sp.GetRequiredService<INavigationService>()));
+            sp.GetRequiredService<INavigationService>(),
+            sp.GetRequiredService<IToastService>()));
 
         services.AddSingleton<ISettingsResetService, SettingsResetService>();
         services.AddSingleton<IOptionsSectionResetService, OptionsSectionResetService>();
@@ -334,6 +339,7 @@ public static class ServiceRegistration
             sp.GetRequiredService<SpotifySectionViewModel>(),
             sp.GetRequiredService<TrackerBatterySectionViewModel>(),
             sp.GetRequiredService<VrPerformanceSectionViewModel>(),
+            sp.GetRequiredService<VrcBridgeSectionViewModel>(),
             sp.GetRequiredService<LyricsSectionViewModel>(),
             sp.GetRequiredService<PulsoidSectionViewModel>(),
             sp.GetRequiredService<OpenAISectionViewModel>(),
@@ -423,6 +429,9 @@ public static class ServiceRegistration
             new Lazy<ILiveTypingService>(() => sp.GetRequiredService<ILiveTypingService>())));
 
         services.AddSingleton<IOscSender, OscSenderService>();
+        services.AddSingleton<Core.Vrc.IAvatarParameterSink>(sp => new Core.Vrc.AvatarParameterRouter(
+            sp.GetRequiredService<IOscSender>(),
+            () => sp.GetRequiredService<IModuleHost>().VrcBridge?.Pump));
         services.AddSingleton<ILiveTypingService>(sp => new LiveTypingService(
             sp.GetRequiredService<ISettingsProvider<ChatSettings>>(),
             sp.GetRequiredService<IAppState>(),

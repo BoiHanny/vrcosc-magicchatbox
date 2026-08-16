@@ -247,6 +247,12 @@ jobs:
       if: steps.resolve_release.outputs.is_tag_release != 'true' || steps.check_release.outputs.release_exists == 'false'
       run: dotnet restore ${{ env.Solution_Name }} -r win-x64
 
+    # Step 5b: Run the test suite. A red test must block the release, not ship with it.
+    - name: Run Tests
+      if: steps.resolve_release.outputs.is_tag_release != 'true' || steps.check_release.outputs.release_exists == 'false'
+      shell: pwsh
+      run: dotnet test MagicChatbox.Tests/MagicChatbox.Tests.csproj --configuration Debug --verbosity minimal
+
     # Step 6: Publish application to a stable output folder
     - name: Publish Application
       if: steps.resolve_release.outputs.is_tag_release != 'true' || steps.check_release.outputs.release_exists == 'false'

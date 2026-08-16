@@ -31,6 +31,9 @@ public sealed class OptionsSectionResetService : IOptionsSectionResetService
     private readonly ISettingsProvider<PulsoidModuleSettings> _pulsoid;
     private readonly ISettingsProvider<OscSettings> _osc;
     private readonly ISettingsProvider<PrivacySettings> _privacy;
+    private readonly ISettingsProvider<vrcosc_magicchatbox.Classes.Modules.Lyrics.LyricsSettings> _lyrics;
+    private readonly ISettingsProvider<vrcosc_magicchatbox.Classes.Modules.Vr.VrPerformanceSettings> _vrPerformance;
+    private readonly ISettingsProvider<VrcBridgeSettings> _vrcBridge;
     private readonly Lazy<IModuleHost> _moduleHost;
     private readonly DiscordRichPresenceService _discordRichPresence;
 
@@ -56,6 +59,9 @@ public sealed class OptionsSectionResetService : IOptionsSectionResetService
         ISettingsProvider<PulsoidModuleSettings> pulsoid,
         ISettingsProvider<OscSettings> osc,
         ISettingsProvider<PrivacySettings> privacy,
+        ISettingsProvider<vrcosc_magicchatbox.Classes.Modules.Lyrics.LyricsSettings> lyrics,
+        ISettingsProvider<vrcosc_magicchatbox.Classes.Modules.Vr.VrPerformanceSettings> vrPerformance,
+        ISettingsProvider<VrcBridgeSettings> vrcBridge,
         Lazy<IModuleHost> moduleHost,
         DiscordRichPresenceService discordRichPresence)
     {
@@ -80,6 +86,9 @@ public sealed class OptionsSectionResetService : IOptionsSectionResetService
         _pulsoid = pulsoid;
         _osc = osc;
         _privacy = privacy;
+        _lyrics = lyrics;
+        _vrPerformance = vrPerformance;
+        _vrcBridge = vrcBridge;
         _moduleHost = moduleHost;
         _discordRichPresence = discordRichPresence;
     }
@@ -175,6 +184,23 @@ public sealed class OptionsSectionResetService : IOptionsSectionResetService
                 count += _reset.ResetAll(_mediaLink);
                 count += ResetIntegration(nameof(IntegrationSettings.IntgrScanMediaLink), nameof(IntegrationSettings.IntgrMediaLink_VR), nameof(IntegrationSettings.IntgrMediaLink_DESKTOP));
                 return Result("MediaLink", count);
+
+            case "vrc-bridge":
+                count += _reset.ResetAll(_vrcBridge);
+                restarted |= await RestartIfRunningAsync(_moduleHost.Value.VrcBridge, () => restartFailed = true).ConfigureAwait(false);
+                return Result("Avatar", count, restarted, restartFailed);
+
+            case "lyrics":
+                count += _reset.ResetAll(_lyrics);
+                count += ResetIntegration(nameof(IntegrationSettings.IntgrLyrics), nameof(IntegrationSettings.IntgrLyrics_VR), nameof(IntegrationSettings.IntgrLyrics_DESKTOP));
+                restarted |= await RestartIfRunningAsync(_moduleHost.Value.Lyrics, () => restartFailed = true).ConfigureAwait(false);
+                return Result("Lyrics", count, restarted, restartFailed);
+
+            case "vr-performance":
+                count += _reset.ResetAll(_vrPerformance);
+                count += ResetIntegration(nameof(IntegrationSettings.IntgrVrPerformance));
+                restarted |= await RestartIfRunningAsync(_moduleHost.Value.VrPerformance, () => restartFailed = true).ConfigureAwait(false);
+                return Result("VR Performance", count, restarted, restartFailed);
 
             case "app-options":
                 count += _reset.ResetProperties(_app, AppOptionsSettings);

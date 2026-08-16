@@ -1070,6 +1070,68 @@
                             Width="auto"
                             Margin="4,3,0,2"
                             Style="{StaticResource OptionHelpTextStyle}"
+                            Text="Other heart rate apps each named their avatar values differently, so a prefab built for one of them ignores the others. Turn this on to send those names too, and most heart rate prefabs will work without editing your avatar." />
+                        <CheckBox
+                            x:Name="BroadPrefabCompatibility_checkbox"
+                            Margin="4,2"
+                            IsChecked="{Binding Modules.Pulsoid.Settings.BroadPrefabCompatibility, Mode=TwoWay}">
+                            Also send the names other heart rate apps use
+                        </CheckBox>
+                    </StackPanel>
+                </Border>
+                <Border Padding="0" Style="{StaticResource OptionCardStyle}">
+                    <StackPanel Margin="5">
+                        <TextBlock
+                            Width="auto"
+                            Margin="4,3,0,2"
+                            Style="{StaticResource OptionHelpTextStyle}"
+                            Text="Avatars read the heart rate as a slider between two ends. The default 0 to 255 leaves a resting heart rate barely off the bottom. Setting these to the range you actually reach spreads it across the whole slider, so the avatar reacts far more." />
+                        <StackPanel Margin="4,5,0,5" Orientation="Horizontal">
+                            <TextBlock
+                                Margin="0"
+                                Padding="0,0,5,0"
+                                VerticalAlignment="Center"
+                                Style="{StaticResource OptionFieldLabelStyle}"
+                                Text="From" />
+                            <TextBox
+                                x:Name="OscHrMin"
+                                Width="40"
+                                Height="auto"
+                                HorizontalAlignment="Left"
+                                VerticalContentAlignment="Center"
+                                FontSize="{StaticResource FontSizeBody}"
+                                Text="{Binding Modules.Pulsoid.Settings.OscHrMin, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                TextAlignment="Center" />
+                            <TextBlock
+                                Margin="0"
+                                Padding="5,0,5,0"
+                                VerticalAlignment="Center"
+                                Style="{StaticResource OptionFieldLabelStyle}"
+                                Text="to" />
+                            <TextBox
+                                x:Name="OscHrMax"
+                                Width="40"
+                                Height="auto"
+                                HorizontalAlignment="Left"
+                                VerticalContentAlignment="Center"
+                                FontSize="{StaticResource FontSizeBody}"
+                                Text="{Binding Modules.Pulsoid.Settings.OscHrMax, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                TextAlignment="Center" />
+                            <TextBlock
+                                Margin="0"
+                                Padding="5,0,4,0"
+                                VerticalAlignment="Center"
+                                Style="{StaticResource OptionFieldLabelStyle}"
+                                Text="bpm" />
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+                <Border Padding="0" Style="{StaticResource OptionCardStyle}">
+                    <StackPanel Margin="5">
+                        <TextBlock
+                            Width="auto"
+                            Margin="4,3,0,2"
+                            Style="{StaticResource OptionHelpTextStyle}"
                             Text="Puts a few words in front of the number so it does not appear on its own." />
                         <CheckBox
                             x:Name="HeartRateTitle_checkbox"

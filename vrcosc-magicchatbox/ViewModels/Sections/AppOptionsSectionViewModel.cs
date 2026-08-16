@@ -26,6 +26,7 @@ public partial class AppOptionsSectionViewModel : ObservableObject
     private readonly Lazy<IStatusListService> _statusListSvc;
     private readonly IMenuNavigationService _menuNav;
     private readonly INavigationService _nav;
+    private readonly IToastService _toast;
 
     [ObservableProperty] private string _linePreview = string.Empty;
 
@@ -48,7 +49,8 @@ public partial class AppOptionsSectionViewModel : ObservableObject
         IUiDispatcher dispatcher,
         Lazy<IStatusListService> statusListSvc,
         IMenuNavigationService menuNav,
-        INavigationService nav)
+        INavigationService nav,
+        IToastService toast)
     {
         AppSettings = appSettingsProvider.Value;
         TtsSettings = ttsSettingsProvider.Value;
@@ -62,6 +64,7 @@ public partial class AppOptionsSectionViewModel : ObservableObject
         _statusListSvc = statusListSvc;
         _menuNav = menuNav;
         _nav = nav;
+        _toast = toast;
 
         AppSettings.PropertyChanged += OnAppSettingChanged;
         RefreshLinePreview();
@@ -87,6 +90,31 @@ public partial class AppOptionsSectionViewModel : ObservableObject
             AppSettings.OscMessageSuffix,
             AppSettings.OscMessageSeparator,
             AppSettings.SeperateWithENTERS);
+
+    public int AvatarParameterCount => Core.Vrc.AvatarParameterContract.Parameters.Count;
+
+    [RelayCommand]
+    private void CopyAvatarParameters()
+    {
+        try
+        {
+            System.Windows.Clipboard.SetText(Core.Vrc.AvatarParameterContract.ToClipboardText());
+            _toast.Show(
+                "Avatar parameters",
+                $"Copied {AvatarParameterCount} parameter names to the clipboard.",
+                ToastType.Success,
+                key: "avatar-params-copy");
+        }
+        catch (Exception ex)
+        {
+            Logging.WriteException(ex, MSGBox: false);
+            _toast.Show(
+                "Avatar parameters",
+                "Could not copy to clipboard.",
+                ToastType.Warning,
+                key: "avatar-params-copy-failed");
+        }
+    }
 
     [RelayCommand]
     private void ResetOscIp() => OscSettings.OscIP = "127.0.0.1";

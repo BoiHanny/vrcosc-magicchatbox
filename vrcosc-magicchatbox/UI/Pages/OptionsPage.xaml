@@ -152,6 +152,13 @@
                 <options:TrackerBatterySection x:Name="TrackerBatterySectionControl" DataContext="{Binding TrackerBatterySection}" />
             </ContentControl>
 
+            <ContentControl
+                x:Name="OptionsWrapper_VrcBridge"
+                Style="{StaticResource OptionSectionWithResetStyle}"
+                Tag="vrc-bridge">
+                <options:VrcBridgeSection x:Name="VrcBridgeSectionControl" DataContext="{Binding VrcBridgeSection}" />
+            </ContentControl>
+
             <controls:OptionGroupHeader Title="AI and voice" />
 
             <ContentControl

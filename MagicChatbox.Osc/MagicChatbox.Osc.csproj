@@ -1,0 +1,41 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <IsPackable>false</IsPackable>
+    <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+  </PropertyGroup>
+
+  <!-- D5 — THE FENCE. IOscSender and UdpOscSender are internal to this assembly, and this list is the
+       complete set of assemblies that may see them. MagicChatbox.Vrc owns the safety gates; nothing
+       else may reach the wire.
+
+       Adding an entry here re-opens the hole audit F-143 closed in v2 and that ModuleRuntime.cs:604
+       still has open. Do not add one. If something needs to send, give it a method on IVrcEgress.
+
+       Exactly ONE production assembly may appear here, and it is MagicChatbox.Vrc. Test assemblies are
+       a different case: they substitute the sender to prove the gates cannot be skipped, and they ship
+       to nobody. The architecture test asserts this list contains Vrc plus *.Tests and nothing else, so
+       a production addition fails the build rather than review. -->
+  <ItemGroup>
+    <InternalsVisibleTo Include="MagicChatbox.Vrc" />
+    <InternalsVisibleTo Include="MagicChatbox.Osc.Tests" />
+    <InternalsVisibleTo Include="MagicChatbox.Vrc.Tests" />
+  </ItemGroup>
+
+  <!-- This assembly has NO PROJECT REFERENCES, and it stays that way so that "who can reach the wire"
+       is answerable by reading one csproj.
+
+       The one package reference is MeaMod.DNS, the mDNS stack. It is here rather than behind a seam in
+       another assembly because OSCQuery *is* protocol: advertising _oscjson._tcp and resolving SRV
+       records is how the OSC port is negotiated at all (§12.3). MeaMod.DNS ships lib/net7.0, which
+       net10.0 consumes without a compatibility shim, and it is the same build VRCOSC and v2 both run in
+       production. Discovery still sits behind IOscQueryDiscovery so the rest of the subsystem is
+       testable without a multicast socket. -->
+  <ItemGroup>
+    <PackageReference Include="MeaMod.DNS" Version="1.0.71" />
+  </ItemGroup>
+
+</Project>

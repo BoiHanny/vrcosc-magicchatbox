@@ -1,0 +1,256 @@
+<UserControl
+    x:Class="vrcosc_magicchatbox.UI.Pages.Options.VrcBridgeSection"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:sections="clr-namespace:vrcosc_magicchatbox.ViewModels.Sections"
+    d:DataContext="{d:DesignInstance Type=sections:VrcBridgeSectionViewModel,
+                                     IsDesignTimeCreatable=False}"
+    mc:Ignorable="d">
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="/UI/Resources/SharedConverters.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </UserControl.Resources>
+
+    <Grid Margin="0,5,0,0">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+        <Grid.Background>
+            <LinearGradientBrush SpreadMethod="Pad" StartPoint="1,1" EndPoint="0,0">
+                <GradientStop Color="{StaticResource SurfaceGradientStartColor}" />
+                <GradientStop Offset="1" Color="{StaticResource SurfaceGradientEndColor}" />
+            </LinearGradientBrush>
+        </Grid.Background>
+
+        <Grid Grid.Row="0">
+            <ToggleButton
+                Width="Auto"
+                Height="30"
+                HorizontalAlignment="Left"
+                IsChecked="{Binding AppSettings.Settings_VrcBridge, Mode=TwoWay}"
+                Style="{StaticResource ExpandCollapseToggleButtonStyle}"
+                Tag="Avatar options"
+                TextOptions.TextRenderingMode="ClearType" />
+        </Grid>
+
+        <StackPanel
+            Grid.Row="1"
+            Margin="34,10,0,0"
+            d:Visibility="Visible"
+            Visibility="{Binding AppSettings.Settings_VrcBridge, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
+
+            <Border Padding="0" Style="{StaticResource OptionCardStyle}">
+                <StackPanel Margin="5">
+                    <TextBlock
+                        Width="auto"
+                        Margin="4,3,0,2"
+                        Style="{StaticResource OptionHelpTextStyle}"
+                        Text="Lets your avatar react to what MagicChatbox knows, and later lets your avatar control MagicChatbox back. It finds VRChat by itself and never takes a port another OSC app is using, so it is safe to run alongside your other tools." />
+                    <CheckBox
+                        x:Name="EnableVrcBridge_checkbox"
+                        Margin="4,2"
+                        IsChecked="{Binding Settings.EnableBridge, Mode=TwoWay}">
+                        Connect to my avatar
+                    </CheckBox>
+                    <StackPanel Margin="4,6,0,0" Orientation="Horizontal">
+                        <TextBlock
+                            Margin="0"
+                            Padding="0,0,5,0"
+                            VerticalAlignment="Center"
+                            Style="{StaticResource OptionFieldLabelStyle}"
+                            Text="Status" />
+                        <TextBlock
+                            Margin="0"
+                            VerticalAlignment="Center"
+                            Style="{StaticResource OptionHelpTextStyle}"
+                            Text="{Binding StatusText}" />
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+
+            <Border Padding="0" Style="{StaticResource OptionCardStyle}">
+                <StackPanel Margin="5">
+                    <TextBlock
+                        Width="auto"
+                        Margin="4,3,0,2"
+                        Style="{StaticResource OptionHelpTextStyle}"
+                        Text="Lets buttons on your avatar control MagicChatbox. Only two are accepted for now, and both of them only ever stop something: one stops what is being read aloud, the other stops everything. Neither can switch MagicChatbox back on, so a world cannot turn things on for you." />
+                    <CheckBox
+                        x:Name="EnableParameterInput_checkbox"
+                        Margin="4,2"
+                        IsChecked="{Binding Settings.EnableParameterInput, Mode=TwoWay}"
+                        IsEnabled="{Binding Settings.EnableBridge}">
+                        Let my avatar control MagicChatbox
+                    </CheckBox>
+                    <ItemsControl Margin="4,6,0,0" ItemsSource="{Binding ControlParameters}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <StackPanel Margin="0,2">
+                                    <TextBlock
+                                        VerticalAlignment="Center"
+                                        Style="{StaticResource OptionFieldLabelStyle}"
+                                        Text="{Binding Name}" />
+                                    <TextBlock
+                                        Margin="0,0,0,2"
+                                        Style="{StaticResource OptionHelpTextStyle}"
+                                        Text="{Binding Description}" />
+                                </StackPanel>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </StackPanel>
+            </Border>
+
+            <Border Padding="0" Style="{StaticResource OptionCardStyle}">
+                <StackPanel Margin="5">
+                    <TextBlock
+                        Width="auto"
+                        Margin="4,3,0,2"
+                        Style="{StaticResource OptionHelpTextStyle}"
+                        Text="Stop sending anything to your avatar while you are in certain worlds. Type part of a world name — anything containing it counts as a match." />
+                    <StackPanel Margin="4,5,0,5" Orientation="Horizontal">
+                        <TextBox
+                            x:Name="NewMutedWorld"
+                            Width="180"
+                            Height="auto"
+                            Padding="3,0"
+                            VerticalContentAlignment="Center"
+                            FontSize="{StaticResource FontSizeBody}"
+                            Text="{Binding NewMutedWorld, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                        <Button
+                            x:Name="AddMutedWorld_btn"
+                            Width="auto"
+                            Margin="5,0,0,0"
+                            Padding="5"
+                            Command="{Binding AddMutedWorldCommand}"
+                            Style="{StaticResource Status_Button_style}">
+                            <Button.ContentTemplate>
+                                <DataTemplate>
+                                    <TextBlock
+                                        Margin="3,-1,3,0"
+                                        VerticalAlignment="Center"
+                                        FontSize="{StaticResource FontSizeCompact}"
+                                        FontWeight="SemiBold"
+                                        Foreground="{StaticResource TextSubtlePurpleBrush}"
+                                        Text="Add" />
+                                </DataTemplate>
+                            </Button.ContentTemplate>
+                        </Button>
+                    </StackPanel>
+                    <ItemsControl Margin="4,0,0,4" ItemsSource="{Binding Settings.MutedWorlds}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <StackPanel Margin="0,2" Orientation="Horizontal">
+                                    <Button
+                                        Width="auto"
+                                        Padding="4,0"
+                                        Command="{Binding DataContext.RemoveMutedWorldCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                        CommandParameter="{Binding}"
+                                        Style="{StaticResource Status_Button_style}">
+                                        <Button.ContentTemplate>
+                                            <DataTemplate>
+                                                <TextBlock
+                                                    Margin="3,-1,3,0"
+                                                    VerticalAlignment="Center"
+                                                    FontSize="{StaticResource FontSizeCompact}"
+                                                    Foreground="{StaticResource TextSubtlePurpleBrush}"
+                                                    Text="Remove" />
+                                            </DataTemplate>
+                                        </Button.ContentTemplate>
+                                    </Button>
+                                    <TextBlock
+                                        Margin="6,0,0,0"
+                                        VerticalAlignment="Center"
+                                        Style="{StaticResource OptionHelpTextStyle}"
+                                        Text="{Binding}" />
+                                </StackPanel>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                    <CheckBox
+                        x:Name="MuteInPublicInstances_checkbox"
+                        Margin="4,2"
+                        IsChecked="{Binding Settings.MuteInPublicInstances, Mode=TwoWay}">
+                        Also stop while I am in a public instance
+                    </CheckBox>
+                </StackPanel>
+            </Border>
+
+            <Border Padding="0" Style="{StaticResource OptionCardStyle}">
+                <StackPanel Margin="5">
+                    <TextBlock
+                        Width="auto"
+                        Margin="4,3,0,2"
+                        Style="{StaticResource OptionHelpTextStyle}"
+                        Text="Words MagicChatbox will never put in your chatbox on your behalf. This checks the finished line, so it also catches a track title or a world name you did not write." />
+                    <StackPanel Margin="4,5,0,5" Orientation="Horizontal">
+                        <TextBox
+                            x:Name="NewBlockedTerm"
+                            Width="180"
+                            Height="auto"
+                            Padding="3,0"
+                            VerticalContentAlignment="Center"
+                            FontSize="{StaticResource FontSizeBody}"
+                            Text="{Binding NewBlockedTerm, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                        <Button
+                            x:Name="AddBlockedTerm_btn"
+                            Width="auto"
+                            Margin="5,0,0,0"
+                            Padding="5"
+                            Command="{Binding AddBlockedTermCommand}"
+                            Style="{StaticResource Status_Button_style}">
+                            <Button.ContentTemplate>
+                                <DataTemplate>
+                                    <TextBlock
+                                        Margin="3,-1,3,0"
+                                        VerticalAlignment="Center"
+                                        FontSize="{StaticResource FontSizeCompact}"
+                                        FontWeight="SemiBold"
+                                        Foreground="{StaticResource TextSubtlePurpleBrush}"
+                                        Text="Add" />
+                                </DataTemplate>
+                            </Button.ContentTemplate>
+                        </Button>
+                    </StackPanel>
+                    <ItemsControl Margin="4,0,0,4" ItemsSource="{Binding Settings.BlockedTerms}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <StackPanel Margin="0,2" Orientation="Horizontal">
+                                    <Button
+                                        Width="auto"
+                                        Padding="4,0"
+                                        Command="{Binding DataContext.RemoveBlockedTermCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                        CommandParameter="{Binding}"
+                                        Style="{StaticResource Status_Button_style}">
+                                        <Button.ContentTemplate>
+                                            <DataTemplate>
+                                                <TextBlock
+                                                    Margin="3,-1,3,0"
+                                                    VerticalAlignment="Center"
+                                                    FontSize="{StaticResource FontSizeCompact}"
+                                                    Foreground="{StaticResource TextSubtlePurpleBrush}"
+                                                    Text="Remove" />
+                                            </DataTemplate>
+                                        </Button.ContentTemplate>
+                                    </Button>
+                                    <TextBlock
+                                        Margin="6,0,0,0"
+                                        VerticalAlignment="Center"
+                                        Style="{StaticResource OptionHelpTextStyle}"
+                                        Text="{Binding}" />
+                                </StackPanel>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </StackPanel>
+            </Border>
+
+        </StackPanel>
+    </Grid>
+</UserControl>

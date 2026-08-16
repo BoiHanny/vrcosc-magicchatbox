@@ -31,6 +31,15 @@ public partial class PulsoidModuleSettings : VersionedSettings
     private bool disableLegacySupport = false;
 
     [ObservableProperty]
+    private int oscHrMin = 0;
+
+    [ObservableProperty]
+    private int oscHrMax = 255;
+
+    [ObservableProperty]
+    private bool broadPrefabCompatibility = false;
+
+    [ObservableProperty]
     private bool enableHeartRateOfflineCheck = true;
 
     [ObservableProperty]

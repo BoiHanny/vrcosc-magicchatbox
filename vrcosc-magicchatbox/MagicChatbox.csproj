@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-	<Version>0.9.219</Version>
+	<Version>0.9.220</Version>
     <TargetFramework>net10.0-windows10.0.26100.0</TargetFramework>
     <RootNamespace>vrcosc_magicchatbox</RootNamespace>
     <Nullable>enable</Nullable>
@@ -241,6 +241,10 @@
 
   <ItemGroup>
     <ProjectReference Include="..\MagicChatboxAPI\MagicChatboxAPI.csproj" />
+    <ProjectReference Include="..\MagicChatbox.Vocabulary\MagicChatbox.Vocabulary.csproj" />
+    <ProjectReference Include="..\MagicChatbox.Kernel\MagicChatbox.Kernel.csproj" />
+    <ProjectReference Include="..\MagicChatbox.Osc\MagicChatbox.Osc.csproj" />
+    <ProjectReference Include="..\MagicChatbox.Vrc\MagicChatbox.Vrc.csproj" />
   </ItemGroup>
 
   <ItemGroup>

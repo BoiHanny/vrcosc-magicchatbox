@@ -1,4 +1,4 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.ComponentModel;
 using System;
 using vrcosc_magicchatbox.Classes.Modules;
 using System.Collections.Generic;
@@ -145,6 +145,8 @@ public partial class IntegrationDisplayState : ObservableObject
             case "Spotify": SpotifyOpacity = opacity; break;
             case "HeartRate": HeartRateOpacity = opacity; break;
             case "TrackerBattery": TrackerBatteryOpacity = opacity; break;
+            case "VrPerformance": VrPerformanceOpacity = opacity; break;
+            case "Lyrics": LyricsOpacity = opacity; break;
             case "ComponentStat": ComponentStatOpacity = opacity; break;
             case "NetworkStatistics": NetworkStatsOpacity = opacity; break;
             case "Soundpad": SoundpadOpacity = opacity; break;
@@ -165,6 +167,8 @@ public partial class IntegrationDisplayState : ObservableObject
         SpotifyOpacity = "1";
         HeartRateOpacity = "1";
         TrackerBatteryOpacity = "1";
+        VrPerformanceOpacity = "1";
+        LyricsOpacity = "1";
         ComponentStatOpacity = "1";
         NetworkStatsOpacity = "1";
         SoundpadOpacity = "1";

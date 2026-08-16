@@ -47,6 +47,9 @@ public class ModuleBootstrapper
     private readonly ISettingsProvider<TikTokLiveSettings> _tikTokLiveSettingsProvider;
     private readonly ISettingsProvider<TrackerBatterySettings> _trackerSettingsProvider;
     private readonly ISettingsProvider<Classes.Modules.Vr.VrPerformanceSettings> _vrPerformanceSettingsProvider;
+    private readonly ISettingsProvider<VrcBridgeSettings> _vrcBridgeSettingsProvider;
+    private readonly Core.Vrc.IAvatarParameterSink _parameterSink;
+    private readonly ITtsPlaybackService _ttsPlayback;
     private readonly Vr.IOpenVrSessionService _openVrSession;
     private readonly ISettingsProvider<Classes.Modules.Lyrics.LyricsSettings> _lyricsSettingsProvider;
     private readonly Lyrics.LyricsResolver _lyricsResolver;
@@ -90,6 +93,9 @@ public class ModuleBootstrapper
         ISettingsProvider<TikTokLiveSettings> tikTokLiveSettingsProvider,
         ISettingsProvider<TrackerBatterySettings> trackerSettingsProvider,
         ISettingsProvider<Classes.Modules.Vr.VrPerformanceSettings> vrPerformanceSettingsProvider,
+        ISettingsProvider<VrcBridgeSettings> vrcBridgeSettingsProvider,
+        Core.Vrc.IAvatarParameterSink parameterSink,
+        ITtsPlaybackService ttsPlayback,
         Vr.IOpenVrSessionService openVrSession,
         ISettingsProvider<Classes.Modules.Lyrics.LyricsSettings> lyricsSettingsProvider,
         Lyrics.LyricsResolver lyricsResolver,
@@ -129,6 +135,9 @@ public class ModuleBootstrapper
         _tikTokLiveSettingsProvider = tikTokLiveSettingsProvider;
         _trackerSettingsProvider = trackerSettingsProvider;
         _vrPerformanceSettingsProvider = vrPerformanceSettingsProvider;
+        _vrcBridgeSettingsProvider = vrcBridgeSettingsProvider;
+        _parameterSink = parameterSink;
+        _ttsPlayback = ttsPlayback;
         _openVrSession = openVrSession;
         _lyricsSettingsProvider = lyricsSettingsProvider;
         _lyricsResolver = lyricsResolver;
@@ -186,7 +195,8 @@ public class ModuleBootstrapper
             integrationSettings,
             _pulsoidOAuth,
             _pulsoidSettingsProvider,
-            _toast));
+            _toast,
+            _parameterSink));
         var soundpad = await CreateRuntimeModuleAsync("Soundpad", () => new SoundpadModule(
             1000,
             _appState,
@@ -211,7 +221,8 @@ public class ModuleBootstrapper
         var discord = await CreateRuntimeModuleAsync("Discord", () => new DiscordModule(
             _discordSettingsProvider,
             _oscSender,
-            _dispatcher));
+            _dispatcher,
+            _parameterSink));
         var spotify = await CreateRuntimeModuleAsync("Spotify", () => new SpotifyModule(
             _spotifySettingsProvider,
             _spotifyDisplay,
@@ -251,7 +262,14 @@ public class ModuleBootstrapper
             _oscSender,
             _dispatcher,
             _consentService,
-            _toast));
+            _toast,
+            _parameterSink));
+        var vrcBridge = await CreateRuntimeModuleAsync("VrcBridge", () => new Vrc.VrcBridgeModule(
+            _vrcBridgeSettingsProvider,
+            () => vrcRadar?.CurrentWorldName is { Length: > 0 } world && world != "Not in a world" ? world : null,
+            () => vrcRadar?.InstanceType?.Contains("Public", StringComparison.OrdinalIgnoreCase) == true,
+            Core.Vrc.InboundCommandRegistry.Build(_appState, _ttsPlayback),
+            action => _dispatcher.BeginInvoke(action)));
 
         await _dispatcher.InvokeAsync(() =>
         {
@@ -356,6 +374,15 @@ public class ModuleBootstrapper
                 _host.VrcRadar = vrcRadar;
                 _host.RegisterModule(vrcRadar);
                 integrationSettings.PropertyChanged += vrcRadar.PropertyChangedHandler;
+            }
+
+            if (vrcBridge != null)
+            {
+                _host.VrcBridge = vrcBridge;
+                _host.RegisterModule(vrcBridge);
+
+                if (vrcBridge.Settings.EnableBridge)
+                    _ = vrcBridge.StartAsync();
             }
 
             if (vrcRadar != null)

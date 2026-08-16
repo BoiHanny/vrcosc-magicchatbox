@@ -32,6 +32,7 @@ public sealed class MenuNavigationService : IMenuNavigationService
             { "Settings_Chatting", v => appSettings.Settings_Chatting = v },
             { "Settings_ComponentStats", v => appSettings.Settings_ComponentStats = v },
             { "Settings_TrackerBattery", v => appSettings.Settings_TrackerBattery = v },
+            { "Settings_VrcBridge", v => appSettings.Settings_VrcBridge = v },
             { "Settings_VrPerformance", v => appSettings.Settings_VrPerformance = v },
             { "Settings_Lyrics", v => appSettings.Settings_Lyrics = v },
             { "Settings_NetworkStatistics", v => appSettings.Settings_NetworkStatistics = v },

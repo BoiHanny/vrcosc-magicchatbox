@@ -30,6 +30,7 @@ namespace vrcosc_magicchatbox.ViewModels
         public SpotifySectionViewModel SpotifySection { get; }
         public TrackerBatterySectionViewModel TrackerBatterySection { get; }
         public VrPerformanceSectionViewModel VrPerformanceSection { get; }
+        public VrcBridgeSectionViewModel VrcBridgeSection { get; }
         public LyricsSectionViewModel LyricsSection { get; }
         public PulsoidSectionViewModel PulsoidSection { get; }
         public OpenAISectionViewModel OpenAISection { get; }
@@ -62,6 +63,7 @@ namespace vrcosc_magicchatbox.ViewModels
             SpotifySectionViewModel spotifySection,
             TrackerBatterySectionViewModel trackerBatterySection,
             VrPerformanceSectionViewModel vrPerformanceSection,
+            VrcBridgeSectionViewModel vrcBridgeSection,
             LyricsSectionViewModel lyricsSection,
             PulsoidSectionViewModel pulsoidSection,
             OpenAISectionViewModel openAISection,
@@ -92,6 +94,7 @@ namespace vrcosc_magicchatbox.ViewModels
             SpotifySection = spotifySection;
             TrackerBatterySection = trackerBatterySection;
             VrPerformanceSection = vrPerformanceSection;
+            VrcBridgeSection = vrcBridgeSection;
             LyricsSection = lyricsSection;
             PulsoidSection = pulsoidSection;
             OpenAISection = openAISection;

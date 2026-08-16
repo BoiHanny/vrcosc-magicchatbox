@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Threading.Tasks;
+using MagicChatbox.Tests.TestDoubles;
 using vrcosc_magicchatbox.Classes.Modules;
 using vrcosc_magicchatbox.Core;
 using vrcosc_magicchatbox.Core.Configuration;
@@ -55,18 +56,6 @@ public class VrcRadarOutputTests
         public void Shutdown() { }
     }
 
-    private sealed class NoOpOscSender : IOscSender
-    {
-        public Task<bool> SendOSCMessage(bool fx, int delay = 0, bool force = false, string? explicitText = null) => Task.FromResult(true);
-        public void SendOscParam(string address, float value) { }
-        public void SendOscParam(string address, int value) { }
-        public void SendOscParam(string address, bool value) { }
-        public void SendTypingIndicatorAsync() { }
-        public void StopTypingIndicator() { }
-        public Task SentClearMessage(int delay) => Task.CompletedTask;
-        public Task ToggleVoice(bool force = false) => Task.CompletedTask;
-    }
-
     private sealed class ApprovingConsent : IPrivacyConsentService
     {
         public bool IsApproved(PrivacyHook hook) => true;
@@ -86,7 +75,7 @@ public class VrcRadarOutputTests
             new StubSettingsProvider<VrcLogSettings>(settings),
             new IntegrationSettings(),
             new FakeAppState(),
-            new NoOpOscSender(),
+            new FakeOscSender(),
             new InlineDispatcher(),
             new ApprovingConsent());
 

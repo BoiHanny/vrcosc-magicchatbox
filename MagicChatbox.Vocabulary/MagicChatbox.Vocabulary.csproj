@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <IsPackable>false</IsPackable>
+    <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+  </PropertyGroup>
+
+  <!-- NearlyEquals is internal on purpose (D3): epsilon comparison is a dedupe policy, not an
+       equality relation, and nothing outside the kernel may reach it. The tests assert that, so they
+       need the same view the store will have. -->
+  <ItemGroup>
+    <InternalsVisibleTo Include="MagicChatbox.Kernel" />
+    <InternalsVisibleTo Include="MagicChatbox.Vocabulary.Tests" />
+  </ItemGroup>
+
+  <!-- Vocabulary is the leaf. It references nothing, and the architecture tests enforce that. -->
+
+</Project>
