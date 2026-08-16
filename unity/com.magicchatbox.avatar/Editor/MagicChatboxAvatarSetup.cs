@@ -2,6 +2,7 @@
 
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using UnityEditor;
 using UnityEditor.Animations;
 using UnityEngine;
@@ -11,33 +12,78 @@ using VRC.SDKBase;
 
 namespace MagicChatbox.Avatar.Editor
 {
+    /// <summary>One inbound control: a parameter, how it is presented, and whether it persists.</summary>
+    public readonly struct MagicChatboxControl
+    {
+        public MagicChatboxControl(
+            string parameter,
+            string label,
+            VRCExpressionParameters.ValueType valueType,
+            bool saved,
+            VRCExpressionsMenu.Control.ControlType controlType)
+        {
+            Parameter = parameter;
+            Label = label;
+            ValueType = valueType;
+            Saved = saved;
+            ControlType = controlType;
+        }
+
+        public string Parameter { get; }
+        public string Label { get; }
+        public VRCExpressionParameters.ValueType ValueType { get; }
+
+        /// <summary>Whether VRChat should remember it. Wrong for a panic press, right for a preference.</summary>
+        public bool Saved { get; }
+
+        public VRCExpressionsMenu.Control.ControlType ControlType { get; }
+    }
+
     /// <summary>
     /// Generates the control assets rather than shipping them.
     /// </summary>
     /// <remarks>
     /// <para>
     /// Shipping a prebuilt AnimatorController, parameters asset and menu means shipping serialized
-    /// Unity YAML that is pinned to whichever editor and SDK version produced it. Generating them in
-    /// the project instead means Unity writes them, so they are correct for the version the creator
-    /// actually has, and a broken result is a compiler error rather than a corrupt asset that
-    /// imports quietly and does nothing.
+    /// Unity YAML pinned to whichever editor and SDK version produced it. Generating them in the
+    /// project means Unity writes them, so they are correct for the version the creator actually has,
+    /// and a broken result is a compiler error rather than a corrupt asset that imports quietly and
+    /// does nothing.
     /// </para>
     /// <para>
-    /// The parameter names below are the Control tier of the app's published contract. There is a
-    /// test in the desktop repository that reads this file and fails if the two lists drift apart, so
-    /// treat <see cref="Controls"/> as the copy that must be kept in step, not as a free-form list.
+    /// The control list below is the Control tier of the app's published contract. A test in the
+    /// desktop repository reads this file and fails if the two drift apart.
     /// </para>
     /// </remarks>
     public static class MagicChatboxAvatarSetup
     {
+        /// <summary>Bumped when the wire contract changes. Encoded in a parameter NAME, never a value.</summary>
+        /// <remarks>
+        /// VRChat's OSCQuery reports stale values for parameters that have not changed since load, so a
+        /// version int is unreadable from outside. A bool whose existence is the signal is not. VRCFury
+        /// encodes its own version the same way and for the same reason.
+        /// </remarks>
+        public const int ContractVersion = 1;
+
+        public const string VersionParameter = "MCB/Version/1";
+
         private const string OutputFolder = "Assets/MagicChatbox";
         private const string MenuName = "MagicChatbox";
 
-        /// <summary>One entry per inbound control. Impulses only: every one of these stops something.</summary>
-        private static readonly (string Parameter, string Label)[] Controls =
+        /// <summary>VRChat's documented cap on controls in one menu page.</summary>
+        private const int MenuPageSize = 8;
+
+        public static readonly MagicChatboxControl[] Controls =
         {
-            ("MCB/Ctrl/Tts/Stop", "Stop speaking"),
-            ("MCB/Ctrl/Panic", "Stop everything"),
+            new MagicChatboxControl(
+                "MCB/Ctrl/Tts/Stop", "Stop speaking",
+                VRCExpressionParameters.ValueType.Bool, false,
+                VRCExpressionsMenu.Control.ControlType.Button),
+
+            new MagicChatboxControl(
+                "MCB/Ctrl/Panic", "Stop everything",
+                VRCExpressionParameters.ValueType.Bool, false,
+                VRCExpressionsMenu.Control.ControlType.Button),
         };
 
         [MenuItem("Tools/MagicChatbox/Generate avatar controls")]
@@ -45,7 +91,9 @@ namespace MagicChatbox.Avatar.Editor
         {
             Directory.CreateDirectory(OutputFolder);
 
-            AnimatorController controller = CreateController();
+            bool writeDefaults = DetectWriteDefaults();
+
+            AnimatorController controller = CreateController(writeDefaults);
             VRCExpressionParameters parameters = CreateParameters();
             VRCExpressionsMenu menu = CreateMenu();
 
@@ -55,8 +103,9 @@ namespace MagicChatbox.Avatar.Editor
             Selection.activeObject = controller;
 
             Debug.Log(
-                $"MagicChatbox: generated {Controls.Length} control(s) into {OutputFolder}. " +
-                "Merge the controller, parameters and menu onto your avatar with VRCFury or Modular Avatar. " +
+                $"MagicChatbox: generated {Controls.Length} control(s) into {OutputFolder}, " +
+                $"Write Defaults {(writeDefaults ? "on" : "off")} to match the avatar. " +
+                "Merge the controller, parameters and menu with VRCFury or Modular Avatar. " +
                 "Every parameter is unsynced, so this costs no synced parameter bits.",
                 parameters);
 
@@ -66,43 +115,104 @@ namespace MagicChatbox.Avatar.Editor
             }
         }
 
-        private static AnimatorController CreateController()
+        /// <summary>
+        /// Matches the avatar's own Write Defaults rather than imposing ours.
+        /// </summary>
+        /// <remarks>
+        /// A mismatch produces an SDK warning the creator cannot attribute to us, and states with
+        /// Write Defaults off whose clip is empty produce a second one. Matched on layer type rather
+        /// than index because the layer order is not fixed.
+        /// </remarks>
+        private static bool DetectWriteDefaults()
         {
-            string path = $"{OutputFolder}/MagicChatboxFX.controller";
+            VRCAvatarDescriptor descriptor = Selection.activeGameObject != null
+                ? Selection.activeGameObject.GetComponentInParent<VRCAvatarDescriptor>()
+                : Object.FindObjectOfType<VRCAvatarDescriptor>();
+
+            if (descriptor == null)
+            {
+                return true;
+            }
+
+            foreach (VRCAvatarDescriptor.CustomAnimLayer layer in descriptor.baseAnimationLayers)
+            {
+                if (layer.type != VRCAvatarDescriptor.AnimLayerType.FX)
+                {
+                    continue;
+                }
+
+                if (layer.animatorController is AnimatorController fx)
+                {
+                    return DominantWriteDefaults(fx);
+                }
+            }
+
+            return true;
+        }
+
+        private static bool DominantWriteDefaults(AnimatorController controller)
+        {
+            int on = 0;
+            int off = 0;
+
+            foreach (AnimatorControllerLayer layer in controller.layers)
+            {
+                if (layer.stateMachine == null)
+                {
+                    continue;
+                }
+
+                foreach (ChildAnimatorState child in layer.stateMachine.states)
+                {
+                    if (child.state.writeDefaultValues)
+                    {
+                        on++;
+                    }
+                    else
+                    {
+                        off++;
+                    }
+                }
+            }
+
+            return on >= off;
+        }
+
+        private static AnimatorController CreateController(bool writeDefaults)
+        {
+            string path = OutputFolder + "/MagicChatboxFX.controller";
             AssetDatabase.DeleteAsset(path);
 
             AnimatorController controller = AnimatorController.CreateAnimatorControllerAtPath(path);
 
-            // An empty clip keeps every state a legal state without touching a single transform on
-            // the avatar. Nothing here animates anything.
-            var idle = new AnimationClip { name = "MagicChatboxIdle" };
+            AnimationClip idle = CreateIdleClip(writeDefaults);
             AssetDatabase.AddObjectToAsset(idle, controller);
 
-            foreach ((string parameter, string label) in Controls)
+            foreach (MagicChatboxControl control in Controls)
             {
-                controller.AddParameter(parameter, AnimatorControllerParameterType.Bool);
+                controller.AddParameter(control.Parameter, AnimatorControllerParameterType.Bool);
 
-                AnimatorControllerLayer layer = NewLayer(controller, label);
+                AnimatorControllerLayer layer = NewLayer(controller, control.Label);
                 AnimatorStateMachine machine = layer.stateMachine;
 
                 AnimatorState waiting = machine.AddState("Waiting");
                 waiting.motion = idle;
-                waiting.writeDefaultValues = false;
+                waiting.writeDefaultValues = writeDefaults;
 
                 AnimatorState pressed = machine.AddState("Pressed");
                 pressed.motion = idle;
-                pressed.writeDefaultValues = false;
+                pressed.writeDefaultValues = writeDefaults;
 
-                // Set, never Add and never Random: VRChat documents both of those as unreliable on
-                // remote instances, and this driver is what puts the parameter back to false so the
-                // next press is a fresh edge even when the desktop app is not running.
-                var driver = pressed.AddStateMachineBehaviour<VRCAvatarParameterDriver>();
+                // Set, never Add and never Random: VRChat documents both as unreliable on remote
+                // instances, and this driver is what returns the parameter to false so the next press
+                // is a fresh edge even when the desktop app is not running.
+                VRCAvatarParameterDriver driver = pressed.AddStateMachineBehaviour<VRCAvatarParameterDriver>();
                 driver.parameters = new List<VRC_AvatarParameterDriver.Parameter>
                 {
                     new VRC_AvatarParameterDriver.Parameter
                     {
                         type = VRC_AvatarParameterDriver.ChangeType.Set,
-                        name = parameter,
+                        name = control.Parameter,
                         value = 0f,
                     },
                 };
@@ -112,16 +222,40 @@ namespace MagicChatbox.Avatar.Editor
                 AnimatorStateTransition press = waiting.AddTransition(pressed);
                 press.hasExitTime = false;
                 press.duration = 0f;
-                press.AddCondition(AnimatorConditionMode.If, 0f, parameter);
+                press.AddCondition(AnimatorConditionMode.If, 0f, control.Parameter);
 
                 AnimatorStateTransition release = pressed.AddTransition(waiting);
                 release.hasExitTime = false;
                 release.duration = 0f;
-                release.AddCondition(AnimatorConditionMode.IfNot, 0f, parameter);
+                release.AddCondition(AnimatorConditionMode.IfNot, 0f, control.Parameter);
             }
 
             EditorUtility.SetDirty(controller);
             return controller;
+        }
+
+        /// <summary>
+        /// An idle clip that animates nothing on the avatar.
+        /// </summary>
+        /// <remarks>
+        /// When Write Defaults is off the clip must not be empty, or the SDK reports "animator states
+        /// with Write Defaults disabled where the animation clip is either missing or empty". One
+        /// curve on the installer object's own scale satisfies it without touching the avatar.
+        /// </remarks>
+        private static AnimationClip CreateIdleClip(bool writeDefaults)
+        {
+            var clip = new AnimationClip { name = "MagicChatboxIdle" };
+
+            if (!writeDefaults)
+            {
+                clip.SetCurve(
+                    "MagicChatbox",
+                    typeof(Transform),
+                    "m_LocalScale.x",
+                    AnimationCurve.Constant(0f, 1f / 60f, 1f));
+            }
+
+            return clip;
         }
 
         private static AnimatorControllerLayer NewLayer(AnimatorController controller, string name)
@@ -138,28 +272,38 @@ namespace MagicChatbox.Avatar.Editor
 
         private static VRCExpressionParameters CreateParameters()
         {
-            string path = $"{OutputFolder}/MagicChatboxParameters.asset";
+            string path = OutputFolder + "/MagicChatboxParameters.asset";
             AssetDatabase.DeleteAsset(path);
 
             var asset = ScriptableObject.CreateInstance<VRCExpressionParameters>();
-            var entries = new VRCExpressionParameters.Parameter[Controls.Length];
+            var entries = new List<VRCExpressionParameters.Parameter>();
 
-            for (int i = 0; i < Controls.Length; i++)
+            foreach (MagicChatboxControl control in Controls)
             {
-                entries[i] = new VRCExpressionParameters.Parameter
+                entries.Add(new VRCExpressionParameters.Parameter
                 {
-                    name = Controls[i].Parameter,
-                    valueType = VRCExpressionParameters.ValueType.Bool,
+                    name = control.Parameter,
+                    valueType = control.ValueType,
                     defaultValue = 0f,
-                    saved = false,
+                    saved = control.Saved,
 
                     // The whole point: unsynced costs nothing against the 256 bit budget, and these
-                    // are driven locally by OSC rather than replicated to remote players.
+                    // are driven locally over OSC rather than replicated to remote players.
                     networkSynced = false,
-                };
+                });
             }
 
-            asset.parameters = entries;
+            // Presence is the handshake. The app looks for this name existing, never for its value.
+            entries.Add(new VRCExpressionParameters.Parameter
+            {
+                name = VersionParameter,
+                valueType = VRCExpressionParameters.ValueType.Bool,
+                defaultValue = 0f,
+                saved = false,
+                networkSynced = false,
+            });
+
+            asset.parameters = entries.ToArray();
 
             AssetDatabase.CreateAsset(asset, path);
             return asset;
@@ -167,35 +311,55 @@ namespace MagicChatbox.Avatar.Editor
 
         private static VRCExpressionsMenu CreateMenu()
         {
-            string path = $"{OutputFolder}/MagicChatboxMenu.asset";
+            string path = OutputFolder + "/MagicChatboxMenu.asset";
             AssetDatabase.DeleteAsset(path);
 
-            var menu = ScriptableObject.CreateInstance<VRCExpressionsMenu>();
-            menu.name = MenuName;
-            menu.controls = new List<VRCExpressionsMenu.Control>();
+            VRCExpressionsMenu root = ScriptableObject.CreateInstance<VRCExpressionsMenu>();
+            root.name = MenuName;
+            root.controls = new List<VRCExpressionsMenu.Control>();
 
-            // VRChat caps a menu at eight controls. Two is not near it, but the guard stays so that
-            // adding controls later fails here rather than in the SDK validator.
-            int count = Mathf.Min(Controls.Length, 8);
+            AssetDatabase.CreateAsset(root, path);
 
-            for (int i = 0; i < count; i++)
+            VRCExpressionsMenu page = root;
+            int onPage = 0;
+            int pageNumber = 1;
+
+            foreach (MagicChatboxControl control in Controls)
             {
-                menu.controls.Add(new VRCExpressionsMenu.Control
+                // Both installers paginate on their own and would each pick a different arrangement.
+                // Doing it here means VRCFury and Modular Avatar produce the same menu.
+                if (onPage == MenuPageSize - 1 && control.Parameter != Controls.Last().Parameter)
                 {
-                    name = Controls[i].Label,
-                    type = VRCExpressionsMenu.Control.ControlType.Button,
-                    parameter = new VRCExpressionsMenu.Control.Parameter { name = Controls[i].Parameter },
+                    VRCExpressionsMenu next = ScriptableObject.CreateInstance<VRCExpressionsMenu>();
+                    pageNumber++;
+                    next.name = MenuName + " (Page " + pageNumber + ")";
+                    next.controls = new List<VRCExpressionsMenu.Control>();
+                    AssetDatabase.AddObjectToAsset(next, root);
+
+                    page.controls.Add(new VRCExpressionsMenu.Control
+                    {
+                        name = "More",
+                        type = VRCExpressionsMenu.Control.ControlType.SubMenu,
+                        subMenu = next,
+                    });
+
+                    page = next;
+                    onPage = 0;
+                }
+
+                page.controls.Add(new VRCExpressionsMenu.Control
+                {
+                    name = control.Label,
+                    type = control.ControlType,
+                    parameter = new VRCExpressionsMenu.Control.Parameter { name = control.Parameter },
                     value = 1f,
                 });
+
+                onPage++;
             }
 
-            if (Controls.Length > 8)
-            {
-                Debug.LogWarning("MagicChatbox: more controls than a VRChat menu page holds; the rest were skipped.");
-            }
-
-            AssetDatabase.CreateAsset(menu, path);
-            return menu;
+            EditorUtility.SetDirty(root);
+            return root;
         }
     }
 }

@@ -55,6 +55,50 @@ public class UnityPackageContractTests
     }
 
     [Fact]
+    public void The_generator_stamps_a_version_the_app_can_see()
+    {
+        // Encoded in the name rather than a value, because VRChat's OSCQuery reports stale values for
+        // parameters that have not changed since load. Presence is reported reliably; values are not.
+        string source = File.ReadAllText(EditorScript());
+
+        Assert.Contains("MCB/Version/1", source, StringComparison.Ordinal);
+        Assert.Contains("VersionParameter", source, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void The_version_the_generator_stamps_is_the_one_the_app_looks_for()
+    {
+        string source = File.ReadAllText(EditorScript());
+
+        Match stamped = Regex.Match(source, @"VersionParameter\s*=\s*""(MCB/Version/\d+)""");
+        Assert.True(stamped.Success, "the generator does not declare a version parameter name");
+
+        Assert.StartsWith(LayoutDoctor.VersionPrefix, stamped.Groups[1].Value, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void The_generator_matches_the_avatar_s_own_Write_Defaults()
+    {
+        // A mismatch produces an SDK warning the creator cannot attribute to us, and an empty clip on
+        // a Write-Defaults-off state produces a second one.
+        string source = File.ReadAllText(EditorScript());
+
+        Assert.Contains("DetectWriteDefaults", source, StringComparison.Ordinal);
+        Assert.Contains("AnimLayerType.FX", source, StringComparison.Ordinal);
+        Assert.DoesNotContain("writeDefaultValues = false", source, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void The_menu_paginates_rather_than_dropping_controls()
+    {
+        // The old code silently discarded anything past the eighth control with a warning.
+        string source = File.ReadAllText(EditorScript());
+
+        Assert.Contains("SubMenu", source, StringComparison.Ordinal);
+        Assert.DoesNotContain("Mathf.Min(Controls.Length", source, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void Every_generated_parameter_is_unsynced()
     {
         // The entire pitch is that these cost nothing against the 256 bit budget. One synced entry
