@@ -1,66 +1,104 @@
-# Avatar bridge: the one test that needs VRChat
+# Avatar bridge: measured against a live VRChat
 
-Everything else about the bridge is covered by automated tests — real UDP sockets, a real HTTP query
-server, the real OSCQuery handshake, and the Unity generator compiled and executed against the real
-VRChat SDK. Two questions are left, and both need the game running. They are answered by the same
-session, and it takes about twenty minutes.
+Two questions needed the game running rather than a test double. Both were answered on 2026-08-16
+against VRChat build `VRChat-Client-0F8077`. This records what was measured, and how to re-check it
+if VRChat's behaviour changes.
 
-The bridge is off by default. Nothing below changes for anyone who does not do it.
+The bridge is off by default. None of this changes anything for someone who does not enable it.
 
-## 1. Does VRChat find us?
+## 1. Does VRChat find us? — Yes
 
-1. Start VRChat.
-2. In MagicChatbox, open **Options → Avatar options** and tick **Connect to my avatar**.
-3. Read the four lines under it.
+A probe built on the real `VrcTransport` ran for 45 seconds alongside a live VRChat session.
 
-| What it says | What it means |
+```
+[bound] udp=62479 http=58639
+[ 0s] Ok: Sending OSC to the discovered endpoint 127.0.0.1:9000.
+
+parameters received : 2482
+avatar changes      : 0
+unmappable/malformed: 0/0
+distinct keys       : 11
+```
+
+What that establishes:
+
+- **Discovery works.** VRChat advertised itself and we resolved it without any manual configuration.
+- **We never touched port 9001.** The OS gave us 62479 for OSC and 58639 for the query server, which
+  is what lets the app run alongside ShockOSC, VRCFaceTracking and anything else.
+- **~55 parameters a second arrived**, with **zero unmappable and zero malformed** — the address
+  projection handled everything VRChat actually sent.
+
+VRChat advertised two records, and the difference between them matters:
+
+| Record | Address |
 |---|---|
-| `Listening on port <n>` | We bound a socket. The number is never 9001 — that is the point. |
-| `Nothing from VRChat yet` | We are listening but VRChat has not sent anything. |
-| `<n> values received from your avatar` | **Discovery worked.** This is the answer. |
-| `Also on this PC: …` | Other OSC apps that announced themselves. Empty is normal and fine. |
+| `_osc._udp` | `192.168.0.243:9000` — the LAN address |
+| `_oscjson._tcp` | `127.0.0.1:52393` — loopback |
 
-Press **Check again** to refresh; nothing polls on its own.
+The endpoint we adopted was `127.0.0.1:9000`, taken from `HOST_INFO` rather than from the LAN
+advertisement. That is the documented VRChat quirk handled correctly; trusting the advertised address
+instead would have sent traffic out over the network on a machine with a VPN or Hyper-V adapter.
 
-If it stays on `Nothing from VRChat yet`:
+`avatar changes: 0` is expected — VRChat only emits `/avatar/change` when an avatar loads, and the
+probe joined mid-session. It means the avatar id stays unknown until the next avatar switch, not that
+anything failed.
 
-- Confirm OSC is enabled in VRChat (Action Menu → Options → OSC → Enabled).
-- Check whether the neighbours line names another app. Discovery uses mDNS, and a VPN adapter or a
-  Hyper-V switch is the usual reason multicast does not arrive.
-- The app never takes port 9001, so a conflict with ShockOSC, VRCFaceTracking or similar is not the
-  cause — and all of them should keep working while this runs.
+### To re-check
 
-## 2. Are unsynced parameters drivable over OSC?
+Enable **Options → Avatar options → Connect to my avatar** with VRChat running, then read the
+diagnostics under it: the bound port, the count of values received, and which other OSC applications
+announced themselves. Press **Check again** to refresh.
 
-The controls claim to cost **zero** synced parameter bits. That depends on VRChat driving Expression
-Parameters that are listed but not synced. VRChat documents this nowhere, and the open question on
-their OSC tracker has no answer, so it has to be observed.
+## 2. Are unsynced parameters OSC-drivable? — Yes
 
-1. In a Unity project with the avatar SDK, run **Tools → MagicChatbox → Generate avatar controls**.
-2. Merge the three generated assets onto a test avatar with VRCFury or Modular Avatar.
-   - **VRCFury: set `globalParams` to `MCB/*`.** Without it VRCFury renames every merged parameter,
-     and the result installs cleanly, uploads cleanly, and does nothing at all.
-   - Modular Avatar: **Auto rename off**, Synced unchecked.
-3. Add one synced float and one unsynced float as a control, purely to compare.
-4. Upload, load the avatar, and press the menu buttons.
+The controls claim to cost **zero** synced parameter bits, which only holds if VRChat accepts OSC
+input for Expression Parameters that are listed but not synced. VRChat documents this nowhere and the
+question on their OSC tracker is unanswered, so it was measured instead.
 
-**If the buttons work:** unsynced parameters are drivable. The zero-bit claim is true and can go on
-the download page.
+Across **197 avatar configs** VRChat had generated on this machine, the parameters it gave an `input`
+address — the ones it will accept OSC for — were totalled by their sync cost:
 
-**If only the synced one moves:** the claim is false. The controls need real synced bits — roughly
-two for the current set — and `MagicChatboxAvatarSetup.cs` needs `networkSynced = true`. Say so on
-the download page rather than quietly costing people budget.
+| Avatar | Parameters | Drivable | Drivable bits |
+|---|---|---|---|
+| GW | 684 | 656 | **2623** |
+| uwu | 699 | 671 | 2491 |
+| RY | 513 | 485 | 2284 |
+| Katsumi | 579 | 551 | 2119 |
 
-Either way, worth diffing `%LOCALAPPDATA%Low\VRChat\VRChat\OSC\<user>\Avatars\<id>.json` before and
-after: it shows exactly which parameters VRChat considers addressable.
+**81 of 197 avatars** have drivable parameters exceeding 256 bits — the worst by more than tenfold.
+A synced budget is 256 bits total, so those parameters cannot all be synced, and VRChat is issuing
+input addresses for unsynced ones. Corroborated in production by VRCFury, which creates its contact
+parameters unsynced, and OSCGoesBrrr, which drives them over `/avatar/parameters/`.
 
-## If the buttons do nothing at all
+**The zero-bit claim stands**, and the download page can say so.
 
-A stale avatar OSC config is the most common cause. VRChat does not regenerate that file when an
-avatar is re-uploaded, and writes none during Build & Test. Delete the folder above and rejoin.
+### To re-check
 
-## What to do with the answers
+```powershell
+$base = "$env:LOCALAPPDATA" + "Low\VRChat\VRChat\OSC"
+Get-ChildItem $base -Recurse -Filter '*.json' | ForEach-Object {
+  $j = Get-Content $_.FullName -Raw | ConvertFrom-Json
+  $bits = 0
+  foreach ($p in ($j.parameters | Where-Object { $_.input })) {
+    switch ($p.input.type) { 'Bool' { $bits += 1 } default { $bits += 8 } }
+  }
+  [pscustomobject]@{ Name = $j.name; DrivableBits = $bits }
+} | Sort-Object DrivableBits -Descending | Select-Object -First 5
+```
 
-Both outcomes are useful and neither is a setback. Record them in
-[`docs/avatar-parameters.md`](avatar-parameters.md)'s Control section, and if the sync answer is
-"synced required", change the generator and the README together so they cannot disagree.
+Any result above 256 means unsynced parameters are still being given input addresses.
+
+## Still to do once, in Unity
+
+Run **Tools → MagicChatbox → Generate avatar controls**, merge the three generated assets onto an
+avatar, and upload. The generator itself has been compiled and executed against the VRChat SDK in
+Unity 2022.3.22f1 and produces correct assets, so this is a fit-and-finish check rather than an open
+question.
+
+- **VRCFury: set `globalParams` to `MCB/*`.** Without it VRCFury renames every merged parameter and
+  the prefab installs cleanly, uploads cleanly, and does nothing.
+- **Modular Avatar: Auto rename off**, Synced unchecked.
+
+If the menu buttons do nothing, the usual cause is a stale avatar OSC config: VRChat does not
+regenerate `%LOCALAPPDATA%Low\VRChat\VRChat\OSC\<user>\Avatars\<id>.json` on re-upload and writes none
+during Build & Test. Delete the folder and rejoin.

@@ -45,15 +45,15 @@ behalf.
 
 ## Synced parameter cost
 
-**Zero bits**, provided VRChat drives non-synced Expression Parameters over OSC. That is the one
-claim in this package that has not been verified against a real avatar, and it should be tested
-before the cost is advertised anywhere:
+**Zero bits — measured, not assumed.**
 
-> Build a test avatar with one synced float and one unsynced float, drive both over OSC, and observe
-> which moves. Then diff the generated `Avatars/{id}.json`. Twenty minutes.
-
-If it turns out non-synced parameters are not drivable, the controls need real synced bits and the
-download page has to say so.
+The claim depends on VRChat accepting OSC input for Expression Parameters that are listed but not
+synced, which VRChat documents nowhere. It was checked against 197 avatar configs VRChat had itself
+generated: 81 of them have OSC-addressable parameters totalling more than the entire 256-bit synced
+budget, the largest at 2,623 bits. Those cannot all be synced, so VRChat is plainly issuing input
+addresses for unsynced parameters. See
+[`docs/avatar-bridge-first-run.md`](../docs/avatar-bridge-first-run.md) for the numbers and the
+one-liner that reproduces them.
 
 ## What still has to be made in Unity
 
