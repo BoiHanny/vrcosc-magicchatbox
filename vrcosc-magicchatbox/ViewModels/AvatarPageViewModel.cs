@@ -36,16 +36,22 @@ public partial class AvatarPageViewModel : ObservableObject
     [ObservableProperty] private bool _hideAdult = true;
     [ObservableProperty] private bool _writableOnly = true;
 
-    public ObservableCollection<AvatarControlGroup> Groups { get; } = new();
+    public ObservableCollection<Avatar.AvatarControlGroupViewModel> Groups { get; } = new();
 
     public ObservableCollection<AvatarSense> RecentlyChanged { get; } = new();
 
+    private readonly IAvatarParameterSink _sink;
+    private readonly Dictionary<string, Avatar.AvatarControlRowViewModel> _rows = new(StringComparer.Ordinal);
+    private string _rowsSignature = string.Empty;
+
     public AvatarPageViewModel(
         ISettingsProvider<VrcBridgeSettings> settingsProvider,
-        Lazy<IModuleHost> modules)
+        Lazy<IModuleHost> modules,
+        IAvatarParameterSink sink)
     {
         _settingsProvider = settingsProvider;
         _modules = modules;
+        _sink = sink;
     }
 
     public void Activate()
@@ -143,9 +149,41 @@ public partial class AvatarPageViewModel : ObservableObject
             ? string.Empty
             : $"{view.HiddenGroupCount} group(s) hidden";
 
-        Groups.Clear();
+        string signature = string.Join(
+            "|",
+            view.Groups.Select(g => g.Name + ":" + string.Join(",", g.Rows.Select(r => r.Name))));
+
+        if (!string.Equals(signature, _rowsSignature, StringComparison.Ordinal))
+        {
+            _rowsSignature = signature;
+            _rows.Clear();
+            Groups.Clear();
+
+            foreach (AvatarControlGroup group in view.Groups)
+            {
+                var rows = new List<Avatar.AvatarControlRowViewModel>(group.Rows.Count);
+
+                foreach (AvatarControlRow row in group.Rows)
+                {
+                    var rowViewModel = new Avatar.AvatarControlRowViewModel(row, _sink);
+                    _rows[row.Name] = rowViewModel;
+                    rows.Add(rowViewModel);
+                }
+
+                Groups.Add(new Avatar.AvatarControlGroupViewModel(group.Name, group.DisplayName, rows));
+            }
+
+            return;
+        }
+
         foreach (AvatarControlGroup group in view.Groups)
-            Groups.Add(group);
+        {
+            foreach (AvatarControlRow row in group.Rows)
+            {
+                if (_rows.TryGetValue(row.Name, out Avatar.AvatarControlRowViewModel? existing))
+                    existing.ObserveExternal(row.Value, row.HasValue);
+            }
+        }
     }
 
     private void RebuildRecent(Services.Vrc.VrcBridgeModule bridge)

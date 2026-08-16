@@ -291,6 +291,9 @@ public sealed class VrcEchoTracker : IDisposable
     /// unwinding. Registering afterwards is a race whose symptom is an occasional unexplained timeout on
     /// an otherwise healthy connection.
     /// </remarks>
+    private static TimeSpan Elapsed(long sinceTicks)
+        => TimeSpan.FromSeconds((Stopwatch.GetTimestamp() - sinceTicks) / (double)Stopwatch.Frequency);
+
     public VrcEchoWait Register(Guid operationId, SignalKey key, SignalValue expected)
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
@@ -326,16 +329,28 @@ public sealed class VrcEchoTracker : IDisposable
 
         var epoch = _epoch.Current;
         List<VrcEchoWait>? matched = null;
+        List<VrcEchoWait>? expired = null;
 
         lock (_gate)
         {
             foreach (var wait in _pending.Values)
             {
+                // Expire on the way past. A registration whose caller never awaited is otherwise only
+                // ever removed by an echo that matches it, and most avatars declare none of the
+                // parameters this app writes — so without this the dictionary grows for the life of
+                // the session and this very loop, which runs under a lock on the receive path for
+                // every inbound message, gets linearly slower. It presents as receive latency rather
+                // than as memory, which is why it is worth removing here rather than on a timer.
+                if (wait.Pending.AvatarEpoch != epoch || Elapsed(wait.Pending.RegisteredTicks) > _timeout)
+                {
+                    expired ??= [];
+                    expired.Add(wait);
+                    continue;
+                }
+
                 // The epoch check is what makes this better than a value comparison alone: an echo that
                 // matches by value on a NEW avatar must never confirm a write made to the old one.
-                if (wait.Pending.AvatarEpoch != epoch
-                    || !wait.Pending.Key.Equals(key)
-                    || wait.Pending.Expected != value)
+                if (!wait.Pending.Key.Equals(key) || wait.Pending.Expected != value)
                 {
                     continue;
                 }
@@ -344,8 +359,27 @@ public sealed class VrcEchoTracker : IDisposable
                 matched.Add(wait);
             }
 
+            if (expired is not null)
+            {
+                foreach (var wait in expired)
+                {
+                    _pending.Remove(wait.Pending.OperationId);
+                }
+
+                _pendingCount = _pending.Count;
+            }
+
             if (matched is null)
             {
+                if (expired is not null)
+                {
+                    foreach (var wait in expired)
+                    {
+                        Timings.RecordTimeout();
+                        wait.Source.TrySetResult(VrcEchoStatus.TimedOut);
+                    }
+                }
+
                 return false;
             }
 

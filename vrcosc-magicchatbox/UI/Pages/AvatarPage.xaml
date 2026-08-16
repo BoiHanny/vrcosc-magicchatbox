@@ -147,22 +147,79 @@
                                     <ItemsControl ItemsSource="{Binding Rows}">
                                         <ItemsControl.ItemTemplate>
                                             <DataTemplate>
-                                                <Grid Margin="0,2">
+                                                <Grid Margin="0,3">
                                                     <Grid.ColumnDefinitions>
                                                         <ColumnDefinition Width="*" />
-                                                        <ColumnDefinition Width="Auto" />
+                                                        <ColumnDefinition Width="170" />
                                                     </Grid.ColumnDefinitions>
+
                                                     <TextBlock
                                                         Grid.Column="0"
                                                         VerticalAlignment="Center"
                                                         Style="{StaticResource OptionHelpTextStyle}"
                                                         Text="{Binding Leaf}"
                                                         ToolTip="{Binding Name}" />
+
+                                                    <CheckBox
+                                                        Grid.Column="1"
+                                                        HorizontalAlignment="Right"
+                                                        VerticalAlignment="Center"
+                                                        IsChecked="{Binding BoolValue, Mode=TwoWay}"
+                                                        Visibility="{Binding IsToggle, Converter={StaticResource BoolToVisibilityConverter}}" />
+
+                                                    <StackPanel
+                                                        Grid.Column="1"
+                                                        HorizontalAlignment="Right"
+                                                        Orientation="Horizontal"
+                                                        Visibility="{Binding IsStepper, Converter={StaticResource BoolToVisibilityConverter}}">
+                                                        <Button
+                                                            Width="26"
+                                                            Command="{Binding StepCommand}"
+                                                            CommandParameter="down"
+                                                            Content="−"
+                                                            Style="{StaticResource Status_Button_style}" />
+                                                        <TextBlock
+                                                            MinWidth="34"
+                                                            Margin="6,0"
+                                                            VerticalAlignment="Center"
+                                                            Style="{StaticResource OptionFieldLabelStyle}"
+                                                            Text="{Binding StateWord}"
+                                                            TextAlignment="Center" />
+                                                        <Button
+                                                            Width="26"
+                                                            Command="{Binding StepCommand}"
+                                                            CommandParameter="up"
+                                                            Content="+"
+                                                            Style="{StaticResource Status_Button_style}" />
+                                                    </StackPanel>
+
+                                                    <StackPanel
+                                                        Grid.Column="1"
+                                                        HorizontalAlignment="Right"
+                                                        Orientation="Horizontal"
+                                                        Visibility="{Binding IsSlider, Converter={StaticResource BoolToVisibilityConverter}}">
+                                                        <Slider
+                                                            Width="110"
+                                                            VerticalAlignment="Center"
+                                                            Maximum="1"
+                                                            Minimum="0"
+                                                            Thumb.DragCompleted="OnSliderDragCompleted"
+                                                            Value="{Binding Value, Mode=TwoWay}" />
+                                                        <TextBlock
+                                                            MinWidth="34"
+                                                            Margin="6,0,0,0"
+                                                            VerticalAlignment="Center"
+                                                            Style="{StaticResource OptionHelpTextStyle}"
+                                                            Text="{Binding StateWord}" />
+                                                    </StackPanel>
+
                                                     <TextBlock
                                                         Grid.Column="1"
+                                                        HorizontalAlignment="Right"
                                                         VerticalAlignment="Center"
                                                         Style="{StaticResource OptionHelpTextStyle}"
-                                                        Text="{Binding Value}" />
+                                                        Text="{Binding StateWord}"
+                                                        Visibility="{Binding IsReadOnly, Converter={StaticResource BoolToVisibilityConverter}}" />
                                                 </Grid>
                                             </DataTemplate>
                                         </ItemsControl.ItemTemplate>

@@ -12,6 +12,12 @@ public partial class AvatarPage : UserControl
         IsVisibleChanged += OnIsVisibleChanged;
     }
 
+    private void OnSliderDragCompleted(object sender, System.Windows.Controls.Primitives.DragCompletedEventArgs e)
+    {
+        if (sender is FrameworkElement { DataContext: ViewModels.Avatar.AvatarControlRowViewModel row })
+            row.CommitFloatCommand.Execute(null);
+    }
+
     private void OnIsVisibleChanged(object sender, DependencyPropertyChangedEventArgs e)
     {
         if (DataContext is not AvatarPageViewModel vm)

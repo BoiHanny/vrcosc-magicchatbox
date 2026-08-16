@@ -257,7 +257,8 @@ public static class ServiceRegistration
             new Lazy<IModuleHost>(() => sp.GetRequiredService<IModuleHost>())));
         services.AddSingleton<AvatarPageViewModel>(sp => new AvatarPageViewModel(
             sp.GetRequiredService<ISettingsProvider<VrcBridgeSettings>>(),
-            new Lazy<IModuleHost>(() => sp.GetRequiredService<IModuleHost>())));
+            new Lazy<IModuleHost>(() => sp.GetRequiredService<IModuleHost>()),
+            sp.GetRequiredService<Core.Vrc.IAvatarParameterSink>()));
         services.AddSingleton<VrcBridgeSectionViewModel>(sp => new VrcBridgeSectionViewModel(
             sp.GetRequiredService<ISettingsProvider<VrcBridgeSettings>>(),
             sp.GetRequiredService<ISettingsProvider<AppSettings>>(),
