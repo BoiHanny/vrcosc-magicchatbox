@@ -21,4 +21,6 @@ public enum PrivacyHook
     VrcLogReader = 8,
 
     VrPerformance = 9,
+
+    SharedLayoutImport = 10,
 }
