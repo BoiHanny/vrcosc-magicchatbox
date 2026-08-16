@@ -20,7 +20,7 @@ public sealed record InboundCommand(
     InboundTrigger Trigger,
     InboundRisk Risk,
     string Description,
-    Action<bool> Invoke)
+    Action<double> Invoke)
 {
     public TimeSpan MinInterval { get; init; } = TimeSpan.FromMilliseconds(400);
 

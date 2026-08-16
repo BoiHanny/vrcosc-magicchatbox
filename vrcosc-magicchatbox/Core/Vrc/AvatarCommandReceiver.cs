@@ -150,7 +150,7 @@ public sealed class AvatarCommandReceiver : IVrcObservationSink
             state.LastDispatchTicks = now;
         }
 
-        Dispatch(command, value != 0);
+        Dispatch(command, value);
     }
 
     public void ResetForNewAvatar()
@@ -189,7 +189,7 @@ public sealed class AvatarCommandReceiver : IVrcObservationSink
         }
     }
 
-    private void Dispatch(InboundCommand command, bool value)
+    private void Dispatch(InboundCommand command, double value)
     {
         Interlocked.Increment(ref _dispatched);
 

@@ -53,12 +53,12 @@ public class AvatarCommandReceiverTests
         return harness;
     }
 
-    private static Harness WithLevel(string name, Action<bool>? onFire = null)
+    private static Harness WithLevel(string name, Action<double>? onFire = null)
     {
         var harness = new Harness();
         var command = new InboundCommand(
             name, InboundTrigger.Level, InboundRisk.Safe, "test",
-            v => { harness.Fired.Add($"{name}={v}"); onFire?.Invoke(v); })
+            v => { harness.Fired.Add($"{name}={v != 0}"); onFire?.Invoke(v); })
         {
             MinInterval = TimeSpan.Zero,
         };
@@ -75,6 +75,49 @@ public class AvatarCommandReceiverTests
         // establish the epoch, then wait it out so the tests exercise steady-state behaviour.
         receiver.OnObservation(Param("MCB/Ctrl/Warmup", SignalValue.Bool(false)));
         Thread.Sleep(1100);
+    }
+
+    [Fact]
+    public void An_int_payload_survives_the_dispatch()
+    {
+        // A command bound to an Int parameter — "restore preset 3", "switch to profile 2" — is only
+        // expressible if the value reaches the handler. Collapsing it to a bool at the dispatch
+        // boundary makes every non-zero selection indistinguishable.
+        var seen = new List<double>();
+        var command = new InboundCommand(
+            "MCB/Ctrl/Select", InboundTrigger.Level, InboundRisk.Safe, "test", v => seen.Add(v))
+        {
+            MinInterval = TimeSpan.Zero,
+        };
+
+        var receiver = new AvatarCommandReceiver(new[] { command }, () => true, action => action());
+        receiver.OnObservation(Param("MCB/Ctrl/Warmup", SignalValue.Bool(false)));
+        Thread.Sleep(1100);
+
+        receiver.OnObservation(Param("MCB/Ctrl/Select", SignalValue.Int(3)));
+        receiver.OnObservation(Param("MCB/Ctrl/Select", SignalValue.Int(7)));
+
+        Assert.Equal(new[] { 3d, 7d }, seen);
+    }
+
+    [Fact]
+    public void A_float_payload_survives_the_dispatch()
+    {
+        var seen = new List<double>();
+        var command = new InboundCommand(
+            "MCB/Ctrl/Dial", InboundTrigger.Level, InboundRisk.Safe, "test", v => seen.Add(v))
+        {
+            MinInterval = TimeSpan.Zero,
+        };
+
+        var receiver = new AvatarCommandReceiver(new[] { command }, () => true, action => action());
+        receiver.OnObservation(Param("MCB/Ctrl/Warmup", SignalValue.Bool(false)));
+        Thread.Sleep(1100);
+
+        receiver.OnObservation(Param("MCB/Ctrl/Dial", SignalValue.Float(0.25)));
+
+        Assert.Single(seen);
+        Assert.Equal(0.25d, seen[0], 5);
     }
 
     [Fact]

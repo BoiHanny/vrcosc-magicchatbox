@@ -259,7 +259,10 @@ namespace vrcosc_magicchatbox
             _moduleHost.Whisper.TranscriptionReceived += WhisperModule_TranscriptionReceived;
             _moduleHost.Whisper.SentChatMessage += WhisperModule_SentChat;
 
-            VM.SelectedMenuIndex = VM.AppSettingsInstance.CurrentMenuItem;
+            VM.SelectedMenuIndex = Math.Clamp(
+                VM.AppSettingsInstance.CurrentMenuItem,
+                0,
+                Services.MenuNavigationService.MaxPageIndex);
         }
 
         public void StartBackgroundProcessing()

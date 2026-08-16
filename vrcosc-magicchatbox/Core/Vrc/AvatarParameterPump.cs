@@ -170,6 +170,12 @@ public sealed class AvatarParameterPump : IDisposable
         {
             lock (slot.Gate)
             {
+                if (slot.HasSent && !slot.HasPending)
+                {
+                    slot.Pending = slot.Sent;
+                    slot.HasPending = true;
+                }
+
                 slot.HasSent = false;
                 slot.LastSentTicks = 0;
             }

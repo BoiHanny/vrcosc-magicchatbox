@@ -297,6 +297,54 @@ public class AvatarParameterPumpTests
     }
 
     [Fact]
+    public async Task Reset_re_asserts_an_idle_value_that_nobody_publishes_again()
+    {
+        // The case that actually happens. Most values are published once and then sit there: the
+        // module has nothing new to say, so change detection suppresses everything. If Reset only
+        // clears the sent-marker, the avatar keeps VRChat's default until the keep-alive fires up to
+        // eleven seconds later - or forever, if the value never changes again.
+        var egress = new FakeVrcEgress();
+        using var pump = Pump();
+        pump.Start(egress);
+
+        pump.Publish("MCB/Online", true);
+        Assert.True(await Eventually(() => egress.CountOf("MCB/Online") == 1));
+
+        // Steady state: republishing the same value is correctly suppressed.
+        pump.Publish("MCB/Online", true);
+        await Task.Delay(120);
+        Assert.Equal(1, egress.CountOf("MCB/Online"));
+
+        // The avatar changed. Nobody publishes anything; the value must still be restated.
+        pump.Reset();
+
+        Assert.True(
+            await Eventually(() => egress.CountOf("MCB/Online") == 2),
+            "Reset did not re-assert an idle value, so the avatar keeps its default");
+
+        Assert.True(egress.LastValueOf("MCB/Online")!.Value.AsBool());
+
+        await pump.StopAsync(TimeSpan.FromSeconds(2));
+    }
+
+    [Fact]
+    public async Task Reset_does_not_invent_a_value_for_a_parameter_never_sent()
+    {
+        var egress = new FakeVrcEgress();
+        using var pump = Pump();
+        pump.Start(egress);
+
+        pump.SetMinInterval("MCB/Never", TimeSpan.Zero);
+        pump.Reset();
+
+        await Task.Delay(150);
+
+        Assert.Empty(egress.Writes);
+
+        await pump.StopAsync(TimeSpan.FromSeconds(2));
+    }
+
+    [Fact]
     public async Task Stopping_is_prompt_and_idempotent()
     {
         var egress = new FakeVrcEgress();

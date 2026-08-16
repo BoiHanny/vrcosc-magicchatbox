@@ -8,6 +8,8 @@ namespace vrcosc_magicchatbox.Services;
 
 public sealed class MenuNavigationService : IMenuNavigationService
 {
+    public const int MaxPageIndex = 3;
+
     private const int MaxHistoryDepth = 3;
 
     private readonly Dictionary<string, Action<bool>> _settingsMap;
@@ -124,7 +126,7 @@ public sealed class MenuNavigationService : IMenuNavigationService
 
     private void NavigateToPage(int pageIndex, bool recordHistory)
     {
-        if (pageIndex < 0 || pageIndex > 3)
+        if (pageIndex < 0 || pageIndex > MaxPageIndex)
         {
             Logging.WriteInfo($"Navigation: Ignored invalid page index {pageIndex}.");
             return;
@@ -149,7 +151,7 @@ public sealed class MenuNavigationService : IMenuNavigationService
 
     private static void PushHistory(Stack<int> history, int pageIndex)
     {
-        if (pageIndex < 0 || pageIndex > 3) return;
+        if (pageIndex < 0 || pageIndex > MaxPageIndex) return;
         if (history.Count > 0 && history.Peek() == pageIndex) return;
 
         var items = new List<int>(history);
