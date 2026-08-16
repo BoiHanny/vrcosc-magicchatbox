@@ -34,7 +34,9 @@ public class MediaLinkShorteningTests
     private sealed class StubMediaLinkService : IMediaLinkService
     {
         public DateTime LastMediaChangeTime => DateTime.UtcNow;
+        public bool IsRunning => true;
         public void Start() { }
+        public void StartIfEnabled() { }
         public void Dispose() { }
         public void SelectMediaSession(MediaSessionInfo sessionInfo) { }
         public Task MediaManager_NextAsync(MediaSessionInfo sessionInfo) => Task.CompletedTask;

@@ -90,6 +90,22 @@ public class MediaLinkModule : vrcosc_magicchatbox.Services.IMediaLinkService
             Start();
     }
 
+    /// <summary>Whether the Windows media session listener is currently attached.</summary>
+    public bool IsRunning => mediaManager != null;
+
+    /// <summary>Attaches the listener if the integration is switched on and allowed to run.</summary>
+    /// <remarks>
+    /// Separate from the constructor so the caller can decide what happens if attaching does not
+    /// come back. Reaching the media session goes through a Windows service that can stop
+    /// answering, and it takes whoever asked down with it rather than returning an error, so
+    /// startup runs this with a time limit instead of inline.
+    /// </remarks>
+    public void StartIfEnabled()
+    {
+        if (_integrationSettings.IntgrScanMediaLink && _consentService.IsApproved(PrivacyHook.MediaSession))
+            Start();
+    }
+
     public void SelectMediaSession(MediaSessionInfo sessionInfo)
     {
         if (!_dispatcher.CheckAccess())

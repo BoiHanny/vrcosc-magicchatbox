@@ -966,8 +966,11 @@ namespace vrcosc_magicchatbox
             cancellationToken.ThrowIfCancellationRequested();
 
             loadingWindow.UpdateProgress("Finishing the last startup modules...", 85, "Starting runtime modules...");
+            // Built without attaching. Reaching the Windows media session is the one piece of
+            // startup that can stop answering rather than fail, and it used to run here with
+            // nothing to stop it, so a wedged service left the splash on this step forever.
             ApplicationMediaController = new MediaLinkModule(
-                _integrationSettings.IntgrScanMediaLink,
+                shouldStart: false,
                 Services.GetRequiredService<IPrivacyConsentService>(),
                 Services.GetRequiredService<IAppState>(),
                 Services.GetRequiredService<MediaLinkDisplayState>(),
@@ -976,6 +979,20 @@ namespace vrcosc_magicchatbox
                 Services.GetRequiredService<IUiDispatcher>(),
                 Services.GetRequiredService<IToastService>());
             LogStep("MediaLinkModule");
+
+            await RunOptionalStartupTaskAsync(
+                "MediaLink session listener",
+                () => ApplicationMediaController.StartIfEnabled(),
+                cancellationToken);
+
+            if (_integrationSettings.IntgrScanMediaLink
+                && Services.GetRequiredService<IPrivacyConsentService>().IsApproved(PrivacyHook.MediaSession)
+                && !ApplicationMediaController.IsRunning)
+            {
+                Logging.WriteInfo(
+                    "[Startup] MediaLink is enabled but the Windows media session did not attach. " +
+                    "Music Display will stay empty this session; the media session service usually needs a reboot to recover.");
+            }
 
             loadingWindow.UpdateProgress("Starting runtime modules...", 90, "Building the main window shell...");
             await Task.WhenAll(
