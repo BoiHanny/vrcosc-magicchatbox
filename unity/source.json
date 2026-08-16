@@ -1,0 +1,16 @@
+{
+  "name": "MagicChatbox",
+  "id": "com.magicchatbox.listing",
+  "url": "https://boihanny.github.io/vrcosc-magicchatbox/index.json",
+  "author": "BoiHanny",
+  "description": "Avatar controls for MagicChatbox. Control only: no meshes, no shaders, no synced parameters.",
+  "infoLink": {
+    "url": "https://github.com/BoiHanny/vrcosc-magicchatbox",
+    "text": "MagicChatbox on GitHub"
+  },
+  "bannerUrl": "",
+  "githubRepos": [
+    "BoiHanny/vrcosc-magicchatbox"
+  ],
+  "packages": []
+}

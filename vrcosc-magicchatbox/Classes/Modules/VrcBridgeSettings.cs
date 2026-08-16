@@ -11,6 +11,8 @@ public partial class VrcBridgeSettings : VersionedSettings
 
     [ObservableProperty] private bool _enableParameterInput = false;
 
+    [ObservableProperty] private bool _mirrorToLegacyOsc = true;
+
     [ObservableProperty] private int _oscReceivePort = 0;
 
     [ObservableProperty] private string _vrchatPeerPrefix = "VRChat-Client-";

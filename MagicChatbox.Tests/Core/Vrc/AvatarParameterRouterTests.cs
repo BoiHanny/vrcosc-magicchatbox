@@ -120,6 +120,58 @@ public class AvatarParameterRouterTests
     }
 
     [Fact]
+    public async Task Turning_mirroring_off_hands_the_wire_entirely_to_the_bridge()
+    {
+        var sender = new FakeOscSender();
+        var egress = new FakeVrcEgress();
+        using var pump = new AvatarParameterPump(new AvatarParameterPumpOptions
+        {
+            TickInterval = TimeSpan.FromMilliseconds(10),
+            DefaultMinInterval = TimeSpan.Zero,
+        });
+        pump.Start(egress);
+
+        var router = new AvatarParameterRouter(sender, () => pump, () => false);
+
+        router.Set("HR", 72);
+
+        Assert.True(await Eventually(() => egress.CountOf("HR") == 1));
+        Assert.Empty(sender.Parameters);
+
+        await pump.StopAsync(TimeSpan.FromSeconds(2));
+    }
+
+    [Fact]
+    public void With_mirroring_off_but_no_bridge_running_the_old_path_still_carries_everything()
+    {
+        // The rule that keeps this safe: turning mirroring off must never be able to produce
+        // silence. If the bridge is not actually running, the legacy path is all there is.
+        var sender = new FakeOscSender();
+        var router = new AvatarParameterRouter(sender, () => null, () => false);
+
+        router.Set("HR", 72);
+
+        Assert.Equal(72, sender.LastValueFor("/avatar/parameters/HR"));
+    }
+
+    [Fact]
+    public void A_throwing_mirror_setting_falls_back_to_sending()
+    {
+        var sender = new FakeOscSender();
+        using var pump = new AvatarParameterPump();
+        pump.Start(new FakeVrcEgress());
+
+        var router = new AvatarParameterRouter(
+            sender, () => pump, () => throw new InvalidOperationException("settings gone"));
+
+        router.Set("HR", 72);
+
+        Assert.Equal(72, sender.LastValueFor("/avatar/parameters/HR"));
+
+        pump.Dispose();
+    }
+
+    [Fact]
     public void An_empty_name_is_dropped_rather_than_sent_as_a_bare_prefix()
     {
         var sender = new FakeOscSender();

@@ -431,7 +431,8 @@ public static class ServiceRegistration
         services.AddSingleton<IOscSender, OscSenderService>();
         services.AddSingleton<Core.Vrc.IAvatarParameterSink>(sp => new Core.Vrc.AvatarParameterRouter(
             sp.GetRequiredService<IOscSender>(),
-            () => sp.GetRequiredService<IModuleHost>().VrcBridge?.Pump));
+            () => sp.GetRequiredService<IModuleHost>().VrcBridge?.Pump,
+            () => sp.GetRequiredService<ISettingsProvider<VrcBridgeSettings>>().Value.MirrorToLegacyOsc));
         services.AddSingleton<ILiveTypingService>(sp => new LiveTypingService(
             sp.GetRequiredService<ISettingsProvider<ChatSettings>>(),
             sp.GetRequiredService<IAppState>(),

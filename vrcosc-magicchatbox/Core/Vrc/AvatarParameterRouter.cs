@@ -10,12 +10,17 @@ public sealed class AvatarParameterRouter : IAvatarParameterSink
 {
     private readonly IOscSender _oscSender;
     private readonly Func<AvatarParameterPump?> _pump;
+    private readonly Func<bool> _mirrorToLegacy;
     private readonly Dictionary<string, int> _pulseSequence = new(StringComparer.Ordinal);
 
-    public AvatarParameterRouter(IOscSender oscSender, Func<AvatarParameterPump?> pump)
+    public AvatarParameterRouter(
+        IOscSender oscSender,
+        Func<AvatarParameterPump?> pump,
+        Func<bool>? mirrorToLegacy = null)
     {
         _oscSender = oscSender ?? throw new ArgumentNullException(nameof(oscSender));
         _pump = pump ?? throw new ArgumentNullException(nameof(pump));
+        _mirrorToLegacy = mirrorToLegacy ?? (() => true);
     }
 
     public void Set(string name, bool value)
@@ -23,8 +28,11 @@ public sealed class AvatarParameterRouter : IAvatarParameterSink
         string address = AvatarParameterAddress.Resolve(name);
         if (address.Length == 0) return;
 
-        _oscSender.SendOscParam(address, value);
-        RunningPump()?.Publish(AvatarParameterAddress.ToName(address), value);
+        AvatarParameterPump? pump = RunningPump();
+        pump?.Publish(AvatarParameterAddress.ToName(address), value);
+
+        if (ShouldSendLegacy(pump))
+            _oscSender.SendOscParam(address, value);
     }
 
     public void Set(string name, int value)
@@ -32,8 +40,11 @@ public sealed class AvatarParameterRouter : IAvatarParameterSink
         string address = AvatarParameterAddress.Resolve(name);
         if (address.Length == 0) return;
 
-        _oscSender.SendOscParam(address, value);
-        RunningPump()?.Publish(AvatarParameterAddress.ToName(address), value);
+        AvatarParameterPump? pump = RunningPump();
+        pump?.Publish(AvatarParameterAddress.ToName(address), value);
+
+        if (ShouldSendLegacy(pump))
+            _oscSender.SendOscParam(address, value);
     }
 
     public void Set(string name, float value)
@@ -41,8 +52,26 @@ public sealed class AvatarParameterRouter : IAvatarParameterSink
         string address = AvatarParameterAddress.Resolve(name);
         if (address.Length == 0) return;
 
-        _oscSender.SendOscParam(address, value);
-        RunningPump()?.Publish(AvatarParameterAddress.ToName(address), value);
+        AvatarParameterPump? pump = RunningPump();
+        pump?.Publish(AvatarParameterAddress.ToName(address), value);
+
+        if (ShouldSendLegacy(pump))
+            _oscSender.SendOscParam(address, value);
+    }
+
+    private bool ShouldSendLegacy(AvatarParameterPump? pump)
+    {
+        if (pump == null)
+            return true;
+
+        try
+        {
+            return _mirrorToLegacy();
+        }
+        catch
+        {
+            return true;
+        }
     }
 
     public void Pulse(string name, int milliseconds = 150)

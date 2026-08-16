@@ -88,6 +88,18 @@
                         IsEnabled="{Binding Settings.EnableBridge}">
                         Let my avatar control MagicChatbox
                     </CheckBox>
+                    <TextBlock
+                        Width="auto"
+                        Margin="4,10,0,2"
+                        Style="{StaticResource OptionHelpTextStyle}"
+                        Text="While this is on, avatar values are sent the old way as well as through the new connection. Leave it on until you have seen your avatar react — turning it off is only worth doing once you know the new connection is working." />
+                    <CheckBox
+                        x:Name="MirrorToLegacyOsc_checkbox"
+                        Margin="4,2"
+                        IsChecked="{Binding Settings.MirrorToLegacyOsc, Mode=TwoWay}"
+                        IsEnabled="{Binding Settings.EnableBridge}">
+                        Keep sending the old way too
+                    </CheckBox>
                     <ItemsControl Margin="4,6,0,0" ItemsSource="{Binding ControlParameters}">
                         <ItemsControl.ItemTemplate>
                             <DataTemplate>
