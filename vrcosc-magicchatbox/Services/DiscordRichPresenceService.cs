@@ -1,4 +1,4 @@
-using DiscordRPC;
+﻿using DiscordRPC;
 using System;
 using System.Threading.Tasks;
 using vrcosc_magicchatbox.Classes.DataAndSecurity;
@@ -23,7 +23,6 @@ public sealed class DiscordRichPresenceService : IDisposable
     private readonly OscDisplayState _oscDisplay;
     private readonly object _sync = new();
 
-    /// <summary>Serialises rebuilding the client, separately from the field lock above.</summary>
     private readonly object _initGate = new();
 
     private DiscordRpcClient? _client;
@@ -196,16 +195,8 @@ public sealed class DiscordRichPresenceService : IDisposable
         }
     }
 
-    /// <summary>Makes sure there is an initialised client, without holding the shared lock.</summary>
-    /// <remarks>
-    /// Building and initialising go through the Discord client library. This used to happen under
-    /// the same lock every other member of this class takes, so if the library ever stopped
-    /// answering it took updating, clearing and disposal down with it — including disposal at
-    /// shutdown. Only the field swaps need that lock; the library calls do not.
-    /// </remarks>
     private bool EnsureClient()
     {
-        // Serialises rebuilding without blocking anything that only needs to read the fields.
         lock (_initGate)
         {
             string clientId = ResolveClientId();
@@ -258,7 +249,7 @@ public sealed class DiscordRichPresenceService : IDisposable
                 Logging.WriteException(ex, MSGBox: false);
 
                 try { created?.Dispose(); }
-                catch { /* nothing left to do with it */ }
+                catch { }
 
                 created = null;
                 initialized = false;

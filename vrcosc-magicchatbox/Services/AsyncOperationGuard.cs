@@ -27,10 +27,6 @@ public sealed class AsyncOperationGuard
             Logging.WriteInfo($"[AsyncOperationGuard] Re-enabling '{operationName}' after cooldown");
         }
 
-        // An attempt that ran out of time may still be going. A blocked native call cannot be
-        // cancelled from here — the thread stays in it until it returns — so the most that can be
-        // done is refuse to start another. Without this, every cycle adds one more stuck thread to
-        // the last, until enough of the pool is parked that unrelated work stops running too.
         Task? previous = Volatile.Read(ref state.InFlight);
         if (previous is { IsCompleted: false })
         {
@@ -132,10 +128,8 @@ public sealed class AsyncOperationGuard
         public bool IsDisabled;
         public DateTime DisabledAtUtc;
 
-        /// <summary>The last attempt, kept even after we stopped waiting for it.</summary>
         public Task? InFlight;
 
-        /// <summary>So a long stall is reported once rather than on every cycle.</summary>
         public bool LoggedStillRunning;
     }
 }

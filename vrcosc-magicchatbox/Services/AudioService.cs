@@ -36,13 +36,6 @@ public sealed class AudioService : IAudioService
         _dispatcher = dispatcher;
     }
 
-    /// <summary>Refreshes the list of playback devices, at most every few seconds.</summary>
-    /// <remarks>
-    /// This is called on the UI thread every time a message is sent with speech on. Listing audio
-    /// endpoints talks to the audio stack, which can take its time while a device is waking or a
-    /// driver is unwell, and doing that on every send put the window behind it. Devices do not
-    /// come and go often enough to be worth asking that often.
-    /// </remarks>
     public bool PopulateOutputDevices()
     {
         lock (_deviceRefreshLock)
@@ -63,7 +56,6 @@ public sealed class AudioService : IAudioService
         return result;
     }
 
-    /// <summary>Forgets the cached device list, so the next ask goes back to the audio stack.</summary>
     public void InvalidateOutputDeviceCache()
     {
         lock (_deviceRefreshLock)

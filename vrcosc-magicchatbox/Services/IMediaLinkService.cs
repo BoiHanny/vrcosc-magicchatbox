@@ -10,12 +10,10 @@ public interface IMediaLinkService
 {
     DateTime LastMediaChangeTime { get; }
 
-    /// <summary>Whether the Windows media session listener is currently attached.</summary>
     bool IsRunning { get; }
 
     void Start();
 
-    /// <summary>Attaches the listener if the integration is switched on and allowed to run.</summary>
     void StartIfEnabled();
     void Dispose();
     void SelectMediaSession(MediaSessionInfo sessionInfo);

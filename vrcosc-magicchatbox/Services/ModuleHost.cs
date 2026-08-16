@@ -50,14 +50,6 @@ public partial class ModuleHost : ObservableObject, IModuleHost
         }
     }
 
-    /// <summary>Stops and disposes every registered module, one at a time.</summary>
-    /// <remarks>
-    /// Nothing used to do this. Modules were built outside the container, so container teardown
-    /// could not reach them either, and every socket, websocket, timer and VR handle they held was
-    /// simply abandoned when the process ended. Each module gets its own deadline: closing the app
-    /// must not depend on a service that has stopped answering, and the process is going away
-    /// regardless.
-    /// </remarks>
     public async Task StopAllAsync(TimeSpan perModuleTimeout)
     {
         foreach (var module in AllModules)

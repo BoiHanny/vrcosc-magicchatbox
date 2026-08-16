@@ -10,8 +10,6 @@ namespace vrcosc_magicchatbox.Services;
 
 public sealed class StatePersistenceCoordinator : IStatePersistenceCoordinator
 {
-    // How long any one module gets to stop, and how long the whole set gets between them. Closing
-    // the app must not wait on a service that has stopped answering.
     private static readonly TimeSpan ModuleStopTimeout = TimeSpan.FromSeconds(2);
     private static readonly TimeSpan ModuleShutdownBudget = TimeSpan.FromSeconds(8);
 
@@ -162,8 +160,6 @@ public sealed class StatePersistenceCoordinator : IStatePersistenceCoordinator
             Logging.WriteException(ex, MSGBox: true, exitapp: true);
         }
 
-        // After the settings are safely written, not before: stopping a module can clear the state
-        // it would otherwise have saved.
         try
         {
             IModuleHost moduleHost = _modules.Value;

@@ -19,7 +19,6 @@ namespace vrcosc_magicchatbox.Classes.Modules;
 
 public class TTSModule
 {
-    /// <summary>Slack on top of a clip's own length before playback is treated as stuck.</summary>
     private static readonly TimeSpan PlaybackGrace = TimeSpan.FromSeconds(10);
 
     private readonly TtsSettings _ttsSettings;
@@ -103,12 +102,6 @@ public class TTSModule
         }
     }
 
-    /// <summary>Speaks the clip, off whichever thread asked for it.</summary>
-    /// <remarks>
-    /// Listing audio endpoints and opening a WASAPI device both talk to the audio stack, which
-    /// takes its time when a device is waking or a driver is unwell. This is reached from sending
-    /// a message, on the UI thread, and none of it is work the window should be waiting on.
-    /// </remarks>
     public Task PlayTikTokAudioAsSpeechAsync(
         byte[] audioData,
         string deviceId,
@@ -147,9 +140,6 @@ public class TTSModule
             var tcs = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
             wasapiOut.PlaybackStopped += (_, _) => tcs.TrySetResult();
 
-            // A device that is pulled mid-clip can leave PlaybackStopped unraised, and waiting on
-            // it forever would strand the microphone unmuted. The clip's own length says how long
-            // is reasonable.
             TimeSpan playbackBudget = mp3Reader.TotalTime + PlaybackGrace;
 
             _oscSender.ToggleVoice();
@@ -169,12 +159,11 @@ public class TTSModule
                 {
                     Logging.WriteInfo(
                         $"TTS playback did not report finishing within {playbackBudget.TotalSeconds:0.#}s; stopping it.");
-                    try { wasapiOut.Stop(); } catch { /* already gone */ }
+                    try { wasapiOut.Stop(); } catch { }
                 }
             }
             finally
             {
-                // Pairs with the toggle above whatever happened in between.
                 _oscSender.ToggleVoice();
             }
         }

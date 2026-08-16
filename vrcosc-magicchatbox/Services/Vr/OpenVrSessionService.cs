@@ -54,8 +54,6 @@ public sealed class OpenVrSessionService : IOpenVrSessionService
         _appState = appState;
         _consent = consent;
         _utcNow = utcNow ?? (() => DateTime.UtcNow);
-        // Defaults to "not the UI thread", so a caller that never says otherwise keeps the
-        // straightforward behaviour of attaching before it returns.
         _isUiThread = isUiThread ?? (() => false);
 
         if (_appState != null)
@@ -134,15 +132,6 @@ public sealed class OpenVrSessionService : IOpenVrSessionService
             StartAttach();
     }
 
-    /// <summary>Runs one attach attempt, off the UI thread if that is where we were asked.</summary>
-    /// <remarks>
-    /// Attaching calls into SteamVR, which can sit there indefinitely when SteamVR is unwell. The
-    /// chatbox line is built on the UI thread and asks for the session every tick, so attaching
-    /// there would freeze the window with no way to close it — the tick simply reports nothing
-    /// this time round and picks the session up once it is ready. Anywhere else the caller can
-    /// afford to wait for it. Either way only one attempt runs at a time: without that, every tick
-    /// would begin another native init while the last was still stuck.
-    /// </remarks>
     private void StartAttach()
     {
         if (Interlocked.CompareExchange(ref _attachInProgress, 1, 0) == 1)

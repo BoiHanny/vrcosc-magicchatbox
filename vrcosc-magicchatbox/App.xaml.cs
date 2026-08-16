@@ -318,8 +318,6 @@ namespace vrcosc_magicchatbox
                 if (mainWindow.WindowState == WindowState.Minimized)
                     mainWindow.WindowState = WindowState.Normal;
 
-                // Before the window can be hidden, so that a background start always
-                // leaves something to click even if a later step fails.
                 Services.GetRequiredService<ITrayIconService>().Initialize(mainWindow);
 
                 if (vm.AppSettingsInstance.StartInBackground)
@@ -966,9 +964,6 @@ namespace vrcosc_magicchatbox
             cancellationToken.ThrowIfCancellationRequested();
 
             loadingWindow.UpdateProgress("Finishing the last startup modules...", 85, "Starting runtime modules...");
-            // Built without attaching. Reaching the Windows media session is the one piece of
-            // startup that can stop answering rather than fail, and it used to run here with
-            // nothing to stop it, so a wedged service left the splash on this step forever.
             ApplicationMediaController = new MediaLinkModule(
                 shouldStart: false,
                 Services.GetRequiredService<IPrivacyConsentService>(),

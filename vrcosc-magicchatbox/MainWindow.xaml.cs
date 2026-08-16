@@ -576,8 +576,6 @@ namespace vrcosc_magicchatbox
 
             if (!animate)
             {
-                // Nobody is watching a hidden window fade, and leaving the overlay up
-                // would greet them with a frozen progress bar the next time it opens.
                 StartupOverlay.BeginAnimation(UIElement.OpacityProperty, null);
                 StartupOverlay.Opacity = 0;
                 StartupOverlay.Visibility = Visibility.Collapsed;

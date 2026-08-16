@@ -54,11 +54,6 @@ public sealed class LocalFileLyricsProvider : ILyricsProvider
         }
     }
 
-    /// <remarks>
-    /// The token is checked between files rather than only at the start. A folder on a share that
-    /// has gone away can take the network's own timeout to answer, and lyric lookups run one at a
-    /// time, so a walk nobody is waiting for any more would hold up every later one.
-    /// </remarks>
     private static string? FindFile(string folder, LyricsQuery query, CancellationToken ct)
     {
         string exact = Path.Combine(folder, Sanitize($"{query.Artist} - {query.Title}") + ".lrc");

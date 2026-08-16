@@ -85,8 +85,6 @@ public partial class VrPerformanceModule : ObservableObject, IModule
             IsRunning = false;
         }
 
-        // Outside the lock: letting the lease go can reach SteamVR's shutdown, and holding the
-        // lock across that would put anything else touching this module behind SteamVR too.
         lease?.Dispose();
 
         _sampler.Reset();

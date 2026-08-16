@@ -25,6 +25,5 @@ public interface IModuleHost : INotifyPropertyChanged
 
     void RegisterModule(vrcosc_magicchatbox.Services.IModule module);
 
-    /// <summary>Stops and disposes every registered module, giving each one its own deadline.</summary>
     System.Threading.Tasks.Task StopAllAsync(System.TimeSpan perModuleTimeout);
 }

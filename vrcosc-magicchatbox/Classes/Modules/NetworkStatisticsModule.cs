@@ -176,14 +176,6 @@ public class NetworkStatisticsModule : INotifyPropertyChanged, IModule
         };
     }
 
-    /// <summary>Starts initialisation without waiting for it.</summary>
-    /// <remarks>
-    /// These call sites used to read <c>InitializeNetworkStatsAsync().ConfigureAwait(false);</c>
-    /// with nothing awaiting it, which starts nothing in the background: the work inside is
-    /// synchronous, so the whole thing ran on the caller's thread — including listing the network
-    /// adapters, which stalls when a VPN or virtual adapter is unwell. One of those callers is the
-    /// constructor.
-    /// </remarks>
     private void BeginInitializeNetworkStats()
     {
         _ = Task.Run(async () =>
@@ -409,9 +401,6 @@ public class NetworkStatisticsModule : INotifyPropertyChanged, IModule
 
     public void Dispose()
     {
-        // Disposing twice has to be harmless: this is both a container singleton and a registered
-        // module, so shutdown reaches it from two directions, and cancelling an already-disposed
-        // source throws.
         lock (_monitoringLock)
         {
             if (_disposed)
@@ -427,7 +416,6 @@ public class NetworkStatisticsModule : INotifyPropertyChanged, IModule
         }
         catch (ObjectDisposedException)
         {
-            // Already done.
         }
 
         _cancellationTokenSource.Dispose();
@@ -510,9 +498,6 @@ public class NetworkStatisticsModule : INotifyPropertyChanged, IModule
         return string.Join("\v", lines);
     }
 
-    // Start and stop arrive from settings changes, consent changes and the timer itself, on
-    // whichever thread raised them. Unsynchronised, two starts could each build a timer and only
-    // the second would be remembered, leaving the first ticking with nothing able to stop it.
     private readonly object _monitoringLock = new();
 
     public void StartModule()

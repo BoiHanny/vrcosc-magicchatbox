@@ -71,7 +71,6 @@ public partial class PulsoidModule : ObservableObject, IModule
     private DateTime heartRateLastUpdate = DateTime.Now;
     private bool isMonitoringStarted = false;
 
-    /// <summary>How long to wait for the connection loop to unwind before giving up on it.</summary>
     private static readonly TimeSpan MonitorStopTimeout = TimeSpan.FromSeconds(3);
 
     private int _startInProgress;
@@ -425,14 +424,6 @@ public partial class PulsoidModule : ObservableObject, IModule
         }
     }
 
-    /// <summary>Starts the connection loop, and only ever one of them.</summary>
-    /// <remarks>
-    /// The loop below runs for the whole session, so the claim is taken before the first await
-    /// rather than held as a lock. Setting up checks the token over the network, and a second
-    /// caller arriving during that check used to get past the old guard, start a second loop, and
-    /// overwrite the first one's cancellation source — leaving a connection nothing could reach or
-    /// stop, still retrying after the module had been disposed.
-    /// </remarks>
     private Task StartMonitoringHeartRateAsync()
     {
         if (Interlocked.CompareExchange(ref _startInProgress, 1, 0) == 1)
@@ -462,8 +453,6 @@ public partial class PulsoidModule : ObservableObject, IModule
             if (_client.IsConnected)
                 return;
 
-            // The core one: waiting for the loop to unwind from inside the loop itself would be
-            // waiting on this very task.
             await StopMonitoringCoreAsync();
         }
 
@@ -586,9 +575,6 @@ public partial class PulsoidModule : ObservableObject, IModule
     {
         await StopMonitoringCoreAsync().ConfigureAwait(false);
 
-        // Wait for the connection loop to actually unwind before saying it has stopped, otherwise
-        // a restart straight afterwards is turned away by the one-loop-at-a-time claim and the
-        // heart rate never comes back.
         Task? loop = _monitorLoop;
         if (loop is { IsCompleted: false })
         {
@@ -603,7 +589,6 @@ public partial class PulsoidModule : ObservableObject, IModule
             }
             catch
             {
-                // Whatever it ended with, it has ended.
             }
         }
 

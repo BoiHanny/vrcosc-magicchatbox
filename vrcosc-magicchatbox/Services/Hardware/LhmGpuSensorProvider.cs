@@ -44,9 +44,6 @@ public sealed class LhmGpuSensorProvider : IDisposable
                 return false;
         }
 
-        // One attempt at a time. Opening reaches the sensor library, which can sit there rather
-        // than fail, and a second attempt would neither help nor be able to tell that the first is
-        // still going — it would just open a second set of native handles alongside it.
         if (Interlocked.CompareExchange(ref _openInProgress, 1, 0) == 1)
             return false;
 
@@ -94,9 +91,6 @@ public sealed class LhmGpuSensorProvider : IDisposable
                     return false;
                 }
 
-                // Somebody opened one while this attempt was running. Keep theirs and close this
-                // one: overwriting would leave a set of native handles with nothing left to close
-                // them.
                 if (_computer != null)
                 {
                     TryCloseQuietly(computer);

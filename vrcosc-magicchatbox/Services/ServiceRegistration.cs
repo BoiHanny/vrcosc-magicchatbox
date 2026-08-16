@@ -60,7 +60,6 @@ public static class ServiceRegistration
             sp.GetRequiredService<IAppState>(),
             sp.GetRequiredService<IPrivacyConsentService>(),
             utcNow: null,
-            // The chatbox line is built on the UI thread and asks for the VR session every tick.
             isUiThread: () => System.Windows.Application.Current?.Dispatcher?.CheckAccess() == true));
 
         services.AddSingleton<IPrivacyConsentService, PrivacyConsentService>();

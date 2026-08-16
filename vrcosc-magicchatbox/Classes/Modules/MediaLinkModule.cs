@@ -91,16 +91,8 @@ public class MediaLinkModule : vrcosc_magicchatbox.Services.IMediaLinkService
             Start();
     }
 
-    /// <summary>Whether the Windows media session listener is currently attached.</summary>
     public bool IsRunning => mediaManager != null;
 
-    /// <summary>Attaches the listener if the integration is switched on and allowed to run.</summary>
-    /// <remarks>
-    /// Separate from the constructor so the caller can decide what happens if attaching does not
-    /// come back. Reaching the media session goes through a Windows service that can stop
-    /// answering, and it takes whoever asked down with it rather than returning an error, so
-    /// startup runs this with a time limit instead of inline.
-    /// </remarks>
     public void StartIfEnabled()
     {
         if (_integrationSettings.IntgrScanMediaLink && _consentService.IsApproved(PrivacyHook.MediaSession))
@@ -572,13 +564,6 @@ public class MediaLinkModule : vrcosc_magicchatbox.Services.IMediaLinkService
         }
     }
 
-    /// <summary>Attaches the listener without holding up whoever asked for it.</summary>
-    /// <remarks>
-    /// This runs when the switch is flipped or when VR mode changes, so the caller is usually the
-    /// UI thread. Attaching reaches a Windows service that can stop answering, and on the UI thread
-    /// that is the whole window frozen with no way to close it. Stopping stays where it was called
-    /// from, because it clears a bound collection and that has to happen on the UI thread.
-    /// </remarks>
     private void BeginStart()
     {
         if (Interlocked.CompareExchange(ref startInProgress, 1, 0) == 1)
@@ -590,8 +575,6 @@ public class MediaLinkModule : vrcosc_magicchatbox.Services.IMediaLinkService
             {
                 Start();
 
-                // The switch can go off again while attaching, and a listener nobody asked for
-                // any more would keep reporting tracks.
                 if (!ShouldRunForCurrentMode())
                     _dispatcher.BeginInvoke(() =>
                     {
