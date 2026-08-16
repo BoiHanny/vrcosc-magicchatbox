@@ -52,9 +52,59 @@ public partial class VrcBridgeSectionViewModel : ObservableObject
         }
     }
 
-    public string ReceivePortText => Settings.OscReceivePort == 0
-        ? "Chosen automatically"
-        : Settings.OscReceivePort.ToString();
+    public string ReceivePortText
+    {
+        get
+        {
+            var bridge = _modules.Value.VrcBridge;
+            int bound = bridge?.OscReceivePort ?? 0;
+
+            return bound == 0
+                ? "Not listening yet"
+                : $"Listening on port {bound}";
+        }
+    }
+
+    public string TrafficText
+    {
+        get
+        {
+            var bridge = _modules.Value.VrcBridge;
+            if (bridge == null || !bridge.IsRunning)
+                return "Not connected";
+
+            long received = bridge.ParametersReceived;
+
+            return received == 0
+                ? "Nothing from VRChat yet"
+                : $"{received} values received from your avatar";
+        }
+    }
+
+    public IReadOnlyList<string> Neighbours => _modules.Value.VrcBridge?.DescribeNeighbours() ?? Array.Empty<string>();
+
+    public string NeighboursText
+    {
+        get
+        {
+            var neighbours = Neighbours;
+
+            if (neighbours.Count == 0)
+                return "No other OSC apps have announced themselves.";
+
+            return $"Also on this PC: {string.Join(", ", neighbours)}";
+        }
+    }
+
+    [RelayCommand]
+    private void RefreshDiagnostics()
+    {
+        OnPropertyChanged(nameof(StatusText));
+        OnPropertyChanged(nameof(ReceivePortText));
+        OnPropertyChanged(nameof(TrafficText));
+        OnPropertyChanged(nameof(Neighbours));
+        OnPropertyChanged(nameof(NeighboursText));
+    }
 
     public int ParameterCount => AvatarParameterContract.Parameters.Count;
 

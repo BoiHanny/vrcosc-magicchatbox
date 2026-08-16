@@ -63,6 +63,44 @@ public partial class VrcBridgeModule : ObservableObject, IModule
 
     public AvatarCommandReceiver Receiver => _receiver;
 
+    public int OscReceivePort
+    {
+        get { lock (_lock) return _transport?.OscReceivePort ?? 0; }
+    }
+
+    public int HttpPort
+    {
+        get { lock (_lock) return _transport?.HttpPort ?? 0; }
+    }
+
+    public long ParametersReceived
+    {
+        get { lock (_lock) return _transport?.Ingress.Counters.Parameters ?? 0; }
+    }
+
+    public IReadOnlyList<string> DescribeNeighbours()
+    {
+        VrcTransport? transport;
+        lock (_lock) transport = _transport;
+
+        if (transport == null)
+            return Array.Empty<string>();
+
+        try
+        {
+            var rows = new List<string>();
+            foreach (var neighbour in transport.DescribeNeighbours())
+                rows.Add(neighbour.ToString() ?? string.Empty);
+
+            return rows;
+        }
+        catch (Exception ex)
+        {
+            Logging.WriteException(ex, MSGBox: false);
+            return Array.Empty<string>();
+        }
+    }
+
     public Task InitializeAsync(CancellationToken ct = default) => Task.CompletedTask;
 
     public Task StartAsync(CancellationToken ct = default)
