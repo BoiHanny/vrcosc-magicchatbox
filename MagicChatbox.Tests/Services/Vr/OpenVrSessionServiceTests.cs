@@ -102,13 +102,46 @@ public class OpenVrSessionServiceTests
         public OpenVrSessionService Service { get; }
 
         public Harness(bool vrRunning = true, params PrivacyHook[] approved)
+            : this(false, vrRunning, approved)
+        {
+        }
+
+        public Harness(bool onUiThread, bool vrRunning, params PrivacyHook[] approved)
         {
             foreach (var hook in approved)
                 Consent.Approve(hook);
 
             AppState.IsVRRunning = vrRunning;
-            Service = new OpenVrSessionService(Runtime, AppState, Consent, () => Now);
+            Service = new OpenVrSessionService(Runtime, AppState, Consent, () => Now, () => onUiThread);
         }
+    }
+
+    [Fact]
+    public void AskingFromTheUiThreadDoesNotAttachBeforeAnswering()
+    {
+        // Attaching calls into SteamVR and can sit there for as long as SteamVR is unwell. The
+        // chatbox line is built on the UI thread and asks for the session every tick, so doing it
+        // there would freeze the window. Nothing is reported this time round instead.
+        var h = new Harness(onUiThread: true, vrRunning: true, PrivacyHook.VrPerformance);
+        using var lease = h.Service.AcquireLease(PrivacyHook.VrPerformance, "perf");
+
+        _ = h.Service.Compositor;
+
+        Assert.False(h.Service.IsAttached);
+    }
+
+    [Fact]
+    public void AskingFromAnyOtherThreadStillAttachesBeforeAnswering()
+    {
+        // Off the UI thread the caller can afford to wait, and the rest of the app relies on the
+        // session being ready once it has asked.
+        var h = new Harness(onUiThread: false, vrRunning: true, PrivacyHook.VrPerformance);
+        using var lease = h.Service.AcquireLease(PrivacyHook.VrPerformance, "perf");
+
+        _ = h.Service.Compositor;
+
+        Assert.True(h.Service.IsAttached);
+        Assert.Equal(1, h.Runtime.InitCount);
     }
 
     [Fact]

@@ -20,6 +20,9 @@ public sealed class ScanLoopService : IDisposable
     private static readonly TimeSpan VrCheckMinInterval = TimeSpan.FromSeconds(2);
     private static readonly TimeSpan WindowActivityMinInterval = TimeSpan.FromSeconds(1);
     private static readonly TimeSpan VrCheckTimeout = TimeSpan.FromSeconds(2);
+    // Long enough for the two-second wait the app name lookup already allows itself, with room
+    // for the shell call after it, and short enough that a stall does not sit on the tick.
+    private static readonly TimeSpan WindowActivityTimeout = TimeSpan.FromSeconds(4);
     private static readonly TimeSpan HardwareStatsTimeout = TimeSpan.FromSeconds(5);
 
     private static readonly TimeSpan HardwareStatsFirstRunTimeout = TimeSpan.FromSeconds(45);
@@ -246,7 +249,7 @@ public sealed class ScanLoopService : IDisposable
                 && Interlocked.CompareExchange(ref _windowActivityInFlight, 1, 0) == 0)
             {
                 _lastWindowActivityUtc = DateTime.UtcNow;
-                tasks.Add(_faultTracker.RunGuardedAsync("WindowActivity", UpdateFocusedWindowAsync));
+                tasks.Add(RunWindowActivityAsync());
             }
 
             if (_integrationSettings.IntgrComponentStats)
@@ -278,17 +281,33 @@ public sealed class ScanLoopService : IDisposable
 
     #region Module update helpers
 
-    private async Task UpdateFocusedWindowAsync()
+    /// <summary>Reads the focused window under a time limit, like every other step in the tick.</summary>
+    /// <remarks>
+    /// Naming the focused app goes through the shell and the accessibility API, and both can stall
+    /// on a wedged process. Without a limit the tick never finishes, and because a tick only starts
+    /// when the previous one has ended, the whole loop stops for good — no crash, no message, the
+    /// chatbox simply never updates again. The flag is cleared out here rather than inside the read
+    /// so a stalled read cannot keep the next tick from trying.
+    /// </remarks>
+    private async Task RunWindowActivityAsync()
     {
         try
         {
-            _chatStatus.FocusedWindow = await Task.Run(
-                () => _windowActivity.GetForegroundProcessName()).ConfigureAwait(false);
+            await _faultTracker.RunGuardedAsync(
+                "WindowActivity",
+                UpdateFocusedWindowAsync,
+                WindowActivityTimeout).ConfigureAwait(false);
         }
         finally
         {
             Interlocked.Exchange(ref _windowActivityInFlight, 0);
         }
+    }
+
+    private async Task UpdateFocusedWindowAsync()
+    {
+        _chatStatus.FocusedWindow = await Task.Run(
+            () => _windowActivity.GetForegroundProcessName()).ConfigureAwait(false);
     }
 
     private async Task UpdateCurrentTimeAsync()

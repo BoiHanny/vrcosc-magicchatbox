@@ -40,6 +40,7 @@ public class MediaLinkModule : vrcosc_magicchatbox.Services.IMediaLinkService
     private static readonly TimeSpan TimelineRefreshAfterMediaChangeDelay = TimeSpan.FromMilliseconds(750);
     private Timer? mediaSnapshotResyncTimer;
     private int mediaSnapshotResyncInProgress;
+    private int startInProgress;
     private ConcurrentDictionary<string, (MediaSessionInfo, DateTime)> recentlyClosedSessions = new ConcurrentDictionary<string, (MediaSessionInfo, DateTime)>(
         );
 
@@ -75,7 +76,7 @@ public class MediaLinkModule : vrcosc_magicchatbox.Services.IMediaLinkService
                 if (e.NewState == ConsentState.Approved)
                 {
                     if (ShouldRunForCurrentMode() && mediaManager == null)
-                        Start();
+                        BeginStart();
                 }
                 else if (e.NewState == ConsentState.Denied)
                 {
@@ -561,7 +562,7 @@ public class MediaLinkModule : vrcosc_magicchatbox.Services.IMediaLinkService
             if (ShouldRunForCurrentMode())
             {
                 if (mediaManager == null)
-                    Start();
+                    BeginStart();
             }
             else
             {
@@ -569,6 +570,44 @@ public class MediaLinkModule : vrcosc_magicchatbox.Services.IMediaLinkService
                     Stop();
             }
         }
+    }
+
+    /// <summary>Attaches the listener without holding up whoever asked for it.</summary>
+    /// <remarks>
+    /// This runs when the switch is flipped or when VR mode changes, so the caller is usually the
+    /// UI thread. Attaching reaches a Windows service that can stop answering, and on the UI thread
+    /// that is the whole window frozen with no way to close it. Stopping stays where it was called
+    /// from, because it clears a bound collection and that has to happen on the UI thread.
+    /// </remarks>
+    private void BeginStart()
+    {
+        if (Interlocked.CompareExchange(ref startInProgress, 1, 0) == 1)
+            return;
+
+        _ = Task.Run(() =>
+        {
+            try
+            {
+                Start();
+
+                // The switch can go off again while attaching, and a listener nobody asked for
+                // any more would keep reporting tracks.
+                if (!ShouldRunForCurrentMode())
+                    _dispatcher.BeginInvoke(() =>
+                    {
+                        if (mediaManager != null)
+                            Stop();
+                    });
+            }
+            catch (Exception ex)
+            {
+                Logging.WriteException(ex, MSGBox: false);
+            }
+            finally
+            {
+                Interlocked.Exchange(ref startInProgress, 0);
+            }
+        });
     }
 
     private bool ShouldRunForCurrentMode()
