@@ -26,6 +26,7 @@ public partial class VrcBridgeModule : ObservableObject, IModule
     private readonly AvatarSenseStore _senses = new();
     private readonly AvatarSchemaStore _schema;
     private readonly AvatarIdentityResolver _identity;
+    private readonly AvatarConfigSeeder _config;
     private VrcAvatarEpoch? _epoch;
 
     private VrcTransport? _transport;
@@ -53,7 +54,8 @@ public partial class VrcBridgeModule : ObservableObject, IModule
         Func<string?> currentWorld,
         Func<bool> isPublicInstance,
         IEnumerable<InboundCommand>? commands = null,
-        Action<Action>? marshal = null)
+        Action<Action>? marshal = null,
+        IEnumerable<AvatarConfigBinding>? configBindings = null)
     {
         _settingsProvider = settingsProvider;
         _currentWorld = currentWorld;
@@ -72,6 +74,28 @@ public partial class VrcBridgeModule : ObservableObject, IModule
         _identity = new AvatarIdentityResolver(
             () => CurrentAvatarId,
             () => _schema.Current);
+
+        _config = new AvatarConfigSeeder(
+            configBindings ?? Array.Empty<AvatarConfigBinding>(),
+            () => Settings.EnableBridge && Settings.EnableAvatarConfig);
+
+        _schema.SchemaChanged += OnSchemaChanged;
+    }
+
+    public AvatarConfigSeeder Config => _config;
+
+    public IReadOnlyList<ConfigSeedRow> LastConfigSeed { get; private set; } = Array.Empty<ConfigSeedRow>();
+
+    private void OnSchemaChanged(AvatarSchemaSnapshot snapshot)
+    {
+        try
+        {
+            LastConfigSeed = _config.Seed(snapshot);
+        }
+        catch (Exception ex)
+        {
+            Logging.WriteException(ex, MSGBox: false);
+        }
     }
 
     public AvatarCommandReceiver Receiver => _receiver;
@@ -289,6 +313,7 @@ public partial class VrcBridgeModule : ObservableObject, IModule
             _senses.Clear();
             _schema.Clear();
             _receiver.ResetForNewAvatar();
+            _config.Reset();
             _pump.Reset();
 
             StatusMessage = string.IsNullOrEmpty(invalidated.AvatarId)
