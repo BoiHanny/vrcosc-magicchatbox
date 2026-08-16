@@ -9,18 +9,28 @@ The parameter contract this package targets is generated from the app's own sour
 
 ## Status
 
-The package manifest and this documentation are complete. **The Unity assets are not authored yet**
-— see "What still has to be made in Unity" below. Nothing here has been opened in the Unity editor,
-so nothing here is claimed to work in a project.
+The assets are **generated, not shipped**. Run **Tools → MagicChatbox → Generate avatar controls**
+and Unity writes them into `Assets/MagicChatbox`.
 
-## What the package will contain
+That is deliberate. A serialized controller, parameters asset and menu are pinned to whichever editor
+and SDK version wrote them, and a bad one imports quietly and does nothing. Generating them means
+they are correct for the version you actually have, and a mistake is a compiler error rather than a
+corrupt asset.
 
-| Asset | Purpose |
+Verified against Unity 2022.3.22f1 with the VRChat Avatars SDK: the editor script compiles with zero
+errors, the generator runs, and the assets it produces are correct — `networkSynced: 0` on every
+parameter, `type: 101` (Button) menu controls, and a parameter driver of `type: 0` (Set) returning
+each control to `0`. What has **not** been done is uploading an avatar built with it to VRChat.
+
+## What the generator produces
+
+| Asset | Contents |
 |---|---|
-| `FX.controller` | One layer per control. Each is a two-state machine driven by an Avatar Parameter Driver `Set` pulse, so a menu Button produces a clean false → true → false edge. |
-| `Parameters.asset` | `VRCExpressionParameters` with every entry **Synced unchecked**. |
-| `Menu.asset` | `VRCExpressionsMenu`, at most 8 top-level controls (VRChat's documented cap). |
-| `MagicChatbox.prefab` | One empty GameObject carrying a single installer component. No renderers. |
+| `MagicChatboxFX.controller` | One layer per control, each a Waiting/Pressed pair driven by an Avatar Parameter Driver `Set` back to false, so a menu Button produces a clean edge and self-clears even when the desktop app is not running. |
+| `MagicChatboxParameters.asset` | `VRCExpressionParameters`, every entry unsynced. |
+| `MagicChatboxMenu.asset` | `VRCExpressionsMenu` Buttons, capped at VRChat's documented 8 per page. |
+
+Merge all three onto your avatar with VRCFury or Modular Avatar — see the installer notes below.
 
 ## Parameters
 
@@ -47,16 +57,15 @@ download page has to say so.
 
 ## What still has to be made in Unity
 
-1. The four assets in the table above.
-2. Two thin installer variants over the same shared assets:
+1. Two thin installer variants over the generated assets:
    - `com.magicchatbox.avatar.vrcfury` — one GameObject with a VRCFury `Full Controller`, and
      **`globalParams` preconfigured to `MCB/*`**. Without that entry VRCFury renames every merged
      parameter, and the result installs cleanly, uploads cleanly, and does nothing at all. This is
      the single most likely way a first release fails, and it is undiagnosable from inside VRChat.
    - `com.magicchatbox.avatar.modular` — `MA Merge Animator` + `MA Parameters` with **Auto rename
      off** and Synced unchecked + `MA Menu Installer`.
-3. A VPM listing so the package can be added to the Creator Companion. Forking
-   `vrchat-community/template-package` gives both a VPM zip and a `.unitypackage` from one workflow.
+2. A VPM listing so the package can be added to the Creator Companion. `source.json` and the
+   `Avatar Package` workflow in this repository cover the build and release side.
 
 ## The support ticket to pre-empt
 
