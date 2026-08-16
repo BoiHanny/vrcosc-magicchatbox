@@ -23,6 +23,10 @@ public partial class VrcBridgeModule : ObservableObject, IModule
 
     private readonly AvatarParameterPump _pump = new();
     private readonly AvatarCommandReceiver _receiver;
+    private readonly AvatarSenseStore _senses = new();
+    private readonly AvatarSchemaStore _schema;
+    private readonly AvatarIdentityResolver _identity;
+    private VrcAvatarEpoch? _epoch;
 
     private VrcTransport? _transport;
     private CancellationTokenSource? _cts;
@@ -59,9 +63,29 @@ public partial class VrcBridgeModule : ObservableObject, IModule
             commands ?? Array.Empty<InboundCommand>(),
             () => Settings.EnableBridge && Settings.EnableParameterInput,
             marshal ?? (action => Task.Run(action)));
+
+        _schema = new AvatarSchemaStore(() =>
+        {
+            lock (_lock) return _epoch?.Current ?? long.MinValue;
+        });
+
+        _identity = new AvatarIdentityResolver(
+            () => CurrentAvatarId,
+            () => _schema.Current);
     }
 
     public AvatarCommandReceiver Receiver => _receiver;
+
+    public AvatarSenseStore Senses => _senses;
+
+    public AvatarSchemaStore Schema => _schema;
+
+    public string CurrentAvatarId
+    {
+        get { lock (_lock) return _epoch?.CurrentAvatarId ?? string.Empty; }
+    }
+
+    public AvatarIdentity Identity => _identity.Resolve();
 
     public int OscReceivePort
     {
@@ -126,12 +150,18 @@ public partial class VrcBridgeModule : ObservableObject, IModule
                 };
 
                 _receiver.ResetForNewAvatar();
+                _senses.Clear();
+                _schema.Clear();
 
                 _transport = VrcTransport.Create(
                     new AppWorldPolicy(Settings, _currentWorld, _isPublicInstance),
                     new AppProfanityPolicy(Settings),
-                    observations: _receiver,
-                    options: options);
+                    observations: new CompositeVrcObservationSink(_receiver, _senses),
+                    options: options,
+                    schema: _schema);
+
+                _epoch = _transport.AvatarEpoch;
+                _epoch.Invalidated += OnAvatarInvalidated;
 
                 var cts = new CancellationTokenSource();
                 CancellationToken token = cts.Token;
@@ -252,8 +282,33 @@ public partial class VrcBridgeModule : ObservableObject, IModule
         }
     }
 
+    private void OnAvatarInvalidated(VrcAvatarInvalidated invalidated)
+    {
+        try
+        {
+            _senses.Clear();
+            _schema.Clear();
+            _receiver.ResetForNewAvatar();
+            _pump.Reset();
+
+            StatusMessage = string.IsNullOrEmpty(invalidated.AvatarId)
+                ? "Avatar changed"
+                : "Avatar changed, re-sending values";
+        }
+        catch (Exception ex)
+        {
+            Logging.WriteException(ex, MSGBox: false);
+        }
+    }
+
     private void TearDownLocked()
     {
+        if (_epoch != null)
+        {
+            _epoch.Invalidated -= OnAvatarInvalidated;
+            _epoch = null;
+        }
+
         try
         {
             _transport?.Dispose();
