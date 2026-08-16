@@ -25,6 +25,8 @@ public sealed class AvatarSenseStore : IVrcObservationSink
     private readonly ConcurrentDictionary<string, Cell> _cells = new(StringComparer.OrdinalIgnoreCase);
     private long _observations;
 
+    public SpeechGate Speech { get; } = new();
+
     public long Observations => System.Threading.Interlocked.Read(ref _observations);
 
     public int Count => _cells.Count;
@@ -38,6 +40,16 @@ public sealed class AvatarSenseStore : IVrcObservationSink
             return;
 
         Cell cell = _cells.GetOrAdd(key, _ => new Cell());
+
+        if (key.Length > ParameterKeyPrefix.Length)
+        {
+            string parameter = key[ParameterKeyPrefix.Length..];
+
+            if (string.Equals(parameter, SpeechGate.VoiceParameter, StringComparison.OrdinalIgnoreCase))
+                Speech.ObserveVoice(observation.Value.Kind == SignalKind.Float ? observation.Value.AsFloat() : 0d);
+            else if (string.Equals(parameter, SpeechGate.MuteParameter, StringComparison.OrdinalIgnoreCase))
+                Speech.ObserveMute(observation.Value.Kind == SignalKind.Bool && observation.Value.AsBool());
+        }
 
         double value = observation.Value.Kind switch
         {
@@ -132,5 +144,6 @@ public sealed class AvatarSenseStore : IVrcObservationSink
     public void Clear()
     {
         _cells.Clear();
+        Speech.Reset();
     }
 }

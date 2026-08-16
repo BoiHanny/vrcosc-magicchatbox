@@ -80,6 +80,49 @@
                         <TextBlock
                             Margin="0,0,0,4"
                             Style="{StaticResource OptionFieldLabelStyle}"
+                            Text="What reaches your avatar" />
+                        <ItemsControl ItemsSource="{Binding Readiness}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Grid Margin="0,3">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="110" />
+                                            <ColumnDefinition Width="Auto" />
+                                            <ColumnDefinition Width="*" />
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock
+                                            Grid.Column="0"
+                                            VerticalAlignment="Center"
+                                            Style="{StaticResource OptionFieldLabelStyle}"
+                                            Text="{Binding Feature}" />
+                                        <TextBlock
+                                            Grid.Column="1"
+                                            Margin="0,0,10,0"
+                                            VerticalAlignment="Center"
+                                            Style="{StaticResource OptionFieldLabelStyle}"
+                                            Text="{Binding Headline}" />
+                                        <TextBlock
+                                            Grid.Column="2"
+                                            VerticalAlignment="Center"
+                                            Style="{StaticResource OptionHelpTextStyle}"
+                                            Text="{Binding Detail}"
+                                            TextWrapping="Wrap" />
+                                    </Grid>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                        <TextBlock
+                            Margin="0,8,0,0"
+                            Style="{StaticResource OptionHelpTextStyle}"
+                            Text="{Binding SpeechText}" />
+                    </StackPanel>
+                </Border>
+
+                <Border Padding="0" Style="{StaticResource OptionCardStyle}">
+                    <StackPanel Margin="10">
+                        <TextBlock
+                            Margin="0,0,0,4"
+                            Style="{StaticResource OptionFieldLabelStyle}"
                             Text="Recently changed" />
                         <TextBlock
                             Margin="0,0,0,6"

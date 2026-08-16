@@ -40,6 +40,11 @@ public partial class AvatarPageViewModel : ObservableObject
 
     public ObservableCollection<AvatarSense> RecentlyChanged { get; } = new();
 
+    public ObservableCollection<ReadinessRow> Readiness { get; } = new();
+
+    [ObservableProperty] private string _speechText = string.Empty;
+    [ObservableProperty] private IReadOnlyList<EcosystemMarker> _ecosystems = Array.Empty<EcosystemMarker>();
+
     private readonly IAvatarParameterSink _sink;
     private readonly Dictionary<string, Avatar.AvatarControlRowViewModel> _rows = new(StringComparer.Ordinal);
     private string _rowsSignature = string.Empty;
@@ -124,7 +129,58 @@ public partial class AvatarPageViewModel : ObservableObject
 
         RebuildGroups();
         RebuildRecent(bridge);
+        RebuildReadiness(bridge, schema, identity.IsKnown);
     }
+
+    private void RebuildReadiness(Services.Vrc.VrcBridgeModule bridge, AvatarSchemaSnapshot schema, bool avatarKnown)
+    {
+        SpeechGate speech = bridge.Senses.Speech;
+
+        SpeechText = speech.IsHotMic
+            ? "Your microphone is live"
+            : speech.IsMuted ? "Microphone muted" : "Not speaking";
+
+        Ecosystems = schema.IsEmpty
+            ? Array.Empty<EcosystemMarker>()
+            : EcosystemSignature.Detect(schema.Parameters.Select(p => p.Name));
+
+        var host = _modules.Value;
+
+        var rows = new List<ReadinessRow>
+        {
+            AvatarReadiness.Evaluate(
+                new ReadinessInput(
+                    "Heart rate",
+                    host.Pulsoid?.IsRunning == true,
+                    host.Pulsoid?.PulsoidDeviceOnline == true,
+                    true,
+                    host.Pulsoid?.PulsoidAccessError == true ? host.Pulsoid.PulsoidAccessErrorTxt : null,
+                    HeartRateNames),
+                schema,
+                avatarKnown),
+
+            AvatarReadiness.Evaluate(
+                new ReadinessInput(
+                    "Discord",
+                    host.Discord?.IsRunning == true,
+                    host.Discord?.InVoiceChannelState == true,
+                    true,
+                    null,
+                    DiscordNames),
+                schema,
+                avatarKnown),
+        };
+
+        Readiness.Clear();
+        foreach (ReadinessRow row in rows)
+            Readiness.Add(row);
+    }
+
+    private static readonly string[] HeartRateNames =
+        ["HR", "HRPercent", "FullHRPercent", "isHRConnected", "isHRActive", "isHRBeat"];
+
+    private static readonly string[] DiscordNames =
+        ["DiscordMuted", "DiscordDeafened", "DiscordInVC", "DiscordVCCount", "DiscordSpeaking"];
 
     private void RebuildGroups()
     {
