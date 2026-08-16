@@ -1,0 +1,179 @@
+<UserControl
+    x:Class="vrcosc_magicchatbox.UI.Pages.AvatarPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:vm="clr-namespace:vrcosc_magicchatbox.ViewModels"
+    d:DataContext="{d:DesignInstance Type=vm:AvatarPageViewModel,
+                                     IsDesignTimeCreatable=False}"
+    mc:Ignorable="d">
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="/UI/Resources/SharedConverters.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </UserControl.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <Border
+            Grid.Row="0"
+            Margin="10,8,10,4"
+            Padding="10,6"
+            Background="{StaticResource TileSurfaceBrush}"
+            CornerRadius="5">
+            <StackPanel Orientation="Horizontal">
+                <TextBlock
+                    Margin="0,0,14,0"
+                    VerticalAlignment="Center"
+                    Style="{StaticResource OptionFieldLabelStyle}"
+                    Text="{Binding BridgeStatus}" />
+                <TextBlock
+                    Margin="0,0,14,0"
+                    VerticalAlignment="Center"
+                    Style="{StaticResource OptionHelpTextStyle}"
+                    Text="{Binding PortText, StringFormat=Port {0}}" />
+                <TextBlock
+                    Margin="0,0,14,0"
+                    VerticalAlignment="Center"
+                    Style="{StaticResource OptionHelpTextStyle}"
+                    Text="{Binding TrafficText}" />
+                <TextBlock
+                    VerticalAlignment="Center"
+                    Style="{StaticResource OptionHelpTextStyle}"
+                    Text="{Binding NeighbourText}" />
+            </StackPanel>
+        </Border>
+
+        <ScrollViewer
+            Grid.Row="1"
+            Margin="10,0,10,10"
+            HorizontalScrollBarVisibility="Disabled"
+            VerticalScrollBarVisibility="Auto">
+            <StackPanel>
+
+                <Border Padding="0" Style="{StaticResource OptionCardStyle}">
+                    <StackPanel Margin="10">
+                        <TextBlock
+                            FontSize="{StaticResource FontSizeHeader}"
+                            Style="{StaticResource TileTitleStyle}"
+                            Text="{Binding AvatarName}" />
+                        <TextBlock
+                            Margin="0,2,0,0"
+                            Style="{StaticResource TileDescriptionStyle}"
+                            Text="{Binding ParameterSummary}" />
+                        <TextBlock
+                            Margin="0,6,0,0"
+                            Style="{StaticResource OptionHelpTextStyle}"
+                            Text="{Binding RungMessage}" />
+                    </StackPanel>
+                </Border>
+
+                <Border Padding="0" Style="{StaticResource OptionCardStyle}">
+                    <StackPanel Margin="10">
+                        <TextBlock
+                            Margin="0,0,0,4"
+                            Style="{StaticResource OptionFieldLabelStyle}"
+                            Text="Recently changed" />
+                        <TextBlock
+                            Margin="0,0,0,6"
+                            Style="{StaticResource OptionHelpTextStyle}"
+                            Text="Move something in VRChat's menu and it appears here, so you do not need to know its name." />
+                        <ItemsControl ItemsSource="{Binding RecentlyChanged}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <TextBlock
+                                        Margin="0,1"
+                                        Style="{StaticResource OptionHelpTextStyle}"
+                                        Text="{Binding Key}" />
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </StackPanel>
+                </Border>
+
+                <Border Padding="0" Style="{StaticResource OptionCardStyle}">
+                    <StackPanel Margin="10">
+                        <StackPanel Margin="0,0,0,6" Orientation="Horizontal">
+                            <TextBlock
+                                Margin="0,0,6,0"
+                                VerticalAlignment="Center"
+                                Style="{StaticResource OptionFieldLabelStyle}"
+                                Text="Find" />
+                            <TextBox
+                                x:Name="AvatarParameterSearch"
+                                Width="220"
+                                Padding="3,0"
+                                VerticalContentAlignment="Center"
+                                FontSize="{StaticResource FontSizeBody}"
+                                Text="{Binding Search, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                            <TextBlock
+                                Margin="12,0,0,0"
+                                VerticalAlignment="Center"
+                                Style="{StaticResource OptionHelpTextStyle}"
+                                Text="{Binding HiddenText}" />
+                        </StackPanel>
+
+                        <CheckBox
+                            x:Name="AvatarHideAdult_checkbox"
+                            Margin="0,2"
+                            IsChecked="{Binding HideAdult, Mode=TwoWay}">
+                            Hide adult groups
+                        </CheckBox>
+                        <CheckBox
+                            x:Name="AvatarWritableOnly_checkbox"
+                            Margin="0,2"
+                            IsChecked="{Binding WritableOnly, Mode=TwoWay}">
+                            Only show things I can change
+                        </CheckBox>
+                    </StackPanel>
+                </Border>
+
+                <ItemsControl ItemsSource="{Binding Groups}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Border Padding="0" Style="{StaticResource OptionCardStyle}">
+                                <StackPanel Margin="10">
+                                    <TextBlock
+                                        Margin="0,0,0,4"
+                                        Style="{StaticResource OptionFieldLabelStyle}"
+                                        Text="{Binding DisplayName}" />
+                                    <ItemsControl ItemsSource="{Binding Rows}">
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate>
+                                                <Grid Margin="0,2">
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="*" />
+                                                        <ColumnDefinition Width="Auto" />
+                                                    </Grid.ColumnDefinitions>
+                                                    <TextBlock
+                                                        Grid.Column="0"
+                                                        VerticalAlignment="Center"
+                                                        Style="{StaticResource OptionHelpTextStyle}"
+                                                        Text="{Binding Leaf}"
+                                                        ToolTip="{Binding Name}" />
+                                                    <TextBlock
+                                                        Grid.Column="1"
+                                                        VerticalAlignment="Center"
+                                                        Style="{StaticResource OptionHelpTextStyle}"
+                                                        Text="{Binding Value}" />
+                                                </Grid>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                </StackPanel>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+
+            </StackPanel>
+        </ScrollViewer>
+    </Grid>
+</UserControl>

@@ -22,7 +22,7 @@ public sealed class AvatarSenseStore : IVrcObservationSink
         public long Changes;
     }
 
-    private readonly ConcurrentDictionary<string, Cell> _cells = new(StringComparer.Ordinal);
+    private readonly ConcurrentDictionary<string, Cell> _cells = new(StringComparer.OrdinalIgnoreCase);
     private long _observations;
 
     public long Observations => System.Threading.Interlocked.Read(ref _observations);

@@ -87,6 +87,14 @@
                     DataContext="{Binding Chatting}"
                     Visibility="{Binding DataContext.SelectedMenuIndex, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource IndexToVisibilityConverter}, FallbackValue=Collapsed, ConverterParameter=2}" />
 
+
+                <pages:AvatarPage
+                    x:Name="avatarPage"
+                    Grid.Row="1"
+                    d:Visibility="Collapsed"
+                    DataContext="{Binding Avatar}"
+                    Visibility="{Binding DataContext.SelectedMenuIndex, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource IndexToVisibilityConverter}, FallbackValue=Collapsed, ConverterParameter=4}" />
+
                 <!--
                     The full-width "Some integrations can't be showed because a limit on characters"
                     bar used to sit here. It covered the page, was sized like a headline, and never

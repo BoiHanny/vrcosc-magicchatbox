@@ -54,6 +54,8 @@ namespace vrcosc_magicchatbox.ViewModels
         public IntegrationsPageViewModel Integrations => _integrations.Value;
         private readonly Lazy<OptionsPageViewModel> _options;
         public OptionsPageViewModel Options => _options.Value;
+        private readonly Lazy<AvatarPageViewModel> _avatar;
+        public AvatarPageViewModel Avatar => _avatar.Value;
         private readonly Lazy<StatusSetSwitcherViewModel> _statusSets;
         public StatusSetSwitcherViewModel StatusSets => _statusSets.Value;
         private readonly Lazy<AfkStyleViewModel> _afkStyles;
@@ -82,6 +84,7 @@ namespace vrcosc_magicchatbox.ViewModels
             Lazy<StatusPageViewModel> status,
             Lazy<IntegrationsPageViewModel> integrations,
             Lazy<OptionsPageViewModel> options,
+            Lazy<AvatarPageViewModel> avatar,
             Lazy<StatusSetSwitcherViewModel> statusSets,
             Lazy<AfkStyleViewModel> afkStyles)
         {
@@ -109,6 +112,7 @@ namespace vrcosc_magicchatbox.ViewModels
             _status = status;
             _integrations = integrations;
             _options = options;
+            _avatar = avatar;
             _statusSets = statusSets;
             _afkStyles = afkStyles;
 

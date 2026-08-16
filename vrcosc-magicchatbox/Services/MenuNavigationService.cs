@@ -8,7 +8,7 @@ namespace vrcosc_magicchatbox.Services;
 
 public sealed class MenuNavigationService : IMenuNavigationService
 {
-    public const int MaxPageIndex = 3;
+    public const int MaxPageIndex = 4;
 
     private const int MaxHistoryDepth = 3;
 

@@ -135,6 +135,7 @@ public static class ServiceRegistration
             new Lazy<StatusPageViewModel>(() => sp.GetRequiredService<StatusPageViewModel>()),
             new Lazy<IntegrationsPageViewModel>(() => sp.GetRequiredService<IntegrationsPageViewModel>()),
             new Lazy<OptionsPageViewModel>(() => sp.GetRequiredService<OptionsPageViewModel>()),
+            new Lazy<AvatarPageViewModel>(() => sp.GetRequiredService<AvatarPageViewModel>()),
             new Lazy<StatusSetSwitcherViewModel>(() => sp.GetRequiredService<StatusSetSwitcherViewModel>()),
             new Lazy<AfkStyleViewModel>(() => sp.GetRequiredService<AfkStyleViewModel>())));
         services.AddSingleton<IAppState>(sp => sp.GetRequiredService<ViewModel>());
@@ -253,6 +254,9 @@ public static class ServiceRegistration
             sp.GetRequiredService<ISettingsProvider<AppSettings>>(),
             sp.GetRequiredService<ISettingsProvider<IntegrationSettings>>(),
             sp.GetRequiredService<IntegrationDisplayState>(),
+            new Lazy<IModuleHost>(() => sp.GetRequiredService<IModuleHost>())));
+        services.AddSingleton<AvatarPageViewModel>(sp => new AvatarPageViewModel(
+            sp.GetRequiredService<ISettingsProvider<VrcBridgeSettings>>(),
             new Lazy<IModuleHost>(() => sp.GetRequiredService<IModuleHost>())));
         services.AddSingleton<VrcBridgeSectionViewModel>(sp => new VrcBridgeSectionViewModel(
             sp.GetRequiredService<ISettingsProvider<VrcBridgeSettings>>(),
