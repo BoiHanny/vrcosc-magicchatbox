@@ -74,14 +74,20 @@ public partial class VrPerformanceModule : ObservableObject, IModule
 
     public Task StopAsync(CancellationToken ct = default)
     {
+        IDisposable? lease;
+
         lock (_lock)
         {
             _timer?.Dispose();
             _timer = null;
-            _lease?.Dispose();
+            lease = _lease;
             _lease = null;
             IsRunning = false;
         }
+
+        // Outside the lock: letting the lease go can reach SteamVR's shutdown, and holding the
+        // lock across that would put anything else touching this module behind SteamVR too.
+        lease?.Dispose();
 
         _sampler.Reset();
         _degraded.Reset();
