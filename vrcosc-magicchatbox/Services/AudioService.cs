@@ -17,9 +17,14 @@ namespace vrcosc_magicchatbox.Services;
 
 public sealed class AudioService : IAudioService
 {
+    private static readonly TimeSpan DeviceRefreshInterval = TimeSpan.FromSeconds(5);
+
     private readonly TtsAudioDisplayState _ttsAudio;
     private readonly ISettingsProvider<TtsSettings> _ttsSettingsProvider;
     private readonly IUiDispatcher _dispatcher;
+    private readonly object _deviceRefreshLock = new();
+    private DateTime _lastDeviceRefreshUtc;
+    private bool _lastDeviceRefreshSucceeded;
 
     public AudioService(
         TtsAudioDisplayState ttsAudio,
@@ -31,7 +36,41 @@ public sealed class AudioService : IAudioService
         _dispatcher = dispatcher;
     }
 
+    /// <summary>Refreshes the list of playback devices, at most every few seconds.</summary>
+    /// <remarks>
+    /// This is called on the UI thread every time a message is sent with speech on. Listing audio
+    /// endpoints talks to the audio stack, which can take its time while a device is waking or a
+    /// driver is unwell, and doing that on every send put the window behind it. Devices do not
+    /// come and go often enough to be worth asking that often.
+    /// </remarks>
     public bool PopulateOutputDevices()
+    {
+        lock (_deviceRefreshLock)
+        {
+            if (_lastDeviceRefreshUtc != default
+                && DateTime.UtcNow - _lastDeviceRefreshUtc < DeviceRefreshInterval)
+                return _lastDeviceRefreshSucceeded;
+        }
+
+        bool result = PopulateOutputDevicesCore();
+
+        lock (_deviceRefreshLock)
+        {
+            _lastDeviceRefreshUtc = DateTime.UtcNow;
+            _lastDeviceRefreshSucceeded = result;
+        }
+
+        return result;
+    }
+
+    /// <summary>Forgets the cached device list, so the next ask goes back to the audio stack.</summary>
+    public void InvalidateOutputDeviceCache()
+    {
+        lock (_deviceRefreshLock)
+            _lastDeviceRefreshUtc = default;
+    }
+
+    private bool PopulateOutputDevicesCore()
     {
         try
         {

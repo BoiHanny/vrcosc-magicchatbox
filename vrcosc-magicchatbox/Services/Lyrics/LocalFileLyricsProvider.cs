@@ -34,12 +34,18 @@ public sealed class LocalFileLyricsProvider : ILyricsProvider
 
         try
         {
-            string? match = FindFile(folder, query);
+            string? match = FindFile(folder, query, ct);
             if (match == null)
                 return Task.FromResult<LyricTrack?>(null);
 
+            ct.ThrowIfCancellationRequested();
+
             var track = LrcParser.Parse(File.ReadAllText(match), ProviderName);
             return Task.FromResult<LyricTrack?>(track.IsSynced ? track : null);
+        }
+        catch (OperationCanceledException)
+        {
+            return Task.FromResult<LyricTrack?>(null);
         }
         catch (Exception ex)
         {
@@ -48,7 +54,12 @@ public sealed class LocalFileLyricsProvider : ILyricsProvider
         }
     }
 
-    private static string? FindFile(string folder, LyricsQuery query)
+    /// <remarks>
+    /// The token is checked between files rather than only at the start. A folder on a share that
+    /// has gone away can take the network's own timeout to answer, and lyric lookups run one at a
+    /// time, so a walk nobody is waiting for any more would hold up every later one.
+    /// </remarks>
+    private static string? FindFile(string folder, LyricsQuery query, CancellationToken ct)
     {
         string exact = Path.Combine(folder, Sanitize($"{query.Artist} - {query.Title}") + ".lrc");
         if (File.Exists(exact))
@@ -56,9 +67,15 @@ public sealed class LocalFileLyricsProvider : ILyricsProvider
 
         string wanted = Normalize($"{query.Artist}{query.Title}");
 
-        return Directory
-            .EnumerateFiles(folder, "*.lrc", SearchOption.AllDirectories)
-            .FirstOrDefault(path => Normalize(Path.GetFileNameWithoutExtension(path)) == wanted);
+        foreach (string path in Directory.EnumerateFiles(folder, "*.lrc", SearchOption.AllDirectories))
+        {
+            ct.ThrowIfCancellationRequested();
+
+            if (Normalize(Path.GetFileNameWithoutExtension(path)) == wanted)
+                return path;
+        }
+
+        return null;
     }
 
     public static string Sanitize(string name)

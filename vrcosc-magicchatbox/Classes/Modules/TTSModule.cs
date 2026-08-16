@@ -19,6 +19,9 @@ namespace vrcosc_magicchatbox.Classes.Modules;
 
 public class TTSModule
 {
+    /// <summary>Slack on top of a clip's own length before playback is treated as stuck.</summary>
+    private static readonly TimeSpan PlaybackGrace = TimeSpan.FromSeconds(10);
+
     private readonly TtsSettings _ttsSettings;
     private readonly TtsAudioDisplayState _ttsAudio;
     private readonly IHttpClientFactory _httpClientFactory;
@@ -100,14 +103,28 @@ public class TTSModule
         }
     }
 
-    public async Task PlayTikTokAudioAsSpeechAsync(
+    /// <summary>Speaks the clip, off whichever thread asked for it.</summary>
+    /// <remarks>
+    /// Listing audio endpoints and opening a WASAPI device both talk to the audio stack, which
+    /// takes its time when a device is waking or a driver is unwell. This is reached from sending
+    /// a message, on the UI thread, and none of it is work the window should be waiting on.
+    /// </remarks>
+    public Task PlayTikTokAudioAsSpeechAsync(
         byte[] audioData,
         string deviceId,
         CancellationToken cancelToken)
     {
         if (audioData == null || audioData.Length == 0)
-            return;
+            return Task.CompletedTask;
 
+        return Task.Run(() => PlayTikTokAudioCoreAsync(audioData, deviceId, cancelToken));
+    }
+
+    private async Task PlayTikTokAudioCoreAsync(
+        byte[] audioData,
+        string deviceId,
+        CancellationToken cancelToken)
+    {
         try
         {
             using var enumerator = new MMDeviceEnumerator();
@@ -130,16 +147,36 @@ public class TTSModule
             var tcs = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
             wasapiOut.PlaybackStopped += (_, _) => tcs.TrySetResult();
 
-            _oscSender.ToggleVoice();
-            await Task.Delay(175);
-
-            wasapiOut.Play();
-
-            using var reg = cancelToken.Register(() => wasapiOut.Stop());
-
-            await tcs.Task;
+            // A device that is pulled mid-clip can leave PlaybackStopped unraised, and waiting on
+            // it forever would strand the microphone unmuted. The clip's own length says how long
+            // is reasonable.
+            TimeSpan playbackBudget = mp3Reader.TotalTime + PlaybackGrace;
 
             _oscSender.ToggleVoice();
+            try
+            {
+                await Task.Delay(175).ConfigureAwait(false);
+
+                wasapiOut.Play();
+
+                using var reg = cancelToken.Register(() => wasapiOut.Stop());
+
+                try
+                {
+                    await tcs.Task.WaitAsync(playbackBudget).ConfigureAwait(false);
+                }
+                catch (TimeoutException)
+                {
+                    Logging.WriteInfo(
+                        $"TTS playback did not report finishing within {playbackBudget.TotalSeconds:0.#}s; stopping it.");
+                    try { wasapiOut.Stop(); } catch { /* already gone */ }
+                }
+            }
+            finally
+            {
+                // Pairs with the toggle above whatever happened in between.
+                _oscSender.ToggleVoice();
+            }
         }
         catch (Exception ex)
         {

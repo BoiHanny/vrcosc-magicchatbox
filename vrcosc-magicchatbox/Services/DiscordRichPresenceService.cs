@@ -23,6 +23,9 @@ public sealed class DiscordRichPresenceService : IDisposable
     private readonly OscDisplayState _oscDisplay;
     private readonly object _sync = new();
 
+    /// <summary>Serialises rebuilding the client, separately from the field lock above.</summary>
+    private readonly object _initGate = new();
+
     private DiscordRpcClient? _client;
     private string? _clientId;
     private string? _lastInvalidClientId;
@@ -193,45 +196,81 @@ public sealed class DiscordRichPresenceService : IDisposable
         }
     }
 
+    /// <summary>Makes sure there is an initialised client, without holding the shared lock.</summary>
+    /// <remarks>
+    /// Building and initialising go through the Discord client library. This used to happen under
+    /// the same lock every other member of this class takes, so if the library ever stopped
+    /// answering it took updating, clearing and disposal down with it — including disposal at
+    /// shutdown. Only the field swaps need that lock; the library calls do not.
+    /// </remarks>
     private bool EnsureClient()
     {
-        lock (_sync)
+        // Serialises rebuilding without blocking anything that only needs to read the fields.
+        lock (_initGate)
         {
             string clientId = ResolveClientId();
-            if (_client?.IsInitialized == true && string.Equals(_clientId, clientId, StringComparison.Ordinal))
-                return true;
+            DiscordRpcClient? existing;
+
+            lock (_sync)
+            {
+                if (_client?.IsInitialized == true && string.Equals(_clientId, clientId, StringComparison.Ordinal))
+                    return true;
+
+                existing = _client;
+                _client = null;
+                _clientId = null;
+            }
+
+            if (existing != null)
+            {
+                try
+                {
+                    if (existing.IsInitialized)
+                        existing.ClearPresence();
+                }
+                catch (Exception ex)
+                {
+                    Logging.WriteException(ex, MSGBox: false);
+                }
+
+                try
+                {
+                    existing.Dispose();
+                }
+                catch (Exception ex)
+                {
+                    Logging.WriteException(ex, MSGBox: false);
+                }
+            }
+
+            DiscordRpcClient? created = null;
+            bool initialized = false;
 
             try
             {
-                if (_client != null)
-                {
-                    try
-                    {
-                        if (_client.IsInitialized)
-                            _client.ClearPresence();
-                    }
-                    catch (Exception ex)
-                    {
-                        Logging.WriteException(ex, MSGBox: false);
-                    }
-
-                    _client.Dispose();
-                }
-
-                _client = new DiscordRpcClient(clientId, autoEvents: true);
-                AttachEventLogging(_client, clientId);
-                _clientId = clientId;
-                bool initialized = _client.Initialize();
+                created = new DiscordRpcClient(clientId, autoEvents: true);
+                AttachEventLogging(created, clientId);
+                initialized = created.Initialize();
                 Logging.WriteInfo($"Discord Rich Presence: DiscordRichPresence client initialize result={initialized} (clientId={MaskClientId(clientId)}, autoEvents=true).");
-                return initialized;
             }
             catch (Exception ex)
             {
                 Logging.WriteException(ex, MSGBox: false);
-                _client = null;
-                _clientId = null;
-                return false;
+
+                try { created?.Dispose(); }
+                catch { /* nothing left to do with it */ }
+
+                created = null;
+                initialized = false;
             }
+
+            lock (_sync)
+            {
+                _client = created;
+                _clientId = created != null ? clientId : null;
+            }
+
+            return initialized;
         }
     }
 

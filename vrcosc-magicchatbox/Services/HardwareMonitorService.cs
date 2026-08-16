@@ -8,6 +8,7 @@ using System.Management;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 using vrcosc_magicchatbox.Classes.DataAndSecurity;
 using vrcosc_magicchatbox.Services.Hardware;
 
@@ -1049,20 +1050,30 @@ public sealed class HardwareMonitorService : IHardwareMonitorService
         };
 
         process.Start();
+
+        // Start draining both pipes before waiting. A child that fills a redirected pipe blocks on
+        // the write and never reaches exit, so reading only after the wait would turn a large
+        // reply — a machine with several cards — into a timeout and a killed process.
+        Task<string> standardOutput = process.StandardOutput.ReadToEndAsync();
+        Task<string> standardError = process.StandardError.ReadToEndAsync();
+
         if (!process.WaitForExit(1500))
         {
             process.Kill(entireProcessTree: true);
             return null;
         }
 
+        // Lets the two readers above finish now that the pipes have closed.
+        process.WaitForExit();
+
         if (process.ExitCode != 0)
         {
             if (!includeMemoryTemperature)
-                Logging.WriteInfo($"nvidia-smi read error: {process.StandardError.ReadToEnd().Trim()}");
+                Logging.WriteInfo($"nvidia-smi read error: {standardError.Result.Trim()}");
             return null;
         }
 
-        return process.StandardOutput.ReadToEnd();
+        return standardOutput.Result;
     }
 
     private static NvidiaSmiSample? ParseNvidiaSmiLine(string line)

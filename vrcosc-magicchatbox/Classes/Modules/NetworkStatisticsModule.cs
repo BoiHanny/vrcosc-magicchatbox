@@ -80,7 +80,7 @@ public class NetworkStatisticsModule : INotifyPropertyChanged, IModule
         _consentService.ConsentChanged += OnConsentChanged;
 
         if (_consentService.IsApproved(PrivacyHook.NetworkStats))
-            InitializeNetworkStatsAsync().ConfigureAwait(false);
+            BeginInitializeNetworkStats();
     }
 
     private void OnConsentChanged(object? sender, ConsentChangedEventArgs e)
@@ -103,7 +103,7 @@ public class NetworkStatisticsModule : INotifyPropertyChanged, IModule
         }
         else if (e.NewState == ConsentState.Approved && !IsInitialized)
         {
-            InitializeNetworkStatsAsync().ConfigureAwait(false);
+            BeginInitializeNetworkStats();
         }
     }
 
@@ -174,6 +174,29 @@ public class NetworkStatisticsModule : INotifyPropertyChanged, IModule
             BytesReceived = ipv4Stats.BytesReceived,
             BytesSent = ipv4Stats.BytesSent
         };
+    }
+
+    /// <summary>Starts initialisation without waiting for it.</summary>
+    /// <remarks>
+    /// These call sites used to read <c>InitializeNetworkStatsAsync().ConfigureAwait(false);</c>
+    /// with nothing awaiting it, which starts nothing in the background: the work inside is
+    /// synchronous, so the whole thing ran on the caller's thread — including listing the network
+    /// adapters, which stalls when a VPN or virtual adapter is unwell. One of those callers is the
+    /// constructor.
+    /// </remarks>
+    private void BeginInitializeNetworkStats()
+    {
+        _ = Task.Run(async () =>
+        {
+            try
+            {
+                await InitializeNetworkStatsAsync().ConfigureAwait(false);
+            }
+            catch (Exception ex)
+            {
+                Logging.WriteInfo($"Network statistics initialisation failed: {ex.Message}");
+            }
+        });
     }
 
     private async Task InitializeNetworkStatsAsync()
@@ -271,7 +294,7 @@ public class NetworkStatisticsModule : INotifyPropertyChanged, IModule
 
             if (_activeNetworkInterface == null)
             {
-                InitializeNetworkStatsAsync().ConfigureAwait(false);
+                BeginInitializeNetworkStats();
                 if (_activeNetworkInterface == null)
                     return;
             }
@@ -342,7 +365,7 @@ public class NetworkStatisticsModule : INotifyPropertyChanged, IModule
         {
             if (ShouldStartMonitoring())
             {
-                InitializeNetworkStatsAsync().ConfigureAwait(false);
+                BeginInitializeNetworkStats();
             }
             else
             {
@@ -382,10 +405,31 @@ public class NetworkStatisticsModule : INotifyPropertyChanged, IModule
         return true;
     }
 
+    private bool _disposed;
+
     public void Dispose()
     {
+        // Disposing twice has to be harmless: this is both a container singleton and a registered
+        // module, so shutdown reaches it from two directions, and cancelling an already-disposed
+        // source throws.
+        lock (_monitoringLock)
+        {
+            if (_disposed)
+                return;
+            _disposed = true;
+        }
+
         StopModule();
-        _cancellationTokenSource.Cancel();
+
+        try
+        {
+            _cancellationTokenSource.Cancel();
+        }
+        catch (ObjectDisposedException)
+        {
+            // Already done.
+        }
+
         _cancellationTokenSource.Dispose();
         _appState.PropertyChanged -= PropertyChangedHandler;
         _integrationSettings.PropertyChanged -= PropertyChangedHandler;
@@ -466,24 +510,35 @@ public class NetworkStatisticsModule : INotifyPropertyChanged, IModule
         return string.Join("\v", lines);
     }
 
+    // Start and stop arrive from settings changes, consent changes and the timer itself, on
+    // whichever thread raised them. Unsynchronised, two starts could each build a timer and only
+    // the second would be remembered, leaving the first ticking with nothing able to stop it.
+    private readonly object _monitoringLock = new();
+
     public void StartModule()
     {
-        if (_isMonitoring || !IsInitialized)
-            return;
+        lock (_monitoringLock)
+        {
+            if (_isMonitoring || !IsInitialized)
+                return;
 
-        _updateTimer = new Timer(OnTimedEvent, null, TimeSpan.Zero, TimeSpan.FromMilliseconds(Interval));
-        _isMonitoring = true;
+            _updateTimer = new Timer(OnTimedEvent, null, TimeSpan.Zero, TimeSpan.FromMilliseconds(Interval));
+            _isMonitoring = true;
+        }
     }
 
     public void StopModule()
     {
-        if (!_isMonitoring)
-            return;
+        lock (_monitoringLock)
+        {
+            if (!_isMonitoring)
+                return;
 
-        _updateTimer?.Change(Timeout.Infinite, Timeout.Infinite);
-        _updateTimer?.Dispose();
-        _updateTimer = null;
-        _isMonitoring = false;
+            _updateTimer?.Change(Timeout.Infinite, Timeout.Infinite);
+            _updateTimer?.Dispose();
+            _updateTimer = null;
+            _isMonitoring = false;
+        }
     }
 
     public double CurrentDownloadSpeedMbps
