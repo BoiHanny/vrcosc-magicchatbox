@@ -28,6 +28,7 @@ public sealed class OscSenderService : IOscSender, IDisposable
     private readonly ChatStatusDisplayState _chatStatus;
     private readonly OscDisplayState _oscDisplay;
     private readonly TtsAudioDisplayState _ttsAudio;
+    private readonly Lazy<Core.Integrations.IIntegrationGate>? _gate;
 
     private UDPSender? _oscSender;
     private UDPSender? _secOscSender;
@@ -51,8 +52,10 @@ public sealed class OscSenderService : IOscSender, IDisposable
         IAppState appState,
         ChatStatusDisplayState chatStatus,
         OscDisplayState oscDisplay,
-        TtsAudioDisplayState ttsAudio)
+        TtsAudioDisplayState ttsAudio,
+        Lazy<Core.Integrations.IIntegrationGate>? gate = null)
     {
+        _gate = gate;
         _oscSettings = oscSettings.Value;
         _appSettings = appSettings.Value;
         _ttsSettings = ttsSettings.Value;
@@ -60,6 +63,22 @@ public sealed class OscSenderService : IOscSender, IDisposable
         _chatStatus = chatStatus;
         _oscDisplay = oscDisplay;
         _ttsAudio = ttsAudio;
+    }
+
+    private bool SendingIsPermitted()
+    {
+        if (_gate == null)
+            return true;
+
+        try
+        {
+            return _gate.Value.PermitsSending();
+        }
+        catch (Exception ex)
+        {
+            Logging.WriteException(ex, MSGBox: false);
+            return true;
+        }
     }
 
     private OscSettings OS => _oscSettings;
@@ -71,6 +90,9 @@ public sealed class OscSenderService : IOscSender, IDisposable
         string textToSend = explicitText ?? _oscDisplay.OscToSent;
 
         if (!_appState.MasterSwitch || textToSend.Length > Core.Constants.OscMaxMessageLength)
+            return false;
+
+        if (!SendingIsPermitted())
             return false;
 
         await DeactivateTypingIndicatorAsync();

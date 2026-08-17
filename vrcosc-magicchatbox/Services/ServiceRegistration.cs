@@ -489,6 +489,9 @@ public static class ServiceRegistration
             new Lazy<IOscSender>(() => sp.GetRequiredService<IOscSender>()),
             new Lazy<ILiveTypingService>(() => sp.GetRequiredService<ILiveTypingService>())));
 
+        services.AddSingleton<Lazy<Core.Integrations.IIntegrationGate>>(sp =>
+            new Lazy<Core.Integrations.IIntegrationGate>(
+                () => sp.GetRequiredService<Core.Integrations.IIntegrationGate>()));
         services.AddSingleton<IOscSender, OscSenderService>();
         services.AddSingleton<Core.Vrc.IAvatarParameterSink>(sp => new Core.Vrc.AvatarParameterRouter(
             sp.GetRequiredService<IOscSender>(),

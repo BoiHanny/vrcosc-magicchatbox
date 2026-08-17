@@ -1,4 +1,5 @@
 using MagicChatbox.Scope;
+using MagicChatbox.Vocabulary;
 using System;
 using System.Collections.Generic;
 
@@ -61,7 +62,11 @@ public static class ScopeStarterGuards
 
     private static ScopeGroup AllowedBy(string configName) =>
         ScopeGroup.Any(
-            new ScopePredicate(ScopeFactKey.Parameter(ConfigPrefix + configName), ScopeOperator.IsNotLive, default),
+            new ScopePredicate(
+                ScopeFactKey.Parameter(ConfigPrefix + configName),
+                ScopeOperator.IsNotLive,
+                SignalKind.Bool,
+                "false"),
             ScopePredicate.IsOn(ConfigPrefix + configName));
 
     public static string NextId(IEnumerable<ScopeRule> existing)

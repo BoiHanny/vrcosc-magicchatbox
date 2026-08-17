@@ -64,7 +64,7 @@ public partial class ScopePredicateRowViewModel : ObservableObject
     public bool NeedsValue => Operator.Op is not (ScopeOperator.IsLive or ScopeOperator.IsNotLive);
 
     public ScopePredicate ToPredicate() =>
-        new(Fact?.Key ?? ScopeFactKey.AvatarId, Operator.Op, ValueFor(Text));
+        ScopePredicate.Of(Fact?.Key ?? ScopeFactKey.AvatarId, Operator.Op, ValueFor(Text));
 
     private static SignalValue ValueFor(string text)
     {

@@ -150,11 +150,11 @@ public class ScopeEvaluatorTests
 
         Assert.Equal(
             ScopeOutcome.False,
-            ScopeEvaluator.Evaluate(ScopeGroup.All(new ScopePredicate(ScopeFactKey.WorldId, ScopeOperator.IsLive, default)), dark));
+            ScopeEvaluator.Evaluate(ScopeGroup.All(ScopePredicate.Of(ScopeFactKey.WorldId, ScopeOperator.IsLive, default)), dark));
 
         Assert.Equal(
             ScopeOutcome.True,
-            ScopeEvaluator.Evaluate(ScopeGroup.All(new ScopePredicate(ScopeFactKey.WorldId, ScopeOperator.IsNotLive, default)), dark));
+            ScopeEvaluator.Evaluate(ScopeGroup.All(ScopePredicate.Of(ScopeFactKey.WorldId, ScopeOperator.IsNotLive, default)), dark));
     }
 
     [Fact]
@@ -198,7 +198,7 @@ public class ScopeEvaluatorTests
         Assert.Equal(
             ScopeOutcome.True,
             ScopeEvaluator.Evaluate(
-                ScopeGroup.All(new ScopePredicate(ScopeFactKey.WorldName, ScopeOperator.Contains, SignalValue.Text("BLACK"))),
+                ScopeGroup.All(ScopePredicate.Of(ScopeFactKey.WorldName, ScopeOperator.Contains, SignalValue.Text("BLACK"))),
                 facts));
     }
 
@@ -225,7 +225,7 @@ public class ScopeEvaluatorTests
         Assert.Equal(
             expected,
             ScopeEvaluator.Evaluate(
-                ScopeGroup.All(new ScopePredicate(ScopeFactKey.Parameter("HR"), op, SignalValue.Float(against))),
+                ScopeGroup.All(ScopePredicate.Of(ScopeFactKey.Parameter("HR"), op, SignalValue.Float(against))),
                 facts));
     }
 

@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using System.Globalization;
 using MagicChatbox.Vocabulary;
 
 namespace MagicChatbox.Scope;
@@ -57,20 +58,73 @@ public enum ScopeOperator : byte
     InGroup = 9,
 }
 
-/// <summary>One test against one fact.</summary>
-public sealed record ScopePredicate(ScopeFactKey Key, ScopeOperator Op, SignalValue Value)
+/// <summary>
+/// One test against one fact.
+/// </summary>
+/// <remarks>
+/// <b>The value is stored as a kind and a string rather than as a <see cref="SignalValue"/>, and that is
+/// about surviving the disk.</b> <c>SignalValue</c> is a struct union whose payload lives in private
+/// fields with no settable member; a general-purpose serializer writes only its <c>Kind</c> and reads
+/// back the default, which is <c>Bool false</c> — so every guard would silently come back reading
+/// <c>avatar.id is off</c> after a restart while still looking correct on screen. Two ordinary members
+/// cannot do that, and they make the saved file legible besides.
+/// </remarks>
+public sealed record ScopePredicate(ScopeFactKey Key, ScopeOperator Op, SignalKind ValueKind, string ValueText)
 {
+    /// <summary>The comparison value, rebuilt from the two stored members.</summary>
+    public SignalValue Value => ScopeValues.From(ValueKind, ValueText);
+
+    public static ScopePredicate Of(ScopeFactKey key, ScopeOperator op, SignalValue value) =>
+        new(key, op, value.Kind, ScopeValues.TextOf(value));
+
     public static ScopePredicate Is(ScopeFactKey key, string text) =>
-        new(key, ScopeOperator.Equals, SignalValue.Text(text));
+        new(key, ScopeOperator.Equals, SignalKind.Text, text ?? string.Empty);
 
     public static ScopePredicate IsNot(ScopeFactKey key, string text) =>
-        new(key, ScopeOperator.NotEquals, SignalValue.Text(text));
+        new(key, ScopeOperator.NotEquals, SignalKind.Text, text ?? string.Empty);
 
     public static ScopePredicate InGroup(ScopeFactKey key, string groupId) =>
-        new(key, ScopeOperator.InGroup, SignalValue.Text(groupId));
+        new(key, ScopeOperator.InGroup, SignalKind.Text, groupId ?? string.Empty);
 
     public static ScopePredicate IsOn(string parameterName) =>
-        new(ScopeFactKey.Parameter(parameterName), ScopeOperator.Equals, SignalValue.Bool(true));
+        new(ScopeFactKey.Parameter(parameterName), ScopeOperator.Equals, SignalKind.Bool, "true");
+}
+
+/// <summary>Moves a <see cref="SignalValue"/> to and from the two members a predicate stores.</summary>
+public static class ScopeValues
+{
+    public static string TextOf(SignalValue value) => value.Kind switch
+    {
+        SignalKind.Bool => value.AsBool() ? "true" : "false",
+        SignalKind.Int => value.AsInt().ToString(CultureInfo.InvariantCulture),
+        SignalKind.Float => value.AsFloat().ToString("R", CultureInfo.InvariantCulture),
+        SignalKind.Text => value.AsText(),
+    };
+
+    public static SignalValue From(SignalKind kind, string? text)
+    {
+        string raw = text ?? string.Empty;
+
+        switch (kind)
+        {
+            case SignalKind.Bool:
+                return SignalValue.Bool(
+                    bool.TryParse(raw, out bool flag)
+                        ? flag
+                        : string.Equals(raw, "on", StringComparison.OrdinalIgnoreCase));
+
+            case SignalKind.Int:
+                return SignalValue.Int(
+                    long.TryParse(raw, NumberStyles.Integer, CultureInfo.InvariantCulture, out long whole) ? whole : 0L);
+
+            case SignalKind.Float:
+                return SignalValue.Float(
+                    float.TryParse(raw, NumberStyles.Float, CultureInfo.InvariantCulture, out float number) ? number : 0f);
+
+            default:
+                return SignalValue.Text(raw);
+        }
+    }
 }
 
 /// <summary>
