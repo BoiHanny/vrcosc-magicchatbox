@@ -119,6 +119,7 @@ public partial class AvatarPageViewModel : ObservableObject
     private readonly Dictionary<string, Avatar.AvatarControlRowViewModel> _rows = new(StringComparer.Ordinal);
     private string _rowsSignature = string.Empty;
     private string _globalsAppliedTo = string.Empty;
+    private string _automaticAppliedTo = string.Empty;
 
     public AvatarPageViewModel(
         ISettingsProvider<VrcBridgeSettings> settingsProvider,
@@ -223,6 +224,7 @@ public partial class AvatarPageViewModel : ObservableObject
         CanImportSavedState = CanCapturePreset && AvatarId.Length > 0 && _localAvatarData.Exists;
 
         ApplyGlobalsOnceForThisAvatar(bridge, schema);
+        ApplyAutomaticOnceForThisAvatar(bridge, schema);
     }
 
     private void RebuildReadiness(Services.Vrc.VrcBridgeModule bridge, AvatarSchemaSnapshot schema, bool avatarKnown)
@@ -285,7 +287,7 @@ public partial class AvatarPageViewModel : ObservableObject
             Readiness.Add(row);
     }
 
-    private string PresetKey => AvatarId.Length > 0 ? AvatarId : AvatarName;
+    private string PresetKey => AvatarId;
 
     private void RebuildPresets()
     {
@@ -852,9 +854,9 @@ public partial class AvatarPageViewModel : ObservableObject
         if (string.Equals(_globalsAppliedTo, AvatarId, StringComparison.Ordinal))
             return;
 
-        _globalsAppliedTo = AvatarId;
-
         string outcome = ApplyGlobalsTo(bridge, manual: false);
+
+        _globalsAppliedTo = AvatarId;
 
         if (outcome.Length > 0)
             GlobalsStatus = outcome;
@@ -894,7 +896,7 @@ public partial class AvatarPageViewModel : ObservableObject
 
         if (schema.IsEmpty || PresetKey.Length == 0)
         {
-            PresetStatus = "Waiting to see your avatar.";
+            PresetStatus = "Still reading this avatar. A look is saved against the avatar it came from, so there is nothing to save it under yet.";
             return;
         }
 
@@ -928,7 +930,16 @@ public partial class AvatarPageViewModel : ObservableObject
         if (preset == null || bridge == null)
             return;
 
-        PresetApplyPlan plan = AvatarPresetPlanner.Plan(preset, bridge.Schema.Current);
+        AvatarSchemaSnapshot current = bridge.Schema.Current;
+
+        if (current.IsEmpty)
+        {
+            PresetRefusals.Clear();
+            PresetStatus = "Still reading this avatar. Nothing was sent — try again in a moment.";
+            return;
+        }
+
+        PresetApplyPlan plan = AvatarPresetPlanner.Plan(preset, current);
 
         PresetRefusals.Clear();
         foreach (PresetApplyRow row in plan.Rows.Where(r => r.Outcome != PresetOutcome.Carried))
@@ -947,6 +958,59 @@ public partial class AvatarPageViewModel : ObservableObject
             : string.Empty;
 
         PresetStatus = $"\"{preset.Name}\": {plan.Summary}.{estimate}";
+    }
+
+    [RelayCommand]
+    private void WearAutomatically(AvatarPreset? preset)
+    {
+        if (preset == null || preset.AvatarId.Length == 0)
+            return;
+
+        ObservableCollection<AvatarPreset> stored = _presetsProvider.Value.Presets;
+        bool turningOn = !preset.Automatic;
+
+        for (int i = 0; i < stored.Count; i++)
+        {
+            if (!string.Equals(stored[i].AvatarId, preset.AvatarId, StringComparison.Ordinal))
+                continue;
+
+            bool wanted = turningOn && ReferenceEquals(stored[i], preset);
+
+            if (stored[i].Automatic != wanted)
+                stored[i] = stored[i] with { Automatic = wanted };
+        }
+
+        _presetsProvider.Save();
+        RebuildPresets();
+
+        PresetStatus = turningOn
+            ? $"\"{preset.Name}\" goes on by itself whenever you put this avatar on."
+            : $"\"{preset.Name}\" no longer goes on by itself.";
+    }
+
+    private void ApplyAutomaticOnceForThisAvatar(Services.Vrc.VrcBridgeModule bridge, AvatarSchemaSnapshot schema)
+    {
+        if (schema.IsEmpty || AvatarId.Length == 0)
+            return;
+
+        if (string.Equals(_automaticAppliedTo, AvatarId, StringComparison.Ordinal))
+            return;
+
+        AvatarPreset? automatic = Presets.FirstOrDefault(p => p.Automatic);
+
+        _automaticAppliedTo = AvatarId;
+
+        if (automatic == null)
+            return;
+
+        PresetApplyPlan plan = AvatarPresetPlanner.Plan(automatic, schema);
+
+        if (plan.IsEmpty)
+            return;
+
+        AvatarPresetPlanner.Publish(plan, bridge.Pump);
+
+        PresetStatus = $"Put \"{automatic.Name}\" on for you: {plan.Summary}.";
     }
 
     [RelayCommand]

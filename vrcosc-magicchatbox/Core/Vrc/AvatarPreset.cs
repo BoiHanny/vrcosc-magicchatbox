@@ -24,6 +24,8 @@ public sealed record AvatarPreset(
 {
     public double? EyeHeight { get; init; }
 
+    public bool Automatic { get; init; }
+
     public int Count => Values.Count;
 }
 

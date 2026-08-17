@@ -398,6 +398,13 @@
                                                 Style="{StaticResource Status_Button_style}" />
                                             <Button
                                                 Margin="6,0,0,0"
+                                                Command="{Binding DataContext.WearAutomaticallyCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                CommandParameter="{Binding}"
+                                                Content="{Binding Automatic, Converter={StaticResource BoolToStarConverter}}"
+                                                Style="{StaticResource Status_Button_style}"
+                                                ToolTip="Put this look on by itself whenever you wear this avatar" />
+                                            <Button
+                                                Margin="6,0,0,0"
                                                 Command="{Binding DataContext.DeletePresetCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
                                                 CommandParameter="{Binding}"
                                                 Content="Forget"
