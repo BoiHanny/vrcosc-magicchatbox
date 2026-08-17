@@ -106,7 +106,8 @@ public class AvatarPageVisualTests
             new StubSettingsProvider<IntegrationSettings>(),
             new StubSettingsProvider<AvatarPresetSettings>(),
             new Lazy<IModuleHost>(() => new BridgelessModuleHost()),
-            new NullParameterSink());
+            new RecordingParameterSink(),
+            StubConsentService.ApprovingAll());
 
         vm.AvatarName = "Test avatar";
         vm.ParameterSummary = "4 custom · 0 built-in · 3 you can drive";
@@ -160,7 +161,7 @@ public class AvatarPageVisualTests
         string name, string leaf, SignalKind kind, AvatarWidget widget, bool writable, double value = 1)
         => new(
             new AvatarControlRow(name, leaf, kind, writable, widget, value, HasValue: true, IsBuiltIn: false),
-            new NullParameterSink());
+            new RecordingParameterSink());
 
     private static IEnumerable<FrameworkElement> Descendants(DependencyObject root)
     {
@@ -178,15 +179,5 @@ public class AvatarPageVisualTests
         }
     }
 
-    private sealed class NullParameterSink : IAvatarParameterSink
-    {
-        public void Set(string name, bool value) { }
-
-        public void Set(string name, int value) { }
-
-        public void Set(string name, float value) { }
-
-        public void Pulse(string name, int milliseconds = 150) { }
-    }
 
 }

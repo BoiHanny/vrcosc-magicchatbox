@@ -259,6 +259,65 @@
                     </StackPanel>
                 </Border>
 
+                <Border Padding="0" Style="{StaticResource OptionCardStyle}">
+                    <StackPanel Margin="10">
+                        <TextBlock
+                            Margin="0,0,0,4"
+                            Style="{StaticResource OptionFieldLabelStyle}"
+                            Text="Layouts people share" />
+                        <TextBlock
+                            Margin="0,0,0,6"
+                            Style="{StaticResource OptionHelpTextStyle}"
+                            Text="A layout is a recipe, never values: which parameters an avatar needs and what each is for. Paste one somebody sent you to see whether the avatar you are wearing has what it asks for. It carries no addresses and nothing is written to your avatar by reading one."
+                            TextWrapping="Wrap" />
+                        <StackPanel Margin="0,0,0,6" Orientation="Horizontal">
+                            <TextBox
+                                x:Name="AvatarLayoutCode"
+                                Width="240"
+                                Padding="3,0"
+                                VerticalContentAlignment="Center"
+                                FontSize="{StaticResource FontSizeBody}"
+                                Text="{Binding LayoutCode, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                            <Button
+                                Margin="8,0,0,0"
+                                Command="{Binding CheckLayoutCodeCommand}"
+                                Content="Check it"
+                                Style="{StaticResource Status_Button_style}" />
+                            <Button
+                                Margin="6,0,0,0"
+                                Command="{Binding CopyLayoutCodeCommand}"
+                                Content="Make one"
+                                Style="{StaticResource Status_Button_style}" />
+                        </StackPanel>
+                        <TextBlock
+                            Style="{StaticResource OptionHelpTextStyle}"
+                            Text="{Binding LayoutShareStatus}"
+                            TextWrapping="Wrap" />
+                        <ItemsControl Margin="0,4,0,0" ItemsSource="{Binding LayoutMatches}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Grid Margin="0,1">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock
+                                            Grid.Column="0"
+                                            Style="{StaticResource OptionHelpTextStyle}"
+                                            Text="{Binding Name}"
+                                            ToolTip="{Binding Purpose}" />
+                                        <TextBlock
+                                            Grid.Column="1"
+                                            Margin="8,0,0,0"
+                                            Style="{StaticResource OptionHelpTextStyle}"
+                                            Text="{Binding Match}" />
+                                    </Grid>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </StackPanel>
+                </Border>
+
                 <Border
                     Padding="0"
                     Style="{StaticResource OptionCardStyle}"

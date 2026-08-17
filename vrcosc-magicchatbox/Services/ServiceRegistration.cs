@@ -260,7 +260,8 @@ public static class ServiceRegistration
             sp.GetRequiredService<ISettingsProvider<IntegrationSettings>>(),
             sp.GetRequiredService<ISettingsProvider<AvatarPresetSettings>>(),
             new Lazy<IModuleHost>(() => sp.GetRequiredService<IModuleHost>()),
-            sp.GetRequiredService<Core.Vrc.IAvatarParameterSink>()));
+            sp.GetRequiredService<Core.Vrc.IAvatarParameterSink>(),
+            sp.GetRequiredService<Core.Privacy.IPrivacyConsentService>()));
         services.AddSingleton<VrcBridgeSectionViewModel>(sp => new VrcBridgeSectionViewModel(
             sp.GetRequiredService<ISettingsProvider<VrcBridgeSettings>>(),
             sp.GetRequiredService<ISettingsProvider<AppSettings>>(),

@@ -9,8 +9,10 @@ using System.Threading.Tasks;
 using System.Windows.Threading;
 using vrcosc_magicchatbox.Classes.Modules;
 using vrcosc_magicchatbox.Core.Configuration;
+using vrcosc_magicchatbox.Core.Privacy;
 using vrcosc_magicchatbox.Core.Services;
 using vrcosc_magicchatbox.Core.Vrc;
+using vrcosc_magicchatbox.Core.Vrc.Sharing;
 
 namespace vrcosc_magicchatbox.ViewModels;
 
@@ -23,6 +25,7 @@ public partial class AvatarPageViewModel : ObservableObject
     private readonly ISettingsProvider<IntegrationSettings> _integrationsProvider;
     private readonly ISettingsProvider<AvatarPresetSettings> _presetsProvider;
     private readonly LocalAvatarDataReader _localAvatarData;
+    private readonly IPrivacyConsentService _consent;
     private readonly TaskScheduler _uiScheduler;
     private DispatcherTimer? _timer;
 
@@ -66,6 +69,12 @@ public partial class AvatarPageViewModel : ObservableObject
 
     [ObservableProperty] private bool _canImportSavedState;
 
+    [ObservableProperty] private string _layoutCode = string.Empty;
+
+    [ObservableProperty] private string _layoutShareStatus = string.Empty;
+
+    public ObservableCollection<LayoutMatchRow> LayoutMatches { get; } = new();
+
     [ObservableProperty] private string _speechText = string.Empty;
 
     [ObservableProperty]
@@ -98,6 +107,7 @@ public partial class AvatarPageViewModel : ObservableObject
         ISettingsProvider<AvatarPresetSettings> presetsProvider,
         Lazy<IModuleHost> modules,
         IAvatarParameterSink sink,
+        IPrivacyConsentService consent,
         LocalAvatarDataReader? localAvatarData = null)
     {
         _settingsProvider = settingsProvider;
@@ -105,6 +115,7 @@ public partial class AvatarPageViewModel : ObservableObject
         _presetsProvider = presetsProvider;
         _modules = modules;
         _sink = sink;
+        _consent = consent;
         _localAvatarData = localAvatarData ?? new LocalAvatarDataReader();
 
         _uiScheduler = SynchronizationContext.Current != null
@@ -267,6 +278,76 @@ public partial class AvatarPageViewModel : ObservableObject
         Presets.Clear();
         foreach (AvatarPreset preset in mine)
             Presets.Add(preset);
+    }
+
+    [RelayCommand]
+    private void CheckLayoutCode()
+    {
+        LayoutMatches.Clear();
+
+        if (!_consent.IsApproved(PrivacyHook.SharedLayoutImport))
+        {
+            LayoutShareStatus =
+                "Reading a layout somebody sent you is switched off. Turn on Shared Layouts under Options, Privacy.";
+            return;
+        }
+
+        var bridge = _modules.Value.VrcBridge;
+        AvatarSchemaSnapshot schema = bridge?.Schema.Current ?? AvatarSchemaSnapshot.Empty;
+
+        LayoutParseResult parsed = LayoutCodec.FromCode(LayoutCode);
+
+        if (!parsed.Ok)
+        {
+            LayoutShareStatus = parsed.Detail;
+            return;
+        }
+
+        LayoutDocument document = parsed.Document!;
+
+        if (schema.IsEmpty)
+        {
+            LayoutShareStatus = $"\"{document.Title}\" read. Waiting to see your avatar before checking it.";
+            return;
+        }
+
+        LayoutMatchReport report = LayoutCodec.Match(document, schema);
+
+        foreach (LayoutMatchRow row in report.Rows.Where(r => r.Match != LayoutMatch.Present))
+            LayoutMatches.Add(row);
+
+        LayoutShareStatus = report.Satisfied
+            ? $"\"{document.Title}\": this avatar has everything it needs ({report.Present} of {report.Rows.Count})."
+            : $"\"{document.Title}\": this avatar is missing {report.MissingRequired} of the {report.Rows.Count} it needs.";
+    }
+
+    [RelayCommand]
+    private void CopyLayoutCode()
+    {
+        var document = new LayoutDocument
+        {
+            Title = "MagicChatbox controls",
+            Description = "What an avatar needs for MagicChatbox to reach it.",
+            Author = string.Empty,
+            Tags = { "magicchatbox" },
+        };
+
+        foreach (AvatarParameter parameter in AvatarParameterContract.Parameters)
+        {
+            if (parameter.Tier is not (AvatarParameterTier.Control or AvatarParameterTier.Config))
+                continue;
+
+            document.Requires.Add(new LayoutRequirement
+            {
+                Name = parameter.Name,
+                Type = parameter.Kind == AvatarParameterKind.Pulse ? "Bool" : parameter.Kind.ToString(),
+                Optional = parameter.Tier == AvatarParameterTier.Config,
+                Purpose = parameter.Source,
+            });
+        }
+
+        LayoutCode = LayoutCodec.ToCode(document);
+        LayoutShareStatus = $"A code for {document.Requires.Count} controls. Copy it to somebody who wants the same setup.";
     }
 
     private void DescribeLibraryAsync()
