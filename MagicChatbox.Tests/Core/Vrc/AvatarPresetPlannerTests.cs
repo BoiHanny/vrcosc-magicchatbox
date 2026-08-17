@@ -187,11 +187,23 @@ public class AvatarPresetPlannerTests
     }
 
     [Fact]
-    public void The_estimate_is_honest_about_how_slow_a_big_restore_is()
+    public void A_big_restore_is_no_longer_slow_enough_to_warn_about()
     {
-        // 8 sends per 50ms tick is 160 a second, so a 656 parameter avatar takes about four seconds
-        // and starves heart rate while it runs. This cannot be presented as instant.
-        TimeSpan estimate = AvatarPresetPlanner.Estimate(656);
+        // This used to assert about four seconds for a 656 parameter avatar, which was true while the
+        // pump sent 8 messages per 50 ms tick. That budget was the reason a saved look took over a
+        // second to put on, and it is gone: the pump drains what is pending as soon as it is
+        // published, so there is nothing left to warn somebody about.
+        Assert.Equal(TimeSpan.Zero, AvatarPresetPlanner.Estimate(656));
+    }
+
+    [Fact]
+    public void The_estimate_is_still_honest_when_a_ceiling_is_configured()
+    {
+        // The budget remains available for anybody who needs to throttle a slow link, and while it is
+        // set the estimate has to keep telling the truth.
+        TimeSpan estimate = AvatarPresetPlanner.Estimate(
+            656,
+            new AvatarParameterPumpOptions { MaxSendsPerTick = 8, TickInterval = TimeSpan.FromMilliseconds(50) });
 
         Assert.InRange(estimate.TotalSeconds, 3.5, 5.0);
     }

@@ -13,11 +13,11 @@ public sealed record AvatarParameterPumpOptions
 {
     public TimeSpan TickInterval { get; init; } = TimeSpan.FromMilliseconds(50);
 
-    public TimeSpan DefaultMinInterval { get; init; } = TimeSpan.FromMilliseconds(100);
+    public TimeSpan DefaultMinInterval { get; init; } = TimeSpan.Zero;
 
     public TimeSpan KeepAlive { get; init; } = TimeSpan.FromSeconds(11);
 
-    public int MaxSendsPerTick { get; init; } = 8;
+    public int MaxSendsPerTick { get; init; }
 }
 
 public readonly record struct AvatarParameterPumpStats(
@@ -47,6 +47,7 @@ public sealed class AvatarParameterPump : IDisposable
 
     private readonly AvatarParameterPumpOptions _options;
     private readonly ConcurrentDictionary<string, Slot> _slots = new(StringComparer.Ordinal);
+    private readonly SemaphoreSlim _signal = new(0, 1);
     private readonly object _lifecycle = new();
 
     private IVrcEgress? _egress;
@@ -198,6 +199,35 @@ public sealed class AvatarParameterPump : IDisposable
             cts?.Dispose();
     }
 
+    public void ForgetAvatar(Func<string, bool>? reassert = null)
+    {
+        foreach (KeyValuePair<string, Slot> entry in _slots)
+        {
+            if (reassert != null && reassert(entry.Key))
+            {
+                Slot keep = entry.Value;
+
+                lock (keep.Gate)
+                {
+                    if (keep.HasSent && !keep.HasPending)
+                    {
+                        keep.Pending = keep.Sent;
+                        keep.HasPending = true;
+                    }
+
+                    keep.HasSent = false;
+                    keep.LastSentTicks = 0;
+                }
+
+                continue;
+            }
+
+            _slots.TryRemove(entry.Key, out _);
+        }
+
+        Wake();
+    }
+
     public void Reset()
     {
         foreach (Slot slot in _slots.Values)
@@ -246,20 +276,44 @@ public sealed class AvatarParameterPump : IDisposable
         }
 
         Interlocked.Increment(ref _published);
+
+        Wake();
     }
 
     private async Task RunAsync(CancellationToken token)
     {
-        using var timer = new PeriodicTimer(_options.TickInterval);
-
         try
         {
-            while (await timer.WaitForNextTickAsync(token).ConfigureAwait(false))
+            while (!token.IsCancellationRequested)
             {
+                try
+                {
+                    await _signal.WaitAsync(_options.TickInterval, token).ConfigureAwait(false);
+                }
+                catch (OperationCanceledException)
+                {
+                    return;
+                }
+
                 await DrainAsync(token).ConfigureAwait(false);
             }
         }
         catch (OperationCanceledException)
+        {
+        }
+    }
+
+    private void Wake()
+    {
+        try
+        {
+            if (_signal.CurrentCount == 0)
+                _signal.Release();
+        }
+        catch (SemaphoreFullException)
+        {
+        }
+        catch (ObjectDisposedException)
         {
         }
     }
@@ -279,7 +333,7 @@ public sealed class AvatarParameterPump : IDisposable
         names.Sort(StringComparer.Ordinal);
 
         long now = Stopwatch.GetTimestamp();
-        int budget = Math.Max(1, _options.MaxSendsPerTick);
+        int budget = _options.MaxSendsPerTick > 0 ? _options.MaxSendsPerTick : names.Count;
         int start = _cursor % names.Count;
 
         for (int offset = 0; offset < names.Count && budget > 0; offset++)

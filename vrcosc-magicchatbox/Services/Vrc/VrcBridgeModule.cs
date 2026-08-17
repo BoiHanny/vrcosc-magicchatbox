@@ -314,7 +314,7 @@ public partial class VrcBridgeModule : ObservableObject, IModule
             _schema.Clear();
             _receiver.ResetForNewAvatar();
             _config.Reset();
-            _pump.Reset();
+            _pump.ForgetAvatar(AvatarParameterContract.IsKnownName);
 
             StatusMessage = string.IsNullOrEmpty(invalidated.AvatarId)
                 ? "Avatar changed"

@@ -162,6 +162,11 @@ public static class AvatarParameterContract
 
     public static bool IsKnownAddress(string address) => KnownAddresses.Contains(address);
 
+    private static readonly HashSet<string> KnownNames =
+        new(Parameters.Select(p => p.Name), StringComparer.Ordinal);
+
+    public static bool IsKnownName(string name) => KnownNames.Contains(name);
+
     public static IEnumerable<AvatarParameter> InTier(AvatarParameterTier tier)
         => Parameters.Where(p => p.Tier == tier);
 
