@@ -35,6 +35,8 @@ public partial class AvatarPageViewModel : ObservableObject
 
     public VrcBridgeSettings Settings => _settingsProvider.Value;
 
+    public Sections.ScopeSectionViewModel? Scope { get; }
+
     [ObservableProperty] private AvatarPageRung _rung = AvatarPageRung.BridgeOff;
     [ObservableProperty] private string _rungMessage = string.Empty;
     [ObservableProperty] private bool _bridgeIsOff = true;
@@ -134,8 +136,10 @@ public partial class AvatarPageViewModel : ObservableObject
         IPrivacyConsentService consent,
         LocalAvatarDataReader? localAvatarData = null,
         Services.Scope.ScopeRuntime? scope = null,
-        Services.Vrc.AvatarPresetAutopilot? autopilot = null)
+        Services.Vrc.AvatarPresetAutopilot? autopilot = null,
+        Sections.ScopeSectionViewModel? scopeSection = null)
     {
+        Scope = scopeSection;
         _autopilot = autopilot;
         _settingsProvider = settingsProvider;
         _integrationsProvider = integrationsProvider;

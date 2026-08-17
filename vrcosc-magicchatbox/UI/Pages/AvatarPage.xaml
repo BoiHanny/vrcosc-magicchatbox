@@ -4,6 +4,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:sections="clr-namespace:vrcosc_magicchatbox.UI.Pages.Sections"
     xmlns:vm="clr-namespace:vrcosc_magicchatbox.ViewModels"
     d:DataContext="{d:DesignInstance Type=vm:AvatarPageViewModel,
                                      IsDesignTimeCreatable=False}"
@@ -648,7 +649,8 @@
                         <TextBlock
                             Margin="0,0,0,4"
                             Style="{StaticResource OptionFieldLabelStyle}"
-                            Text="What's on right now" />
+                            Text="What's on right now"
+                            x:Name="WhatsOnHeader" />
                         <TextBlock
                             Margin="0,0,0,6"
                             Style="{StaticResource OptionHelpTextStyle}"
@@ -671,6 +673,12 @@
                                 </DataTemplate>
                             </ItemsControl.ItemTemplate>
                         </ItemsControl>
+                    </StackPanel>
+                </Border>
+
+                <Border Padding="0" Style="{StaticResource OptionCardStyle}">
+                    <StackPanel Margin="10">
+                        <sections:ScopeSection DataContext="{Binding Scope}" />
                     </StackPanel>
                 </Border>
 

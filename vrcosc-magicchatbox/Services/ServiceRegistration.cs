@@ -264,7 +264,12 @@ public static class ServiceRegistration
             sp.GetRequiredService<Core.Privacy.IPrivacyConsentService>(),
             localAvatarData: null,
             sp.GetRequiredService<Services.Scope.ScopeRuntime>(),
-            sp.GetRequiredService<Services.Vrc.AvatarPresetAutopilot>()));
+            sp.GetRequiredService<Services.Vrc.AvatarPresetAutopilot>(),
+            sp.GetRequiredService<ScopeSectionViewModel>()));
+        services.AddSingleton<ScopeSectionViewModel>(sp => new ScopeSectionViewModel(
+            sp.GetRequiredService<ISettingsProvider<ScopeSettings>>(),
+            sp.GetRequiredService<Services.Scope.ScopeRuntime>(),
+            new Lazy<IModuleHost>(() => sp.GetRequiredService<IModuleHost>())));
         services.AddSingleton<VrcBridgeSectionViewModel>(sp => new VrcBridgeSectionViewModel(
             sp.GetRequiredService<ISettingsProvider<VrcBridgeSettings>>(),
             sp.GetRequiredService<ISettingsProvider<AppSettings>>(),
