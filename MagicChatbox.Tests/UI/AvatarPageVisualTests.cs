@@ -127,6 +127,10 @@ public class AvatarPageVisualTests
             "Toggles/Gone", PresetOutcome.NotOnThisAvatar, SignalKind.Bool, 1, "Toggles/Gone"));
         vm.PresetStatus = "\"Club\": 1 to restore, 1 not on this avatar.";
 
+        vm.SharedAcrossAvatars.Add(new SharedParameter("Go/Locomotion", 180, 0));
+        vm.Globals.Add(new AvatarPresetValue("EyeTrackingActive", SignalKind.Bool, 1));
+        vm.GlobalsStatus = "Set 1 of your 1 defaults on this avatar.";
+
         vm.ConfigChanges.Add(new AvatarConfigChange(
             AvatarConfigBindingRegistry.HeartRate, "HeartRate is switched off while you wear this avatar."));
         vm.HasConfigChanges = true;

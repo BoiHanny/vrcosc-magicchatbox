@@ -1,5 +1,7 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using MagicChatbox.Vocabulary;
+using MagicChatbox.Vrc;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -100,6 +102,7 @@ public partial class AvatarPageViewModel : ObservableObject
     private readonly IAvatarParameterSink _sink;
     private readonly Dictionary<string, Avatar.AvatarControlRowViewModel> _rows = new(StringComparer.Ordinal);
     private string _rowsSignature = string.Empty;
+    private string _globalsAppliedTo = string.Empty;
 
     public AvatarPageViewModel(
         ISettingsProvider<VrcBridgeSettings> settingsProvider,
@@ -196,9 +199,12 @@ public partial class AvatarPageViewModel : ObservableObject
         RebuildRecent(bridge);
         RebuildReadiness(bridge, schema, identity.IsKnown);
         RebuildPresets();
+        RebuildGlobals();
 
         CanCapturePreset = !schema.IsEmpty && PresetKey.Length > 0;
         CanImportSavedState = CanCapturePreset && AvatarId.Length > 0 && _localAvatarData.Exists;
+
+        ApplyGlobalsOnceForThisAvatar(bridge, schema);
     }
 
     private void RebuildReadiness(Services.Vrc.VrcBridgeModule bridge, AvatarSchemaSnapshot schema, bool avatarKnown)
@@ -350,6 +356,12 @@ public partial class AvatarPageViewModel : ObservableObject
         LayoutShareStatus = $"A code for {document.Requires.Count} controls. Copy it to somebody who wants the same setup.";
     }
 
+    private sealed record LibrarySummary(string Text, IReadOnlyList<SharedParameter> Shared, int Total)
+    {
+        public static readonly LibrarySummary Nothing = new(
+            "VRChat has not saved anything on this PC yet.", Array.Empty<SharedParameter>(), 0);
+    }
+
     private void DescribeLibraryAsync()
     {
         LocalAvatarDataReader reader = _localAvatarData;
@@ -359,25 +371,36 @@ public partial class AvatarPageViewModel : ObservableObject
             try
             {
                 if (!reader.Exists)
-                    return "VRChat has not saved anything on this PC yet.";
+                    return LibrarySummary.Nothing;
 
                 IReadOnlyList<LocalAvatarState> all = reader.ReadAll();
 
                 if (all.Count == 0)
-                    return "VRChat has not saved anything on this PC yet.";
+                    return LibrarySummary.Nothing;
 
                 int values = all.Sum(a => a.Count);
 
-                return $"VRChat has saved {values:N0} settings across {all.Count:N0} avatars on this PC. "
-                    + "It keeps them per machine, so they do not follow you to another one.";
+                return new LibrarySummary(
+                    $"VRChat has saved {values:N0} settings across {all.Count:N0} avatars on this PC. "
+                        + "It keeps them per machine, so they do not follow you to another one.",
+                    AvatarLibraryIndex.Shared(all),
+                    all.Count);
             }
             catch (Exception ex)
             {
                 Classes.DataAndSecurity.Logging.WriteException(ex, MSGBox: false);
-                return string.Empty;
+                return new LibrarySummary(string.Empty, Array.Empty<SharedParameter>(), 0);
             }
         }).ContinueWith(
-            task => LibraryText = task.Result,
+            task =>
+            {
+                LibraryText = task.Result.Text;
+                LibraryAvatarCount = task.Result.Total;
+
+                SharedAcrossAvatars.Clear();
+                foreach (SharedParameter shared in task.Result.Shared.Take(12))
+                    SharedAcrossAvatars.Add(shared);
+            },
             CancellationToken.None,
             TaskContinuationOptions.OnlyOnRanToCompletion,
             _uiScheduler);
@@ -431,6 +454,141 @@ public partial class AvatarPageViewModel : ObservableObject
         PresetStatus = preset.Count == saved.Count
             ? $"Took all {preset.Count} settings VRChat saved for this avatar as \"{preset.Name}\"."
             : $"Took {preset.Count} of the {saved.Count} settings VRChat saved for this avatar as \"{preset.Name}\". The rest cannot be written back.";
+    }
+
+    public ObservableCollection<SharedParameter> SharedAcrossAvatars { get; } = new();
+
+    public ObservableCollection<AvatarPresetValue> Globals { get; } = new();
+
+    [ObservableProperty] private string _globalsStatus = string.Empty;
+
+    [ObservableProperty] private int _libraryAvatarCount;
+
+    public bool ApplyGlobalsOnAvatarChange
+    {
+        get => _presetsProvider.Value.ApplyGlobalsOnAvatarChange;
+        set
+        {
+            if (_presetsProvider.Value.ApplyGlobalsOnAvatarChange == value)
+                return;
+
+            _presetsProvider.Value.ApplyGlobalsOnAvatarChange = value;
+            _presetsProvider.Save();
+            OnPropertyChanged();
+        }
+    }
+
+    [RelayCommand]
+    private void RememberEverywhere(SharedParameter? shared)
+    {
+        var bridge = _modules.Value.VrcBridge;
+
+        if (shared == null || bridge == null)
+            return;
+
+        AvatarSchemaSnapshot schema = bridge.Schema.Current;
+
+        VrcParameterDeclaration declaration = schema.Parameters
+            .FirstOrDefault(p => string.Equals(
+                EcosystemSignature.Normalize(p.Name), EcosystemSignature.Normalize(shared.Name), StringComparison.Ordinal));
+
+        SignalKind kind = declaration.Name == null ? SignalKind.Bool : declaration.Kind;
+
+        double value = bridge.Senses.TryGetParameter(shared.Name, out AvatarSense sense)
+            ? sense.Value
+            : shared.MostCommonValue;
+
+        RemoveGlobal(shared.Name);
+        _presetsProvider.Value.Globals.Add(new AvatarPresetValue(shared.Name, kind, value));
+        _presetsProvider.Save();
+
+        RebuildGlobals();
+        GlobalsStatus = $"\"{shared.Name}\" is now part of your defaults.";
+    }
+
+    [RelayCommand]
+    private void ForgetEverywhere(AvatarPresetValue? value)
+    {
+        if (value == null)
+            return;
+
+        RemoveGlobal(value.Name);
+        _presetsProvider.Save();
+
+        RebuildGlobals();
+        GlobalsStatus = $"\"{value.Name}\" is no longer one of your defaults.";
+    }
+
+    [RelayCommand]
+    private void ApplyGlobals()
+    {
+        var bridge = _modules.Value.VrcBridge;
+        if (bridge == null)
+            return;
+
+        GlobalsStatus = ApplyGlobalsTo(bridge, manual: true);
+    }
+
+    private string ApplyGlobalsTo(Services.Vrc.VrcBridgeModule bridge, bool manual)
+    {
+        if (Globals.Count == 0)
+            return manual ? "You have no defaults yet." : string.Empty;
+
+        AvatarSchemaSnapshot schema = bridge.Schema.Current;
+
+        if (schema.IsEmpty)
+            return manual ? "Waiting to see your avatar." : string.Empty;
+
+        var asPreset = new AvatarPreset(
+            "Defaults", AvatarId, AvatarName, DateTime.UtcNow, Globals.ToList());
+
+        PresetApplyPlan plan = AvatarPresetPlanner.Plan(asPreset, schema);
+
+        if (plan.IsEmpty)
+            return manual ? $"This avatar has none of your {Globals.Count} defaults." : string.Empty;
+
+        AvatarPresetPlanner.Publish(plan, bridge.Pump);
+
+        return $"Set {plan.Carried} of your {Globals.Count} defaults on this avatar.";
+    }
+
+    private void ApplyGlobalsOnceForThisAvatar(Services.Vrc.VrcBridgeModule bridge, AvatarSchemaSnapshot schema)
+    {
+        if (!ApplyGlobalsOnAvatarChange || schema.IsEmpty || AvatarId.Length == 0)
+            return;
+
+        if (string.Equals(_globalsAppliedTo, AvatarId, StringComparison.Ordinal))
+            return;
+
+        _globalsAppliedTo = AvatarId;
+
+        string outcome = ApplyGlobalsTo(bridge, manual: false);
+
+        if (outcome.Length > 0)
+            GlobalsStatus = outcome;
+    }
+
+    private void RemoveGlobal(string name)
+    {
+        ObservableCollection<AvatarPresetValue> globals = _presetsProvider.Value.Globals;
+
+        for (int i = globals.Count - 1; i >= 0; i--)
+        {
+            if (string.Equals(globals[i].Name, name, StringComparison.Ordinal))
+                globals.RemoveAt(i);
+        }
+    }
+
+    private void RebuildGlobals()
+    {
+        var stored = _presetsProvider.Value.Globals.ToList();
+
+        if (stored.Count == Globals.Count && stored.Zip(Globals).All(p => p.First == p.Second))
+            return;
+
+        Globals.Clear();
+        foreach (AvatarPresetValue value in stored)
+            Globals.Add(value);
     }
 
     [RelayCommand]

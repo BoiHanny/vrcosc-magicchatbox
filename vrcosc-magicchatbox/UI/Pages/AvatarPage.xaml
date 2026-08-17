@@ -264,6 +264,99 @@
                         <TextBlock
                             Margin="0,0,0,4"
                             Style="{StaticResource OptionFieldLabelStyle}"
+                            Text="The same on every avatar" />
+                        <TextBlock
+                            Margin="0,0,0,6"
+                            Style="{StaticResource OptionHelpTextStyle}"
+                            Text="Most parameter names belong to one avatar and cannot travel. Some do travel — locomotion, face tracking, the things a lot of avatars share — and these are the ones yours actually have in common. Pick the ones you always want set the same way."
+                            TextWrapping="Wrap" />
+
+                        <ItemsControl ItemsSource="{Binding SharedAcrossAvatars}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Grid Margin="0,2">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock
+                                            Grid.Column="0"
+                                            VerticalAlignment="Center"
+                                            Style="{StaticResource OptionHelpTextStyle}"
+                                            Text="{Binding Name}" />
+                                        <TextBlock
+                                            Grid.Column="1"
+                                            Margin="8,0"
+                                            VerticalAlignment="Center"
+                                            Style="{StaticResource OptionHelpTextStyle}"
+                                            Text="{Binding AvatarCount, StringFormat={}on {0} avatars}" />
+                                        <Button
+                                            Grid.Column="2"
+                                            Command="{Binding DataContext.RememberEverywhereCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                            CommandParameter="{Binding}"
+                                            Content="Always"
+                                            Style="{StaticResource Status_Button_style}" />
+                                    </Grid>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+
+                        <TextBlock
+                            Margin="0,8,0,2"
+                            Style="{StaticResource OptionFieldLabelStyle}"
+                            Text="Your defaults" />
+                        <ItemsControl ItemsSource="{Binding Globals}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Grid Margin="0,2">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock
+                                            Grid.Column="0"
+                                            VerticalAlignment="Center"
+                                            Style="{StaticResource OptionHelpTextStyle}"
+                                            Text="{Binding Name}"
+                                            ToolTip="{Binding Value}" />
+                                        <Button
+                                            Grid.Column="1"
+                                            Command="{Binding DataContext.ForgetEverywhereCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                            CommandParameter="{Binding}"
+                                            Content="Forget"
+                                            Style="{StaticResource Status_Button_style}" />
+                                    </Grid>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+
+                        <StackPanel Margin="0,6,0,0" Orientation="Horizontal">
+                            <Button
+                                Command="{Binding ApplyGlobalsCommand}"
+                                Content="Set them now"
+                                Style="{StaticResource Status_Button_style}" />
+                            <CheckBox
+                                x:Name="AvatarApplyGlobals_checkbox"
+                                Margin="10,0,0,0"
+                                VerticalAlignment="Center"
+                                IsChecked="{Binding ApplyGlobalsOnAvatarChange, Mode=TwoWay}">
+                                Set them whenever I change avatar
+                            </CheckBox>
+                        </StackPanel>
+                        <TextBlock
+                            Margin="0,4,0,0"
+                            Style="{StaticResource OptionHelpTextStyle}"
+                            Text="{Binding GlobalsStatus}"
+                            TextWrapping="Wrap" />
+                    </StackPanel>
+                </Border>
+
+                <Border Padding="0" Style="{StaticResource OptionCardStyle}">
+                    <StackPanel Margin="10">
+                        <TextBlock
+                            Margin="0,0,0,4"
+                            Style="{StaticResource OptionFieldLabelStyle}"
                             Text="Layouts people share" />
                         <TextBlock
                             Margin="0,0,0,6"

@@ -11,4 +11,10 @@ public partial class AvatarPresetSettings : VersionedSettings
     [ObservableProperty]
     [property: JsonProperty(ObjectCreationHandling = ObjectCreationHandling.Replace)]
     private ObservableCollection<AvatarPreset> _presets = new();
+
+    [ObservableProperty]
+    [property: JsonProperty(ObjectCreationHandling = ObjectCreationHandling.Replace)]
+    private ObservableCollection<AvatarPresetValue> _globals = new();
+
+    [ObservableProperty] private bool _applyGlobalsOnAvatarChange;
 }
