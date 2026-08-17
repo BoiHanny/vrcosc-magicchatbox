@@ -52,6 +52,42 @@ public static class AvatarPresetPlanner
             values);
     }
 
+    public static AvatarPreset FromSavedState(
+        string name,
+        AvatarIdentity identity,
+        LocalAvatarState saved,
+        AvatarSchemaSnapshot schema)
+    {
+        ArgumentNullException.ThrowIfNull(saved);
+        ArgumentNullException.ThrowIfNull(schema);
+
+        var declared = schema.Parameters.ToDictionary(
+            p => EcosystemSignature.Normalize(p.Name),
+            p => p,
+            StringComparer.Ordinal);
+
+        var values = new List<AvatarPresetValue>();
+
+        foreach (LocalAvatarValue value in saved.Values)
+        {
+            if (AvatarControlCatalog.IsVrchatOwned(value.Name))
+                continue;
+
+            if (!declared.TryGetValue(EcosystemSignature.Normalize(value.Name), out VrcParameterDeclaration declaration))
+                continue;
+
+            if (!declaration.Writable)
+                continue;
+
+            values.Add(new AvatarPresetValue(value.Name, declaration.Kind, value.Value));
+        }
+
+        return new AvatarPreset(name, identity.Id, identity.Name, DateTime.UtcNow, values)
+        {
+            EyeHeight = saved.HasEyeHeight ? saved.EyeHeight : null,
+        };
+    }
+
     public static PresetApplyPlan Plan(
         AvatarPreset preset,
         AvatarSchemaSnapshot schema,

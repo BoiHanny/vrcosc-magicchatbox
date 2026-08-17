@@ -4,6 +4,8 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Windows.Threading;
 using vrcosc_magicchatbox.Classes.Modules;
 using vrcosc_magicchatbox.Core.Configuration;
@@ -20,6 +22,8 @@ public partial class AvatarPageViewModel : ObservableObject
     private readonly ISettingsProvider<VrcBridgeSettings> _settingsProvider;
     private readonly ISettingsProvider<IntegrationSettings> _integrationsProvider;
     private readonly ISettingsProvider<AvatarPresetSettings> _presetsProvider;
+    private readonly LocalAvatarDataReader _localAvatarData;
+    private readonly TaskScheduler _uiScheduler;
     private DispatcherTimer? _timer;
 
     public VrcBridgeSettings Settings => _settingsProvider.Value;
@@ -58,6 +62,10 @@ public partial class AvatarPageViewModel : ObservableObject
 
     [ObservableProperty] private bool _canCapturePreset;
 
+    [ObservableProperty] private string _libraryText = string.Empty;
+
+    [ObservableProperty] private bool _canImportSavedState;
+
     [ObservableProperty] private string _speechText = string.Empty;
 
     [ObservableProperty]
@@ -89,13 +97,19 @@ public partial class AvatarPageViewModel : ObservableObject
         ISettingsProvider<IntegrationSettings> integrationsProvider,
         ISettingsProvider<AvatarPresetSettings> presetsProvider,
         Lazy<IModuleHost> modules,
-        IAvatarParameterSink sink)
+        IAvatarParameterSink sink,
+        LocalAvatarDataReader? localAvatarData = null)
     {
         _settingsProvider = settingsProvider;
         _integrationsProvider = integrationsProvider;
         _presetsProvider = presetsProvider;
         _modules = modules;
         _sink = sink;
+        _localAvatarData = localAvatarData ?? new LocalAvatarDataReader();
+
+        _uiScheduler = SynchronizationContext.Current != null
+            ? TaskScheduler.FromCurrentSynchronizationContext()
+            : TaskScheduler.Default;
     }
 
     public void Activate()
@@ -108,6 +122,7 @@ public partial class AvatarPageViewModel : ObservableObject
         _timer.Start();
 
         Refresh();
+        DescribeLibraryAsync();
     }
 
     public void Deactivate()
@@ -172,6 +187,7 @@ public partial class AvatarPageViewModel : ObservableObject
         RebuildPresets();
 
         CanCapturePreset = !schema.IsEmpty && PresetKey.Length > 0;
+        CanImportSavedState = CanCapturePreset && AvatarId.Length > 0 && _localAvatarData.Exists;
     }
 
     private void RebuildReadiness(Services.Vrc.VrcBridgeModule bridge, AvatarSchemaSnapshot schema, bool avatarKnown)
@@ -251,6 +267,89 @@ public partial class AvatarPageViewModel : ObservableObject
         Presets.Clear();
         foreach (AvatarPreset preset in mine)
             Presets.Add(preset);
+    }
+
+    private void DescribeLibraryAsync()
+    {
+        LocalAvatarDataReader reader = _localAvatarData;
+
+        Task.Run(() =>
+        {
+            try
+            {
+                if (!reader.Exists)
+                    return "VRChat has not saved anything on this PC yet.";
+
+                IReadOnlyList<LocalAvatarState> all = reader.ReadAll();
+
+                if (all.Count == 0)
+                    return "VRChat has not saved anything on this PC yet.";
+
+                int values = all.Sum(a => a.Count);
+
+                return $"VRChat has saved {values:N0} settings across {all.Count:N0} avatars on this PC. "
+                    + "It keeps them per machine, so they do not follow you to another one.";
+            }
+            catch (Exception ex)
+            {
+                Classes.DataAndSecurity.Logging.WriteException(ex, MSGBox: false);
+                return string.Empty;
+            }
+        }).ContinueWith(
+            task => LibraryText = task.Result,
+            CancellationToken.None,
+            TaskContinuationOptions.OnlyOnRanToCompletion,
+            _uiScheduler);
+    }
+
+    [RelayCommand]
+    private void ImportSavedState()
+    {
+        var bridge = _modules.Value.VrcBridge;
+        if (bridge == null)
+            return;
+
+        AvatarSchemaSnapshot schema = bridge.Schema.Current;
+
+        if (schema.IsEmpty || AvatarId.Length == 0)
+        {
+            PresetStatus = "Waiting to see your avatar.";
+            return;
+        }
+
+        LocalAvatarState? saved = _localAvatarData.TryRead(AvatarId);
+
+        if (saved == null)
+        {
+            PresetStatus = "VRChat has not saved anything for this avatar on this PC yet.";
+            return;
+        }
+
+        string name = NewPresetName.Trim();
+        if (name.Length == 0)
+            name = NextPresetName();
+
+        AvatarPreset preset = AvatarPresetPlanner.FromSavedState(
+            name,
+            new AvatarIdentity(PresetKey, AvatarName, bridge.Identity.Source),
+            saved,
+            schema);
+
+        if (preset.Count == 0)
+        {
+            PresetStatus = $"VRChat saved {saved.Count} settings for this avatar, but none of them can be written back.";
+            return;
+        }
+
+        _presetsProvider.Value.Presets.Add(preset);
+        _presetsProvider.Save();
+
+        NewPresetName = string.Empty;
+        RebuildPresets();
+
+        PresetStatus = preset.Count == saved.Count
+            ? $"Took all {preset.Count} settings VRChat saved for this avatar as \"{preset.Name}\"."
+            : $"Took {preset.Count} of the {saved.Count} settings VRChat saved for this avatar as \"{preset.Name}\". The rest cannot be written back.";
     }
 
     [RelayCommand]

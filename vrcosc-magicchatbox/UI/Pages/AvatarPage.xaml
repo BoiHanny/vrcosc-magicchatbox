@@ -185,7 +185,20 @@
                                 Content="Save this look"
                                 IsEnabled="{Binding CanCapturePreset}"
                                 Style="{StaticResource Status_Button_style}" />
+                            <Button
+                                Margin="6,0,0,0"
+                                Command="{Binding ImportSavedStateCommand}"
+                                Content="Take VRChat's saved one"
+                                IsEnabled="{Binding CanImportSavedState}"
+                                Style="{StaticResource Status_Button_style}"
+                                ToolTip="VRChat already remembers how you left this avatar. This reads that straight off the disk, so it works even for settings this app has never seen change." />
                         </StackPanel>
+
+                        <TextBlock
+                            Margin="0,0,0,6"
+                            Style="{StaticResource OptionHelpTextStyle}"
+                            Text="{Binding LibraryText}"
+                            TextWrapping="Wrap" />
 
                         <ItemsControl ItemsSource="{Binding Presets}">
                             <ItemsControl.ItemTemplate>
