@@ -12,6 +12,9 @@ internal enum VrcHarvestTrigger
 
     /// <summary>The avatar changed, so the previous enumeration describes an avatar nobody is wearing.</summary>
     AvatarChanged,
+
+    /// <summary>Nothing asked; the tree is being re-read on a timer to notice what nobody told us.</summary>
+    Poll,
 }
 
 /// <summary>
@@ -65,6 +68,16 @@ internal sealed class VrcSchemaHarvester : IDisposable
     /// </remarks>
     internal const int MaxLagAttempts = 12;
 
+    /// <summary>
+    /// How often the peer's tree is re-read when nothing has asked for it.
+    /// </summary>
+    /// <remarks>
+    /// One loopback HTTP request against a client on the same machine. Fast enough that putting an avatar
+    /// on and looking at the page feels like it noticed, slow enough to be nothing next to the OSC
+    /// traffic the same client is already sending.
+    /// </remarks>
+    internal static readonly TimeSpan DefaultPollInterval = TimeSpan.FromSeconds(3);
+
     private static readonly TimeSpan LagRetryDelay = TimeSpan.FromMilliseconds(250);
     private static readonly TimeSpan FirstRetryDelay = TimeSpan.FromSeconds(1);
     private static readonly TimeSpan MaxRetryDelay = TimeSpan.FromSeconds(30);
@@ -74,6 +87,7 @@ internal sealed class VrcSchemaHarvester : IDisposable
     private readonly IVrcSchemaSink _sink;
     private readonly Channel<VrcHarvestTrigger> _requests;
     private readonly Func<TimeSpan, CancellationToken, Task> _delay;
+    private readonly TimeSpan _pollInterval;
 
     private long _requested;
     private long _completed;
@@ -81,6 +95,7 @@ internal sealed class VrcSchemaHarvester : IDisposable
     private long _failed;
     private long _retried;
     private long _lagged;
+    private long _polled;
     private int _consecutiveFailures;
     private int _consecutiveLags;
     private bool _disposed;
@@ -89,8 +104,11 @@ internal sealed class VrcSchemaHarvester : IDisposable
         OscQueryService query,
         VrcAvatarEpoch epoch,
         IVrcSchemaSink sink,
-        Func<TimeSpan, CancellationToken, Task>? delay = null)
+        Func<TimeSpan, CancellationToken, Task>? delay = null,
+        TimeSpan? pollInterval = null)
     {
+        _pollInterval = pollInterval ?? DefaultPollInterval;
+
         ArgumentNullException.ThrowIfNull(query);
         ArgumentNullException.ThrowIfNull(epoch);
         ArgumentNullException.ThrowIfNull(sink);
@@ -127,6 +145,9 @@ internal sealed class VrcSchemaHarvester : IDisposable
     /// <summary>Answers refused because the peer's tree still named the previous avatar.</summary>
     internal long Lagged => Interlocked.Read(ref _lagged);
 
+    /// <summary>Re-reads the timer asked for, rather than an event.</summary>
+    internal long Polled => Interlocked.Read(ref _polled);
+
     /// <remarks>
     /// True only when both accounts are readable and disagree. Either one being empty is ordinary -- a
     /// peer need not report an avatar at all, and the epoch has none before the first change -- and
@@ -159,17 +180,48 @@ internal sealed class VrcSchemaHarvester : IDisposable
         return seconds >= MaxRetryDelay.TotalSeconds ? MaxRetryDelay : TimeSpan.FromSeconds(seconds);
     }
 
-    /// <summary>Drains harvest requests until cancelled.</summary>
+    /// <summary>
+    /// Drains harvest requests until cancelled, and re-reads the tree on its own when none arrive.
+    /// </summary>
+    /// <remarks>
+    /// <b>The poll is what makes an avatar change visible at all on a client that never talks back.</b>
+    /// The two events this class listens to are a peer handshake, which happens once, and the epoch
+    /// moving — and the epoch is advanced only by an inbound <c>/avatar/change</c>. VRChat sends that to
+    /// whatever port it discovered, so an application whose advertisement it never picked up is deaf: it
+    /// can read the peer's tree perfectly well, and would still read it exactly once for the whole
+    /// session, showing the avatar that happened to be on at handshake for as long as the app ran.
+    /// <para>
+    /// The tree carries <c>/avatar/change</c> as a leaf, so it is a second and independent account of who
+    /// is being worn. Asking it again costs one loopback request.
+    /// </para>
+    /// </remarks>
     internal async Task RunAsync(CancellationToken cancellationToken)
     {
         try
         {
-            await foreach (var trigger in _requests.Reader.ReadAllAsync(cancellationToken).ConfigureAwait(false))
+            while (!cancellationToken.IsCancellationRequested)
             {
+                VrcHarvestTrigger trigger;
+
+                try
+                {
+                    using var window = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+                    window.CancelAfter(_pollInterval);
+
+                    trigger = await _requests.Reader.ReadAsync(window.Token).ConfigureAwait(false);
+                }
+                catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
+                {
+                    trigger = VrcHarvestTrigger.Poll;
+                }
+
                 await HarvestOnceAsync(trigger, cancellationToken).ConfigureAwait(false);
             }
         }
         catch (OperationCanceledException)
+        {
+        }
+        catch (ChannelClosedException)
         {
         }
     }
@@ -276,6 +328,11 @@ internal sealed class VrcSchemaHarvester : IDisposable
 
     private async Task HarvestOnceAsync(VrcHarvestTrigger trigger, CancellationToken cancellationToken)
     {
+        if (trigger == VrcHarvestTrigger.Poll)
+        {
+            Interlocked.Increment(ref _polled);
+        }
+
         // Captured BEFORE the request goes out. Anything that changes while it is in flight makes the
         // answer describe an avatar nobody is wearing.
         var epochAtRequest = _epoch.Current;
@@ -295,7 +352,13 @@ internal sealed class VrcSchemaHarvester : IDisposable
 
         if (snapshot is not { } tree)
         {
-            Fail(trigger, cancellationToken);
+            // A poll is its own retry, and it runs whether or not a peer is there. Counting it as a
+            // failure would spend the backoff budget on a clock rather than on anything that went wrong.
+            if (trigger != VrcHarvestTrigger.Poll)
+            {
+                Fail(trigger, cancellationToken);
+            }
+
             return;
         }
 

@@ -38,6 +38,32 @@ public class VrcSchemaHarvestRetryTests
     }
 
     [Fact]
+    public async Task The_tree_is_re_read_on_a_timer_even_when_nothing_asks()
+    {
+        // The reported bug: put a different avatar on and the page keeps showing the old one forever.
+        // Both events this class listens to are one-shot in that situation -- the handshake has already
+        // happened, and the epoch only moves on an inbound /avatar/change, which never arrives on a
+        // client that did not pick up our advertisement. Without a poll the tree is read once a session.
+        using var harness = new Harness(pollFast: true);
+
+        await harness.WaitForPollsAsync(3);
+
+        Assert.True(harness.Harvester.Polled >= 3, "the tree was not re-read on its own");
+    }
+
+    [Fact]
+    public async Task A_poll_that_finds_no_peer_does_not_spend_the_failure_budget()
+    {
+        // The poll runs on a clock whether or not VRChat is there. Counting each tick as a failure would
+        // exhaust the backoff on nothing having gone wrong, and then a real failure would get no retry.
+        using var harness = new Harness(pollFast: true);
+
+        await harness.WaitForPollsAsync(4);
+
+        Assert.Equal(0, harness.Harvester.Retried);
+    }
+
+    [Fact]
     public void The_two_accounts_of_which_avatar_is_loaded_only_disagree_when_both_are_readable()
     {
         // The peer's tree and /avatar/change are separate reports. Either being silent is ordinary; only
@@ -134,14 +160,29 @@ public class VrcSchemaHarvestRetryTests
         private readonly bool _holdTheWait;
         private int _waitsObserved;
 
-        internal Harness(bool holdTheWait = false)
+        internal Harness(bool holdTheWait = false, bool pollFast = false)
         {
             _holdTheWait = holdTheWait;
             Query = new FakeQueryService();
             Epoch = new VrcAvatarEpoch();
             Sink = new CountingSink();
-            Harvester = new VrcSchemaHarvester(Query.Service, Epoch, Sink, RecordAndSkipAsync);
+            Harvester = new VrcSchemaHarvester(
+                Query.Service,
+                Epoch,
+                Sink,
+                RecordAndSkipAsync,
+                pollFast ? TimeSpan.FromMilliseconds(15) : TimeSpan.FromMinutes(10));
             _pump = Harvester.RunAsync(_cts.Token);
+        }
+
+        internal async Task WaitForPollsAsync(long target)
+        {
+            var deadline = DateTime.UtcNow.AddSeconds(5);
+
+            while (Harvester.Polled < target && DateTime.UtcNow < deadline)
+            {
+                await Task.Delay(5);
+            }
         }
 
         internal FakeQueryService Query { get; }
