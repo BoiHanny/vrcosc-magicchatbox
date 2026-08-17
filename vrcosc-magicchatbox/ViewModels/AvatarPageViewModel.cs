@@ -126,6 +126,7 @@ public partial class AvatarPageViewModel : ObservableObject
     private readonly IAvatarParameterSink _sink;
     private readonly Dictionary<string, Avatar.AvatarControlRowViewModel> _rows = new(StringComparer.Ordinal);
     private string _viewKey = string.Empty;
+    private string _diagnosticsKey = string.Empty;
 
     public AvatarPageViewModel(
         ISettingsProvider<VrcBridgeSettings> settingsProvider,
@@ -164,18 +165,26 @@ public partial class AvatarPageViewModel : ObservableObject
         _timer.Tick += (_, _) => Refresh();
         _timer.Start();
 
+        if (_scope != null)
+            _scope.DecisionsChanged += OnScopeDecisionsChanged;
+
         Refresh();
         DescribeLibraryAsync();
     }
 
     public void Deactivate()
     {
+        if (_scope != null)
+            _scope.DecisionsChanged -= OnScopeDecisionsChanged;
+
         if (_timer == null)
             return;
 
         _timer.Stop();
         _timer = null;
     }
+
+    private void OnScopeDecisionsChanged() => Refresh();
 
     partial void OnSearchChanged(string value) => RebuildGroups();
 
@@ -302,11 +311,18 @@ public partial class AvatarPageViewModel : ObservableObject
             ? "Your microphone is live"
             : speech.IsMuted ? "Microphone muted" : "Not speaking";
 
-        Ecosystems = schema.IsEmpty
-            ? Array.Empty<EcosystemMarker>()
-            : EcosystemSignature.Detect(schema.Parameters.Select(p => p.Name));
+        string diagnosticsKey = $"{schema.AvatarId}{schema.Epoch}{schema.Parameters.Count}";
 
-        Layout = LayoutDoctor.Inspect(schema, ExpectedControls);
+        if (!string.Equals(diagnosticsKey, _diagnosticsKey, StringComparison.Ordinal))
+        {
+            _diagnosticsKey = diagnosticsKey;
+
+            Ecosystems = schema.IsEmpty
+                ? Array.Empty<EcosystemMarker>()
+                : EcosystemSignature.Detect(schema.Parameters.Select(p => p.Name));
+
+            Layout = LayoutDoctor.Inspect(schema, ExpectedControls);
+        }
 
         RebuildConfigChanges(bridge);
 
@@ -1155,19 +1171,17 @@ public partial class AvatarPageViewModel : ObservableObject
 
         foreach (AvatarControlGroup group in view.Groups)
         {
-            var rows = new List<Avatar.AvatarControlRowViewModel>(group.Rows.Count);
-
-            foreach (AvatarControlRow row in group.Rows)
-            {
-                Avatar.AvatarControlRowViewModel rowViewModel = BuildRow(row);
-                _rows[row.Name] = rowViewModel;
-                rows.Add(rowViewModel);
-            }
-
-            Groups.Add(new Avatar.AvatarControlGroupViewModel(group.Name, group.DisplayName, rows)
-            {
-                IsExpanded = searching || expanded.Contains(group.Name),
-            });
+            Groups.Add(new Avatar.AvatarControlGroupViewModel(
+                group.Name,
+                group.DisplayName,
+                group.Rows,
+                row =>
+                {
+                    Avatar.AvatarControlRowViewModel rowViewModel = BuildRow(row);
+                    _rows[row.Name] = rowViewModel;
+                    return rowViewModel;
+                },
+                searching || expanded.Contains(group.Name)));
         }
     }
 

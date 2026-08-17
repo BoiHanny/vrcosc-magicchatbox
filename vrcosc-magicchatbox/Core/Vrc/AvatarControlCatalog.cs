@@ -71,6 +71,26 @@ public static class AvatarControlCatalog
         "PreviewMode", "IsOnFriendsList",
     };
 
+    private static readonly string[] SensitiveTerms =
+    [
+        "password", "passwd", "secret", "token", "api_key", "apikey", "api-key",
+        "bearer", "credential", "private_key", "private-key",
+    ];
+
+    public static bool IsSensitiveName(string? name)
+    {
+        if (string.IsNullOrEmpty(name))
+            return false;
+
+        foreach (string term in SensitiveTerms)
+        {
+            if (name.Contains(term, StringComparison.OrdinalIgnoreCase))
+                return true;
+        }
+
+        return false;
+    }
+
     public static bool IsBuiltIn(string name) => BuiltIns.Contains(name);
 
     public static bool IsVrchatOwned(string name)
@@ -189,6 +209,12 @@ public static class AvatarControlCatalog
             string name = declaration.Name ?? string.Empty;
             if (name.Length == 0)
                 continue;
+
+            if (IsSensitiveName(name))
+            {
+                hiddenRows++;
+                continue;
+            }
 
             bool isBuiltIn = IsBuiltIn(name);
 
