@@ -143,25 +143,18 @@
                         Width="auto"
                         Margin="4,10,0,2"
                         Style="{StaticResource OptionHelpTextStyle}"
-                        Text="Avatars can carry a few switches of their own. Wear an avatar that holds one off and the matching feature stays off while you are wearing it — useful for an avatar you only use in public. An avatar can only ever take a feature away, never switch one on, so nothing you meet in a world can make this app say more than you asked it to." />
-                    <CheckBox
-                        x:Name="EnableAvatarConfig_checkbox"
-                        Margin="4,2"
-                        IsChecked="{Binding Settings.EnableAvatarConfig, Mode=TwoWay}"
-                        IsEnabled="{Binding Settings.EnableBridge}">
-                        Let an avatar switch features off
-                    </CheckBox>
+                        Text="An integration can carry a guard saying when it may run — while you are wearing a certain avatar, outside public instances, and so on. A guard only ever narrows: it can stop something you switched on, never switch on something you left off. Build one on the Rules page. These are the ones offered ready-made:" />
                     <ItemsControl Margin="4,4,0,0" ItemsSource="{Binding ConfigBindings}">
                         <ItemsControl.ItemTemplate>
                             <DataTemplate>
                                 <StackPanel Margin="0,2">
                                     <TextBlock
                                         Style="{StaticResource OptionFieldLabelStyle}"
-                                        Text="{Binding Parameter}" />
+                                        Text="{Binding Name}" />
                                     <TextBlock
                                         Margin="0,0,0,2"
                                         Style="{StaticResource OptionHelpTextStyle}"
-                                        Text="{Binding Description}"
+                                        Text="{Binding Note}"
                                         TextWrapping="Wrap" />
                                 </StackPanel>
                             </DataTemplate>

@@ -87,11 +87,11 @@ Every value below is written to `/avatar/parameters/<name>`. Names are case sens
 
 | Parameter | Type | Range | Source | Sent when |
 |---|---|---|---|---|
-| `MCB/Cfg/Sending` | Bool | 0 or 1 | IAppState.MasterSwitch | EnableBridge and EnableAvatarConfig |
-| `MCB/Cfg/HeartRate` | Bool | 0 or 1 | IntegrationSettings.IntgrHeartRate | EnableBridge and EnableAvatarConfig |
-| `MCB/Cfg/Media` | Bool | 0 or 1 | IntegrationSettings.IntgrScanMediaLink | EnableBridge and EnableAvatarConfig |
-| `MCB/Cfg/WindowActivity` | Bool | 0 or 1 | IntegrationSettings.IntgrScanWindowActivity | EnableBridge and EnableAvatarConfig |
-| `MCB/Cfg/Status` | Bool | 0 or 1 | IntegrationSettings.IntgrStatus | EnableBridge and EnableAvatarConfig |
+| `MCB/Cfg/Sending` | Bool | 0 or 1 | IAppState.MasterSwitch | EnableBridge, and a guard you have written |
+| `MCB/Cfg/HeartRate` | Bool | 0 or 1 | IntegrationSettings.IntgrHeartRate | EnableBridge, and a guard you have written |
+| `MCB/Cfg/Media` | Bool | 0 or 1 | IntegrationSettings.IntgrScanMediaLink | EnableBridge, and a guard you have written |
+| `MCB/Cfg/WindowActivity` | Bool | 0 or 1 | IntegrationSettings.IntgrScanWindowActivity | EnableBridge, and a guard you have written |
+| `MCB/Cfg/Status` | Bool | 0 or 1 | IntegrationSettings.IntgrStatus | EnableBridge, and a guard you have written |
 
 - `MCB/Cfg/Sending` — Save it off on an avatar to stop MagicChatbox sending anything while you wear it. Holding it on is refused.
 - `MCB/Cfg/HeartRate` — Save it off on an avatar to keep your heart rate off the chatbox while you wear it. Holding it on is refused.

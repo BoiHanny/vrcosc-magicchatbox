@@ -28,6 +28,8 @@ public partial class AvatarPageViewModel : ObservableObject
     private readonly ISettingsProvider<AvatarPresetSettings> _presetsProvider;
     private readonly LocalAvatarDataReader _localAvatarData;
     private readonly IPrivacyConsentService _consent;
+    private readonly Services.Scope.ScopeRuntime? _scope;
+    private readonly Services.Vrc.AvatarPresetAutopilot? _autopilot;
     private readonly TaskScheduler _uiScheduler;
     private DispatcherTimer? _timer;
 
@@ -73,7 +75,7 @@ public partial class AvatarPageViewModel : ObservableObject
 
     public ObservableCollection<ReadinessRow> Readiness { get; } = new();
 
-    public ObservableCollection<AvatarConfigChange> ConfigChanges { get; } = new();
+    public ObservableCollection<ScopeStatusRow> ConfigChanges { get; } = new();
 
     [ObservableProperty] private bool _hasConfigChanges;
 
@@ -122,8 +124,6 @@ public partial class AvatarPageViewModel : ObservableObject
     private readonly IAvatarParameterSink _sink;
     private readonly Dictionary<string, Avatar.AvatarControlRowViewModel> _rows = new(StringComparer.Ordinal);
     private string _viewKey = string.Empty;
-    private string _globalsAppliedTo = string.Empty;
-    private string _automaticAppliedTo = string.Empty;
 
     public AvatarPageViewModel(
         ISettingsProvider<VrcBridgeSettings> settingsProvider,
@@ -132,14 +132,18 @@ public partial class AvatarPageViewModel : ObservableObject
         Lazy<IModuleHost> modules,
         IAvatarParameterSink sink,
         IPrivacyConsentService consent,
-        LocalAvatarDataReader? localAvatarData = null)
+        LocalAvatarDataReader? localAvatarData = null,
+        Services.Scope.ScopeRuntime? scope = null,
+        Services.Vrc.AvatarPresetAutopilot? autopilot = null)
     {
+        _autopilot = autopilot;
         _settingsProvider = settingsProvider;
         _integrationsProvider = integrationsProvider;
         _presetsProvider = presetsProvider;
         _modules = modules;
         _sink = sink;
         _consent = consent;
+        _scope = scope;
         _localAvatarData = localAvatarData ?? new LocalAvatarDataReader();
 
         _uiScheduler = SynchronizationContext.Current != null
@@ -229,8 +233,21 @@ public partial class AvatarPageViewModel : ObservableObject
         CanCapturePreset = !schema.IsEmpty && PresetKey.Length > 0;
         CanImportSavedState = CanCapturePreset && AvatarId.Length > 0 && _localAvatarData.Exists;
 
-        ApplyGlobalsOnceForThisAvatar(bridge, schema);
-        ApplyAutomaticOnceForThisAvatar(bridge, schema);
+        AdoptAutopilotStatus();
+    }
+
+    private void AdoptAutopilotStatus()
+    {
+        if (_autopilot == null)
+            return;
+
+        Services.Vrc.AutopilotOutcome outcome = _autopilot.Last;
+
+        if (outcome.PresetStatus.Length > 0 && PresetStatus != outcome.PresetStatus)
+            PresetStatus = outcome.PresetStatus;
+
+        if (outcome.GlobalsStatus.Length > 0 && GlobalsStatus != outcome.GlobalsStatus)
+            GlobalsStatus = outcome.GlobalsStatus;
     }
 
     private void RefreshBridgeIntro()
@@ -897,22 +914,6 @@ public partial class AvatarPageViewModel : ObservableObject
             && AvatarId.Length > 0
             && string.Equals(schema.AvatarId, AvatarId, StringComparison.Ordinal);
 
-    private void ApplyGlobalsOnceForThisAvatar(Services.Vrc.VrcBridgeModule bridge, AvatarSchemaSnapshot schema)
-    {
-        if (!ApplyGlobalsOnAvatarChange || !SchemaIsForThisAvatar(schema))
-            return;
-
-        if (string.Equals(_globalsAppliedTo, AvatarId, StringComparison.Ordinal))
-            return;
-
-        string outcome = ApplyGlobalsTo(bridge, manual: false);
-
-        _globalsAppliedTo = AvatarId;
-
-        if (outcome.Length > 0)
-            GlobalsStatus = outcome;
-    }
-
     private void RemoveGlobal(string name)
     {
         ObservableCollection<AvatarPresetValue> globals = _presetsProvider.Value.Globals;
@@ -1039,31 +1040,6 @@ public partial class AvatarPageViewModel : ObservableObject
             : $"\"{preset.Name}\" no longer goes on by itself.";
     }
 
-    private void ApplyAutomaticOnceForThisAvatar(Services.Vrc.VrcBridgeModule bridge, AvatarSchemaSnapshot schema)
-    {
-        if (!SchemaIsForThisAvatar(schema))
-            return;
-
-        if (string.Equals(_automaticAppliedTo, AvatarId, StringComparison.Ordinal))
-            return;
-
-        AvatarPreset? automatic = Presets.FirstOrDefault(p => p.Automatic);
-
-        _automaticAppliedTo = AvatarId;
-
-        if (automatic == null)
-            return;
-
-        PresetApplyPlan plan = AvatarPresetPlanner.Plan(automatic, schema);
-
-        if (plan.IsEmpty)
-            return;
-
-        AvatarPresetPlanner.Publish(plan, bridge.Pump);
-
-        PresetStatus = $"Put \"{automatic.Name}\" on for you: {plan.Summary}.";
-    }
-
     [RelayCommand]
     private void DeletePreset(AvatarPreset? preset)
     {
@@ -1092,18 +1068,12 @@ public partial class AvatarPageViewModel : ObservableObject
 
     private void RebuildConfigChanges(Services.Vrc.VrcBridgeModule bridge)
     {
-        var rows = new List<AvatarConfigChange>();
+        var rows = new List<ScopeStatusRow>();
 
-        foreach (ConfigSeedRow row in bridge.LastConfigSeed)
+        if (_scope != null)
         {
-            if (row.Outcome is not (ConfigSeedOutcome.Applied or ConfigSeedOutcome.RefusedTurningOn))
-                continue;
-
-            rows.Add(new AvatarConfigChange(
-                row.Parameter,
-                row.Outcome == ConfigSeedOutcome.Applied
-                    ? DescribeApplied(row)
-                    : "This avatar asked to switch a feature back on. Only you can do that, so nothing changed."));
+            foreach (Services.Scope.ScopeDecision decision in _scope.Decisions)
+                rows.Add(ScopeStatusRow.From(decision));
         }
 
         if (rows.Count == ConfigChanges.Count
@@ -1113,21 +1083,10 @@ public partial class AvatarPageViewModel : ObservableObject
         }
 
         ConfigChanges.Clear();
-        foreach (AvatarConfigChange row in rows)
+        foreach (ScopeStatusRow row in rows)
             ConfigChanges.Add(row);
 
         HasConfigChanges = ConfigChanges.Count > 0;
-    }
-
-    private static string DescribeApplied(ConfigSeedRow row)
-    {
-        string name = row.Parameter.StartsWith(AvatarConfigBinding.Prefix, StringComparison.Ordinal)
-            ? row.Parameter[AvatarConfigBinding.Prefix.Length..]
-            : row.Parameter;
-
-        return row.Value
-            ? $"{name} is on because this avatar holds it on."
-            : $"{name} is switched off while you wear this avatar.";
     }
 
     private static IReadOnlyList<string> CameraFlashNames(string? configured)

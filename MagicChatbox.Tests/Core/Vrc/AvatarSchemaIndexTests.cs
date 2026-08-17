@@ -96,27 +96,6 @@ public class AvatarSchemaIndexTests
     }
 
     [Fact]
-    public void Seeding_config_against_a_colliding_avatar_works_too()
-    {
-        var applied = new System.Collections.Generic.List<bool>();
-
-        var seeder = new AvatarConfigSeeder(
-            [new AvatarConfigBinding("MCB/Cfg/Media", "test", ConfigDirection.OffOnly, applied.Add)],
-            () => true,
-            TimeSpan.Zero);
-
-        var schema = new AvatarSchemaSnapshot("avtr_test", 1, DateTime.UtcNow,
-        [
-            new VrcParameterDeclaration("MCB/Cfg/Media", SignalKind.Bool, SignalValue.Bool(false), true),
-            new VrcParameterDeclaration("VF3_MCB/Cfg/Media", SignalKind.Bool, SignalValue.Bool(false), true),
-        ]);
-
-        seeder.Seed(schema);
-
-        Assert.Single(applied);
-    }
-
-    [Fact]
     public void Matching_a_shared_layout_against_a_colliding_avatar_works_too()
     {
         var document = new LayoutDocument { Title = "Test" };

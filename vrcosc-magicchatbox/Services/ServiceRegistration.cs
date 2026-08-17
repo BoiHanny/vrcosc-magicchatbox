@@ -261,7 +261,10 @@ public static class ServiceRegistration
             sp.GetRequiredService<ISettingsProvider<AvatarPresetSettings>>(),
             new Lazy<IModuleHost>(() => sp.GetRequiredService<IModuleHost>()),
             sp.GetRequiredService<Core.Vrc.IAvatarParameterSink>(),
-            sp.GetRequiredService<Core.Privacy.IPrivacyConsentService>()));
+            sp.GetRequiredService<Core.Privacy.IPrivacyConsentService>(),
+            localAvatarData: null,
+            sp.GetRequiredService<Services.Scope.ScopeRuntime>(),
+            sp.GetRequiredService<Services.Vrc.AvatarPresetAutopilot>()));
         services.AddSingleton<VrcBridgeSectionViewModel>(sp => new VrcBridgeSectionViewModel(
             sp.GetRequiredService<ISettingsProvider<VrcBridgeSettings>>(),
             sp.GetRequiredService<ISettingsProvider<AppSettings>>(),
@@ -421,6 +424,9 @@ public static class ServiceRegistration
             sp.GetRequiredService<Services.Scope.ScopeRuntime>(),
             sp.GetRequiredService<IPrivacyConsentService>()));
 
+        services.AddSingleton<Services.Vrc.AvatarPresetAutopilot>(sp =>
+            new Services.Vrc.AvatarPresetAutopilot(sp.GetRequiredService<ISettingsProvider<AvatarPresetSettings>>()));
+
         services.AddSingleton<Services.Scope.ScopeService>(sp =>
         {
             var host = new Lazy<IModuleHost>(() => sp.GetRequiredService<IModuleHost>());
@@ -429,7 +435,8 @@ public static class ServiceRegistration
                 sp.GetRequiredService<Services.Scope.ScopeRuntime>(),
                 sp.GetRequiredService<ISettingsProvider<ScopeSettings>>(),
                 () => host.Value.VrcBridge,
-                () => host.Value.VrcRadar);
+                () => host.Value.VrcRadar,
+                sp.GetRequiredService<Services.Vrc.AvatarPresetAutopilot>());
         });
         services.AddSingleton<ITtsPlaybackService>(sp => new TtsPlaybackService(
             new Lazy<TTSModule>(() => sp.GetRequiredService<TTSModule>()),

@@ -131,8 +131,10 @@ public class AvatarPageVisualTests
         vm.Globals.Add(new AvatarPresetValue("EyeTrackingActive", SignalKind.Bool, 1));
         vm.GlobalsStatus = "Set 1 of your 1 defaults on this avatar.";
 
-        vm.ConfigChanges.Add(new AvatarConfigChange(
-            AvatarConfigBindingRegistry.HeartRate, "HeartRate is switched off while you wear this avatar."));
+        vm.ConfigChanges.Add(new ScopeStatusRow(
+            "Heart rate while streaming",
+            "Heart rate is held off — avatar.group is streaming",
+            "✕"));
         vm.HasConfigChanges = true;
 
         vm.Layout = new LayoutReport(

@@ -282,8 +282,7 @@ public class ModuleBootstrapper
             () => vrcRadar?.InstanceType?.Contains("Public", StringComparison.OrdinalIgnoreCase) == true,
             Core.Vrc.InboundCommandRegistry.Build(
                 _appState, _ttsPlayback, _appSettingsProvider.Value, () => _host.Afk),
-            action => _dispatcher.BeginInvoke(action),
-            Core.Vrc.AvatarConfigBindingRegistry.Build(_appState, integrationSettings)));
+            action => _dispatcher.BeginInvoke(action)));
 
         await _dispatcher.InvokeAsync(() =>
         {

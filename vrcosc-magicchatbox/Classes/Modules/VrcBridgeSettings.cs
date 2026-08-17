@@ -13,8 +13,6 @@ public partial class VrcBridgeSettings : VersionedSettings
 
     [ObservableProperty] private bool _mirrorToLegacyOsc = false;
 
-    [ObservableProperty] private bool _enableAvatarConfig = false;
-
     [ObservableProperty] private bool _bridgeIntroSeen = false;
 
     [ObservableProperty] private int _oscReceivePort = 0;

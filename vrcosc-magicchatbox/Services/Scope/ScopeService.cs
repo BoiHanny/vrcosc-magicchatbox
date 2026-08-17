@@ -14,6 +14,7 @@ public sealed class ScopeService : IDisposable
     private readonly ISettingsProvider<ScopeSettings> _settingsProvider;
     private readonly Func<Services.Vrc.VrcBridgeModule> _bridge;
     private readonly Func<VrcLogModule> _radar;
+    private readonly Services.Vrc.AvatarPresetAutopilot _autopilot;
 
     private Timer _timer;
     private bool _started;
@@ -26,8 +27,10 @@ public sealed class ScopeService : IDisposable
         ScopeRuntime runtime,
         ISettingsProvider<ScopeSettings> settingsProvider,
         Func<Services.Vrc.VrcBridgeModule> bridge,
-        Func<VrcLogModule> radar)
+        Func<VrcLogModule> radar,
+        Services.Vrc.AvatarPresetAutopilot autopilot = null)
     {
+        _autopilot = autopilot;
         _facts = facts ?? throw new ArgumentNullException(nameof(facts));
         _runtime = runtime ?? throw new ArgumentNullException(nameof(runtime));
         _settingsProvider = settingsProvider ?? throw new ArgumentNullException(nameof(settingsProvider));
@@ -96,7 +99,24 @@ public sealed class ScopeService : IDisposable
         }
     }
 
-    private void OnSchemaChanged(Core.Vrc.AvatarSchemaSnapshot snapshot) => _facts.Refresh();
+    private void OnSchemaChanged(Core.Vrc.AvatarSchemaSnapshot snapshot)
+    {
+        _facts.Refresh();
+
+        if (_autopilot == null)
+            return;
+
+        try
+        {
+            Services.Vrc.VrcBridgeModule bridge = _bridge();
+            if (bridge is { IsRunning: true })
+                _autopilot.OnSchema(bridge.CurrentAvatarId, snapshot, bridge.Pump);
+        }
+        catch (Exception ex)
+        {
+            Classes.DataAndSecurity.Logging.WriteException(ex, MSGBox: false);
+        }
+    }
 
     private void OnInstanceChanged() => _facts.Refresh();
 

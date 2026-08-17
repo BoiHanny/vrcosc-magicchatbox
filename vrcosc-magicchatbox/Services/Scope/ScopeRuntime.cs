@@ -23,6 +23,7 @@ public sealed record ScopeDecision(
     ScopeVerdict Verdict,
     ScopeOutcome Outcome,
     ScopeBlock Block,
+    string Sentence,
     DateTime AtUtc)
 {
     public bool Permits => Verdict != ScopeVerdict.Blocked;
@@ -122,7 +123,15 @@ public sealed class ScopeRuntime
                 ScopeOutcome outcome = ScopeEvaluator.Evaluate(rule.SafeWhen, facts, out ScopeBlock block);
                 ScopeVerdict verdict = Settle(rule, outcome, now);
 
-                var decision = new ScopeDecision(rule.Id, rule.Name, rule.Target, verdict, outcome, block, stamp);
+                var decision = new ScopeDecision(
+                    rule.Id,
+                    rule.Name,
+                    rule.Target,
+                    verdict,
+                    outcome,
+                    block,
+                    ScopeMirror.Canonical(rule.SafeWhen),
+                    stamp);
                 decisions.Add(decision);
 
                 switch (rule.Target.Kind)

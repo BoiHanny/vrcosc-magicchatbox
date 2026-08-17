@@ -648,21 +648,26 @@
                         <TextBlock
                             Margin="0,0,0,4"
                             Style="{StaticResource OptionFieldLabelStyle}"
-                            Text="What this avatar changed" />
+                            Text="What's on right now" />
                         <TextBlock
                             Margin="0,0,0,6"
                             Style="{StaticResource OptionHelpTextStyle}"
-                            Text="An avatar can hold a feature off while you wear it. It can never switch one on."
+                            Text="Guards you have written, and what each one is deciding at this moment. A guard can hold something off; it can never switch on something you left off."
                             TextWrapping="Wrap" />
                         <ItemsControl ItemsSource="{Binding ConfigChanges}">
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate>
-                                    <TextBlock
-                                        Margin="0,1"
-                                        Style="{StaticResource OptionHelpTextStyle}"
-                                        Text="{Binding Detail}"
-                                        TextWrapping="Wrap"
-                                        ToolTip="{Binding Parameter}" />
+                                    <StackPanel Margin="0,1" Orientation="Horizontal">
+                                        <TextBlock
+                                            Width="16"
+                                            Style="{StaticResource OptionHelpTextStyle}"
+                                            Text="{Binding Mark}" />
+                                        <TextBlock
+                                            Style="{StaticResource OptionHelpTextStyle}"
+                                            Text="{Binding Detail}"
+                                            TextWrapping="Wrap"
+                                            ToolTip="{Binding Parameter}" />
+                                    </StackPanel>
                                 </DataTemplate>
                             </ItemsControl.ItemTemplate>
                         </ItemsControl>

@@ -124,7 +124,7 @@ public class AvatarLayoutSharingTests
         LayoutDocument document = LayoutCodec.FromCode(vm.LayoutCode).Document!;
 
         Assert.All(
-            document.Requires.Where(r => r.Name.StartsWith(AvatarConfigBinding.Prefix, StringComparison.Ordinal)),
+            document.Requires.Where(r => r.Name.StartsWith(ScopeStarterGuards.ConfigPrefix, StringComparison.Ordinal)),
             r => Assert.True(r.Optional));
 
         Assert.All(
