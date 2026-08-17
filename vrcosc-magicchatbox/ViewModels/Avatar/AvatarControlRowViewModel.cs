@@ -71,6 +71,8 @@ public partial class AvatarControlRowViewModel : ObservableObject
         IsBuiltIn = row.IsBuiltIn;
         _value = row.Value;
         _hasValue = row.HasValue;
+
+        WidenTrackFor(row.Value);
     }
 
     public void ObserveExternal(double value, bool hasValue)
@@ -83,6 +85,8 @@ public partial class AvatarControlRowViewModel : ObservableObject
 
         if (Value != value)
         {
+            WidenTrackFor(value);
+
             Value = value;
             OnPropertyChanged(nameof(BoolValue));
             OnPropertyChanged(nameof(StateWord));
@@ -102,6 +106,15 @@ public partial class AvatarControlRowViewModel : ObservableObject
         _pinChanged?.Invoke(this);
     }
 
+    public const int MinimumInt = 0;
+    public const int MaximumInt = 255;
+
+    public const double LowestFloat = -1d;
+    public const double HighestFloat = 1d;
+
+    [ObservableProperty] private double _sliderMinimum;
+    [ObservableProperty] private double _sliderMaximum = 1d;
+
     [RelayCommand]
     private void Step(string? direction)
     {
@@ -109,10 +122,25 @@ public partial class AvatarControlRowViewModel : ObservableObject
             return;
 
         int delta = direction == "down" ? -1 : 1;
-        int next = Math.Max(0, (int)Value + delta);
+        int next = Math.Clamp((int)Value + delta, MinimumInt, MaximumInt);
+
+        if (next == (int)Value)
+            return;
 
         Hold(next);
         _sink.Set(Name, next);
+    }
+
+    private void WidenTrackFor(double value)
+    {
+        if (Kind != SignalKind.Float)
+            return;
+
+        if (value < SliderMinimum)
+            SliderMinimum = Math.Max(LowestFloat, Math.Floor(value));
+
+        if (value > SliderMaximum)
+            SliderMaximum = Math.Min(HighestFloat, Math.Ceiling(value));
     }
 
     [RelayCommand]

@@ -91,8 +91,8 @@
                         <Slider
                             Width="110"
                             VerticalAlignment="Center"
-                            Maximum="1"
-                            Minimum="0"
+                            Maximum="{Binding SliderMaximum}"
+                            Minimum="{Binding SliderMinimum}"
                             Thumb.DragCompleted="OnSliderDragCompleted"
                             Value="{Binding Value, Mode=TwoWay}" />
                         <TextBlock
@@ -147,6 +147,13 @@
                     VerticalAlignment="Center"
                     Style="{StaticResource OptionHelpTextStyle}"
                     Text="{Binding NeighbourText}" />
+                <Button
+                    Margin="14,0,0,0"
+                    VerticalAlignment="Center"
+                    Command="{Binding RefreshCommand}"
+                    Content="Look again"
+                    Style="{StaticResource Status_Button_style}"
+                    ToolTip="Read your avatar again now, rather than waiting for the next check." />
             </StackPanel>
         </Border>
 
