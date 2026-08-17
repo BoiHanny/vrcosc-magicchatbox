@@ -102,14 +102,11 @@ public sealed class AvatarConfigSeeder
         lock (_gate)
             stable = _schemaSeenTicks != 0 && Elapsed(_schemaSeenTicks) >= _stability;
 
-        var declared = schema.Parameters.ToDictionary(
-            p => EcosystemSignature.Normalize(p.Name),
-            p => p,
-            StringComparer.Ordinal);
+        AvatarSchemaLookup declared = AvatarSchemaIndex.ByNormalizedName(schema.Parameters);
 
         foreach (AvatarConfigBinding binding in _bindings.Values)
         {
-            if (!declared.TryGetValue(binding.Parameter, out var declaration))
+            if (!declared.TryGet(binding.Parameter, out var declaration))
             {
                 rows.Add(new ConfigSeedRow(binding.Parameter, ConfigSeedOutcome.NotOnThisAvatar, false));
                 continue;

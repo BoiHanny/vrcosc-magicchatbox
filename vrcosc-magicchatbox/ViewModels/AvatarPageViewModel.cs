@@ -766,14 +766,12 @@ public partial class AvatarPageViewModel : ObservableObject
         if (bridge == null)
             return;
 
-        var declared = bridge.Schema.Current.Parameters
-            .Where(p => !string.IsNullOrEmpty(p.Name))
-            .ToDictionary(p => p.Name, p => p, StringComparer.Ordinal);
+        AvatarSchemaLookup declared = AvatarSchemaIndex.ByExactName(bridge.Schema.Current.Parameters);
 
         var wanted = _presetsProvider.Value.Pinned
             .Where(p => string.Equals(p.AvatarId, PresetKey, StringComparison.Ordinal))
             .Select(p => p.Name)
-            .Where(declared.ContainsKey)
+            .Where(declared.Contains)
             .ToList();
 
         Sync(PinnedRows, wanted, declared, bridge.Senses);
@@ -782,15 +780,14 @@ public partial class AvatarPageViewModel : ObservableObject
 
     private void RebuildRecentRows(Services.Vrc.VrcBridgeModule bridge, AvatarSchemaSnapshot schema)
     {
-        var declared = schema.Parameters
-            .Where(p => !string.IsNullOrEmpty(p.Name))
-            .ToDictionary(p => p.Name, p => p, StringComparer.OrdinalIgnoreCase);
+        AvatarSchemaLookup byCase = AvatarSchemaIndex.ByExactName(schema.Parameters, StringComparer.OrdinalIgnoreCase);
+        AvatarSchemaLookup declared = AvatarSchemaIndex.ByExactName(schema.Parameters);
 
         var wanted = new List<string>();
 
         foreach (AvatarSense sense in RecentlyChanged)
         {
-            if (declared.TryGetValue(sense.Key, out VrcParameterDeclaration declaration)
+            if (byCase.TryGet(sense.Key, out VrcParameterDeclaration declaration)
                 && !AvatarControlCatalog.IsVrchatOwned(declaration.Name)
                 && !wanted.Contains(declaration.Name, StringComparer.Ordinal))
             {
@@ -798,11 +795,7 @@ public partial class AvatarPageViewModel : ObservableObject
             }
         }
 
-        Sync(
-            RecentRows,
-            wanted,
-            declared.ToDictionary(d => d.Value.Name, d => d.Value, StringComparer.Ordinal),
-            bridge.Senses);
+        Sync(RecentRows, wanted, declared, bridge.Senses);
 
         HasRecentRows = RecentRows.Count > 0;
 
@@ -813,7 +806,7 @@ public partial class AvatarPageViewModel : ObservableObject
             string key = RecentlyChanged[i].Key;
 
             if (promoted.Contains(key)
-                || (declared.TryGetValue(key, out VrcParameterDeclaration match) && promoted.Contains(match.Name)))
+                || (byCase.TryGet(key, out VrcParameterDeclaration match) && promoted.Contains(match.Name)))
             {
                 RecentlyChanged.RemoveAt(i);
             }
@@ -825,14 +818,14 @@ public partial class AvatarPageViewModel : ObservableObject
     private void Sync(
         ObservableCollection<Avatar.AvatarControlRowViewModel> target,
         IReadOnlyList<string> wanted,
-        IReadOnlyDictionary<string, VrcParameterDeclaration> declared,
+        AvatarSchemaLookup declared,
         AvatarSenseStore senses)
     {
         if (target.Select(r => r.Name).SequenceEqual(wanted, StringComparer.Ordinal))
         {
             foreach (Avatar.AvatarControlRowViewModel row in target)
             {
-                if (declared.TryGetValue(row.Name, out VrcParameterDeclaration declaration))
+                if (declared.TryGet(row.Name, out VrcParameterDeclaration declaration))
                 {
                     AvatarControlRow fresh = AvatarControlCatalog.RowFor(declaration, senses);
                     row.ObserveExternal(fresh.Value, fresh.HasValue);
@@ -846,7 +839,7 @@ public partial class AvatarPageViewModel : ObservableObject
 
         foreach (string name in wanted)
         {
-            if (declared.TryGetValue(name, out VrcParameterDeclaration declaration))
+            if (declared.TryGet(name, out VrcParameterDeclaration declaration))
                 target.Add(BuildRow(AvatarControlCatalog.RowFor(declaration, senses)));
         }
     }

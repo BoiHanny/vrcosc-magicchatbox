@@ -198,10 +198,7 @@ public static class LayoutCodec
         ArgumentNullException.ThrowIfNull(document);
         ArgumentNullException.ThrowIfNull(schema);
 
-        var declared = schema.Parameters.ToDictionary(
-            p => EcosystemSignature.Normalize(p.Name),
-            p => p,
-            StringComparer.Ordinal);
+        AvatarSchemaLookup declared = AvatarSchemaIndex.ByNormalizedName(schema.Parameters);
 
         var rows = new List<LayoutMatchRow>();
         int present = 0;
@@ -212,7 +209,7 @@ public static class LayoutCodec
             string key = EcosystemSignature.Normalize(requirement.Name);
             LayoutMatch match;
 
-            if (!declared.TryGetValue(key, out var declaration))
+            if (!declared.TryGet(key, out var declaration))
             {
                 match = LayoutMatch.Missing;
             }

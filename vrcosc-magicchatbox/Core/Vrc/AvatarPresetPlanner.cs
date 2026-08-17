@@ -61,10 +61,7 @@ public static class AvatarPresetPlanner
         ArgumentNullException.ThrowIfNull(saved);
         ArgumentNullException.ThrowIfNull(schema);
 
-        var declared = schema.Parameters.ToDictionary(
-            p => EcosystemSignature.Normalize(p.Name),
-            p => p,
-            StringComparer.Ordinal);
+        AvatarSchemaLookup declared = AvatarSchemaIndex.ByNormalizedName(schema.Parameters);
 
         var values = new List<AvatarPresetValue>();
 
@@ -73,7 +70,7 @@ public static class AvatarPresetPlanner
             if (AvatarControlCatalog.IsVrchatOwned(value.Name))
                 continue;
 
-            if (!declared.TryGetValue(EcosystemSignature.Normalize(value.Name), out VrcParameterDeclaration declaration))
+            if (!declared.TryGet(EcosystemSignature.Normalize(value.Name), out VrcParameterDeclaration declaration))
                 continue;
 
             if (!declaration.Writable)
@@ -96,10 +93,7 @@ public static class AvatarPresetPlanner
         ArgumentNullException.ThrowIfNull(preset);
         ArgumentNullException.ThrowIfNull(schema);
 
-        var declared = schema.Parameters.ToDictionary(
-            p => EcosystemSignature.Normalize(p.Name),
-            p => p,
-            StringComparer.Ordinal);
+        AvatarSchemaLookup declared = AvatarSchemaIndex.ByNormalizedName(schema.Parameters);
 
         var rows = new List<PresetApplyRow>(preset.Values.Count);
         int carried = 0;
@@ -114,7 +108,7 @@ public static class AvatarPresetPlanner
                 continue;
             }
 
-            if (!declared.TryGetValue(key, out VrcParameterDeclaration declaration))
+            if (!declared.TryGet(key, out VrcParameterDeclaration declaration))
             {
                 rows.Add(new PresetApplyRow(value.Name, PresetOutcome.NotOnThisAvatar, value.Kind, value.Value, value.Name));
                 continue;
