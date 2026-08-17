@@ -22,6 +22,7 @@ public enum AvatarParameterTier
     Synced,
     Local,
     Control,
+    Config,
 }
 
 public sealed record AvatarParameter(

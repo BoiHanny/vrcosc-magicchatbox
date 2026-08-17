@@ -43,6 +43,10 @@ public partial class AvatarPageViewModel : ObservableObject
 
     public ObservableCollection<ReadinessRow> Readiness { get; } = new();
 
+    public ObservableCollection<AvatarConfigChange> ConfigChanges { get; } = new();
+
+    [ObservableProperty] private bool _hasConfigChanges;
+
     [ObservableProperty] private string _speechText = string.Empty;
 
     [ObservableProperty]
@@ -50,6 +54,20 @@ public partial class AvatarPageViewModel : ObservableObject
     private IReadOnlyList<EcosystemMarker> _ecosystems = Array.Empty<EcosystemMarker>();
 
     public bool HasEcosystems => Ecosystems.Count > 0;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasMissingControls))]
+    [NotifyPropertyChangedFor(nameof(HasLayoutReport))]
+    private LayoutReport? _layout;
+
+    public bool HasMissingControls => Layout?.MissingControls.Count > 0;
+
+    public bool HasLayoutReport => Layout != null && Layout.State != LayoutState.Unknown;
+
+    private static readonly string[] ExpectedControls = AvatarParameterContract.Parameters
+        .Where(p => p.Tier == AvatarParameterTier.Control)
+        .Select(p => p.Name)
+        .ToArray();
 
     private readonly IAvatarParameterSink _sink;
     private readonly Dictionary<string, Avatar.AvatarControlRowViewModel> _rows = new(StringComparer.Ordinal);
@@ -152,6 +170,10 @@ public partial class AvatarPageViewModel : ObservableObject
             ? Array.Empty<EcosystemMarker>()
             : EcosystemSignature.Detect(schema.Parameters.Select(p => p.Name));
 
+        Layout = LayoutDoctor.Inspect(schema, ExpectedControls);
+
+        RebuildConfigChanges(bridge);
+
         var host = _modules.Value;
         IntegrationSettings integrations = _integrationsProvider.Value;
 
@@ -194,6 +216,46 @@ public partial class AvatarPageViewModel : ObservableObject
         Readiness.Clear();
         foreach (ReadinessRow row in rows)
             Readiness.Add(row);
+    }
+
+    private void RebuildConfigChanges(Services.Vrc.VrcBridgeModule bridge)
+    {
+        var rows = new List<AvatarConfigChange>();
+
+        foreach (ConfigSeedRow row in bridge.LastConfigSeed)
+        {
+            if (row.Outcome is not (ConfigSeedOutcome.Applied or ConfigSeedOutcome.RefusedTurningOn))
+                continue;
+
+            rows.Add(new AvatarConfigChange(
+                row.Parameter,
+                row.Outcome == ConfigSeedOutcome.Applied
+                    ? DescribeApplied(row)
+                    : "This avatar asked to switch a feature back on. Only you can do that, so nothing changed."));
+        }
+
+        if (rows.Count == ConfigChanges.Count
+            && rows.Zip(ConfigChanges).All(p => p.First == p.Second))
+        {
+            return;
+        }
+
+        ConfigChanges.Clear();
+        foreach (AvatarConfigChange row in rows)
+            ConfigChanges.Add(row);
+
+        HasConfigChanges = ConfigChanges.Count > 0;
+    }
+
+    private static string DescribeApplied(ConfigSeedRow row)
+    {
+        string name = row.Parameter.StartsWith(AvatarConfigBinding.Prefix, StringComparison.Ordinal)
+            ? row.Parameter[AvatarConfigBinding.Prefix.Length..]
+            : row.Parameter;
+
+        return row.Value
+            ? $"{name} is on because this avatar holds it on."
+            : $"{name} is switched off while you wear this avatar.";
     }
 
     private static IReadOnlyList<string> CameraFlashNames(string? configured)

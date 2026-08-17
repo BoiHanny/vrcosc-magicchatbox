@@ -118,6 +118,17 @@ public class AvatarPageVisualTests
 
         vm.Ecosystems = [.. EcosystemSignature.Markers.Take(3)];
 
+        vm.ConfigChanges.Add(new AvatarConfigChange(
+            AvatarConfigBindingRegistry.HeartRate, "HeartRate is switched off while you wear this avatar."));
+        vm.HasConfigChanges = true;
+
+        vm.Layout = new LayoutReport(
+            LayoutState.RenamedByVrcFury,
+            0,
+            "Renamed on install",
+            "VRCFury renamed the controls, so VRChat sees VF12_MCB/Ctrl/Panic instead.",
+            ["MCB/Ctrl/Panic", "MCB/Ctrl/Tts/Stop"]);
+
         vm.RecentlyChanged.Add(new AvatarSense("Toggles/Hat", SignalKind.Bool, 1, "on", DateTime.UtcNow));
 
         vm.Groups.Add(new AvatarControlGroupViewModel(

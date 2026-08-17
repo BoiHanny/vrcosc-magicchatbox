@@ -132,6 +132,22 @@ public static class AvatarParameterContract
         new("MCB/Ctrl/Panic", AvatarParameterKind.Bool, AvatarParameterFlow.AvatarToApp, AvatarParameterTier.Control,
             "false to true", "stops all output and text-to-speech", "EnableBridge and EnableParameterInput",
             "Deliberately one-way: it cannot be undone from the avatar, so a misbehaving world cannot switch MagicChatbox back on."),
+
+        new("MCB/Cfg/Sending", AvatarParameterKind.Bool, AvatarParameterFlow.AvatarToApp, AvatarParameterTier.Config,
+            "0 or 1", "IAppState.MasterSwitch", "EnableBridge and EnableAvatarConfig",
+            "Save it off on an avatar to stop MagicChatbox sending anything while you wear it. Holding it on is refused."),
+        new("MCB/Cfg/HeartRate", AvatarParameterKind.Bool, AvatarParameterFlow.AvatarToApp, AvatarParameterTier.Config,
+            "0 or 1", "IntegrationSettings.IntgrHeartRate", "EnableBridge and EnableAvatarConfig",
+            "Save it off on an avatar to keep your heart rate off the chatbox while you wear it. Holding it on is refused."),
+        new("MCB/Cfg/Media", AvatarParameterKind.Bool, AvatarParameterFlow.AvatarToApp, AvatarParameterTier.Config,
+            "0 or 1", "IntegrationSettings.IntgrScanMediaLink", "EnableBridge and EnableAvatarConfig",
+            "Save it off on an avatar to keep what you are listening to off the chatbox while you wear it. Holding it on is refused."),
+        new("MCB/Cfg/WindowActivity", AvatarParameterKind.Bool, AvatarParameterFlow.AvatarToApp, AvatarParameterTier.Config,
+            "0 or 1", "IntegrationSettings.IntgrScanWindowActivity", "EnableBridge and EnableAvatarConfig",
+            "Save it off on an avatar to keep the app you have open off the chatbox while you wear it. Holding it on is refused."),
+        new("MCB/Cfg/Status", AvatarParameterKind.Bool, AvatarParameterFlow.AvatarToApp, AvatarParameterTier.Config,
+            "0 or 1", "IntegrationSettings.IntgrStatus", "EnableBridge and EnableAvatarConfig",
+            "Save it off on an avatar to keep your personal status off the chatbox while you wear it. Holding it on is refused."),
     };
 
     private static readonly HashSet<string> KnownAddresses =

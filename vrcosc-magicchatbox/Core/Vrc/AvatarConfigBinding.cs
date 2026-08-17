@@ -34,6 +34,8 @@ public enum ConfigSeedOutcome
 
 public sealed record ConfigSeedRow(string Parameter, ConfigSeedOutcome Outcome, bool Value);
 
+public sealed record AvatarConfigChange(string Parameter, string Detail);
+
 public sealed class AvatarConfigSeeder
 {
     public static readonly TimeSpan DefaultStability = TimeSpan.FromSeconds(3);
@@ -58,7 +60,12 @@ public sealed class AvatarConfigSeeder
 
         var map = new Dictionary<string, AvatarConfigBinding>(StringComparer.Ordinal);
         foreach (AvatarConfigBinding binding in bindings)
+        {
+            if (!binding.IsOwned)
+                throw new ArgumentException($"'{binding.Parameter}' is not under {AvatarConfigBinding.Prefix}", nameof(bindings));
+
             map[binding.Parameter] = binding;
+        }
 
         _bindings = map;
         _isEnabled = isEnabled ?? throw new ArgumentNullException(nameof(isEnabled));

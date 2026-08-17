@@ -1,4 +1,4 @@
-﻿using CommunityToolkit.Mvvm.Messaging;
+using CommunityToolkit.Mvvm.Messaging;
 using System;
 using System.Net.Http;
 using System.Threading.Tasks;
@@ -269,7 +269,8 @@ public class ModuleBootstrapper
             () => vrcRadar?.CurrentWorldName is { Length: > 0 } world && world != "Not in a world" ? world : null,
             () => vrcRadar?.InstanceType?.Contains("Public", StringComparison.OrdinalIgnoreCase) == true,
             Core.Vrc.InboundCommandRegistry.Build(_appState, _ttsPlayback),
-            action => _dispatcher.BeginInvoke(action)));
+            action => _dispatcher.BeginInvoke(action),
+            Core.Vrc.AvatarConfigBindingRegistry.Build(_appState, integrationSettings)));
 
         await _dispatcher.InvokeAsync(() =>
         {

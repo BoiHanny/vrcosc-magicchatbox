@@ -158,6 +158,69 @@
                     </StackPanel>
                 </Border>
 
+                <Border
+                    Padding="0"
+                    Style="{StaticResource OptionCardStyle}"
+                    Visibility="{Binding HasConfigChanges, Converter={StaticResource BoolToVisibilityConverter}}">
+                    <StackPanel Margin="10">
+                        <TextBlock
+                            Margin="0,0,0,4"
+                            Style="{StaticResource OptionFieldLabelStyle}"
+                            Text="What this avatar changed" />
+                        <TextBlock
+                            Margin="0,0,0,6"
+                            Style="{StaticResource OptionHelpTextStyle}"
+                            Text="An avatar can hold a feature off while you wear it. It can never switch one on."
+                            TextWrapping="Wrap" />
+                        <ItemsControl ItemsSource="{Binding ConfigChanges}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <TextBlock
+                                        Margin="0,1"
+                                        Style="{StaticResource OptionHelpTextStyle}"
+                                        Text="{Binding Detail}"
+                                        TextWrapping="Wrap"
+                                        ToolTip="{Binding Parameter}" />
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </StackPanel>
+                </Border>
+
+                <Border
+                    Padding="0"
+                    Style="{StaticResource OptionCardStyle}"
+                    Visibility="{Binding HasLayoutReport, Converter={StaticResource BoolToVisibilityConverter}}">
+                    <StackPanel Margin="10">
+                        <TextBlock
+                            Margin="0,0,0,4"
+                            Style="{StaticResource OptionFieldLabelStyle}"
+                            Text="Controlling the app from your avatar" />
+                        <TextBlock
+                            Style="{StaticResource OptionFieldLabelStyle}"
+                            Text="{Binding Layout.Headline}" />
+                        <TextBlock
+                            Style="{StaticResource OptionHelpTextStyle}"
+                            Text="{Binding Layout.Detail}"
+                            TextWrapping="Wrap" />
+                        <TextBlock
+                            Margin="0,6,0,2"
+                            Style="{StaticResource OptionFieldLabelStyle}"
+                            Text="Controls this avatar is missing"
+                            Visibility="{Binding HasMissingControls, Converter={StaticResource BoolToVisibilityConverter}}" />
+                        <ItemsControl ItemsSource="{Binding Layout.MissingControls}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <TextBlock
+                                        Margin="0,1"
+                                        Style="{StaticResource OptionHelpTextStyle}"
+                                        Text="{Binding}" />
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </StackPanel>
+                </Border>
+
                 <Border Padding="0" Style="{StaticResource OptionCardStyle}">
                     <StackPanel Margin="10">
                         <TextBlock

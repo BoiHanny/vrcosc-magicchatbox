@@ -20,13 +20,15 @@ namespace MagicChatbox.Avatar.Editor
             string label,
             VRCExpressionParameters.ValueType valueType,
             bool saved,
-            VRCExpressionsMenu.Control.ControlType controlType)
+            VRCExpressionsMenu.Control.ControlType controlType,
+            bool defaultOn = false)
         {
             Parameter = parameter;
             Label = label;
             ValueType = valueType;
             Saved = saved;
             ControlType = controlType;
+            DefaultOn = defaultOn;
         }
 
         public string Parameter { get; }
@@ -37,6 +39,17 @@ namespace MagicChatbox.Avatar.Editor
         public bool Saved { get; }
 
         public VRCExpressionsMenu.Control.ControlType ControlType { get; }
+
+        /// <summary>
+        /// The value a freshly generated avatar starts with.
+        /// </summary>
+        /// <remarks>
+        /// Load-bearing for the Config tier. Those parameters mean "this feature may run", and the app
+        /// acts on one held off, so leaving them at Unity's default of 0 would mean generating a prefab
+        /// that silently switches five features off for whoever wears it. A button is a different
+        /// shape - it fires on the rising edge and starting at 0 is what makes the first press count.
+        /// </remarks>
+        public bool DefaultOn { get; }
     }
 
     /// <summary>
@@ -84,6 +97,39 @@ namespace MagicChatbox.Avatar.Editor
                 "MCB/Ctrl/Panic", "Stop everything",
                 VRCExpressionParameters.ValueType.Bool, false,
                 VRCExpressionsMenu.Control.ControlType.Button),
+
+            // The Config tier. These are toggles rather than buttons, and saved rather than
+            // momentary, because the whole point is that the avatar remembers them: wear the avatar
+            // and the feature stays off for as long as you are wearing it.
+            //
+            // They default to ON so a freshly generated avatar changes nothing. The app refuses to
+            // act on one held on, so an untouched control is inert by construction rather than by
+            // luck - a creator who ships this prefab cannot accidentally switch anything off for
+            // somebody else.
+            new MagicChatboxControl(
+                "MCB/Cfg/Sending", "MagicChatbox on",
+                VRCExpressionParameters.ValueType.Bool, true,
+                VRCExpressionsMenu.Control.ControlType.Toggle, true),
+
+            new MagicChatboxControl(
+                "MCB/Cfg/HeartRate", "Show heart rate",
+                VRCExpressionParameters.ValueType.Bool, true,
+                VRCExpressionsMenu.Control.ControlType.Toggle, true),
+
+            new MagicChatboxControl(
+                "MCB/Cfg/Media", "Show what I am playing",
+                VRCExpressionParameters.ValueType.Bool, true,
+                VRCExpressionsMenu.Control.ControlType.Toggle, true),
+
+            new MagicChatboxControl(
+                "MCB/Cfg/WindowActivity", "Show my open app",
+                VRCExpressionParameters.ValueType.Bool, true,
+                VRCExpressionsMenu.Control.ControlType.Toggle, true),
+
+            new MagicChatboxControl(
+                "MCB/Cfg/Status", "Show my status",
+                VRCExpressionParameters.ValueType.Bool, true,
+                VRCExpressionsMenu.Control.ControlType.Toggle, true),
         };
 
         [MenuItem("Tools/MagicChatbox/Generate avatar controls")]
@@ -284,7 +330,7 @@ namespace MagicChatbox.Avatar.Editor
                 {
                     name = control.Parameter,
                     valueType = control.ValueType,
-                    defaultValue = 0f,
+                    defaultValue = control.DefaultOn ? 1f : 0f,
                     saved = control.Saved,
 
                     // The whole point: unsynced costs nothing against the 256 bit budget, and these

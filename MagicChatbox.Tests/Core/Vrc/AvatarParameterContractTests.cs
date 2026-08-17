@@ -36,8 +36,11 @@ public class AvatarParameterContractTests
                 .Select(m => m.Groups[1].Value),
             StringComparer.Ordinal);
 
+        // The Control tier is the command surface - a press that makes something happen. The Config
+        // tier also flows from the avatar but is not a command: it is a switch the seeder reads, so it
+        // is checked against the binding registry instead, by AvatarConfigBindingRegistryTests.
         var orphans = AvatarParameterContract.Parameters
-            .Where(p => p.Flow == AvatarParameterFlow.AvatarToApp)
+            .Where(p => p.Tier == AvatarParameterTier.Control)
             .Where(p => !registered.Contains(p.Name))
             .Select(p => p.Name)
             .ToList();

@@ -108,6 +108,8 @@ public partial class VrcBridgeSectionViewModel : ObservableObject
 
     public int ParameterCount => AvatarParameterContract.Parameters.Count;
 
+    public IReadOnlyList<AvatarConfigOption> ConfigBindings => AvatarConfigBindingRegistry.Options;
+
     public IReadOnlyList<AvatarParameter> ControlParameters => AvatarParameterContract.Parameters
         .Where(p => p.Flow == AvatarParameterFlow.AvatarToApp)
         .ToList();

@@ -1,3 +1,5 @@
+using MagicChatbox.Vocabulary;
+using MagicChatbox.Vrc;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -55,6 +57,32 @@ public class UnityPackageContractTests
     }
 
     [Fact]
+    public void The_config_switches_the_generator_makes_start_switched_on()
+    {
+        // These mean "this feature may run", and the app acts on one held off. Unity's default for a
+        // parameter is 0, so leaving it there would ship a prefab that switches five features off for
+        // whoever wears it - the generator would be doing the exact thing the one-way rule exists to
+        // stop a prefab doing.
+        string source = File.ReadAllText(EditorScript());
+
+        var block = Regex.Match(source, @"Controls\s*=\s*\{(?<body>.*?)\};", RegexOptions.Singleline);
+        Assert.True(block.Success, "could not find the Controls table in the editor script");
+
+        foreach (Match entry in Regex.Matches(
+            block.Groups["body"].Value,
+            @"new MagicChatboxControl\(\s*""(?<name>[^""]+)""(?<rest>[^)]*)\)",
+            RegexOptions.Singleline))
+        {
+            if (!entry.Groups["name"].Value.StartsWith("MCB/Cfg/", StringComparison.Ordinal))
+                continue;
+
+            Assert.EndsWith("true", entry.Groups["rest"].Value.TrimEnd(), StringComparison.Ordinal);
+        }
+
+        Assert.Contains("control.DefaultOn ? 1f : 0f", source, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void The_generator_stamps_a_version_the_app_can_see()
     {
         // Encoded in the name rather than a value, because VRChat's OSCQuery reports stale values for
@@ -68,13 +96,53 @@ public class UnityPackageContractTests
     [Fact]
     public void The_version_the_generator_stamps_is_the_one_the_app_looks_for()
     {
+        // This used to compare the stamped name against a const, which proved the two strings started
+        // the same way and nothing else - and for as long as the doctor was unreachable, nothing in
+        // the app read the stamp at all. Now the generator's own output is run through the reader.
         string source = File.ReadAllText(EditorScript());
 
         Match stamped = Regex.Match(source, @"VersionParameter\s*=\s*""(MCB/Version/\d+)""");
         Assert.True(stamped.Success, "the generator does not declare a version parameter name");
 
-        Assert.StartsWith(LayoutDoctor.VersionPrefix, stamped.Groups[1].Value, StringComparison.Ordinal);
+        string versionName = stamped.Groups[1].Value;
+        Assert.StartsWith(LayoutDoctor.VersionPrefix, versionName, StringComparison.Ordinal);
+
+        var controls = AvatarParameterContract.Parameters
+            .Where(p => p.Flow == AvatarParameterFlow.AvatarToApp)
+            .Select(p => p.Name)
+            .ToList();
+
+        LayoutReport report = LayoutDoctor.Inspect(SchemaWith([versionName, .. controls]), controls);
+
+        Assert.Equal(LayoutState.Installed, report.State);
+        Assert.Equal(AvatarParameterContract.Version, report.InstalledVersion);
+        Assert.Empty(report.MissingControls);
     }
+
+    [Fact]
+    public void An_avatar_the_generator_never_touched_is_reported_as_not_installed()
+    {
+        // The overwhelmingly common case: 0 of the 201 avatar configs on this machine carry any MCB/
+        // parameter. The copy for this state has to be calm, because it is what almost everybody sees.
+        var controls = AvatarParameterContract.Parameters
+            .Where(p => p.Flow == AvatarParameterFlow.AvatarToApp)
+            .Select(p => p.Name)
+            .ToList();
+
+        LayoutReport report = LayoutDoctor.Inspect(SchemaWith(["Toggles/Hat", "VRCEmote"]), controls);
+
+        Assert.Equal(LayoutState.NotInstalled, report.State);
+        Assert.Equal(controls.Count, report.MissingControls.Count);
+    }
+
+    private static AvatarSchemaSnapshot SchemaWith(IEnumerable<string> names)
+        => new(
+            "avtr_generated",
+            1,
+            DateTime.UtcNow,
+            names
+                .Select(n => new VrcParameterDeclaration(n, SignalKind.Bool, SignalValue.Bool(false), true))
+                .ToList());
 
     [Fact]
     public void The_generator_matches_the_avatar_s_own_Write_Defaults()

@@ -79,3 +79,19 @@ Every value below is written to `/avatar/parameters/<name>`. Names are case sens
 - `MCB/Ctrl/Tts/Stop` — Acts on the rising edge only, so holding it down does nothing further. Costs no synced parameter bits.
 - `MCB/Ctrl/Panic` — Deliberately one-way: it cannot be undone from the avatar, so a misbehaving world cannot switch MagicChatbox back on.
 
+## Config
+
+| Parameter | Type | Range | Source | Sent when |
+|---|---|---|---|---|
+| `MCB/Cfg/Sending` | Bool | 0 or 1 | IAppState.MasterSwitch | EnableBridge and EnableAvatarConfig |
+| `MCB/Cfg/HeartRate` | Bool | 0 or 1 | IntegrationSettings.IntgrHeartRate | EnableBridge and EnableAvatarConfig |
+| `MCB/Cfg/Media` | Bool | 0 or 1 | IntegrationSettings.IntgrScanMediaLink | EnableBridge and EnableAvatarConfig |
+| `MCB/Cfg/WindowActivity` | Bool | 0 or 1 | IntegrationSettings.IntgrScanWindowActivity | EnableBridge and EnableAvatarConfig |
+| `MCB/Cfg/Status` | Bool | 0 or 1 | IntegrationSettings.IntgrStatus | EnableBridge and EnableAvatarConfig |
+
+- `MCB/Cfg/Sending` — Save it off on an avatar to stop MagicChatbox sending anything while you wear it. Holding it on is refused.
+- `MCB/Cfg/HeartRate` — Save it off on an avatar to keep your heart rate off the chatbox while you wear it. Holding it on is refused.
+- `MCB/Cfg/Media` — Save it off on an avatar to keep what you are listening to off the chatbox while you wear it. Holding it on is refused.
+- `MCB/Cfg/WindowActivity` — Save it off on an avatar to keep the app you have open off the chatbox while you wear it. Holding it on is refused.
+- `MCB/Cfg/Status` — Save it off on an avatar to keep your personal status off the chatbox while you wear it. Holding it on is refused.
+
