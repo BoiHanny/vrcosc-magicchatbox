@@ -66,10 +66,17 @@ public static class AvatarControlCatalog
         "VRCEmote", "VRCFaceBlendH", "VRCFaceBlendV",
     };
 
+    private static readonly HashSet<string> InertOverOsc = new(StringComparer.Ordinal)
+    {
+        "PreviewMode", "IsOnFriendsList",
+    };
+
     public static bool IsBuiltIn(string name) => BuiltIns.Contains(name);
 
     public static bool IsVrchatOwned(string name)
         => BuiltIns.Contains(name) || VrchatOwnedWritables.Contains(name);
+
+    public static bool IsInertOverOsc(string name) => InertOverOsc.Contains(name);
 
     public static AvatarWidget WidgetFor(SignalKind kind, bool writable, string name)
     {
@@ -130,6 +137,36 @@ public static class AvatarControlCatalog
         return false;
     }
 
+    public static AvatarControlRow RowFor(VrcParameterDeclaration declaration, AvatarSenseStore? senses = null)
+    {
+        string name = declaration.Name ?? string.Empty;
+
+        double value = 0;
+        bool hasValue = false;
+
+        if (declaration.Value.HasValue)
+        {
+            value = ToDouble(declaration.Value.Value);
+            hasValue = true;
+        }
+
+        if (senses != null && senses.TryGetParameter(name, out AvatarSense sense))
+        {
+            value = sense.Value;
+            hasValue = true;
+        }
+
+        return new AvatarControlRow(
+            name,
+            LeafOf(name),
+            declaration.Kind,
+            declaration.Writable,
+            WidgetFor(declaration.Kind, declaration.Writable, name),
+            value,
+            hasValue,
+            IsBuiltIn(name));
+    }
+
     public static AvatarControlView Build(
         AvatarSchemaSnapshot schema,
         AvatarSenseStore? senses = null,
@@ -187,15 +224,7 @@ public static class AvatarControlCatalog
                 hasValue = true;
             }
 
-            kept.Add(new AvatarControlRow(
-                name,
-                LeafOf(name),
-                declaration.Kind,
-                declaration.Writable,
-                WidgetFor(declaration.Kind, declaration.Writable, name),
-                value,
-                hasValue,
-                isBuiltIn));
+            kept.Add(RowFor(declaration, senses));
         }
 
         var groups = kept

@@ -142,7 +142,15 @@ public class AvatarPageVisualTests
             "VRCFury renamed the controls, so VRChat sees VF12_MCB/Ctrl/Panic instead.",
             ["MCB/Ctrl/Panic", "MCB/Ctrl/Tts/Stop"]);
 
-        vm.RecentlyChanged.Add(new AvatarSense("Toggles/Hat", SignalKind.Bool, 1, "on", DateTime.UtcNow));
+        vm.RecentlyChanged.Add(new AvatarSense("Sensors/Contact", SignalKind.Float, 0.9, "", DateTime.UtcNow));
+        vm.HasUndrivableRecent = true;
+
+        vm.PinnedRows.Add(Row("Toggles/Hat", "Hat", SignalKind.Bool, AvatarWidget.Toggle, writable: true));
+        vm.PinnedRows[0].IsPinned = true;
+        vm.HasPinnedRows = true;
+
+        vm.RecentRows.Add(Row("Modes/Outfit", "Outfit", SignalKind.Int, AvatarWidget.Stepper, writable: true, value: 2));
+        vm.HasRecentRows = true;
 
         vm.Groups.Add(new AvatarControlGroupViewModel(
             "Toggles",

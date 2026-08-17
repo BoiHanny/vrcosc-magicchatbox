@@ -11,6 +11,7 @@ public partial class AvatarControlRowViewModel : ObservableObject
     private static readonly TimeSpan HoldWindow = TimeSpan.FromSeconds(2);
 
     private readonly IAvatarParameterSink _sink;
+    private readonly Action<AvatarControlRowViewModel>? _pinChanged;
     private DateTime _heldUntilUtc = DateTime.MinValue;
 
     public string Name { get; }
@@ -23,6 +24,9 @@ public partial class AvatarControlRowViewModel : ObservableObject
     [ObservableProperty] private double _value;
     [ObservableProperty] private bool _hasValue;
     [ObservableProperty] private bool _isHeld;
+    [ObservableProperty] private bool _isPinned;
+
+    public bool CanPin => !AvatarControlCatalog.IsInertOverOsc(Name);
 
     public bool IsToggle => Widget == AvatarWidget.Toggle;
     public bool IsSlider => Widget == AvatarWidget.Slider;
@@ -49,11 +53,15 @@ public partial class AvatarControlRowViewModel : ObservableObject
         }
     }
 
-    public AvatarControlRowViewModel(AvatarControlRow row, IAvatarParameterSink sink)
+    public AvatarControlRowViewModel(
+        AvatarControlRow row,
+        IAvatarParameterSink sink,
+        Action<AvatarControlRowViewModel>? pinChanged = null)
     {
         ArgumentNullException.ThrowIfNull(row);
 
         _sink = sink ?? throw new ArgumentNullException(nameof(sink));
+        _pinChanged = pinChanged;
 
         Name = row.Name;
         Leaf = row.Leaf;
@@ -82,6 +90,16 @@ public partial class AvatarControlRowViewModel : ObservableObject
 
         if (HasValue != hasValue)
             HasValue = hasValue;
+    }
+
+    [RelayCommand]
+    private void TogglePin()
+    {
+        if (!CanPin)
+            return;
+
+        IsPinned = !IsPinned;
+        _pinChanged?.Invoke(this);
     }
 
     [RelayCommand]

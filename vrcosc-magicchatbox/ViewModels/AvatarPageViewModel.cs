@@ -51,6 +51,16 @@ public partial class AvatarPageViewModel : ObservableObject
 
     public ObservableCollection<AvatarSense> RecentlyChanged { get; } = new();
 
+    public ObservableCollection<Avatar.AvatarControlRowViewModel> PinnedRows { get; } = new();
+
+    public ObservableCollection<Avatar.AvatarControlRowViewModel> RecentRows { get; } = new();
+
+    [ObservableProperty] private bool _hasPinnedRows;
+
+    [ObservableProperty] private bool _hasRecentRows;
+
+    [ObservableProperty] private bool _hasUndrivableRecent;
+
     public ObservableCollection<ReadinessRow> Readiness { get; } = new();
 
     public ObservableCollection<AvatarConfigChange> ConfigChanges { get; } = new();
@@ -200,6 +210,8 @@ public partial class AvatarPageViewModel : ObservableObject
         RebuildReadiness(bridge, schema, identity.IsKnown);
         RebuildPresets();
         RebuildGlobals();
+        RebuildPinned();
+        RebuildRecentRows(bridge, schema);
 
         CanCapturePreset = !schema.IsEmpty && PresetKey.Length > 0;
         CanImportSavedState = CanCapturePreset && AvatarId.Length > 0 && _localAvatarData.Exists;
@@ -552,6 +564,145 @@ public partial class AvatarPageViewModel : ObservableObject
         return $"Set {plan.Carried} of your {Globals.Count} defaults on this avatar.";
     }
 
+    private bool IsPinnedName(string name)
+    {
+        foreach (AvatarPinnedControl pin in _presetsProvider.Value.Pinned)
+        {
+            if (string.Equals(pin.AvatarId, PresetKey, StringComparison.Ordinal)
+                && string.Equals(pin.Name, name, StringComparison.Ordinal))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private void OnPinToggled(Avatar.AvatarControlRowViewModel row)
+    {
+        ObservableCollection<AvatarPinnedControl> pinned = _presetsProvider.Value.Pinned;
+
+        for (int i = pinned.Count - 1; i >= 0; i--)
+        {
+            if (string.Equals(pinned[i].AvatarId, PresetKey, StringComparison.Ordinal)
+                && string.Equals(pinned[i].Name, row.Name, StringComparison.Ordinal))
+            {
+                pinned.RemoveAt(i);
+            }
+        }
+
+        if (row.IsPinned)
+            pinned.Add(new AvatarPinnedControl(PresetKey, row.Name));
+
+        _presetsProvider.Save();
+
+        foreach (Avatar.AvatarControlRowViewModel other in AllKnownRows())
+        {
+            if (!ReferenceEquals(other, row) && string.Equals(other.Name, row.Name, StringComparison.Ordinal))
+                other.IsPinned = row.IsPinned;
+        }
+
+        RebuildPinned();
+    }
+
+    private IEnumerable<Avatar.AvatarControlRowViewModel> AllKnownRows()
+        => _rows.Values.Concat(PinnedRows).Concat(RecentRows);
+
+    private Avatar.AvatarControlRowViewModel BuildRow(AvatarControlRow row)
+        => new(row, _sink, OnPinToggled) { IsPinned = IsPinnedName(row.Name) };
+
+    private void RebuildPinned()
+    {
+        var bridge = _modules.Value.VrcBridge;
+
+        if (bridge == null)
+            return;
+
+        var declared = bridge.Schema.Current.Parameters
+            .Where(p => !string.IsNullOrEmpty(p.Name))
+            .ToDictionary(p => p.Name, p => p, StringComparer.Ordinal);
+
+        var wanted = _presetsProvider.Value.Pinned
+            .Where(p => string.Equals(p.AvatarId, PresetKey, StringComparison.Ordinal))
+            .Select(p => p.Name)
+            .Where(declared.ContainsKey)
+            .ToList();
+
+        Sync(PinnedRows, wanted, declared, bridge.Senses);
+        HasPinnedRows = PinnedRows.Count > 0;
+    }
+
+    private void RebuildRecentRows(Services.Vrc.VrcBridgeModule bridge, AvatarSchemaSnapshot schema)
+    {
+        var declared = schema.Parameters
+            .Where(p => !string.IsNullOrEmpty(p.Name))
+            .ToDictionary(p => p.Name, p => p, StringComparer.OrdinalIgnoreCase);
+
+        var wanted = new List<string>();
+
+        foreach (AvatarSense sense in RecentlyChanged)
+        {
+            if (declared.TryGetValue(sense.Key, out VrcParameterDeclaration declaration)
+                && !AvatarControlCatalog.IsVrchatOwned(declaration.Name)
+                && !wanted.Contains(declaration.Name, StringComparer.Ordinal))
+            {
+                wanted.Add(declaration.Name);
+            }
+        }
+
+        Sync(
+            RecentRows,
+            wanted,
+            declared.ToDictionary(d => d.Value.Name, d => d.Value, StringComparer.Ordinal),
+            bridge.Senses);
+
+        HasRecentRows = RecentRows.Count > 0;
+
+        var promoted = wanted.ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+        for (int i = RecentlyChanged.Count - 1; i >= 0; i--)
+        {
+            string key = RecentlyChanged[i].Key;
+
+            if (promoted.Contains(key)
+                || (declared.TryGetValue(key, out VrcParameterDeclaration match) && promoted.Contains(match.Name)))
+            {
+                RecentlyChanged.RemoveAt(i);
+            }
+        }
+
+        HasUndrivableRecent = RecentlyChanged.Count > 0;
+    }
+
+    private void Sync(
+        ObservableCollection<Avatar.AvatarControlRowViewModel> target,
+        IReadOnlyList<string> wanted,
+        IReadOnlyDictionary<string, VrcParameterDeclaration> declared,
+        AvatarSenseStore senses)
+    {
+        if (target.Select(r => r.Name).SequenceEqual(wanted, StringComparer.Ordinal))
+        {
+            foreach (Avatar.AvatarControlRowViewModel row in target)
+            {
+                if (declared.TryGetValue(row.Name, out VrcParameterDeclaration declaration))
+                {
+                    AvatarControlRow fresh = AvatarControlCatalog.RowFor(declaration, senses);
+                    row.ObserveExternal(fresh.Value, fresh.HasValue);
+                }
+            }
+
+            return;
+        }
+
+        target.Clear();
+
+        foreach (string name in wanted)
+        {
+            if (declared.TryGetValue(name, out VrcParameterDeclaration declaration))
+                target.Add(BuildRow(AvatarControlCatalog.RowFor(declaration, senses)));
+        }
+    }
+
     private void ApplyGlobalsOnceForThisAvatar(Services.Vrc.VrcBridgeModule bridge, AvatarSchemaSnapshot schema)
     {
         if (!ApplyGlobalsOnAvatarChange || schema.IsEmpty || AvatarId.Length == 0)
@@ -774,7 +925,7 @@ public partial class AvatarPageViewModel : ObservableObject
 
                 foreach (AvatarControlRow row in group.Rows)
                 {
-                    var rowViewModel = new Avatar.AvatarControlRowViewModel(row, _sink);
+                    Avatar.AvatarControlRowViewModel rowViewModel = BuildRow(row);
                     _rows[row.Name] = rowViewModel;
                     rows.Add(rowViewModel);
                 }

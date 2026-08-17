@@ -17,4 +17,10 @@ public partial class AvatarPresetSettings : VersionedSettings
     private ObservableCollection<AvatarPresetValue> _globals = new();
 
     [ObservableProperty] private bool _applyGlobalsOnAvatarChange;
+
+    [ObservableProperty]
+    [property: JsonProperty(ObjectCreationHandling = ObjectCreationHandling.Replace)]
+    private ObservableCollection<AvatarPinnedControl> _pinned = new();
 }
+
+public sealed record AvatarPinnedControl(string AvatarId, string Name);

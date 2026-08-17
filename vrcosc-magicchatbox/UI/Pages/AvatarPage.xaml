@@ -18,6 +18,100 @@
                 -->
                 <ResourceDictionary Source="pack://application:,,,/MagicChatbox;component/UI/Resources/SharedConverters.xaml" />
             </ResourceDictionary.MergedDictionaries>
+
+            <!--
+                One row, used by the tree, by Pinned and by Recently changed. Pinning changes where a
+                row is drawn and never what kind of row it is, so there is deliberately no second
+                control vocabulary to keep in step with this one.
+            -->
+            <DataTemplate x:Key="AvatarControlRowTemplate">
+                <Grid Margin="0,3">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="170" />
+                    </Grid.ColumnDefinitions>
+
+                    <Button
+                        Grid.Column="0"
+                        Margin="0,0,4,0"
+                        Padding="2,0"
+                        VerticalAlignment="Center"
+                        Command="{Binding TogglePinCommand}"
+                        Content="{Binding IsPinned, Converter={StaticResource BoolToStarConverter}}"
+                        Style="{StaticResource Status_Button_style}"
+                        ToolTip="Keep this one at the top for this avatar"
+                        Visibility="{Binding CanPin, Converter={StaticResource BoolToVisibilityConverter}}" />
+
+                    <TextBlock
+                        Grid.Column="1"
+                        VerticalAlignment="Center"
+                        Style="{StaticResource OptionHelpTextStyle}"
+                        Text="{Binding Leaf}"
+                        ToolTip="{Binding Name}" />
+
+                    <CheckBox
+                        Grid.Column="2"
+                        HorizontalAlignment="Right"
+                        VerticalAlignment="Center"
+                        IsChecked="{Binding BoolValue, Mode=TwoWay}"
+                        Visibility="{Binding IsToggle, Converter={StaticResource BoolToVisibilityConverter}}" />
+
+                    <StackPanel
+                        Grid.Column="2"
+                        HorizontalAlignment="Right"
+                        Orientation="Horizontal"
+                        Visibility="{Binding IsStepper, Converter={StaticResource BoolToVisibilityConverter}}">
+                        <Button
+                            Width="26"
+                            Command="{Binding StepCommand}"
+                            CommandParameter="down"
+                            Content="−"
+                            Style="{StaticResource Status_Button_style}" />
+                        <TextBlock
+                            MinWidth="34"
+                            Margin="6,0"
+                            VerticalAlignment="Center"
+                            Style="{StaticResource OptionFieldLabelStyle}"
+                            Text="{Binding StateWord}"
+                            TextAlignment="Center" />
+                        <Button
+                            Width="26"
+                            Command="{Binding StepCommand}"
+                            CommandParameter="up"
+                            Content="+"
+                            Style="{StaticResource Status_Button_style}" />
+                    </StackPanel>
+
+                    <StackPanel
+                        Grid.Column="2"
+                        HorizontalAlignment="Right"
+                        Orientation="Horizontal"
+                        Visibility="{Binding IsSlider, Converter={StaticResource BoolToVisibilityConverter}}">
+                        <Slider
+                            Width="110"
+                            VerticalAlignment="Center"
+                            Maximum="1"
+                            Minimum="0"
+                            Thumb.DragCompleted="OnSliderDragCompleted"
+                            Value="{Binding Value, Mode=TwoWay}" />
+                        <TextBlock
+                            MinWidth="34"
+                            Margin="6,0,0,0"
+                            VerticalAlignment="Center"
+                            Style="{StaticResource OptionHelpTextStyle}"
+                            Text="{Binding StateWord}" />
+                    </StackPanel>
+
+                    <TextBlock
+                        Grid.Column="2"
+                        HorizontalAlignment="Right"
+                        VerticalAlignment="Center"
+                        Style="{StaticResource OptionHelpTextStyle}"
+                        Text="{Binding StateWord}"
+                        Visibility="{Binding IsReadOnly, Converter={StaticResource BoolToVisibilityConverter}}" />
+                </Grid>
+            </DataTemplate>
         </ResourceDictionary>
     </UserControl.Resources>
 
@@ -74,6 +168,43 @@
                             Margin="0,6,0,0"
                             Style="{StaticResource OptionHelpTextStyle}"
                             Text="{Binding RungMessage}" />
+                    </StackPanel>
+                </Border>
+
+                <Border
+                    Padding="0"
+                    Style="{StaticResource OptionCardStyle}"
+                    Visibility="{Binding HasPinnedRows, Converter={StaticResource BoolToVisibilityConverter}}">
+                    <StackPanel Margin="10">
+                        <TextBlock
+                            Margin="0,0,0,4"
+                            Style="{StaticResource OptionFieldLabelStyle}"
+                            Text="Kept at the top" />
+                        <ItemsControl
+                            x:Name="AvatarPinnedList"
+                            ItemTemplate="{StaticResource AvatarControlRowTemplate}"
+                            ItemsSource="{Binding PinnedRows}" />
+                    </StackPanel>
+                </Border>
+
+                <Border
+                    Padding="0"
+                    Style="{StaticResource OptionCardStyle}"
+                    Visibility="{Binding HasRecentRows, Converter={StaticResource BoolToVisibilityConverter}}">
+                    <StackPanel Margin="10">
+                        <TextBlock
+                            Margin="0,0,0,4"
+                            Style="{StaticResource OptionFieldLabelStyle}"
+                            Text="Just touched" />
+                        <TextBlock
+                            Margin="0,0,0,6"
+                            Style="{StaticResource OptionHelpTextStyle}"
+                            Text="Move something in VRChat's menu and it appears here, ready to use, so you never need to know what it is called."
+                            TextWrapping="Wrap" />
+                        <ItemsControl
+                            x:Name="AvatarRecentList"
+                            ItemTemplate="{StaticResource AvatarControlRowTemplate}"
+                            ItemsSource="{Binding RecentRows}" />
                     </StackPanel>
                 </Border>
 
@@ -474,16 +605,20 @@
                     </StackPanel>
                 </Border>
 
-                <Border Padding="0" Style="{StaticResource OptionCardStyle}">
+                <Border
+                    Padding="0"
+                    Style="{StaticResource OptionCardStyle}"
+                    Visibility="{Binding HasUndrivableRecent, Converter={StaticResource BoolToVisibilityConverter}}">
                     <StackPanel Margin="10">
                         <TextBlock
                             Margin="0,0,0,4"
                             Style="{StaticResource OptionFieldLabelStyle}"
-                            Text="Recently changed" />
+                            Text="Changed, but not something you can drive" />
                         <TextBlock
                             Margin="0,0,0,6"
                             Style="{StaticResource OptionHelpTextStyle}"
-                            Text="Move something in VRChat's menu and it appears here, so you do not need to know its name." />
+                            Text="These moved recently and are not in the list above, which usually means the avatar reports them without accepting them."
+                            TextWrapping="Wrap" />
                         <ItemsControl ItemsSource="{Binding RecentlyChanged}">
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate>
@@ -543,86 +678,7 @@
                                         Margin="0,0,0,4"
                                         Style="{StaticResource OptionFieldLabelStyle}"
                                         Text="{Binding DisplayName}" />
-                                    <ItemsControl x:Name="AvatarRowList" ItemsSource="{Binding Rows}">
-                                        <ItemsControl.ItemTemplate>
-                                            <DataTemplate>
-                                                <Grid Margin="0,3">
-                                                    <Grid.ColumnDefinitions>
-                                                        <ColumnDefinition Width="*" />
-                                                        <ColumnDefinition Width="170" />
-                                                    </Grid.ColumnDefinitions>
-
-                                                    <TextBlock
-                                                        Grid.Column="0"
-                                                        VerticalAlignment="Center"
-                                                        Style="{StaticResource OptionHelpTextStyle}"
-                                                        Text="{Binding Leaf}"
-                                                        ToolTip="{Binding Name}" />
-
-                                                    <CheckBox
-                                                        Grid.Column="1"
-                                                        HorizontalAlignment="Right"
-                                                        VerticalAlignment="Center"
-                                                        IsChecked="{Binding BoolValue, Mode=TwoWay}"
-                                                        Visibility="{Binding IsToggle, Converter={StaticResource BoolToVisibilityConverter}}" />
-
-                                                    <StackPanel
-                                                        Grid.Column="1"
-                                                        HorizontalAlignment="Right"
-                                                        Orientation="Horizontal"
-                                                        Visibility="{Binding IsStepper, Converter={StaticResource BoolToVisibilityConverter}}">
-                                                        <Button
-                                                            Width="26"
-                                                            Command="{Binding StepCommand}"
-                                                            CommandParameter="down"
-                                                            Content="−"
-                                                            Style="{StaticResource Status_Button_style}" />
-                                                        <TextBlock
-                                                            MinWidth="34"
-                                                            Margin="6,0"
-                                                            VerticalAlignment="Center"
-                                                            Style="{StaticResource OptionFieldLabelStyle}"
-                                                            Text="{Binding StateWord}"
-                                                            TextAlignment="Center" />
-                                                        <Button
-                                                            Width="26"
-                                                            Command="{Binding StepCommand}"
-                                                            CommandParameter="up"
-                                                            Content="+"
-                                                            Style="{StaticResource Status_Button_style}" />
-                                                    </StackPanel>
-
-                                                    <StackPanel
-                                                        Grid.Column="1"
-                                                        HorizontalAlignment="Right"
-                                                        Orientation="Horizontal"
-                                                        Visibility="{Binding IsSlider, Converter={StaticResource BoolToVisibilityConverter}}">
-                                                        <Slider
-                                                            Width="110"
-                                                            VerticalAlignment="Center"
-                                                            Maximum="1"
-                                                            Minimum="0"
-                                                            Thumb.DragCompleted="OnSliderDragCompleted"
-                                                            Value="{Binding Value, Mode=TwoWay}" />
-                                                        <TextBlock
-                                                            MinWidth="34"
-                                                            Margin="6,0,0,0"
-                                                            VerticalAlignment="Center"
-                                                            Style="{StaticResource OptionHelpTextStyle}"
-                                                            Text="{Binding StateWord}" />
-                                                    </StackPanel>
-
-                                                    <TextBlock
-                                                        Grid.Column="1"
-                                                        HorizontalAlignment="Right"
-                                                        VerticalAlignment="Center"
-                                                        Style="{StaticResource OptionHelpTextStyle}"
-                                                        Text="{Binding StateWord}"
-                                                        Visibility="{Binding IsReadOnly, Converter={StaticResource BoolToVisibilityConverter}}" />
-                                                </Grid>
-                                            </DataTemplate>
-                                        </ItemsControl.ItemTemplate>
-                                    </ItemsControl>
+                                    <ItemsControl x:Name="AvatarRowList" ItemsSource="{Binding Rows}" ItemTemplate="{StaticResource AvatarControlRowTemplate}" />
                                 </StackPanel>
                             </Border>
                         </DataTemplate>
