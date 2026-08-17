@@ -258,6 +258,7 @@ public static class ServiceRegistration
         services.AddSingleton<AvatarPageViewModel>(sp => new AvatarPageViewModel(
             sp.GetRequiredService<ISettingsProvider<VrcBridgeSettings>>(),
             sp.GetRequiredService<ISettingsProvider<IntegrationSettings>>(),
+            sp.GetRequiredService<ISettingsProvider<AvatarPresetSettings>>(),
             new Lazy<IModuleHost>(() => sp.GetRequiredService<IModuleHost>()),
             sp.GetRequiredService<Core.Vrc.IAvatarParameterSink>()));
         services.AddSingleton<VrcBridgeSectionViewModel>(sp => new VrcBridgeSectionViewModel(

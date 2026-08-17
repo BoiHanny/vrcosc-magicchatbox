@@ -158,6 +158,94 @@
                     </StackPanel>
                 </Border>
 
+                <Border Padding="0" Style="{StaticResource OptionCardStyle}">
+                    <StackPanel Margin="10">
+                        <TextBlock
+                            Margin="0,0,0,4"
+                            Style="{StaticResource OptionFieldLabelStyle}"
+                            Text="Saved looks" />
+                        <TextBlock
+                            Margin="0,0,0,6"
+                            Style="{StaticResource OptionHelpTextStyle}"
+                            Text="Save what this avatar is wearing now and put it back later. A look belongs to the avatar it was taken from — parameter names are the avatar author's own invention, so it cannot travel to a different one."
+                            TextWrapping="Wrap" />
+
+                        <StackPanel Margin="0,0,0,6" Orientation="Horizontal">
+                            <TextBox
+                                x:Name="AvatarPresetName"
+                                Width="180"
+                                Padding="3,0"
+                                VerticalContentAlignment="Center"
+                                FontSize="{StaticResource FontSizeBody}"
+                                Text="{Binding NewPresetName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                ToolTip="Leave it empty and it names itself." />
+                            <Button
+                                Margin="8,0,0,0"
+                                Command="{Binding CapturePresetCommand}"
+                                Content="Save this look"
+                                IsEnabled="{Binding CanCapturePreset}"
+                                Style="{StaticResource Status_Button_style}" />
+                        </StackPanel>
+
+                        <ItemsControl ItemsSource="{Binding Presets}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Grid Margin="0,2">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock
+                                            Grid.Column="0"
+                                            VerticalAlignment="Center"
+                                            Style="{StaticResource OptionFieldLabelStyle}"
+                                            Text="{Binding Name}"
+                                            ToolTip="{Binding CapturedUtc}" />
+                                        <TextBlock
+                                            Grid.Column="1"
+                                            Margin="0,0,8,0"
+                                            VerticalAlignment="Center"
+                                            Style="{StaticResource OptionHelpTextStyle}"
+                                            Text="{Binding Count, StringFormat={}{0} saved}" />
+                                        <StackPanel Grid.Column="2" Orientation="Horizontal">
+                                            <Button
+                                                Command="{Binding DataContext.ApplyPresetCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                CommandParameter="{Binding}"
+                                                Content="Wear it"
+                                                Style="{StaticResource Status_Button_style}" />
+                                            <Button
+                                                Margin="6,0,0,0"
+                                                Command="{Binding DataContext.DeletePresetCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                CommandParameter="{Binding}"
+                                                Content="Forget"
+                                                Style="{StaticResource Status_Button_style}" />
+                                        </StackPanel>
+                                    </Grid>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+
+                        <TextBlock
+                            Margin="0,6,0,0"
+                            Style="{StaticResource OptionHelpTextStyle}"
+                            Text="{Binding PresetStatus}"
+                            TextWrapping="Wrap" />
+
+                        <ItemsControl Margin="0,4,0,0" ItemsSource="{Binding PresetRefusals}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <TextBlock
+                                        Margin="0,1"
+                                        Style="{StaticResource OptionHelpTextStyle}"
+                                        Text="{Binding Name}"
+                                        ToolTip="{Binding Outcome}" />
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </StackPanel>
+                </Border>
+
                 <Border
                     Padding="0"
                     Style="{StaticResource OptionCardStyle}"

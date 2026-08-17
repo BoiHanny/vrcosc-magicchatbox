@@ -19,6 +19,7 @@ public partial class AvatarPageViewModel : ObservableObject
     private readonly Lazy<IModuleHost> _modules;
     private readonly ISettingsProvider<VrcBridgeSettings> _settingsProvider;
     private readonly ISettingsProvider<IntegrationSettings> _integrationsProvider;
+    private readonly ISettingsProvider<AvatarPresetSettings> _presetsProvider;
     private DispatcherTimer? _timer;
 
     public VrcBridgeSettings Settings => _settingsProvider.Value;
@@ -46,6 +47,16 @@ public partial class AvatarPageViewModel : ObservableObject
     public ObservableCollection<AvatarConfigChange> ConfigChanges { get; } = new();
 
     [ObservableProperty] private bool _hasConfigChanges;
+
+    public ObservableCollection<AvatarPreset> Presets { get; } = new();
+
+    public ObservableCollection<PresetApplyRow> PresetRefusals { get; } = new();
+
+    [ObservableProperty] private string _newPresetName = string.Empty;
+
+    [ObservableProperty] private string _presetStatus = string.Empty;
+
+    [ObservableProperty] private bool _canCapturePreset;
 
     [ObservableProperty] private string _speechText = string.Empty;
 
@@ -76,11 +87,13 @@ public partial class AvatarPageViewModel : ObservableObject
     public AvatarPageViewModel(
         ISettingsProvider<VrcBridgeSettings> settingsProvider,
         ISettingsProvider<IntegrationSettings> integrationsProvider,
+        ISettingsProvider<AvatarPresetSettings> presetsProvider,
         Lazy<IModuleHost> modules,
         IAvatarParameterSink sink)
     {
         _settingsProvider = settingsProvider;
         _integrationsProvider = integrationsProvider;
+        _presetsProvider = presetsProvider;
         _modules = modules;
         _sink = sink;
     }
@@ -156,6 +169,9 @@ public partial class AvatarPageViewModel : ObservableObject
         RebuildGroups();
         RebuildRecent(bridge);
         RebuildReadiness(bridge, schema, identity.IsKnown);
+        RebuildPresets();
+
+        CanCapturePreset = !schema.IsEmpty && PresetKey.Length > 0;
     }
 
     private void RebuildReadiness(Services.Vrc.VrcBridgeModule bridge, AvatarSchemaSnapshot schema, bool avatarKnown)
@@ -216,6 +232,117 @@ public partial class AvatarPageViewModel : ObservableObject
         Readiness.Clear();
         foreach (ReadinessRow row in rows)
             Readiness.Add(row);
+    }
+
+    private string PresetKey => AvatarId.Length > 0 ? AvatarId : AvatarName;
+
+    private void RebuildPresets()
+    {
+        string key = PresetKey;
+
+        var mine = _presetsProvider.Value.Presets
+            .Where(p => string.Equals(p.AvatarId, key, StringComparison.Ordinal))
+            .OrderBy(p => p.Name, StringComparer.CurrentCultureIgnoreCase)
+            .ToList();
+
+        if (mine.Count == Presets.Count && mine.Zip(Presets).All(p => p.First == p.Second))
+            return;
+
+        Presets.Clear();
+        foreach (AvatarPreset preset in mine)
+            Presets.Add(preset);
+    }
+
+    [RelayCommand]
+    private void CapturePreset()
+    {
+        var bridge = _modules.Value.VrcBridge;
+        if (bridge == null)
+            return;
+
+        AvatarSchemaSnapshot schema = bridge.Schema.Current;
+
+        if (schema.IsEmpty || PresetKey.Length == 0)
+        {
+            PresetStatus = "Waiting to see your avatar.";
+            return;
+        }
+
+        string name = NewPresetName.Trim();
+        if (name.Length == 0)
+            name = NextPresetName();
+
+        AvatarPreset preset = AvatarPresetPlanner.Capture(
+            name,
+            new AvatarIdentity(PresetKey, AvatarName, bridge.Identity.Source),
+            schema,
+            bridge.Senses);
+
+        _presetsProvider.Value.Presets.Add(preset);
+        _presetsProvider.Save();
+
+        NewPresetName = string.Empty;
+        RebuildPresets();
+
+        int writable = schema.WritableCount;
+
+        PresetStatus = preset.Count == writable
+            ? $"Saved {preset.Count} from this avatar as \"{preset.Name}\"."
+            : $"Saved {preset.Count} of {writable} as \"{preset.Name}\". The rest had no value to read yet.";
+    }
+
+    [RelayCommand]
+    private void ApplyPreset(AvatarPreset? preset)
+    {
+        var bridge = _modules.Value.VrcBridge;
+        if (preset == null || bridge == null)
+            return;
+
+        PresetApplyPlan plan = AvatarPresetPlanner.Plan(preset, bridge.Schema.Current);
+
+        PresetRefusals.Clear();
+        foreach (PresetApplyRow row in plan.Rows.Where(r => r.Outcome != PresetOutcome.Carried))
+            PresetRefusals.Add(row);
+
+        if (plan.IsEmpty)
+        {
+            PresetStatus = $"\"{preset.Name}\" has nothing this avatar will take. {plan.Summary}.";
+            return;
+        }
+
+        AvatarPresetPlanner.Publish(plan, bridge.Pump);
+
+        string estimate = plan.Estimate > TimeSpan.FromSeconds(1)
+            ? $" It takes about {plan.Estimate.TotalSeconds:0.#} seconds to send."
+            : string.Empty;
+
+        PresetStatus = $"\"{preset.Name}\": {plan.Summary}.{estimate}";
+    }
+
+    [RelayCommand]
+    private void DeletePreset(AvatarPreset? preset)
+    {
+        if (preset == null)
+            return;
+
+        _presetsProvider.Value.Presets.Remove(preset);
+        _presetsProvider.Save();
+
+        RebuildPresets();
+        PresetStatus = $"Deleted \"{preset.Name}\".";
+    }
+
+    private string NextPresetName()
+    {
+        for (int i = 1; i < 1000; i++)
+        {
+            string candidate = $"Preset {i}";
+
+            if (!Presets.Any(p => string.Equals(p.Name, candidate, StringComparison.CurrentCultureIgnoreCase)))
+                return candidate;
+        }
+
+        return "Preset";
     }
 
     private void RebuildConfigChanges(Services.Vrc.VrcBridgeModule bridge)

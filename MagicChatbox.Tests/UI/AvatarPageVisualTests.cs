@@ -104,6 +104,7 @@ public class AvatarPageVisualTests
         var vm = new AvatarPageViewModel(
             new StubSettingsProvider<VrcBridgeSettings>(),
             new StubSettingsProvider<IntegrationSettings>(),
+            new StubSettingsProvider<AvatarPresetSettings>(),
             new Lazy<IModuleHost>(() => new BridgelessModuleHost()),
             new NullParameterSink());
 
@@ -117,6 +118,13 @@ public class AvatarPageVisualTests
         vm.Readiness.Add(new ReadinessRow("Camera flash", ReadinessState.Faulted, "Problem", "something went wrong", 0, 1));
 
         vm.Ecosystems = [.. EcosystemSignature.Markers.Take(3)];
+
+        vm.Presets.Add(new AvatarPreset(
+            "Club", "avtr_test", "Test avatar", DateTime.UtcNow,
+            [new AvatarPresetValue("Toggles/Hat", SignalKind.Bool, 1)]));
+        vm.PresetRefusals.Add(new PresetApplyRow(
+            "Toggles/Gone", PresetOutcome.NotOnThisAvatar, SignalKind.Bool, 1, "Toggles/Gone"));
+        vm.PresetStatus = "\"Club\": 1 to restore, 1 not on this avatar.";
 
         vm.ConfigChanges.Add(new AvatarConfigChange(
             AvatarConfigBindingRegistry.HeartRate, "HeartRate is switched off while you wear this avatar."));
