@@ -338,6 +338,37 @@
                             Text="{Binding LibraryText}"
                             TextWrapping="Wrap" />
 
+                        <TextBlock
+                            Margin="0,6,0,2"
+                            Style="{StaticResource OptionFieldLabelStyle}"
+                            Text="Moving to another PC" />
+                        <TextBlock
+                            Margin="0,0,0,6"
+                            Style="{StaticResource OptionHelpTextStyle}"
+                            Text="VRChat keeps these settings per machine, so a new PC starts every avatar from scratch. Back them up here, copy the file across, and put each avatar back on to restore it. Nothing is written into VRChat's own files — the settings are sent to the avatar the same way every other control on this page is."
+                            TextWrapping="Wrap" />
+                        <StackPanel Orientation="Horizontal">
+                            <Button
+                                Command="{Binding BackUpLibraryCommand}"
+                                Content="Back up"
+                                Style="{StaticResource Status_Button_style}" />
+                            <Button
+                                Margin="6,0,0,0"
+                                Command="{Binding LoadLibraryBackupCommand}"
+                                Content="Open a backup"
+                                Style="{StaticResource Status_Button_style}" />
+                            <Button
+                                Margin="6,0,0,0"
+                                Command="{Binding RestoreFromBackupCommand}"
+                                Content="Put this avatar back"
+                                Style="{StaticResource Status_Button_style}" />
+                        </StackPanel>
+                        <TextBlock
+                            Margin="0,4,0,0"
+                            Style="{StaticResource OptionHelpTextStyle}"
+                            Text="{Binding LibraryBackupStatus}"
+                            TextWrapping="Wrap" />
+
                         <ItemsControl ItemsSource="{Binding Presets}">
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate>

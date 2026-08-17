@@ -63,6 +63,10 @@ public partial class AvatarPageViewModel : ObservableObject
 
     [ObservableProperty] private SavedWriteReport _savedWrites = SavedWriteReport.Empty;
 
+    [ObservableProperty] private string _libraryBackupStatus = string.Empty;
+
+    private AvatarLibraryBackupFile? _libraryBackup;
+
     public ObservableCollection<ReadinessRow> Readiness { get; } = new();
 
     public ObservableCollection<AvatarConfigChange> ConfigChanges { get; } = new();
@@ -418,6 +422,126 @@ public partial class AvatarPageViewModel : ObservableObject
             CancellationToken.None,
             TaskContinuationOptions.OnlyOnRanToCompletion,
             _uiScheduler);
+    }
+
+    [RelayCommand]
+    private void BackUpLibrary()
+    {
+        try
+        {
+            IReadOnlyList<LocalAvatarState> all = _localAvatarData.ReadAll();
+
+            if (all.Count == 0)
+            {
+                LibraryBackupStatus = "There is nothing saved on this PC to back up.";
+                return;
+            }
+
+            var dialog = new Microsoft.Win32.SaveFileDialog
+            {
+                Filter = "Avatar backup (*.json)|*.json",
+                FileName = "MagicChatbox-avatars",
+                Title = "Back up what VRChat has saved for your avatars",
+            };
+
+            if (dialog.ShowDialog() != true)
+                return;
+
+            AvatarLibraryBackupFile file = AvatarLibraryBackup.Build(all, DateTime.UtcNow);
+
+            System.IO.File.WriteAllText(
+                dialog.FileName,
+                Newtonsoft.Json.JsonConvert.SerializeObject(file, Newtonsoft.Json.Formatting.Indented));
+
+            LibraryBackupStatus =
+                $"Backed up {file.Avatars.Count:N0} avatars. VRChat keeps these per machine, so copy this to your other PC.";
+        }
+        catch (Exception ex)
+        {
+            Classes.DataAndSecurity.Logging.WriteException(ex, MSGBox: false);
+            LibraryBackupStatus = "That backup could not be written.";
+        }
+    }
+
+    [RelayCommand]
+    private void LoadLibraryBackup()
+    {
+        try
+        {
+            var dialog = new Microsoft.Win32.OpenFileDialog
+            {
+                Filter = "Avatar backup (*.json)|*.json",
+                Title = "Open an avatar backup",
+            };
+
+            if (dialog.ShowDialog() != true)
+                return;
+
+            var file = Newtonsoft.Json.JsonConvert.DeserializeObject<AvatarLibraryBackupFile>(
+                System.IO.File.ReadAllText(dialog.FileName));
+
+            if (!AvatarLibraryBackup.IsUsable(file, out string detail))
+            {
+                _libraryBackup = null;
+                LibraryBackupStatus = detail;
+                return;
+            }
+
+            _libraryBackup = file;
+
+            LibraryBackupStatus =
+                $"Loaded {file!.Avatars.Count:N0} avatars from {file.TakenUtc.ToLocalTime():d}. "
+                + "Wear one and its settings can be put back.";
+        }
+        catch (Exception ex)
+        {
+            Classes.DataAndSecurity.Logging.WriteException(ex, MSGBox: false);
+            _libraryBackup = null;
+            LibraryBackupStatus = "That file could not be read.";
+        }
+    }
+
+    [RelayCommand]
+    private void RestoreFromBackup()
+    {
+        var bridge = _modules.Value.VrcBridge;
+
+        if (_libraryBackup == null || bridge == null)
+            return;
+
+        AvatarSchemaSnapshot schema = bridge.Schema.Current;
+
+        if (schema.IsEmpty || AvatarId.Length == 0)
+        {
+            LibraryBackupStatus = "Waiting to see your avatar.";
+            return;
+        }
+
+        LocalAvatarState? saved = AvatarLibraryBackup.StateFor(_libraryBackup, AvatarId);
+
+        if (saved == null)
+        {
+            LibraryBackupStatus = "That backup has nothing for the avatar you are wearing.";
+            return;
+        }
+
+        AvatarPreset preset = AvatarPresetPlanner.FromSavedState(
+            "From backup",
+            new AvatarIdentity(PresetKey, AvatarName, bridge.Identity.Source),
+            saved,
+            schema);
+
+        PresetApplyPlan plan = AvatarPresetPlanner.Plan(preset, schema);
+
+        if (plan.IsEmpty)
+        {
+            LibraryBackupStatus = $"None of the {saved.Count} settings in the backup can be written to this avatar.";
+            return;
+        }
+
+        AvatarPresetPlanner.Publish(plan, bridge.Pump);
+
+        LibraryBackupStatus = $"Put back {plan.Carried} of the {saved.Count} settings the backup had for this avatar.";
     }
 
     [RelayCommand]
