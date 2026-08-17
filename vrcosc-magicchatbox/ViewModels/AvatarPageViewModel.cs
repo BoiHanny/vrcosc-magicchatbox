@@ -81,6 +81,8 @@ public partial class AvatarPageViewModel : ObservableObject
 
     [ObservableProperty] private bool _hasConfigChanges;
 
+    [ObservableProperty] private bool _showAdvanced;
+
     public ObservableCollection<AvatarPreset> Presets { get; } = new();
 
     public ObservableCollection<PresetApplyRow> PresetRefusals { get; } = new();

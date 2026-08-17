@@ -178,8 +178,16 @@ public partial class ScopeRuleRowViewModel : ObservableObject
     [ObservableProperty] private ScopeTargetChoice _target;
     [ObservableProperty] private ScopeJoin _join;
     [ObservableProperty] private string _sentence = string.Empty;
+
     [ObservableProperty] private string _liveVerdict = string.Empty;
-    [ObservableProperty] private string _problems = string.Empty;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasProblems))]
+    private string _problems = string.Empty;
+
+    [ObservableProperty] private bool _isEditing;
+
+    public bool HasProblems => Problems.Length > 0;
 
     partial void OnNameChanged(string value) => Changed();
 
@@ -208,6 +216,9 @@ public partial class ScopeRuleRowViewModel : ObservableObject
         if (row != null && Predicates.Remove(row))
             Changed();
     }
+
+    [RelayCommand]
+    private void ToggleEditing() => IsEditing = !IsEditing;
 
     [RelayCommand]
     private void Delete() => _owner.DeleteRule(this);
@@ -303,6 +314,12 @@ public partial class ScopeSectionViewModel : ObservableObject
 
     public ObservableCollection<WorldGroup> WorldGroups { get; } = new();
 
+    [ObservableProperty] private bool _hasRules;
+
+    [ObservableProperty] private bool _hasNoRules = true;
+
+    [ObservableProperty] private bool _showGroups;
+
     [ObservableProperty] private ScopeStarterGuard _selectedReadyMade;
     [ObservableProperty] private string _newAvatarGroupName = string.Empty;
     [ObservableProperty] private string _newWorldGroupName = string.Empty;
@@ -386,7 +403,14 @@ public partial class ScopeSectionViewModel : ObservableObject
         foreach (WorldGroup group in Settings.WorldGroups.Where(g => g != null))
             WorldGroups.Add(group);
 
+        NoteCounts();
         RefreshVerdicts();
+    }
+
+    private void NoteCounts()
+    {
+        HasRules = Rules.Count > 0;
+        HasNoRules = Rules.Count == 0;
     }
 
     private sealed class FactNames : IScopeFactNames
@@ -555,6 +579,7 @@ public partial class ScopeSectionViewModel : ObservableObject
         }
 
         Rules.Remove(row);
+        NoteCounts();
         _settingsProvider.Save();
         _runtime?.Evaluate();
         Status = $"Removed \"{row.Name}\".";
@@ -572,6 +597,7 @@ public partial class ScopeSectionViewModel : ObservableObject
         _settingsProvider.Save();
 
         Rules.Add(new ScopeRuleRowViewModel(ForDisplay(rule), this));
+        NoteCounts();
         RefreshVerdicts();
 
         Status = $"Added \"{rule.Name}\". It is off until you switch it on.";
@@ -589,7 +615,8 @@ public partial class ScopeSectionViewModel : ObservableObject
         Settings.Rules.Add(rule);
         _settingsProvider.Save();
 
-        Rules.Add(new ScopeRuleRowViewModel(ForDisplay(rule), this));
+        Rules.Add(new ScopeRuleRowViewModel(ForDisplay(rule), this) { IsEditing = true });
+        NoteCounts();
         Status = "Added a guard. It is off until you switch it on.";
     }
 

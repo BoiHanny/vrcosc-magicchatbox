@@ -245,7 +245,10 @@
                     </StackPanel>
                 </Border>
 
-                <Border Padding="0" Style="{StaticResource OptionCardStyle}">
+                <Border
+                    Padding="0"
+                    Style="{StaticResource OptionCardStyle}"
+                    Visibility="{Binding ShowAdvanced, Converter={StaticResource BoolToVisibilityConverter}}">
                     <StackPanel Margin="10">
                         <TextBlock
                             Margin="0,0,0,4"
@@ -465,7 +468,10 @@
                     </StackPanel>
                 </Border>
 
-                <Border Padding="0" Style="{StaticResource OptionCardStyle}">
+                <Border
+                    Padding="0"
+                    Style="{StaticResource OptionCardStyle}"
+                    Visibility="{Binding ShowAdvanced, Converter={StaticResource BoolToVisibilityConverter}}">
                     <StackPanel Margin="10">
                         <TextBlock
                             Margin="0,0,0,4"
@@ -489,7 +495,10 @@
                     </StackPanel>
                 </Border>
 
-                <Border Padding="0" Style="{StaticResource OptionCardStyle}">
+                <Border
+                    Padding="0"
+                    Style="{StaticResource OptionCardStyle}"
+                    Visibility="{Binding ShowAdvanced, Converter={StaticResource BoolToVisibilityConverter}}">
                     <StackPanel Margin="10">
                         <TextBlock
                             Margin="0,0,0,4"
@@ -582,7 +591,10 @@
                     </StackPanel>
                 </Border>
 
-                <Border Padding="0" Style="{StaticResource OptionCardStyle}">
+                <Border
+                    Padding="0"
+                    Style="{StaticResource OptionCardStyle}"
+                    Visibility="{Binding ShowAdvanced, Converter={StaticResource BoolToVisibilityConverter}}">
                     <StackPanel Margin="10">
                         <TextBlock
                             Margin="0,0,0,4"
@@ -685,7 +697,7 @@
                 <Border
                     Padding="0"
                     Style="{StaticResource OptionCardStyle}"
-                    Visibility="{Binding HasLayoutReport, Converter={StaticResource BoolToVisibilityConverter}}">
+                    Visibility="{Binding ShowAdvanced, Converter={StaticResource BoolToVisibilityConverter}}">
                     <StackPanel Margin="10">
                         <TextBlock
                             Margin="0,0,0,4"
@@ -719,7 +731,7 @@
                 <Border
                     Padding="0"
                     Style="{StaticResource OptionCardStyle}"
-                    Visibility="{Binding HasUndrivableRecent, Converter={StaticResource BoolToVisibilityConverter}}">
+                    Visibility="{Binding ShowAdvanced, Converter={StaticResource BoolToVisibilityConverter}}">
                     <StackPanel Margin="10">
                         <TextBlock
                             Margin="0,0,0,4"
@@ -779,6 +791,15 @@
                         </CheckBox>
                     </StackPanel>
                 </Border>
+
+                <!--  The diagnostics live behind this. They answer questions somebody has gone looking
+                      for, and putting them on the page unasked is what made it a wall.  -->
+                <CheckBox
+                    Margin="4,10,0,4"
+                    IsChecked="{Binding ShowAdvanced, Mode=TwoWay}"
+                    Style="{StaticResource SettingsCheckbox}">
+                    Show the diagnostics
+                </CheckBox>
 
                 <ItemsControl x:Name="AvatarGroupList" ItemsSource="{Binding Groups}">
                     <ItemsControl.ItemTemplate>
