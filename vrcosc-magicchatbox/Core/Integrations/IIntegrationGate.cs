@@ -8,7 +8,6 @@ public interface IIntegrationGate
 
     bool PermitsSending();
 
-    bool TryDescribe(string integrationKey, out ScopeDecision decision);
 }
 
 public sealed class AlwaysOpenIntegrationGate : IIntegrationGate
@@ -18,10 +17,4 @@ public sealed class AlwaysOpenIntegrationGate : IIntegrationGate
     public bool Permits(string integrationKey) => true;
 
     public bool PermitsSending() => true;
-
-    public bool TryDescribe(string integrationKey, out ScopeDecision decision)
-    {
-        decision = null!;
-        return false;
-    }
 }

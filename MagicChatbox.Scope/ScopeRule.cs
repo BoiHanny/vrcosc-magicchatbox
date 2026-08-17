@@ -28,9 +28,6 @@ public enum ScopeTargetKind : byte
     /// <summary>An <c>IntegrationTileCatalog</c> key.</summary>
     Integration = 0,
 
-    /// <summary>A saved avatar look, applied on the edge of the guard becoming true.</summary>
-    AvatarPreset = 1,
-
     /// <summary>Everything the app sends to VRChat.</summary>
     Sending = 2,
 }
@@ -38,8 +35,6 @@ public enum ScopeTargetKind : byte
 public sealed record ScopeTarget(ScopeTargetKind Kind, string Key)
 {
     public static ScopeTarget Integration(string tileKey) => new(ScopeTargetKind.Integration, tileKey);
-
-    public static ScopeTarget Preset(string presetName) => new(ScopeTargetKind.AvatarPreset, presetName);
 
     public static readonly ScopeTarget Sending = new(ScopeTargetKind.Sending, string.Empty);
 }
@@ -127,6 +122,14 @@ public sealed record ScopeRule(
                 $"Groups may only nest {ScopeGroup.MaxDepth} deep."));
         }
 
+        if (guard.Join == ScopeJoin.Any && guard.IsEmpty)
+        {
+            problems.Add(new ScopeProblem(
+                "when",
+                ScopeProblemCode.NothingCanSatisfyIt,
+                "\"Any\" with no tests can never be satisfied, so this would hold it off forever."));
+        }
+
         ValidatePredicates(guard, "when", problems);
 
         return problems;
@@ -174,6 +177,7 @@ public enum ScopeProblemCode
     DepthExceeded = 4,
     MissingFact = 5,
     OperatorInvalidForKey = 6,
+    NothingCanSatisfyIt = 7,
 }
 
 public sealed record ScopeProblem(string Slot, ScopeProblemCode Code, string Detail);

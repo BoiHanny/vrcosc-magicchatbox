@@ -8,12 +8,9 @@ public sealed record ScopeStatusRow(string Parameter, string Detail, string Mark
 {
     public static ScopeStatusRow From(ScopeDecision decision)
     {
-        string what = decision.Target.Kind switch
-        {
-            ScopeTargetKind.Integration => IntegrationTileCatalog.DisplayNameFor(decision.Target.Key),
-            ScopeTargetKind.AvatarPreset => decision.Target.Key,
-            _ => "Sending",
-        };
+        string what = decision.Target.Kind == ScopeTargetKind.Integration
+            ? IntegrationTileCatalog.DisplayNameFor(decision.Target.Key)
+            : "Sending";
 
         string sentence = decision.Sentence;
 

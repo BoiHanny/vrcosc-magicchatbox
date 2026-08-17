@@ -289,6 +289,64 @@ public class ScopeReviewRegressionTests
     }
 
     [Fact]
+    public void A_guard_told_to_stay_shut_while_unsure_does_not_swing_open_while_it_settles()
+    {
+        // The leak: blocked while Unknown, then the fact arrives and says no. The answer changed, so the
+        // dwell restarts -- and the pre-commitment fallback used to permit, handing out a full dwell of
+        // access to the one guard whose whole point is not doing that.
+        var settings = new ScopeSettings();
+        var worn = new Worn();
+        ScopeFactSource facts = worn.Source();
+        long clock = 0;
+        var runtime = new ScopeRuntime(new Provider<ScopeSettings>(settings), facts, () => clock);
+
+        settings.Rules.Add(
+            ScopeRule.For("r1", "Quiet unless sure", ScopeTarget.Sending,
+                ScopeGroup.All(ScopePredicate.Is(ScopeFactKey.AvatarId, "avtr_one"))) with
+            {
+                Enabled = true,
+                DwellMs = 2000,
+                BlockWhileUnknown = true,
+            });
+
+        facts.Refresh();
+        runtime.Evaluate();
+        Assert.False(runtime.PermitsSending());
+
+        worn.Identity = Avatar("avtr_other");
+        facts.Refresh();
+        runtime.Evaluate();
+
+        Assert.False(runtime.PermitsSending());
+
+        clock += TimeSpan.FromSeconds(3).Ticks;
+        runtime.Evaluate();
+
+        Assert.False(runtime.PermitsSending());
+    }
+
+    [Fact]
+    public void Lyrics_can_be_guarded_even_though_it_has_no_tile_of_its_own()
+    {
+        // It rides on the media integration but is a separate provider, so a guard over media never
+        // reached it -- the track title went quiet and the lyric line of the same song did not.
+        var settings = new ScopeSettings();
+        var provider = new Provider<ScopeSettings>(settings);
+        var runtime = new ScopeRuntime(provider, DarkFacts());
+        var vm = new ScopeSectionViewModel(provider, runtime, new Lazy<IModuleHost>(() => null));
+
+        Assert.Contains(vm.Targets, t => t.Target.Key == "Lyrics");
+    }
+
+    [Fact]
+    public void An_any_of_guard_with_nothing_in_it_is_reported_rather_than_silently_holding_everything_off()
+    {
+        var rule = ScopeRule.For("r1", "A", ScopeTarget.Sending, ScopeGroup.Any());
+
+        Assert.Contains(rule.Validate(), p => p.Code == ScopeProblemCode.NothingCanSatisfyIt);
+    }
+
+    [Fact]
     public void A_deleted_rule_does_not_leave_its_decision_behind()
     {
         var settings = new ScopeSettings();

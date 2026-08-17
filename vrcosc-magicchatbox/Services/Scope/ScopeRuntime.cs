@@ -106,18 +106,6 @@ public sealed class ScopeRuntime
         lock (_gate) return _sending is null || _sending.Permits;
     }
 
-    public bool TryDescribeIntegration(string tileKey, out ScopeDecision decision)
-    {
-        lock (_gate)
-            return _byIntegration.TryGetValue(tileKey ?? string.Empty, out decision!);
-    }
-
-    public IReadOnlyList<ScopeDecision> PresetEdges()
-    {
-        lock (_gate)
-            return _decisions.Where(d => d.Target.Kind == ScopeTargetKind.AvatarPreset).ToList();
-    }
-
     public void Evaluate()
     {
         lock (_evaluating)
@@ -248,7 +236,7 @@ public sealed class ScopeRuntime
                 if (state.Committed)
                     return state.CommittedAllows ? ScopeVerdict.Allowed : ScopeVerdict.Blocked;
 
-                return ScopeVerdict.Settling;
+                return rule.BlockWhileUnknown ? ScopeVerdict.Blocked : ScopeVerdict.Settling;
             }
 
             state.Pending = false;

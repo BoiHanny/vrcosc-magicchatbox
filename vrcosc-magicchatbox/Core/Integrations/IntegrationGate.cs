@@ -31,9 +31,6 @@ public sealed class IntegrationGate : IIntegrationGate
 
     public bool PermitsSending() => _scope.PermitsSending();
 
-    public bool TryDescribe(string integrationKey, out ScopeDecision decision) =>
-        _scope.TryDescribeIntegration(IntegrationTileCatalog.ResolveKey(integrationKey), out decision);
-
     private bool ConsentAllows(string key)
     {
         if (_consent is null)

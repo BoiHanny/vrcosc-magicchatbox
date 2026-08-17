@@ -153,6 +153,7 @@ public partial class ScopeRuleRowViewModel : ObservableObject
         _blockWhileUnknown = rule.BlockWhileUnknown;
         _target = owner.Targets.FirstOrDefault(t => t.Target == rule.Target) ?? owner.Targets[0];
         _join = rule.SafeWhen.Join;
+        Note = rule.Note ?? string.Empty;
 
         foreach (ScopePredicate predicate in rule.SafeWhen.SafePredicates)
             Predicates.Add(new ScopePredicateRowViewModel(predicate, owner.Facts, Changed));
@@ -161,6 +162,8 @@ public partial class ScopeRuleRowViewModel : ObservableObject
     }
 
     public string Id { get; }
+
+    public string Note { get; private set; } = string.Empty;
 
     public ObservableCollection<ScopePredicateRowViewModel> Predicates { get; } = new();
 
@@ -252,7 +255,7 @@ public partial class ScopeRuleRowViewModel : ObservableObject
             [.. Predicates.Select(p => p.ToPredicate())],
             System.Collections.Immutable.ImmutableArray<ScopeGroup>.Empty),
         (int)Math.Round(Math.Clamp(DwellSeconds, 0, ScopeRule.MaxDwellMs / 1000d) * 1000),
-        string.Empty)
+        Note)
     {
         BlockWhileUnknown = BlockWhileUnknown,
     };
@@ -330,6 +333,8 @@ public partial class ScopeSectionViewModel : ObservableObject
         foreach (IntegrationTile tile in IntegrationTileCatalog.Tiles)
             choices.Add(new ScopeTargetChoice(tile.DisplayName, ScopeTarget.Integration(tile.Key)));
 
+        choices.Add(new ScopeTargetChoice("Lyrics", ScopeTarget.Integration("Lyrics")));
+
         return choices;
     }
 
@@ -383,6 +388,34 @@ public partial class ScopeSectionViewModel : ObservableObject
 
         RefreshVerdicts();
     }
+
+    private sealed class FactNames : IScopeFactNames
+    {
+        private readonly IReadOnlyList<ScopeFactChoice> _facts;
+
+        public FactNames(IReadOnlyList<ScopeFactChoice> facts) => _facts = facts;
+
+        public string NameFor(ScopeFactKey key)
+        {
+            foreach (ScopeFactChoice choice in _facts)
+            {
+                if (choice.Key == key)
+                    return choice.Label;
+            }
+
+            return key.IsParameter ? key.Value[ScopeFactKey.ParameterPrefix.Length..] : key.Value;
+        }
+
+        public string NameForOrNull(ScopeFactKey key) => NameFor(key);
+
+        string IScopeFactNames.NameFor(ScopeFactKey key) => NameFor(key);
+
+        string IScopeFactNames.ValueFor(ScopeFactKey key, SignalValue value) => null;
+    }
+
+    internal IScopeFactNames Names => _names ??= new FactNames(Facts);
+
+    private IScopeFactNames _names;
 
     internal ScopeRule ForDisplay(ScopeRule rule) => MapGroups(rule, toId: false);
 
@@ -491,7 +524,7 @@ public partial class ScopeSectionViewModel : ObservableObject
         ScopeRule updated = ForStorage(row.ToRule());
         IReadOnlyList<ScopeProblem> problems = updated.Validate();
 
-        row.Sentence = ScopeMirror.Canonical(ForDisplay(updated).SafeWhen);
+        row.Sentence = ScopeMirror.Friendly(ForDisplay(updated).SafeWhen, Names);
 
         var detail = problems.Select(p => p.Detail).ToList();
 
