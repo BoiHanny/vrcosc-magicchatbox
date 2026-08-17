@@ -103,6 +103,7 @@ public class AvatarPageVisualTests
         // survive to be rendered instead of being cleared by a live rebuild against nothing.
         var vm = new AvatarPageViewModel(
             new StubSettingsProvider<VrcBridgeSettings>(),
+            new StubSettingsProvider<IntegrationSettings>(),
             new Lazy<IModuleHost>(() => new BridgelessModuleHost()),
             new NullParameterSink());
 
@@ -113,6 +114,9 @@ public class AvatarPageVisualTests
 
         vm.Readiness.Add(new ReadinessRow("Heart rate", ReadinessState.Driving, "Driving", "6 of 6 found", 6, 6));
         vm.Readiness.Add(new ReadinessRow("Discord", ReadinessState.Waiting, "Waiting", "not in a voice channel", 5, 5));
+        vm.Readiness.Add(new ReadinessRow("Camera flash", ReadinessState.Faulted, "Problem", "something went wrong", 0, 1));
+
+        vm.Ecosystems = [.. EcosystemSignature.Markers.Take(3)];
 
         vm.RecentlyChanged.Add(new AvatarSense("Toggles/Hat", SignalKind.Bool, 1, "on", DateTime.UtcNow));
 

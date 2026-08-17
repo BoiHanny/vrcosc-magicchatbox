@@ -18,5 +18,6 @@
     <conv:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" />
     <conv:ColumnWidthConverter x:Key="ColumnWidthConverter" />
     <conv:MaskedWeatherCityConverter x:Key="MaskedWeatherCityConverter" />
+    <conv:ReadinessStateToBrushConverter x:Key="ReadinessStateToBrushConverter" />
 
 </ResourceDictionary>

@@ -88,23 +88,33 @@
                                 <DataTemplate>
                                     <Grid Margin="0,3">
                                         <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto" />
                                             <ColumnDefinition Width="110" />
                                             <ColumnDefinition Width="Auto" />
                                             <ColumnDefinition Width="*" />
                                         </Grid.ColumnDefinitions>
-                                        <TextBlock
+                                        <Ellipse
                                             Grid.Column="0"
+                                            Width="8"
+                                            Height="8"
+                                            Margin="0,0,8,0"
+                                            VerticalAlignment="Center"
+                                            Fill="{Binding State, Converter={StaticResource ReadinessStateToBrushConverter}}"
+                                            ToolTip="{Binding State}" />
+                                        <TextBlock
+                                            Grid.Column="1"
                                             VerticalAlignment="Center"
                                             Style="{StaticResource OptionFieldLabelStyle}"
                                             Text="{Binding Feature}" />
                                         <TextBlock
-                                            Grid.Column="1"
+                                            Grid.Column="2"
                                             Margin="0,0,10,0"
                                             VerticalAlignment="Center"
+                                            Foreground="{Binding State, Converter={StaticResource ReadinessStateToBrushConverter}}"
                                             Style="{StaticResource OptionFieldLabelStyle}"
                                             Text="{Binding Headline}" />
                                         <TextBlock
-                                            Grid.Column="2"
+                                            Grid.Column="3"
                                             VerticalAlignment="Center"
                                             Style="{StaticResource OptionHelpTextStyle}"
                                             Text="{Binding Detail}"
@@ -117,6 +127,34 @@
                             Margin="0,8,0,0"
                             Style="{StaticResource OptionHelpTextStyle}"
                             Text="{Binding SpeechText}" />
+
+                        <TextBlock
+                            Margin="0,10,0,2"
+                            Style="{StaticResource OptionFieldLabelStyle}"
+                            Text="What else is on this avatar"
+                            Visibility="{Binding HasEcosystems, Converter={StaticResource BoolToVisibilityConverter}}" />
+                        <ItemsControl ItemsSource="{Binding Ecosystems}">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <WrapPanel />
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Border
+                                        Margin="0,2,6,2"
+                                        Padding="7,3"
+                                        Background="{StaticResource TileSurfaceBrush}"
+                                        CornerRadius="9"
+                                        ToolTip="{Binding Description}">
+                                        <TextBlock
+                                            FontSize="{StaticResource FontSizeCaption}"
+                                            Style="{StaticResource OptionFieldLabelStyle}"
+                                            Text="{Binding DisplayName}" />
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
                     </StackPanel>
                 </Border>
 

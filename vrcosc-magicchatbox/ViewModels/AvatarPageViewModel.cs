@@ -18,6 +18,7 @@ public partial class AvatarPageViewModel : ObservableObject
 
     private readonly Lazy<IModuleHost> _modules;
     private readonly ISettingsProvider<VrcBridgeSettings> _settingsProvider;
+    private readonly ISettingsProvider<IntegrationSettings> _integrationsProvider;
     private DispatcherTimer? _timer;
 
     public VrcBridgeSettings Settings => _settingsProvider.Value;
@@ -43,7 +44,12 @@ public partial class AvatarPageViewModel : ObservableObject
     public ObservableCollection<ReadinessRow> Readiness { get; } = new();
 
     [ObservableProperty] private string _speechText = string.Empty;
-    [ObservableProperty] private IReadOnlyList<EcosystemMarker> _ecosystems = Array.Empty<EcosystemMarker>();
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasEcosystems))]
+    private IReadOnlyList<EcosystemMarker> _ecosystems = Array.Empty<EcosystemMarker>();
+
+    public bool HasEcosystems => Ecosystems.Count > 0;
 
     private readonly IAvatarParameterSink _sink;
     private readonly Dictionary<string, Avatar.AvatarControlRowViewModel> _rows = new(StringComparer.Ordinal);
@@ -51,10 +57,12 @@ public partial class AvatarPageViewModel : ObservableObject
 
     public AvatarPageViewModel(
         ISettingsProvider<VrcBridgeSettings> settingsProvider,
+        ISettingsProvider<IntegrationSettings> integrationsProvider,
         Lazy<IModuleHost> modules,
         IAvatarParameterSink sink)
     {
         _settingsProvider = settingsProvider;
+        _integrationsProvider = integrationsProvider;
         _modules = modules;
         _sink = sink;
     }
@@ -145,6 +153,7 @@ public partial class AvatarPageViewModel : ObservableObject
             : EcosystemSignature.Detect(schema.Parameters.Select(p => p.Name));
 
         var host = _modules.Value;
+        IntegrationSettings integrations = _integrationsProvider.Value;
 
         var rows = new List<ReadinessRow>
         {
@@ -153,9 +162,9 @@ public partial class AvatarPageViewModel : ObservableObject
                     "Heart rate",
                     host.Pulsoid?.IsRunning == true,
                     host.Pulsoid?.PulsoidDeviceOnline == true,
-                    true,
+                    integrations.IntgrHeartRate_OSC,
                     host.Pulsoid?.PulsoidAccessError == true ? host.Pulsoid.PulsoidAccessErrorTxt : null,
-                    HeartRateNames),
+                    AvatarFeatureCatalog.NamesFor(AvatarFeatureCatalog.HeartRateKey)),
                 schema,
                 avatarKnown),
 
@@ -163,10 +172,21 @@ public partial class AvatarPageViewModel : ObservableObject
                 new ReadinessInput(
                     "Discord",
                     host.Discord?.IsRunning == true,
-                    host.Discord?.InVoiceChannelState == true,
-                    true,
+                    host.Discord?.IsRunning == true,
+                    host.Discord?.Settings.SendMuteDeafenOsc == true || host.Discord?.Settings.SendVoiceStateOsc == true,
                     null,
-                    DiscordNames),
+                    AvatarFeatureCatalog.NamesFor(AvatarFeatureCatalog.DiscordKey)),
+                schema,
+                avatarKnown),
+
+            AvatarReadiness.Evaluate(
+                new ReadinessInput(
+                    "Camera flash",
+                    host.VrcRadar?.IsRadarRunning == true,
+                    host.VrcRadar?.IsRadarRunning == true,
+                    host.VrcRadar?.Settings.SendCameraFlashOsc == true,
+                    null,
+                    CameraFlashNames(host.VrcRadar?.Settings.OscCameraFlashParam)),
                 schema,
                 avatarKnown),
         };
@@ -176,11 +196,17 @@ public partial class AvatarPageViewModel : ObservableObject
             Readiness.Add(row);
     }
 
-    private static readonly string[] HeartRateNames =
-        ["HR", "HRPercent", "FullHRPercent", "isHRConnected", "isHRActive", "isHRBeat"];
+    private static IReadOnlyList<string> CameraFlashNames(string? configured)
+    {
+        if (string.IsNullOrWhiteSpace(configured))
+            return AvatarFeatureCatalog.NamesFor(AvatarFeatureCatalog.CameraFlashKey);
 
-    private static readonly string[] DiscordNames =
-        ["DiscordMuted", "DiscordDeafened", "DiscordInVC", "DiscordVCCount", "DiscordSpeaking"];
+        string trimmed = configured.Trim();
+
+        return [trimmed.StartsWith(AvatarParameter.AddressPrefix, StringComparison.Ordinal)
+            ? trimmed[AvatarParameter.AddressPrefix.Length..]
+            : trimmed];
+    }
 
     private void RebuildGroups()
     {
