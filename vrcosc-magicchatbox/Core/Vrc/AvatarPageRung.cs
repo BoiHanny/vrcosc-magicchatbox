@@ -30,6 +30,6 @@ public static class AvatarPageRungs
             "VRChat only announces your avatar when you put one on, so the name arrives when you next switch.",
         AvatarPageRung.WaitingForVrchat =>
             "Waiting for VRChat. Everything below comes from avatars you have worn before.",
-        _ => "Turn on the avatar connection to see what you are wearing and control it from here.",
+        _ => "Switch on the avatar connection under Options, Avatar options, to see what you are wearing and control it from here.",
     };
 }

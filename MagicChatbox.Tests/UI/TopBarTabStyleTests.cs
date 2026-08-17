@@ -59,6 +59,8 @@ public class TopBarTabStyleTests
     [InlineData(0, "0", true)]
     [InlineData(1, "0", false)]
     [InlineData(3, "3", true)]
+    [InlineData(4, "4", true)]
+    [InlineData(4, "3", false)]
     [InlineData(2, "not a number", false)]
     public void The_index_converter_answers_only_for_its_own_tab(int selected, string parameter, bool expected)
     {
@@ -72,7 +74,11 @@ public class TopBarTabStyleTests
     {
         // Same trap as every other shared control: its StaticResources resolve when something is
         // built from it, not when it compiles.
-        Exception? failure = RunOnUiThread(() =>
+        //
+        // WpfHost rather than RunOnUiThread: this control reaches the application dictionary for
+        // FontSecondary, and a bare STA thread has no Application at all. It used to pass only when
+        // some other test class had already built one, so a filtered run failed on nothing it had done.
+        Exception? failure = WpfHost.Run(() =>
         {
             var header = new vrcosc_magicchatbox.UI.Controls.OptionGroupHeader { Title = "Music" };
             header.Measure(new Size(600, 60));

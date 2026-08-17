@@ -132,6 +132,7 @@
                         <ColumnDefinition Width="123" />
                         <ColumnDefinition Width="123" />
                         <ColumnDefinition Width="122" />
+                        <ColumnDefinition Width="110" />
                         <ColumnDefinition />
                     </Grid.ColumnDefinitions>
                     <Border>
@@ -233,6 +234,18 @@
                             Content="Options"
                             Style="{StaticResource TopBarTabStyle}" />
                     </Grid>
+                    <Grid
+                        Grid.Column="5"
+                        Margin="3,0,3,0"
+                        WindowChrome.IsHitTestVisibleInChrome="True">
+                        <Button
+                            Name="MenuButton_4"
+                            local:ButtonProperties.IsActive="{Binding SelectedMenuIndex, Converter={StaticResource IndexToBoolConverter}, ConverterParameter=4}"
+                            Command="{Binding ChangeMenuCommand}"
+                            CommandParameter="4"
+                            Content="Avatar"
+                            Style="{StaticResource TopBarTabStyle}" />
+                    </Grid>
 
                     <!--
                         Discord, GitHub and the wiki, moved out of the preview header where they were
@@ -244,7 +257,7 @@
                         Options tab. 233 is the panel's 225 plus a hair of breathing room.
                     -->
                     <Grid
-                        Grid.Column="5"
+                        Grid.Column="6"
                         Margin="0,0,233,0"
                         HorizontalAlignment="Right"
                         VerticalAlignment="Center"
