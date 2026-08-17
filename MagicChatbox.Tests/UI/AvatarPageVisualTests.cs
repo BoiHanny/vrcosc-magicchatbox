@@ -39,6 +39,27 @@ public class AvatarPageVisualTests
         Assert.True(failure == null, "the avatar page did not build: " + failure);
     }
 
+    [Fact]
+    public void The_page_binds_only_to_members_that_exist()
+    {
+        // A binding to a property nobody has does not throw; it renders nothing, which looks exactly
+        // like a value that happens to be empty. WPF reports it, but only to a trace source, and this
+        // is the thing listening.
+        IReadOnlyList<string> errors = [];
+
+        Exception? failure = WpfHost.Run(() =>
+        {
+            using var scope = new BindingErrorScope();
+
+            WpfHost.BuildInWindow(() => new AvatarPage { DataContext = PopulatedViewModel() }, _ => { });
+
+            errors = scope.RealErrors;
+        });
+
+        Assert.True(failure == null, "the avatar page did not build: " + failure);
+        Assert.True(errors.Count == 0, "binding failures:" + Environment.NewLine + string.Join(Environment.NewLine, errors));
+    }
+
     [Theory]
     [InlineData(AvatarWidget.Toggle, SignalKind.Bool, true)]
     [InlineData(AvatarWidget.Stepper, SignalKind.Int, true)]

@@ -150,7 +150,7 @@
                                     <TextBlock
                                         Margin="0,0,0,2"
                                         Style="{StaticResource OptionHelpTextStyle}"
-                                        Text="{Binding Description}" />
+                                        Text="{Binding Notes}" />
                                 </StackPanel>
                             </DataTemplate>
                         </ItemsControl.ItemTemplate>

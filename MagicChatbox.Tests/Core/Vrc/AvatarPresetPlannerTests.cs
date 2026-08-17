@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using vrcosc_magicchatbox.Core.Vrc;
 using Xunit;
@@ -32,6 +33,71 @@ public class AvatarPresetPlannerTests
             "Test avatar",
             DateTime.UtcNow,
             values.Select(v => new AvatarPresetValue(v.Name, v.Kind, v.Value)).ToList());
+
+    [Fact]
+    public void A_renamed_parameter_is_written_under_the_name_this_avatar_declares()
+    {
+        // The case the feature exists for: a rebuild renumbers VRCFury's prefix, so the preset holds
+        // VF12_ and the avatar now answers to VF88_. Matching normalises the prefix away, so the plan
+        // says "carried" - and publishing the preset's own stored name sends to a parameter that is
+        // not there any more. VRChat drops it silently and the user is told it worked.
+        PresetApplyPlan plan = AvatarPresetPlanner.Plan(
+            Preset(("VF12_Toggles/Hat", SignalKind.Bool, 1)),
+            Schema(("VF88_Toggles/Hat", SignalKind.Bool, true)));
+
+        Assert.Equal(1, plan.Carried);
+
+        PresetApplyRow row = plan.Rows.Single();
+        Assert.Equal("VF12_Toggles/Hat", row.Name);
+        Assert.Equal("VF88_Toggles/Hat", row.Target);
+        Assert.True(row.WasRenamed);
+
+        var pump = new AvatarParameterPump();
+        var egress = new FakeVrcEgress();
+        pump.Start(egress);
+
+        AvatarPresetPlanner.Publish(plan, pump);
+
+        Assert.True(
+            SpinWait.SpinUntil(() => egress.Writes.Count > 0, TimeSpan.FromSeconds(2)),
+            "the preset never reached the egress");
+
+        pump.StopAsync(TimeSpan.FromSeconds(2)).GetAwaiter().GetResult();
+
+        Assert.Equal("VF88_Toggles/Hat", egress.Writes[0].Name);
+    }
+
+    [Fact]
+    public void Every_kind_of_refusal_is_named_for_what_it_actually_is()
+    {
+        // The summary used to call every refusal "not on this avatar", so a preset refused because
+        // VRChat owns the parameter, or because it turned read-only, reported something the user
+        // could check and find false.
+        PresetApplyPlan plan = AvatarPresetPlanner.Plan(
+            Preset(
+                ("Toggles/Hat", SignalKind.Bool, 1),
+                ("Toggles/Gone", SignalKind.Bool, 1),
+                ("Toggles/Locked", SignalKind.Bool, 1),
+                ("Toggles/Changed", SignalKind.Bool, 1),
+                ("VRCEmote", SignalKind.Int, 3)),
+            Schema(
+                ("Toggles/Hat", SignalKind.Bool, true),
+                ("Toggles/Locked", SignalKind.Bool, false),
+                ("Toggles/Changed", SignalKind.Float, true),
+                ("VRCEmote", SignalKind.Int, true)));
+
+        Assert.Equal(1, plan.CountOf(PresetOutcome.Carried));
+        Assert.Equal(1, plan.CountOf(PresetOutcome.NotOnThisAvatar));
+        Assert.Equal(1, plan.CountOf(PresetOutcome.NotWritable));
+        Assert.Equal(1, plan.CountOf(PresetOutcome.KindChanged));
+        Assert.Equal(1, plan.CountOf(PresetOutcome.Denied));
+
+        Assert.Contains("1 to restore", plan.Summary, StringComparison.Ordinal);
+        Assert.Contains("1 not on this avatar", plan.Summary, StringComparison.Ordinal);
+        Assert.Contains("1 read-only now", plan.Summary, StringComparison.Ordinal);
+        Assert.Contains("1 changed type", plan.Summary, StringComparison.Ordinal);
+        Assert.Contains("1 left to VRChat", plan.Summary, StringComparison.Ordinal);
+    }
 
     [Fact]
     public void Capture_takes_only_what_the_avatar_will_accept()

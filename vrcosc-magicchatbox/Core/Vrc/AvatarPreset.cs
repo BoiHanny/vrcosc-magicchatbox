@@ -27,7 +27,15 @@ public sealed record AvatarPreset(
     public int Count => Values.Count;
 }
 
-public sealed record PresetApplyRow(string Name, PresetOutcome Outcome, SignalKind Kind, double Value);
+public sealed record PresetApplyRow(
+    string Name,
+    PresetOutcome Outcome,
+    SignalKind Kind,
+    double Value,
+    string Target)
+{
+    public bool WasRenamed => !string.Equals(Name, Target, StringComparison.Ordinal);
+}
 
 public sealed record PresetApplyPlan(
     IReadOnlyList<PresetApplyRow> Rows,
@@ -37,7 +45,42 @@ public sealed record PresetApplyPlan(
 {
     public bool IsEmpty => Carried == 0;
 
-    public string Summary => Refused == 0
-        ? $"{Carried} to restore"
-        : $"{Carried} to restore, {Refused} not on this avatar";
+    public int CountOf(PresetOutcome outcome)
+    {
+        int count = 0;
+
+        foreach (PresetApplyRow row in Rows)
+        {
+            if (row.Outcome == outcome)
+                count++;
+        }
+
+        return count;
+    }
+
+    public string Summary
+    {
+        get
+        {
+            if (Rows.Count == 0)
+                return "nothing saved in this preset";
+
+            var parts = new List<string> { $"{Carried} to restore" };
+
+            Describe(parts, PresetOutcome.NotOnThisAvatar, "not on this avatar");
+            Describe(parts, PresetOutcome.KindChanged, "changed type");
+            Describe(parts, PresetOutcome.NotWritable, "read-only now");
+            Describe(parts, PresetOutcome.Denied, "left to VRChat");
+
+            return string.Join(", ", parts);
+        }
+    }
+
+    private void Describe(List<string> parts, PresetOutcome outcome, string wording)
+    {
+        int count = CountOf(outcome);
+
+        if (count > 0)
+            parts.Add($"{count} {wording}");
+    }
 }

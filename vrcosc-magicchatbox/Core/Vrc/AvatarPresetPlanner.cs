@@ -74,29 +74,29 @@ public static class AvatarPresetPlanner
 
             if (AvatarControlCatalog.IsVrchatOwned(value.Name))
             {
-                rows.Add(new PresetApplyRow(value.Name, PresetOutcome.Denied, value.Kind, value.Value));
+                rows.Add(new PresetApplyRow(value.Name, PresetOutcome.Denied, value.Kind, value.Value, value.Name));
                 continue;
             }
 
             if (!declared.TryGetValue(key, out VrcParameterDeclaration declaration))
             {
-                rows.Add(new PresetApplyRow(value.Name, PresetOutcome.NotOnThisAvatar, value.Kind, value.Value));
+                rows.Add(new PresetApplyRow(value.Name, PresetOutcome.NotOnThisAvatar, value.Kind, value.Value, value.Name));
                 continue;
             }
 
             if (declaration.Kind != value.Kind)
             {
-                rows.Add(new PresetApplyRow(value.Name, PresetOutcome.KindChanged, value.Kind, value.Value));
+                rows.Add(new PresetApplyRow(value.Name, PresetOutcome.KindChanged, value.Kind, value.Value, declaration.Name));
                 continue;
             }
 
             if (!declaration.Writable)
             {
-                rows.Add(new PresetApplyRow(value.Name, PresetOutcome.NotWritable, value.Kind, value.Value));
+                rows.Add(new PresetApplyRow(value.Name, PresetOutcome.NotWritable, value.Kind, value.Value, declaration.Name));
                 continue;
             }
 
-            rows.Add(new PresetApplyRow(value.Name, PresetOutcome.Carried, value.Kind, value.Value));
+            rows.Add(new PresetApplyRow(value.Name, PresetOutcome.Carried, value.Kind, value.Value, declaration.Name));
             carried++;
         }
 
@@ -130,15 +130,15 @@ public static class AvatarPresetPlanner
             switch (row.Kind)
             {
                 case SignalKind.Bool:
-                    pump.Publish(row.Name, row.Value != 0);
+                    pump.Publish(row.Target, row.Value != 0);
                     break;
 
                 case SignalKind.Int:
-                    pump.Publish(row.Name, (int)row.Value);
+                    pump.Publish(row.Target, (int)row.Value);
                     break;
 
                 case SignalKind.Float:
-                    pump.Publish(row.Name, (float)row.Value);
+                    pump.Publish(row.Target, (float)row.Value);
                     break;
 
                 default:

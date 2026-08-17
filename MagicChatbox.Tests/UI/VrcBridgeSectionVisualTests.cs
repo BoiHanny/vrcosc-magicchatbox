@@ -1,5 +1,6 @@
 using MagicChatbox.Tests.TestDoubles;
 using System;
+using System.Collections.Generic;
 using vrcosc_magicchatbox.Classes.Modules;
 using vrcosc_magicchatbox.Core.Services;
 using vrcosc_magicchatbox.UI.Pages.Options;
@@ -32,6 +33,35 @@ public class VrcBridgeSectionVisualTests
             section => Assert.NotNull(section.DataContext));
 
         Assert.True(failure == null, "the vrc bridge section did not build: " + failure);
+    }
+
+    [Fact]
+    public void The_section_binds_only_to_members_that_exist()
+    {
+        // This section shipped binding {Binding Description} against AvatarParameter, whose member is
+        // called Notes. Nothing threw; the help line under every control parameter was simply blank.
+        var settings = new VrcBridgeSettings { EnableBridge = true, EnableParameterInput = true };
+        IReadOnlyList<string> errors = [];
+
+        Exception? failure = WpfHost.Run(() =>
+        {
+            using var scope = new BindingErrorScope();
+
+            WpfHost.BuildInWindow(
+                () => new VrcBridgeSection
+                {
+                    DataContext = new VrcBridgeSectionViewModel(
+                        new StubSettingsProvider<VrcBridgeSettings>(settings),
+                        new StubSettingsProvider<AppSettings>(),
+                        new Lazy<IModuleHost>(() => new BridgelessModuleHost())),
+                },
+                _ => { });
+
+            errors = scope.RealErrors;
+        });
+
+        Assert.True(failure == null, "the vrc bridge section did not build: " + failure);
+        Assert.True(errors.Count == 0, "binding failures:" + Environment.NewLine + string.Join(Environment.NewLine, errors));
     }
 
     [Fact]

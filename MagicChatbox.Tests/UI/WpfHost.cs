@@ -95,33 +95,44 @@ internal static class WpfHost
     /// window makes the binding engine attach.
     /// </remarks>
     public static Exception? RunInWindow(Func<FrameworkElement> content, Action<FrameworkElement> inspect)
-        => Run(() =>
-        {
-            FrameworkElement element = content();
-            var window = new Window
-            {
-                Content = element,
-                Width = 900,
-                Height = 620,
-                ShowActivated = false,
-                ShowInTaskbar = false,
-                WindowStyle = WindowStyle.None,
-                // Off the desktop rather than merely hidden - a hidden window never lays out.
-                Left = -20000,
-                Top = -20000,
-            };
+        => Run(() => BuildInWindow(content, inspect));
 
-            try
-            {
-                window.Show();
-                element.UpdateLayout();
-                inspect(element);
-            }
-            finally
-            {
-                window.Close();
-            }
-        });
+    /// <summary>
+    /// The window half of <see cref="RunInWindow"/>, for a caller that is already on the UI thread and
+    /// needs to wrap the build in something of its own - collecting binding failures, for instance.
+    /// </summary>
+    /// <remarks>
+    /// Calling <see cref="Run"/> from inside <see cref="Run"/> would deadlock: the queue is drained by
+    /// one thread, so the inner call would wait for work that cannot start until the outer call
+    /// returns. This is the piece to reuse instead.
+    /// </remarks>
+    public static void BuildInWindow(Func<FrameworkElement> content, Action<FrameworkElement> inspect)
+    {
+        FrameworkElement element = content();
+        var window = new Window
+        {
+            Content = element,
+            Width = 900,
+            Height = 620,
+            ShowActivated = false,
+            ShowInTaskbar = false,
+            WindowStyle = WindowStyle.None,
+            // Off the desktop rather than merely hidden - a hidden window never lays out.
+            Left = -20000,
+            Top = -20000,
+        };
+
+        try
+        {
+            window.Show();
+            element.UpdateLayout();
+            inspect(element);
+        }
+        finally
+        {
+            window.Close();
+        }
+    }
 
     private static BlockingCollection<Action> EnsureThread()
     {
