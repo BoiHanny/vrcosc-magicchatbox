@@ -11,7 +11,12 @@
     <UserControl.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
-                <ResourceDictionary Source="/UI/Resources/SharedConverters.xaml" />
+                <!--
+                    Fully qualified rather than the rooted "/UI/..." form used elsewhere: the rooted form
+                    resolves against the entry assembly, so it only loads when this assembly is the one
+                    that started the process. That makes the page unloadable from a test host.
+                -->
+                <ResourceDictionary Source="pack://application:,,,/MagicChatbox;component/UI/Resources/SharedConverters.xaml" />
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
     </UserControl.Resources>
@@ -60,10 +65,7 @@
 
                 <Border Padding="0" Style="{StaticResource OptionCardStyle}">
                     <StackPanel Margin="10">
-                        <TextBlock
-                            FontSize="{StaticResource FontSizeHeader}"
-                            Style="{StaticResource TileTitleStyle}"
-                            Text="{Binding AvatarName}" />
+                        <TextBlock Style="{StaticResource TileTitleStyle}" Text="{Binding AvatarName}" />
                         <TextBlock
                             Margin="0,2,0,0"
                             Style="{StaticResource TileDescriptionStyle}"
@@ -178,7 +180,7 @@
                     </StackPanel>
                 </Border>
 
-                <ItemsControl ItemsSource="{Binding Groups}">
+                <ItemsControl x:Name="AvatarGroupList" ItemsSource="{Binding Groups}">
                     <ItemsControl.ItemTemplate>
                         <DataTemplate>
                             <Border Padding="0" Style="{StaticResource OptionCardStyle}">
@@ -187,7 +189,7 @@
                                         Margin="0,0,0,4"
                                         Style="{StaticResource OptionFieldLabelStyle}"
                                         Text="{Binding DisplayName}" />
-                                    <ItemsControl ItemsSource="{Binding Rows}">
+                                    <ItemsControl x:Name="AvatarRowList" ItemsSource="{Binding Rows}">
                                         <ItemsControl.ItemTemplate>
                                             <DataTemplate>
                                                 <Grid Margin="0,3">

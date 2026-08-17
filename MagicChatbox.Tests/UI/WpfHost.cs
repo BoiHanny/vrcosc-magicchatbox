@@ -1,50 +1,86 @@
 using System;
+using System.Collections.Concurrent;
 using System.Threading;
 using System.Windows;
 
 namespace MagicChatbox.Tests.UI;
 
 /// <summary>
-/// Runs a piece of WPF on a thread that can host it, against the application dictionary the real app
-/// builds.
+/// Runs a piece of WPF on the one thread in this process that can host it, against the application
+/// dictionary the real app builds.
 /// </summary>
 /// <remarks>
-/// The lock is not optional. xUnit runs test classes in parallel and WPF allows exactly one
-/// <see cref="Application"/> per process, so two classes reaching for the host at the same moment
-/// would race to create it and one of them would throw. It is shared here rather than kept private
-/// to a test class for exactly that reason.
+/// <para>
+/// One thread, created once, kept for the life of the process. A thread per call looks equivalent and
+/// is not: WPF allows exactly one <see cref="Application"/> per process, that Application belongs to
+/// the Dispatcher of the thread that created it, and a window built on any later thread gets a
+/// different Dispatcher. The symptom is not an exception - it is a page that lays out and renders while
+/// its two-way bindings quietly fail to write back, in whichever test happens to run second. Adding
+/// WPF tests made it appear in a chat test that had passed for months and had nothing to do with them.
+/// </para>
+/// <para>
+/// The thread takes work from a queue rather than running a dispatcher loop, and that is deliberate.
+/// Pumping messages here would let anything the real App queued during construction actually run, which
+/// starts services this process has no business starting: an early attempt at it brought up the OpenVR
+/// session service and crashed the test host. Laying out a window needs no message loop - only the
+/// explicit UpdateLayout below.
+/// </para>
 /// </remarks>
 internal static class WpfHost
 {
     private static readonly Lock Gate = new();
+    private static readonly TimeSpan Budget = TimeSpan.FromSeconds(60);
+
+    private static BlockingCollection<Action>? _work;
+    private static Exception? _startupFailure;
+
+    // A page that merges a dictionary by a rooted path - Source="/UI/Resources/SharedConverters.xaml" -
+    // cannot be loaded here at all. WPF resolves that form against Application.ResourceAssembly, which is
+    // the entry assembly: the test host, which contains no such resource. It cannot be redirected either,
+    // because the property is latched before the first line of this class runs and its setter then
+    // refuses every later value. Such a page has to name its dictionary in full,
+    // "pack://application:,,,/MagicChatbox;component/UI/...", which resolves the same way in both hosts.
 
     /// <summary>
-    /// Runs <paramref name="action"/> on an STA thread with the theme loaded, and hands back
-    /// whatever it threw rather than throwing on the caller's thread.
+    /// Runs <paramref name="action"/> on the UI thread with the theme loaded, and hands back whatever
+    /// it threw rather than throwing on the caller's thread.
     /// </summary>
     public static Exception? Run(Action action)
     {
-        Exception? failure = null;
+        BlockingCollection<Action> work;
 
-        var thread = new Thread(() =>
+        try
+        {
+            work = EnsureThread();
+        }
+        catch (Exception ex)
+        {
+            return ex;
+        }
+
+        Exception? failure = null;
+        using var done = new ManualResetEventSlim();
+
+        work.Add(() =>
         {
             try
             {
-                lock (Gate)
-                {
-                    EnsureApplication();
-                    action();
-                }
+                action();
             }
             catch (Exception ex)
             {
                 failure = ex;
             }
+            finally
+            {
+                done.Set();
+            }
         });
 
-        thread.SetApartmentState(ApartmentState.STA);
-        thread.Start();
-        thread.Join(TimeSpan.FromSeconds(60));
+        // The queue serialises the work, so this budget covers time spent waiting behind another test
+        // as well as time spent running.
+        if (!done.Wait(Budget))
+            return new TimeoutException($"the ui thread did not finish within {Budget.TotalSeconds:0} seconds");
 
         return failure;
     }
@@ -86,6 +122,60 @@ internal static class WpfHost
                 window.Close();
             }
         });
+
+    private static BlockingCollection<Action> EnsureThread()
+    {
+        lock (Gate)
+        {
+            if (_startupFailure != null)
+                throw _startupFailure;
+
+            if (_work != null)
+                return _work;
+
+            var work = new BlockingCollection<Action>();
+            using var ready = new ManualResetEventSlim();
+            Exception? startupFailure = null;
+
+            var thread = new Thread(() =>
+            {
+                try
+                {
+                    EnsureApplication();
+                }
+                catch (Exception ex)
+                {
+                    startupFailure = ex;
+                    return;
+                }
+                finally
+                {
+                    ready.Set();
+                }
+
+                // Runs until the process ends. The thread is a background thread, so it does not hold
+                // the process open once the tests are done with it.
+                foreach (Action item in work.GetConsumingEnumerable())
+                    item();
+            });
+
+            thread.IsBackground = true;
+            thread.SetApartmentState(ApartmentState.STA);
+            thread.Start();
+
+            if (!ready.Wait(Budget))
+                throw new TimeoutException("the ui thread did not start");
+
+            if (startupFailure != null)
+            {
+                _startupFailure = startupFailure;
+                throw startupFailure;
+            }
+
+            _work = work;
+            return work;
+        }
+    }
 
     private static void EnsureApplication()
     {

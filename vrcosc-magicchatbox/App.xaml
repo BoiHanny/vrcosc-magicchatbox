@@ -100,7 +100,7 @@
                                             Margin="10,0,0,0"
                                             HorizontalAlignment="Left"
                                             VerticalAlignment="Center"
-                                            Source="/Img/Icons/Plus_ico.png" />
+                                            Source="pack://application:,,,/MagicChatbox;component/Img/Icons/Plus_ico.png" />
                                         <TextBlock
                                             x:Name="CustomTextContentControl"
                                             Grid.Column="1"
@@ -139,10 +139,10 @@
                             </Grid>
                             <ControlTemplate.Triggers>
                                 <Trigger Property="IsChecked" Value="False">
-                                    <Setter TargetName="SymbolImage" Property="Source" Value="/Img/Icons/Plus_ico.png" />
+                                    <Setter TargetName="SymbolImage" Property="Source" Value="pack://application:,,,/MagicChatbox;component/Img/Icons/Plus_ico.png" />
                                 </Trigger>
                                 <Trigger Property="IsChecked" Value="True">
-                                    <Setter TargetName="SymbolImage" Property="Source" Value="/Img/Icons/Min_ico.png" />
+                                    <Setter TargetName="SymbolImage" Property="Source" Value="pack://application:,,,/MagicChatbox;component/Img/Icons/Min_ico.png" />
                                 </Trigger>
                             </ControlTemplate.Triggers>
                         </ControlTemplate>
@@ -187,7 +187,7 @@
                                             Margin="10,0,0,0"
                                             HorizontalAlignment="Left"
                                             VerticalAlignment="Center"
-                                            Source="/Img/Icons/Plus_ico.png" />
+                                            Source="pack://application:,,,/MagicChatbox;component/Img/Icons/Plus_ico.png" />
                                         <TextBlock
                                             x:Name="CustomTextContentControl"
                                             Grid.Column="1"
@@ -226,10 +226,10 @@
                             </Grid>
                             <ControlTemplate.Triggers>
                                 <Trigger Property="IsChecked" Value="False">
-                                    <Setter TargetName="SymbolImage" Property="Source" Value="/Img/Icons/Plus_ico.png" />
+                                    <Setter TargetName="SymbolImage" Property="Source" Value="pack://application:,,,/MagicChatbox;component/Img/Icons/Plus_ico.png" />
                                 </Trigger>
                                 <Trigger Property="IsChecked" Value="True">
-                                    <Setter TargetName="SymbolImage" Property="Source" Value="/Img/Icons/Min_ico.png" />
+                                    <Setter TargetName="SymbolImage" Property="Source" Value="pack://application:,,,/MagicChatbox;component/Img/Icons/Min_ico.png" />
                                 </Trigger>
                             </ControlTemplate.Triggers>
                         </ControlTemplate>
@@ -1167,7 +1167,7 @@
                                     HorizontalAlignment="Center"
                                     VerticalAlignment="Center"
                                     RenderOptions.BitmapScalingMode="NearestNeighbor"
-                                    Source="Img\Icons\SaveLight.png"
+                                    Source="pack://application:,,,/MagicChatbox;component/Img/Icons/SaveLight.png"
                                     Stretch="UniformToFill" />
                             </Grid>
                             <ControlTemplate.Triggers>
@@ -1177,7 +1177,7 @@
                                 <Trigger Property="IsChecked" Value="True">
                                     <Setter Property="Background" Value="#26A3FE" />
                                     <Setter Property="Foreground" Value="#240F53" />
-                                    <Setter TargetName="buttonImage" Property="Source" Value="Img\Icons\SaveDark.png" />
+                                    <Setter TargetName="buttonImage" Property="Source" Value="pack://application:,,,/MagicChatbox;component/Img/Icons/SaveDark.png" />
                                     <Setter TargetName="buttonBorder" Property="Effect">
                                         <Setter.Value>
                                             <DropShadowEffect

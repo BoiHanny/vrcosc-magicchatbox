@@ -11,7 +11,12 @@
     <UserControl.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
-                <ResourceDictionary Source="/UI/Resources/SharedConverters.xaml" />
+                <!--
+                    Fully qualified rather than the rooted "/UI/..." form used elsewhere: the rooted form
+                    resolves against the entry assembly, so it only loads when this assembly is the one
+                    that started the process. That makes the section unloadable from a test host.
+                -->
+                <ResourceDictionary Source="pack://application:,,,/MagicChatbox;component/UI/Resources/SharedConverters.xaml" />
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
     </UserControl.Resources>
