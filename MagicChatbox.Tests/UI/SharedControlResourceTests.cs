@@ -19,6 +19,7 @@ namespace MagicChatbox.Tests.UI;
 /// BoolToVisibilityConverter, which lived only in page-level dictionaries, and threw
 /// XamlParseException the moment anything tried to show it. It compiled cleanly the whole time.
 /// </remarks>
+[Collection(WpfCollection.Name)]
 public class SharedControlResourceTests
 {
     [Fact]

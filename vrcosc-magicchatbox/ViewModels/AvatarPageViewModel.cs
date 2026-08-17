@@ -81,7 +81,11 @@ public partial class AvatarPageViewModel : ObservableObject
 
     [ObservableProperty] private bool _hasConfigChanges;
 
-    [ObservableProperty] private bool _showAdvanced;
+    [ObservableProperty] private int _drivableCount;
+
+    [ObservableProperty] private int _readOnlyCount;
+
+    [ObservableProperty] private int _activeGuardCount;
 
     public ObservableCollection<AvatarPreset> Presets { get; } = new();
 
@@ -234,6 +238,10 @@ public partial class AvatarPageViewModel : ObservableObject
             identity.IsKnown);
 
         RungMessage = AvatarPageRungs.Describe(Rung);
+
+        DrivableCount = schema.WritableCount;
+        ReadOnlyCount = schema.ReadOnlyCount;
+        ActiveGuardCount = _scope?.Decisions.Count ?? 0;
 
         RefreshBridgeIntro();
 

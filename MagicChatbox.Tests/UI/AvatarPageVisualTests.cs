@@ -27,6 +27,7 @@ namespace MagicChatbox.Tests.UI;
 /// The widget templates are the part most likely to rot: they live inside a DataTemplate that WPF never
 /// touches until a row of that shape exists. A template with no item is a template with no test.
 /// </remarks>
+[Collection(WpfCollection.Name)]
 public class AvatarPageVisualTests
 {
     [Fact]
@@ -58,6 +59,34 @@ public class AvatarPageVisualTests
 
         Assert.True(failure == null, "the avatar page did not build: " + failure);
         Assert.True(errors.Count == 0, "binding failures:" + Environment.NewLine + string.Join(Environment.NewLine, errors));
+    }
+
+    [Theory]
+    [InlineData("AvatarTabOverview")]
+    [InlineData("AvatarTabControls")]
+    [InlineData("AvatarTabLooks")]
+    [InlineData("AvatarTabRules")]
+    [InlineData("AvatarTabDiagnostics")]
+    public void Every_tab_has_content_and_builds(string tab)
+    {
+        // A TabControl shows one tab and leaves the rest unmeasured, so four fifths of this page is
+        // markup nothing renders until somebody clicks. Inline TabItem content is still constructed at
+        // parse time, which is what makes it reachable here at all.
+        Exception? failure = WpfHost.RunInWindow(
+            () => new AvatarPage { DataContext = PopulatedViewModel() },
+            page =>
+            {
+                var scroller = page.FindName(tab) as ScrollViewer;
+
+                Assert.True(scroller != null, tab + " is not on the page");
+
+                var panel = scroller.Content as Panel;
+
+                Assert.True(panel != null, tab + " holds no panel");
+                Assert.True(panel.Children.Count > 0, tab + " is empty");
+            });
+
+        Assert.True(failure == null, tab + " did not build: " + failure);
     }
 
     [Theory]

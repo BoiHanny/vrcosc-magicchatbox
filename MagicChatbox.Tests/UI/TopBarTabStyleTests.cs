@@ -17,6 +17,7 @@ namespace MagicChatbox.Tests.UI;
 /// the converter, the brushes, the attached property - is only resolved when something is actually
 /// built from it, and a miss throws at that moment rather than at build. This does the building.
 /// </remarks>
+[Collection(WpfCollection.Name)]
 public class TopBarTabStyleTests
 {
     [Fact]

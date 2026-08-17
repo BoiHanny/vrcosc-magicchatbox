@@ -17,6 +17,7 @@ namespace MagicChatbox.Tests.UI;
 /// resource key that was simply misspelled. This section was written in the same sitting and had never
 /// been opened either.
 /// </remarks>
+[Collection(WpfCollection.Name)]
 public class VrcBridgeSectionVisualTests
 {
     [Fact]

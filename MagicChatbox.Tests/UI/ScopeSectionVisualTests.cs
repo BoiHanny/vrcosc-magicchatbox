@@ -24,6 +24,7 @@ namespace MagicChatbox.Tests.UI;
 /// bound through a DynamicResource key -- a thing WPF does not do -- and a remove button reaching one
 /// ancestor too far, which is not an error at all, just a command that silently is not there.
 /// </remarks>
+[Collection(WpfCollection.Name)]
 public class ScopeSectionVisualTests
 {
     [Fact]

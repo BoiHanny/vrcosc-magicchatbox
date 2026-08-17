@@ -19,6 +19,7 @@ namespace MagicChatbox.Tests.UI;
 /// way to know is to build it, and for the message rows that means giving the list something to
 /// show: a DataTemplate that is never applied is a DataTemplate that is never checked.
 /// </remarks>
+[Collection(WpfCollection.Name)]
 public class ChattingPageVisualTests
 {
     [Theory]

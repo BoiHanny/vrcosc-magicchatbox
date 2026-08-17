@@ -17,6 +17,11 @@
                     and threw on construction until this line existed.
                 -->
                 <ResourceDictionary Source="UI/Resources/SharedConverters.xaml" />
+                <!--
+                    App-level for the same reason, and because the tab rail and the stat tile are not
+                    specific to one page: anything with more than a screenful of content wants them.
+                -->
+                <ResourceDictionary Source="UI/Resources/AvatarShell.xaml" />
             </ResourceDictionary.MergedDictionaries>
 
             <DropShadowEffect

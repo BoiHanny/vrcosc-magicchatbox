@@ -18,6 +18,8 @@
                     that started the process. That makes the page unloadable from a test host.
                 -->
                 <ResourceDictionary Source="pack://application:,,,/MagicChatbox;component/UI/Resources/SharedConverters.xaml" />
+                <ResourceDictionary Source="pack://application:,,,/MagicChatbox;component/UI/Theme.xaml" />
+                <ResourceDictionary Source="pack://application:,,,/MagicChatbox;component/UI/Resources/AvatarShell.xaml" />
             </ResourceDictionary.MergedDictionaries>
 
             <!--
@@ -115,722 +117,735 @@
             </DataTemplate>
         </ResourceDictionary>
     </UserControl.Resources>
-
-    <Grid>
+    <Grid Margin="10,8,10,10">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
-        <Border
-            Grid.Row="0"
-            Margin="10,8,10,4"
-            Padding="10,6"
-            Background="{StaticResource TileSurfaceBrush}"
-            CornerRadius="5">
-            <StackPanel Orientation="Horizontal">
-                <TextBlock
-                    Margin="0,0,14,0"
-                    VerticalAlignment="Center"
-                    Style="{StaticResource OptionFieldLabelStyle}"
-                    Text="{Binding BridgeStatus}" />
-                <TextBlock
-                    Margin="0,0,14,0"
-                    VerticalAlignment="Center"
-                    Style="{StaticResource OptionHelpTextStyle}"
-                    Text="{Binding PortText, StringFormat=Port {0}}" />
-                <TextBlock
-                    Margin="0,0,14,0"
-                    VerticalAlignment="Center"
-                    Style="{StaticResource OptionHelpTextStyle}"
-                    Text="{Binding TrafficText}" />
-                <TextBlock
-                    VerticalAlignment="Center"
-                    Style="{StaticResource OptionHelpTextStyle}"
-                    Text="{Binding NeighbourText}" />
-                <Button
-                    Margin="14,0,0,0"
-                    VerticalAlignment="Center"
-                    Command="{Binding RefreshCommand}"
-                    Content="Look again"
-                    Style="{StaticResource Status_Button_style}"
-                    ToolTip="Read your avatar again now, rather than waiting for the next check." />
-            </StackPanel>
+        <Border Grid.Row="0" Style="{StaticResource MastheadStyle}">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+
+                <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                    <TextBlock Style="{StaticResource TileTitleStyle}" Text="{Binding AvatarName}" TextTrimming="CharacterEllipsis" />
+                    <TextBlock
+                        Margin="0,2,0,0"
+                        Style="{StaticResource OptionHelpTextStyle}"
+                        Text="{Binding BridgeStatus}" />
+                </StackPanel>
+
+                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                    <Border Style="{StaticResource StatTileStyle}">
+                        <StackPanel>
+                            <TextBlock Style="{StaticResource StatValueStyle}" Text="{Binding DrivableCount}" />
+                            <TextBlock Style="{StaticResource StatLabelStyle}" Text="you can set" />
+                        </StackPanel>
+                    </Border>
+                    <Border Style="{StaticResource StatTileStyle}">
+                        <StackPanel>
+                            <TextBlock Style="{StaticResource StatValueStyle}" Text="{Binding ReadOnlyCount}" />
+                            <TextBlock Style="{StaticResource StatLabelStyle}" Text="read-only" />
+                        </StackPanel>
+                    </Border>
+                    <Border Style="{StaticResource StatTileStyle}">
+                        <StackPanel>
+                            <TextBlock Style="{StaticResource StatValueStyle}" Text="{Binding ActiveGuardCount}" />
+                            <TextBlock Style="{StaticResource StatLabelStyle}" Text="guards on" />
+                        </StackPanel>
+                    </Border>
+                    <Button
+                        Margin="4,0,0,0"
+                        VerticalAlignment="Center"
+                        Command="{Binding RefreshCommand}"
+                        Content="Look again"
+                        Style="{StaticResource CustomizePillButton}"
+                        ToolTip="Read your avatar again now, rather than waiting for the next check." />
+                </StackPanel>
+            </Grid>
         </Border>
 
-        <ScrollViewer
-            Grid.Row="1"
-            Margin="10,0,10,10"
-            HorizontalScrollBarVisibility="Disabled"
-            VerticalScrollBarVisibility="Auto">
-            <StackPanel>
-
-                <!--  Shown only while the avatar connection is off. First time round it introduces the
-                      feature; afterwards it is the way back on, because every other card on this page is
-                      empty without it and Options is a long way to go to find that out.  -->
-                <Border
-                    Padding="0"
-                    Style="{StaticResource OptionCardStyle}"
-                    Visibility="{Binding BridgeIsOff, Converter={StaticResource BoolToVisibilityConverter}}">
-                    <StackPanel Margin="10">
-                        <TextBlock Style="{StaticResource TileTitleStyle}" Text="{Binding BridgeIntroHeadline}" />
-                        <TextBlock
-                            Margin="0,4,0,0"
-                            Style="{StaticResource TileDescriptionStyle}"
-                            Text="{Binding BridgeIntroBody}"
-                            TextWrapping="Wrap" />
-                        <StackPanel Margin="0,10,0,0" Orientation="Horizontal">
-                            <Button
-                                Command="{Binding TurnOnBridgeCommand}"
-                                Content="Turn it on"
-                                Style="{StaticResource Status_Button_style}" />
-                            <Button
-                                Margin="8,0,0,0"
-                                Command="{Binding DismissBridgeIntroCommand}"
-                                Content="Not now"
-                                Style="{StaticResource Status_Button_style}"
-                                Visibility="{Binding CanDismissBridgeIntro, Converter={StaticResource BoolToVisibilityConverter}}" />
-                        </StackPanel>
+        <TabControl Grid.Row="1" Style="{StaticResource ShellTabControlStyle}">
+            <TabItem Header="Overview">
+                <ScrollViewer
+                    x:Name="AvatarTabOverview"
+                    HorizontalScrollBarVisibility="Disabled"
+                    VerticalScrollBarVisibility="Auto">
+                    <StackPanel Margin="0,0,6,0">
+                        <Border
+                            Padding="0"
+                            Style="{StaticResource OptionCardStyle}"
+                            Visibility="{Binding BridgeIsOff, Converter={StaticResource BoolToVisibilityConverter}}">
+                            <StackPanel Margin="10">
+                                <TextBlock Style="{StaticResource TileTitleStyle}" Text="{Binding BridgeIntroHeadline}" />
+                                <TextBlock
+                                    Margin="0,4,0,0"
+                                    Style="{StaticResource TileDescriptionStyle}"
+                                    Text="{Binding BridgeIntroBody}"
+                                    TextWrapping="Wrap" />
+                                <StackPanel Margin="0,10,0,0" Orientation="Horizontal">
+                                    <Button
+                                        Command="{Binding TurnOnBridgeCommand}"
+                                        Content="Turn it on"
+                                        Style="{StaticResource Status_Button_style}" />
+                                    <Button
+                                        Margin="8,0,0,0"
+                                        Command="{Binding DismissBridgeIntroCommand}"
+                                        Content="Not now"
+                                        Style="{StaticResource Status_Button_style}"
+                                        Visibility="{Binding CanDismissBridgeIntro, Converter={StaticResource BoolToVisibilityConverter}}" />
+                                </StackPanel>
+                            </StackPanel>
+                        </Border>
+                        <Border Padding="0" Style="{StaticResource OptionCardStyle}">
+                            <StackPanel Margin="10">
+                                <TextBlock Style="{StaticResource TileTitleStyle}" Text="{Binding AvatarName}" />
+                                <TextBlock
+                                    Margin="0,2,0,0"
+                                    Style="{StaticResource TileDescriptionStyle}"
+                                    Text="{Binding ParameterSummary}" />
+                                <TextBlock
+                                    Margin="0,6,0,0"
+                                    Style="{StaticResource OptionHelpTextStyle}"
+                                    Text="{Binding RungMessage}" />
+                            </StackPanel>
+                        </Border>
+                        <Border
+                            Padding="0"
+                            Style="{StaticResource OptionCardStyle}"
+                            Visibility="{Binding HasConfigChanges, Converter={StaticResource BoolToVisibilityConverter}}">
+                            <StackPanel Margin="10">
+                                <TextBlock
+                                    Margin="0,0,0,4"
+                                    Style="{StaticResource OptionFieldLabelStyle}"
+                                    Text="What's on right now"
+                                    x:Name="WhatsOnHeader" />
+                                <TextBlock
+                                    Margin="0,0,0,6"
+                                    Style="{StaticResource OptionHelpTextStyle}"
+                                    Text="Guards you have written, and what each one is deciding at this moment. A guard can hold something off; it can never switch on something you left off."
+                                    TextWrapping="Wrap" />
+                                <ItemsControl ItemsSource="{Binding ConfigChanges}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <StackPanel Margin="0,1" Orientation="Horizontal">
+                                                <TextBlock
+                                                    Width="16"
+                                                    Style="{StaticResource OptionHelpTextStyle}"
+                                                    Text="{Binding Mark}" />
+                                                <TextBlock
+                                                    Style="{StaticResource OptionHelpTextStyle}"
+                                                    Text="{Binding Detail}"
+                                                    TextWrapping="Wrap"
+                                                    ToolTip="{Binding Parameter}" />
+                                            </StackPanel>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </StackPanel>
+                        </Border>
+                        <Border
+                            Padding="0"
+                            Style="{StaticResource OptionCardStyle}"
+                            Visibility="{Binding HasPinnedRows, Converter={StaticResource BoolToVisibilityConverter}}">
+                            <StackPanel Margin="10">
+                                <TextBlock
+                                    Margin="0,0,0,4"
+                                    Style="{StaticResource OptionFieldLabelStyle}"
+                                    Text="Kept at the top" />
+                                <ItemsControl
+                                    x:Name="AvatarPinnedList"
+                                    ItemTemplate="{StaticResource AvatarControlRowTemplate}"
+                                    ItemsSource="{Binding PinnedRows}" />
+                            </StackPanel>
+                        </Border>
+                        <Border
+                            Padding="0"
+                            Style="{StaticResource OptionCardStyle}"
+                            Visibility="{Binding HasRecentRows, Converter={StaticResource BoolToVisibilityConverter}}">
+                            <StackPanel Margin="10">
+                                <TextBlock
+                                    Margin="0,0,0,4"
+                                    Style="{StaticResource OptionFieldLabelStyle}"
+                                    Text="Just touched" />
+                                <TextBlock
+                                    Margin="0,0,0,6"
+                                    Style="{StaticResource OptionHelpTextStyle}"
+                                    Text="Move something in VRChat's menu and it appears here, ready to use, so you never need to know what it is called."
+                                    TextWrapping="Wrap" />
+                                <ItemsControl
+                                    x:Name="AvatarRecentList"
+                                    ItemTemplate="{StaticResource AvatarControlRowTemplate}"
+                                    ItemsSource="{Binding RecentRows}" />
+                            </StackPanel>
+                        </Border>
                     </StackPanel>
-                </Border>
-
-                <Border Padding="0" Style="{StaticResource OptionCardStyle}">
-                    <StackPanel Margin="10">
-                        <TextBlock Style="{StaticResource TileTitleStyle}" Text="{Binding AvatarName}" />
-                        <TextBlock
-                            Margin="0,2,0,0"
-                            Style="{StaticResource TileDescriptionStyle}"
-                            Text="{Binding ParameterSummary}" />
-                        <TextBlock
-                            Margin="0,6,0,0"
-                            Style="{StaticResource OptionHelpTextStyle}"
-                            Text="{Binding RungMessage}" />
-                    </StackPanel>
-                </Border>
-
-                <Border
-                    Padding="0"
-                    Style="{StaticResource OptionCardStyle}"
-                    Visibility="{Binding HasPinnedRows, Converter={StaticResource BoolToVisibilityConverter}}">
-                    <StackPanel Margin="10">
-                        <TextBlock
-                            Margin="0,0,0,4"
-                            Style="{StaticResource OptionFieldLabelStyle}"
-                            Text="Kept at the top" />
-                        <ItemsControl
-                            x:Name="AvatarPinnedList"
-                            ItemTemplate="{StaticResource AvatarControlRowTemplate}"
-                            ItemsSource="{Binding PinnedRows}" />
-                    </StackPanel>
-                </Border>
-
-                <Border
-                    Padding="0"
-                    Style="{StaticResource OptionCardStyle}"
-                    Visibility="{Binding HasRecentRows, Converter={StaticResource BoolToVisibilityConverter}}">
-                    <StackPanel Margin="10">
-                        <TextBlock
-                            Margin="0,0,0,4"
-                            Style="{StaticResource OptionFieldLabelStyle}"
-                            Text="Just touched" />
-                        <TextBlock
-                            Margin="0,0,0,6"
-                            Style="{StaticResource OptionHelpTextStyle}"
-                            Text="Move something in VRChat's menu and it appears here, ready to use, so you never need to know what it is called."
-                            TextWrapping="Wrap" />
-                        <ItemsControl
-                            x:Name="AvatarRecentList"
-                            ItemTemplate="{StaticResource AvatarControlRowTemplate}"
-                            ItemsSource="{Binding RecentRows}" />
-                    </StackPanel>
-                </Border>
-
-                <Border
-                    Padding="0"
-                    Style="{StaticResource OptionCardStyle}"
-                    Visibility="{Binding ShowAdvanced, Converter={StaticResource BoolToVisibilityConverter}}">
-                    <StackPanel Margin="10">
-                        <TextBlock
-                            Margin="0,0,0,4"
-                            Style="{StaticResource OptionFieldLabelStyle}"
-                            Text="What reaches your avatar" />
-                        <ItemsControl ItemsSource="{Binding Readiness}">
+                </ScrollViewer>
+            </TabItem>
+            <TabItem Header="Controls">
+                <ScrollViewer
+                    x:Name="AvatarTabControls"
+                    HorizontalScrollBarVisibility="Disabled"
+                    VerticalScrollBarVisibility="Auto">
+                    <StackPanel Margin="0,0,6,0">
+                        <Border Padding="0" Style="{StaticResource OptionCardStyle}">
+                            <StackPanel Margin="10">
+                                <StackPanel Margin="0,0,0,6" Orientation="Horizontal">
+                                    <TextBlock
+                                        Margin="0,0,6,0"
+                                        VerticalAlignment="Center"
+                                        Style="{StaticResource OptionFieldLabelStyle}"
+                                        Text="Find" />
+                                    <TextBox
+                                        x:Name="AvatarParameterSearch"
+                                        Width="220"
+                                        Padding="3,0"
+                                        VerticalContentAlignment="Center"
+                                        FontSize="{StaticResource FontSizeBody}"
+                                        Text="{Binding Search, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, Delay=250}" />
+                                    <TextBlock
+                                        Margin="12,0,0,0"
+                                        VerticalAlignment="Center"
+                                        Style="{StaticResource OptionHelpTextStyle}"
+                                        Text="{Binding HiddenText}" />
+                                </StackPanel>
+        
+                                <CheckBox
+                                    x:Name="AvatarHideAdult_checkbox"
+                                    Margin="0,2"
+                                    IsChecked="{Binding HideAdult, Mode=TwoWay}">
+                                    Hide adult groups
+                                </CheckBox>
+                                <CheckBox
+                                    x:Name="AvatarWritableOnly_checkbox"
+                                    Margin="0,2"
+                                    IsChecked="{Binding WritableOnly, Mode=TwoWay}">
+                                    Only show things I can change
+                                </CheckBox>
+                            </StackPanel>
+                        </Border>
+                        <ItemsControl x:Name="AvatarGroupList" ItemsSource="{Binding Groups}">
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate>
-                                    <Grid Margin="0,3">
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="Auto" />
-                                            <ColumnDefinition Width="110" />
-                                            <ColumnDefinition Width="Auto" />
-                                            <ColumnDefinition Width="*" />
-                                        </Grid.ColumnDefinitions>
-                                        <Ellipse
-                                            Grid.Column="0"
-                                            Width="8"
-                                            Height="8"
-                                            Margin="0,0,8,0"
-                                            VerticalAlignment="Center"
-                                            Fill="{Binding State, Converter={StaticResource ReadinessStateToBrushConverter}}"
-                                            ToolTip="{Binding State}" />
-                                        <TextBlock
-                                            Grid.Column="1"
-                                            VerticalAlignment="Center"
-                                            Style="{StaticResource OptionFieldLabelStyle}"
-                                            Text="{Binding Feature}" />
-                                        <TextBlock
-                                            Grid.Column="2"
-                                            Margin="0,0,10,0"
-                                            VerticalAlignment="Center"
-                                            Foreground="{Binding State, Converter={StaticResource ReadinessStateToBrushConverter}}"
-                                            Style="{StaticResource OptionFieldLabelStyle}"
-                                            Text="{Binding Headline}" />
-                                        <TextBlock
-                                            Grid.Column="3"
-                                            VerticalAlignment="Center"
-                                            Style="{StaticResource OptionHelpTextStyle}"
-                                            Text="{Binding Detail}"
-                                            TextWrapping="Wrap" />
-                                    </Grid>
-                                </DataTemplate>
-                            </ItemsControl.ItemTemplate>
-                        </ItemsControl>
-                        <TextBlock
-                            Margin="0,8,0,0"
-                            Style="{StaticResource OptionHelpTextStyle}"
-                            Text="{Binding SpeechText}" />
-
-                        <TextBlock
-                            Margin="0,10,0,2"
-                            Style="{StaticResource OptionFieldLabelStyle}"
-                            Text="What else is on this avatar"
-                            Visibility="{Binding HasEcosystems, Converter={StaticResource BoolToVisibilityConverter}}" />
-                        <ItemsControl ItemsSource="{Binding Ecosystems}">
-                            <ItemsControl.ItemsPanel>
-                                <ItemsPanelTemplate>
-                                    <WrapPanel />
-                                </ItemsPanelTemplate>
-                            </ItemsControl.ItemsPanel>
-                            <ItemsControl.ItemTemplate>
-                                <DataTemplate>
-                                    <Border
-                                        Margin="0,2,6,2"
-                                        Padding="7,3"
-                                        Background="{StaticResource TileSurfaceBrush}"
-                                        CornerRadius="9"
-                                        ToolTip="{Binding Description}">
-                                        <TextBlock
-                                            FontSize="{StaticResource FontSizeCaption}"
-                                            Style="{StaticResource OptionFieldLabelStyle}"
-                                            Text="{Binding DisplayName}" />
+                                    <Border Padding="0" Style="{StaticResource OptionCardStyle}">
+                                        <StackPanel Margin="10">
+                                            <!--
+                                                Collapsed until asked for. A collapsed ItemsControl is never
+                                                measured, so it builds no containers at all - which is the
+                                                difference between a few hundred elements on this page and
+                                                fourteen thousand on a 684 parameter avatar.
+                                            -->
+                                            <CheckBox
+                                                Margin="0,0,0,4"
+                                                IsChecked="{Binding IsExpanded, Mode=TwoWay}">
+                                                <TextBlock
+                                                    Style="{StaticResource OptionFieldLabelStyle}"
+                                                    Text="{Binding Header}" />
+                                            </CheckBox>
+                                            <ItemsControl
+                                                x:Name="AvatarRowList"
+                                                ItemTemplate="{StaticResource AvatarControlRowTemplate}"
+                                                ItemsSource="{Binding Rows}"
+                                                Visibility="{Binding IsExpanded, Converter={StaticResource BoolToVisibilityConverter}}" />
+                                        </StackPanel>
                                     </Border>
                                 </DataTemplate>
                             </ItemsControl.ItemTemplate>
                         </ItemsControl>
                     </StackPanel>
-                </Border>
-
-                <Border Padding="0" Style="{StaticResource OptionCardStyle}">
-                    <StackPanel Margin="10">
-                        <TextBlock
-                            Margin="0,0,0,4"
-                            Style="{StaticResource OptionFieldLabelStyle}"
-                            Text="Saved looks" />
-                        <TextBlock
-                            Margin="0,0,0,6"
-                            Style="{StaticResource OptionHelpTextStyle}"
-                            Text="Save what this avatar is wearing now and put it back later. A look belongs to the avatar it was taken from — parameter names are the avatar author's own invention, so it cannot travel to a different one."
-                            TextWrapping="Wrap" />
-
-                        <StackPanel Margin="0,0,0,6" Orientation="Horizontal">
-                            <TextBox
-                                x:Name="AvatarPresetName"
-                                Width="180"
-                                Padding="3,0"
-                                VerticalContentAlignment="Center"
-                                FontSize="{StaticResource FontSizeBody}"
-                                Text="{Binding NewPresetName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                ToolTip="Leave it empty and it names itself." />
-                            <Button
-                                Margin="8,0,0,0"
-                                Command="{Binding CapturePresetCommand}"
-                                Content="Save this look"
-                                IsEnabled="{Binding CanCapturePreset}"
-                                Style="{StaticResource Status_Button_style}" />
-                            <Button
-                                Margin="6,0,0,0"
-                                Command="{Binding ImportSavedStateCommand}"
-                                Content="Take VRChat's saved one"
-                                IsEnabled="{Binding CanImportSavedState}"
-                                Style="{StaticResource Status_Button_style}"
-                                ToolTip="VRChat already remembers how you left this avatar. This reads that straight off the disk, so it works even for settings this app has never seen change." />
-                        </StackPanel>
-
-                        <TextBlock
-                            Margin="0,0,0,6"
-                            Style="{StaticResource OptionHelpTextStyle}"
-                            Text="{Binding LibraryText}"
-                            TextWrapping="Wrap" />
-
-                        <TextBlock
-                            Margin="0,6,0,2"
-                            Style="{StaticResource OptionFieldLabelStyle}"
-                            Text="Moving to another PC" />
-                        <TextBlock
-                            Margin="0,0,0,6"
-                            Style="{StaticResource OptionHelpTextStyle}"
-                            Text="VRChat keeps these settings per machine, so a new PC starts every avatar from scratch. Back them up here, copy the file across, and put each avatar back on to restore it. Nothing is written into VRChat's own files — the settings are sent to the avatar the same way every other control on this page is."
-                            TextWrapping="Wrap" />
-                        <StackPanel Orientation="Horizontal">
-                            <Button
-                                Command="{Binding BackUpLibraryCommand}"
-                                Content="Back up"
-                                Style="{StaticResource Status_Button_style}" />
-                            <Button
-                                Margin="6,0,0,0"
-                                Command="{Binding LoadLibraryBackupCommand}"
-                                Content="Open a backup"
-                                Style="{StaticResource Status_Button_style}" />
-                            <Button
-                                Margin="6,0,0,0"
-                                Command="{Binding RestoreFromBackupCommand}"
-                                Content="Put this avatar back"
-                                Style="{StaticResource Status_Button_style}" />
-                        </StackPanel>
-                        <TextBlock
-                            Margin="0,4,0,0"
-                            Style="{StaticResource OptionHelpTextStyle}"
-                            Text="{Binding LibraryBackupStatus}"
-                            TextWrapping="Wrap" />
-
-                        <ItemsControl ItemsSource="{Binding Presets}">
-                            <ItemsControl.ItemTemplate>
-                                <DataTemplate>
-                                    <Grid Margin="0,2">
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="*" />
-                                            <ColumnDefinition Width="Auto" />
-                                            <ColumnDefinition Width="Auto" />
-                                        </Grid.ColumnDefinitions>
-                                        <TextBlock
-                                            Grid.Column="0"
-                                            VerticalAlignment="Center"
-                                            Style="{StaticResource OptionFieldLabelStyle}"
-                                            Text="{Binding Name}"
-                                            ToolTip="{Binding CapturedUtc}" />
-                                        <TextBlock
-                                            Grid.Column="1"
-                                            Margin="0,0,8,0"
-                                            VerticalAlignment="Center"
-                                            Style="{StaticResource OptionHelpTextStyle}"
-                                            Text="{Binding Count, StringFormat={}{0} saved}" />
-                                        <StackPanel Grid.Column="2" Orientation="Horizontal">
-                                            <Button
-                                                Command="{Binding DataContext.ApplyPresetCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                                                CommandParameter="{Binding}"
-                                                Content="Wear it"
-                                                Style="{StaticResource Status_Button_style}" />
-                                            <Button
-                                                Margin="6,0,0,0"
-                                                Command="{Binding DataContext.WearAutomaticallyCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                                                CommandParameter="{Binding}"
-                                                Content="{Binding Automatic, Converter={StaticResource BoolToStarConverter}}"
-                                                Style="{StaticResource Status_Button_style}"
-                                                ToolTip="Put this look on by itself whenever you wear this avatar" />
-                                            <Button
-                                                Margin="6,0,0,0"
-                                                Command="{Binding DataContext.DeletePresetCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                                                CommandParameter="{Binding}"
-                                                Content="Forget"
-                                                Style="{StaticResource Status_Button_style}" />
-                                        </StackPanel>
-                                    </Grid>
-                                </DataTemplate>
-                            </ItemsControl.ItemTemplate>
-                        </ItemsControl>
-
-                        <TextBlock
-                            Margin="0,6,0,0"
-                            Style="{StaticResource OptionHelpTextStyle}"
-                            Text="{Binding PresetStatus}"
-                            TextWrapping="Wrap" />
-
-                        <ItemsControl Margin="0,4,0,0" ItemsSource="{Binding PresetRefusals}">
-                            <ItemsControl.ItemTemplate>
-                                <DataTemplate>
-                                    <TextBlock
-                                        Margin="0,1"
-                                        Style="{StaticResource OptionHelpTextStyle}"
-                                        Text="{Binding Name}"
-                                        ToolTip="{Binding Outcome}" />
-                                </DataTemplate>
-                            </ItemsControl.ItemTemplate>
-                        </ItemsControl>
-                    </StackPanel>
-                </Border>
-
-                <Border
-                    Padding="0"
-                    Style="{StaticResource OptionCardStyle}"
-                    Visibility="{Binding ShowAdvanced, Converter={StaticResource BoolToVisibilityConverter}}">
-                    <StackPanel Margin="10">
-                        <TextBlock
-                            Margin="0,0,0,4"
-                            Style="{StaticResource OptionFieldLabelStyle}"
-                            Text="Does VRChat keep what this app sets?" />
-                        <TextBlock
-                            Margin="0,0,0,6"
-                            Style="{StaticResource OptionHelpTextStyle}"
-                            Text="VRChat writes an avatar's saved settings to disk when you switch avatar or close it. Change something above, then come back after switching and check: this compares what this app sent against what VRChat actually kept."
-                            TextWrapping="Wrap" />
-                        <Button
-                            HorizontalAlignment="Left"
-                            Command="{Binding CheckSavedWritesCommand}"
-                            Content="Check"
-                            Style="{StaticResource Status_Button_style}" />
-                        <TextBlock
-                            Margin="0,6,0,0"
-                            Style="{StaticResource OptionHelpTextStyle}"
-                            Text="{Binding SavedWrites.Summary}"
-                            TextWrapping="Wrap" />
-                    </StackPanel>
-                </Border>
-
-                <Border
-                    Padding="0"
-                    Style="{StaticResource OptionCardStyle}"
-                    Visibility="{Binding ShowAdvanced, Converter={StaticResource BoolToVisibilityConverter}}">
-                    <StackPanel Margin="10">
-                        <TextBlock
-                            Margin="0,0,0,4"
-                            Style="{StaticResource OptionFieldLabelStyle}"
-                            Text="The same on every avatar" />
-                        <TextBlock
-                            Margin="0,0,0,6"
-                            Style="{StaticResource OptionHelpTextStyle}"
-                            Text="Most parameter names belong to one avatar and cannot travel. Some do travel — locomotion, face tracking, the things a lot of avatars share — and these are the ones yours actually have in common. Pick the ones you always want set the same way."
-                            TextWrapping="Wrap" />
-
-                        <ItemsControl ItemsSource="{Binding SharedAcrossAvatars}">
-                            <ItemsControl.ItemTemplate>
-                                <DataTemplate>
-                                    <Grid Margin="0,2">
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="*" />
-                                            <ColumnDefinition Width="Auto" />
-                                            <ColumnDefinition Width="Auto" />
-                                        </Grid.ColumnDefinitions>
-                                        <TextBlock
-                                            Grid.Column="0"
-                                            VerticalAlignment="Center"
-                                            Style="{StaticResource OptionHelpTextStyle}"
-                                            Text="{Binding Name}" />
-                                        <TextBlock
-                                            Grid.Column="1"
-                                            Margin="8,0"
-                                            VerticalAlignment="Center"
-                                            Style="{StaticResource OptionHelpTextStyle}"
-                                            Text="{Binding AvatarCount, StringFormat={}on {0} avatars}" />
-                                        <Button
-                                            Grid.Column="2"
-                                            Command="{Binding DataContext.RememberEverywhereCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                                            CommandParameter="{Binding}"
-                                            Content="Always"
-                                            Style="{StaticResource Status_Button_style}" />
-                                    </Grid>
-                                </DataTemplate>
-                            </ItemsControl.ItemTemplate>
-                        </ItemsControl>
-
-                        <TextBlock
-                            Margin="0,8,0,2"
-                            Style="{StaticResource OptionFieldLabelStyle}"
-                            Text="Your defaults" />
-                        <ItemsControl ItemsSource="{Binding Globals}">
-                            <ItemsControl.ItemTemplate>
-                                <DataTemplate>
-                                    <Grid Margin="0,2">
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="*" />
-                                            <ColumnDefinition Width="Auto" />
-                                        </Grid.ColumnDefinitions>
-                                        <TextBlock
-                                            Grid.Column="0"
-                                            VerticalAlignment="Center"
-                                            Style="{StaticResource OptionHelpTextStyle}"
-                                            Text="{Binding Name}"
-                                            ToolTip="{Binding Value}" />
-                                        <Button
-                                            Grid.Column="1"
-                                            Command="{Binding DataContext.ForgetEverywhereCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                                            CommandParameter="{Binding}"
-                                            Content="Forget"
-                                            Style="{StaticResource Status_Button_style}" />
-                                    </Grid>
-                                </DataTemplate>
-                            </ItemsControl.ItemTemplate>
-                        </ItemsControl>
-
-                        <StackPanel Margin="0,6,0,0" Orientation="Horizontal">
-                            <Button
-                                Command="{Binding ApplyGlobalsCommand}"
-                                Content="Set them now"
-                                Style="{StaticResource Status_Button_style}" />
-                            <CheckBox
-                                x:Name="AvatarApplyGlobals_checkbox"
-                                Margin="10,0,0,0"
-                                VerticalAlignment="Center"
-                                IsChecked="{Binding ApplyGlobalsOnAvatarChange, Mode=TwoWay}">
-                                Set them whenever I change avatar
-                            </CheckBox>
-                        </StackPanel>
-                        <TextBlock
-                            Margin="0,4,0,0"
-                            Style="{StaticResource OptionHelpTextStyle}"
-                            Text="{Binding GlobalsStatus}"
-                            TextWrapping="Wrap" />
-                    </StackPanel>
-                </Border>
-
-                <Border
-                    Padding="0"
-                    Style="{StaticResource OptionCardStyle}"
-                    Visibility="{Binding ShowAdvanced, Converter={StaticResource BoolToVisibilityConverter}}">
-                    <StackPanel Margin="10">
-                        <TextBlock
-                            Margin="0,0,0,4"
-                            Style="{StaticResource OptionFieldLabelStyle}"
-                            Text="Layouts people share" />
-                        <TextBlock
-                            Margin="0,0,0,6"
-                            Style="{StaticResource OptionHelpTextStyle}"
-                            Text="A layout is a recipe, never values: which parameters an avatar needs and what each is for. Paste one somebody sent you to see whether the avatar you are wearing has what it asks for. It carries no addresses and nothing is written to your avatar by reading one."
-                            TextWrapping="Wrap" />
-                        <StackPanel Margin="0,0,0,6" Orientation="Horizontal">
-                            <TextBox
-                                x:Name="AvatarLayoutCode"
-                                Width="240"
-                                Padding="3,0"
-                                VerticalContentAlignment="Center"
-                                FontSize="{StaticResource FontSizeBody}"
-                                Text="{Binding LayoutCode, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
-                            <Button
-                                Margin="8,0,0,0"
-                                Command="{Binding CheckLayoutCodeCommand}"
-                                Content="Check it"
-                                Style="{StaticResource Status_Button_style}" />
-                            <Button
-                                Margin="6,0,0,0"
-                                Command="{Binding CopyLayoutCodeCommand}"
-                                Content="Make one"
-                                Style="{StaticResource Status_Button_style}" />
-                        </StackPanel>
-                        <TextBlock
-                            Style="{StaticResource OptionHelpTextStyle}"
-                            Text="{Binding LayoutShareStatus}"
-                            TextWrapping="Wrap" />
-                        <ItemsControl Margin="0,4,0,0" ItemsSource="{Binding LayoutMatches}">
-                            <ItemsControl.ItemTemplate>
-                                <DataTemplate>
-                                    <Grid Margin="0,1">
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="*" />
-                                            <ColumnDefinition Width="Auto" />
-                                        </Grid.ColumnDefinitions>
-                                        <TextBlock
-                                            Grid.Column="0"
-                                            Style="{StaticResource OptionHelpTextStyle}"
-                                            Text="{Binding Name}"
-                                            ToolTip="{Binding Purpose}" />
-                                        <TextBlock
-                                            Grid.Column="1"
-                                            Margin="8,0,0,0"
-                                            Style="{StaticResource OptionHelpTextStyle}"
-                                            Text="{Binding Match}" />
-                                    </Grid>
-                                </DataTemplate>
-                            </ItemsControl.ItemTemplate>
-                        </ItemsControl>
-                    </StackPanel>
-                </Border>
-
-                <Border
-                    Padding="0"
-                    Style="{StaticResource OptionCardStyle}"
-                    Visibility="{Binding HasConfigChanges, Converter={StaticResource BoolToVisibilityConverter}}">
-                    <StackPanel Margin="10">
-                        <TextBlock
-                            Margin="0,0,0,4"
-                            Style="{StaticResource OptionFieldLabelStyle}"
-                            Text="What's on right now"
-                            x:Name="WhatsOnHeader" />
-                        <TextBlock
-                            Margin="0,0,0,6"
-                            Style="{StaticResource OptionHelpTextStyle}"
-                            Text="Guards you have written, and what each one is deciding at this moment. A guard can hold something off; it can never switch on something you left off."
-                            TextWrapping="Wrap" />
-                        <ItemsControl ItemsSource="{Binding ConfigChanges}">
-                            <ItemsControl.ItemTemplate>
-                                <DataTemplate>
-                                    <StackPanel Margin="0,1" Orientation="Horizontal">
-                                        <TextBlock
-                                            Width="16"
-                                            Style="{StaticResource OptionHelpTextStyle}"
-                                            Text="{Binding Mark}" />
-                                        <TextBlock
-                                            Style="{StaticResource OptionHelpTextStyle}"
-                                            Text="{Binding Detail}"
-                                            TextWrapping="Wrap"
-                                            ToolTip="{Binding Parameter}" />
-                                    </StackPanel>
-                                </DataTemplate>
-                            </ItemsControl.ItemTemplate>
-                        </ItemsControl>
-                    </StackPanel>
-                </Border>
-
-                <Border Padding="0" Style="{StaticResource OptionCardStyle}">
-                    <StackPanel Margin="10">
-                        <sections:ScopeSection DataContext="{Binding Scope}" />
-                    </StackPanel>
-                </Border>
-
-                <Border
-                    Padding="0"
-                    Style="{StaticResource OptionCardStyle}"
-                    Visibility="{Binding ShowAdvanced, Converter={StaticResource BoolToVisibilityConverter}}">
-                    <StackPanel Margin="10">
-                        <TextBlock
-                            Margin="0,0,0,4"
-                            Style="{StaticResource OptionFieldLabelStyle}"
-                            Text="Controlling the app from your avatar" />
-                        <TextBlock
-                            Style="{StaticResource OptionFieldLabelStyle}"
-                            Text="{Binding Layout.Headline}" />
-                        <TextBlock
-                            Style="{StaticResource OptionHelpTextStyle}"
-                            Text="{Binding Layout.Detail}"
-                            TextWrapping="Wrap" />
-                        <TextBlock
-                            Margin="0,6,0,2"
-                            Style="{StaticResource OptionFieldLabelStyle}"
-                            Text="Controls this avatar is missing"
-                            Visibility="{Binding HasMissingControls, Converter={StaticResource BoolToVisibilityConverter}}" />
-                        <ItemsControl ItemsSource="{Binding Layout.MissingControls}">
-                            <ItemsControl.ItemTemplate>
-                                <DataTemplate>
-                                    <TextBlock
-                                        Margin="0,1"
-                                        Style="{StaticResource OptionHelpTextStyle}"
-                                        Text="{Binding}" />
-                                </DataTemplate>
-                            </ItemsControl.ItemTemplate>
-                        </ItemsControl>
-                    </StackPanel>
-                </Border>
-
-                <Border
-                    Padding="0"
-                    Style="{StaticResource OptionCardStyle}"
-                    Visibility="{Binding ShowAdvanced, Converter={StaticResource BoolToVisibilityConverter}}">
-                    <StackPanel Margin="10">
-                        <TextBlock
-                            Margin="0,0,0,4"
-                            Style="{StaticResource OptionFieldLabelStyle}"
-                            Text="Changed, but not something you can drive" />
-                        <TextBlock
-                            Margin="0,0,0,6"
-                            Style="{StaticResource OptionHelpTextStyle}"
-                            Text="These moved recently and are not in the list above, which usually means the avatar reports them without accepting them."
-                            TextWrapping="Wrap" />
-                        <ItemsControl ItemsSource="{Binding RecentlyChanged}">
-                            <ItemsControl.ItemTemplate>
-                                <DataTemplate>
-                                    <TextBlock
-                                        Margin="0,1"
-                                        Style="{StaticResource OptionHelpTextStyle}"
-                                        Text="{Binding Key}" />
-                                </DataTemplate>
-                            </ItemsControl.ItemTemplate>
-                        </ItemsControl>
-                    </StackPanel>
-                </Border>
-
-                <Border Padding="0" Style="{StaticResource OptionCardStyle}">
-                    <StackPanel Margin="10">
-                        <StackPanel Margin="0,0,0,6" Orientation="Horizontal">
-                            <TextBlock
-                                Margin="0,0,6,0"
-                                VerticalAlignment="Center"
-                                Style="{StaticResource OptionFieldLabelStyle}"
-                                Text="Find" />
-                            <TextBox
-                                x:Name="AvatarParameterSearch"
-                                Width="220"
-                                Padding="3,0"
-                                VerticalContentAlignment="Center"
-                                FontSize="{StaticResource FontSizeBody}"
-                                Text="{Binding Search, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, Delay=250}" />
-                            <TextBlock
-                                Margin="12,0,0,0"
-                                VerticalAlignment="Center"
-                                Style="{StaticResource OptionHelpTextStyle}"
-                                Text="{Binding HiddenText}" />
-                        </StackPanel>
-
-                        <CheckBox
-                            x:Name="AvatarHideAdult_checkbox"
-                            Margin="0,2"
-                            IsChecked="{Binding HideAdult, Mode=TwoWay}">
-                            Hide adult groups
-                        </CheckBox>
-                        <CheckBox
-                            x:Name="AvatarWritableOnly_checkbox"
-                            Margin="0,2"
-                            IsChecked="{Binding WritableOnly, Mode=TwoWay}">
-                            Only show things I can change
-                        </CheckBox>
-                    </StackPanel>
-                </Border>
-
-                <!--  The diagnostics live behind this. They answer questions somebody has gone looking
-                      for, and putting them on the page unasked is what made it a wall.  -->
-                <CheckBox
-                    Margin="4,10,0,4"
-                    IsChecked="{Binding ShowAdvanced, Mode=TwoWay}"
-                    Style="{StaticResource SettingsCheckbox}">
-                    Show the diagnostics
-                </CheckBox>
-
-                <ItemsControl x:Name="AvatarGroupList" ItemsSource="{Binding Groups}">
-                    <ItemsControl.ItemTemplate>
-                        <DataTemplate>
-                            <Border Padding="0" Style="{StaticResource OptionCardStyle}">
-                                <StackPanel Margin="10">
-                                    <!--
-                                        Collapsed until asked for. A collapsed ItemsControl is never
-                                        measured, so it builds no containers at all - which is the
-                                        difference between a few hundred elements on this page and
-                                        fourteen thousand on a 684 parameter avatar.
-                                    -->
-                                    <CheckBox
-                                        Margin="0,0,0,4"
-                                        IsChecked="{Binding IsExpanded, Mode=TwoWay}">
-                                        <TextBlock
-                                            Style="{StaticResource OptionFieldLabelStyle}"
-                                            Text="{Binding Header}" />
-                                    </CheckBox>
-                                    <ItemsControl
-                                        x:Name="AvatarRowList"
-                                        ItemTemplate="{StaticResource AvatarControlRowTemplate}"
-                                        ItemsSource="{Binding Rows}"
-                                        Visibility="{Binding IsExpanded, Converter={StaticResource BoolToVisibilityConverter}}" />
+                </ScrollViewer>
+            </TabItem>
+            <TabItem Header="Looks">
+                <ScrollViewer
+                    x:Name="AvatarTabLooks"
+                    HorizontalScrollBarVisibility="Disabled"
+                    VerticalScrollBarVisibility="Auto">
+                    <StackPanel Margin="0,0,6,0">
+                        <Border Padding="0" Style="{StaticResource OptionCardStyle}">
+                            <StackPanel Margin="10">
+                                <TextBlock
+                                    Margin="0,0,0,4"
+                                    Style="{StaticResource OptionFieldLabelStyle}"
+                                    Text="Saved looks" />
+                                <TextBlock
+                                    Margin="0,0,0,6"
+                                    Style="{StaticResource OptionHelpTextStyle}"
+                                    Text="Save what this avatar is wearing now and put it back later. A look belongs to the avatar it was taken from — parameter names are the avatar author's own invention, so it cannot travel to a different one."
+                                    TextWrapping="Wrap" />
+        
+                                <StackPanel Margin="0,0,0,6" Orientation="Horizontal">
+                                    <TextBox
+                                        x:Name="AvatarPresetName"
+                                        Width="180"
+                                        Padding="3,0"
+                                        VerticalContentAlignment="Center"
+                                        FontSize="{StaticResource FontSizeBody}"
+                                        Text="{Binding NewPresetName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                        ToolTip="Leave it empty and it names itself." />
+                                    <Button
+                                        Margin="8,0,0,0"
+                                        Command="{Binding CapturePresetCommand}"
+                                        Content="Save this look"
+                                        IsEnabled="{Binding CanCapturePreset}"
+                                        Style="{StaticResource Status_Button_style}" />
+                                    <Button
+                                        Margin="6,0,0,0"
+                                        Command="{Binding ImportSavedStateCommand}"
+                                        Content="Take VRChat's saved one"
+                                        IsEnabled="{Binding CanImportSavedState}"
+                                        Style="{StaticResource Status_Button_style}"
+                                        ToolTip="VRChat already remembers how you left this avatar. This reads that straight off the disk, so it works even for settings this app has never seen change." />
                                 </StackPanel>
-                            </Border>
-                        </DataTemplate>
-                    </ItemsControl.ItemTemplate>
-                </ItemsControl>
-
-            </StackPanel>
-        </ScrollViewer>
+        
+                                <TextBlock
+                                    Margin="0,0,0,6"
+                                    Style="{StaticResource OptionHelpTextStyle}"
+                                    Text="{Binding LibraryText}"
+                                    TextWrapping="Wrap" />
+        
+                                <TextBlock
+                                    Margin="0,6,0,2"
+                                    Style="{StaticResource OptionFieldLabelStyle}"
+                                    Text="Moving to another PC" />
+                                <TextBlock
+                                    Margin="0,0,0,6"
+                                    Style="{StaticResource OptionHelpTextStyle}"
+                                    Text="VRChat keeps these settings per machine, so a new PC starts every avatar from scratch. Back them up here, copy the file across, and put each avatar back on to restore it. Nothing is written into VRChat's own files — the settings are sent to the avatar the same way every other control on this page is."
+                                    TextWrapping="Wrap" />
+                                <StackPanel Orientation="Horizontal">
+                                    <Button
+                                        Command="{Binding BackUpLibraryCommand}"
+                                        Content="Back up"
+                                        Style="{StaticResource Status_Button_style}" />
+                                    <Button
+                                        Margin="6,0,0,0"
+                                        Command="{Binding LoadLibraryBackupCommand}"
+                                        Content="Open a backup"
+                                        Style="{StaticResource Status_Button_style}" />
+                                    <Button
+                                        Margin="6,0,0,0"
+                                        Command="{Binding RestoreFromBackupCommand}"
+                                        Content="Put this avatar back"
+                                        Style="{StaticResource Status_Button_style}" />
+                                </StackPanel>
+                                <TextBlock
+                                    Margin="0,4,0,0"
+                                    Style="{StaticResource OptionHelpTextStyle}"
+                                    Text="{Binding LibraryBackupStatus}"
+                                    TextWrapping="Wrap" />
+        
+                                <ItemsControl ItemsSource="{Binding Presets}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Grid Margin="0,2">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*" />
+                                                    <ColumnDefinition Width="Auto" />
+                                                    <ColumnDefinition Width="Auto" />
+                                                </Grid.ColumnDefinitions>
+                                                <TextBlock
+                                                    Grid.Column="0"
+                                                    VerticalAlignment="Center"
+                                                    Style="{StaticResource OptionFieldLabelStyle}"
+                                                    Text="{Binding Name}"
+                                                    ToolTip="{Binding CapturedUtc}" />
+                                                <TextBlock
+                                                    Grid.Column="1"
+                                                    Margin="0,0,8,0"
+                                                    VerticalAlignment="Center"
+                                                    Style="{StaticResource OptionHelpTextStyle}"
+                                                    Text="{Binding Count, StringFormat={}{0} saved}" />
+                                                <StackPanel Grid.Column="2" Orientation="Horizontal">
+                                                    <Button
+                                                        Command="{Binding DataContext.ApplyPresetCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                        CommandParameter="{Binding}"
+                                                        Content="Wear it"
+                                                        Style="{StaticResource Status_Button_style}" />
+                                                    <Button
+                                                        Margin="6,0,0,0"
+                                                        Command="{Binding DataContext.WearAutomaticallyCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                        CommandParameter="{Binding}"
+                                                        Content="{Binding Automatic, Converter={StaticResource BoolToStarConverter}}"
+                                                        Style="{StaticResource Status_Button_style}"
+                                                        ToolTip="Put this look on by itself whenever you wear this avatar" />
+                                                    <Button
+                                                        Margin="6,0,0,0"
+                                                        Command="{Binding DataContext.DeletePresetCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                        CommandParameter="{Binding}"
+                                                        Content="Forget"
+                                                        Style="{StaticResource Status_Button_style}" />
+                                                </StackPanel>
+                                            </Grid>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+        
+                                <TextBlock
+                                    Margin="0,6,0,0"
+                                    Style="{StaticResource OptionHelpTextStyle}"
+                                    Text="{Binding PresetStatus}"
+                                    TextWrapping="Wrap" />
+        
+                                <ItemsControl Margin="0,4,0,0" ItemsSource="{Binding PresetRefusals}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <TextBlock
+                                                Margin="0,1"
+                                                Style="{StaticResource OptionHelpTextStyle}"
+                                                Text="{Binding Name}"
+                                                ToolTip="{Binding Outcome}" />
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </StackPanel>
+                        </Border>
+                        <Border
+                            Padding="0"
+                            Style="{StaticResource OptionCardStyle}">
+                            <StackPanel Margin="10">
+                                <TextBlock
+                                    Margin="0,0,0,4"
+                                    Style="{StaticResource OptionFieldLabelStyle}"
+                                    Text="The same on every avatar" />
+                                <TextBlock
+                                    Margin="0,0,0,6"
+                                    Style="{StaticResource OptionHelpTextStyle}"
+                                    Text="Most parameter names belong to one avatar and cannot travel. Some do travel — locomotion, face tracking, the things a lot of avatars share — and these are the ones yours actually have in common. Pick the ones you always want set the same way."
+                                    TextWrapping="Wrap" />
+        
+                                <ItemsControl ItemsSource="{Binding SharedAcrossAvatars}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Grid Margin="0,2">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*" />
+                                                    <ColumnDefinition Width="Auto" />
+                                                    <ColumnDefinition Width="Auto" />
+                                                </Grid.ColumnDefinitions>
+                                                <TextBlock
+                                                    Grid.Column="0"
+                                                    VerticalAlignment="Center"
+                                                    Style="{StaticResource OptionHelpTextStyle}"
+                                                    Text="{Binding Name}" />
+                                                <TextBlock
+                                                    Grid.Column="1"
+                                                    Margin="8,0"
+                                                    VerticalAlignment="Center"
+                                                    Style="{StaticResource OptionHelpTextStyle}"
+                                                    Text="{Binding AvatarCount, StringFormat={}on {0} avatars}" />
+                                                <Button
+                                                    Grid.Column="2"
+                                                    Command="{Binding DataContext.RememberEverywhereCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                    CommandParameter="{Binding}"
+                                                    Content="Always"
+                                                    Style="{StaticResource Status_Button_style}" />
+                                            </Grid>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+        
+                                <TextBlock
+                                    Margin="0,8,0,2"
+                                    Style="{StaticResource OptionFieldLabelStyle}"
+                                    Text="Your defaults" />
+                                <ItemsControl ItemsSource="{Binding Globals}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Grid Margin="0,2">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*" />
+                                                    <ColumnDefinition Width="Auto" />
+                                                </Grid.ColumnDefinitions>
+                                                <TextBlock
+                                                    Grid.Column="0"
+                                                    VerticalAlignment="Center"
+                                                    Style="{StaticResource OptionHelpTextStyle}"
+                                                    Text="{Binding Name}"
+                                                    ToolTip="{Binding Value}" />
+                                                <Button
+                                                    Grid.Column="1"
+                                                    Command="{Binding DataContext.ForgetEverywhereCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                    CommandParameter="{Binding}"
+                                                    Content="Forget"
+                                                    Style="{StaticResource Status_Button_style}" />
+                                            </Grid>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+        
+                                <StackPanel Margin="0,6,0,0" Orientation="Horizontal">
+                                    <Button
+                                        Command="{Binding ApplyGlobalsCommand}"
+                                        Content="Set them now"
+                                        Style="{StaticResource Status_Button_style}" />
+                                    <CheckBox
+                                        x:Name="AvatarApplyGlobals_checkbox"
+                                        Margin="10,0,0,0"
+                                        VerticalAlignment="Center"
+                                        IsChecked="{Binding ApplyGlobalsOnAvatarChange, Mode=TwoWay}">
+                                        Set them whenever I change avatar
+                                    </CheckBox>
+                                </StackPanel>
+                                <TextBlock
+                                    Margin="0,4,0,0"
+                                    Style="{StaticResource OptionHelpTextStyle}"
+                                    Text="{Binding GlobalsStatus}"
+                                    TextWrapping="Wrap" />
+                            </StackPanel>
+                        </Border>
+                        <Border
+                            Padding="0"
+                            Style="{StaticResource OptionCardStyle}">
+                            <StackPanel Margin="10">
+                                <TextBlock
+                                    Margin="0,0,0,4"
+                                    Style="{StaticResource OptionFieldLabelStyle}"
+                                    Text="Layouts people share" />
+                                <TextBlock
+                                    Margin="0,0,0,6"
+                                    Style="{StaticResource OptionHelpTextStyle}"
+                                    Text="A layout is a recipe, never values: which parameters an avatar needs and what each is for. Paste one somebody sent you to see whether the avatar you are wearing has what it asks for. It carries no addresses and nothing is written to your avatar by reading one."
+                                    TextWrapping="Wrap" />
+                                <StackPanel Margin="0,0,0,6" Orientation="Horizontal">
+                                    <TextBox
+                                        x:Name="AvatarLayoutCode"
+                                        Width="240"
+                                        Padding="3,0"
+                                        VerticalContentAlignment="Center"
+                                        FontSize="{StaticResource FontSizeBody}"
+                                        Text="{Binding LayoutCode, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                    <Button
+                                        Margin="8,0,0,0"
+                                        Command="{Binding CheckLayoutCodeCommand}"
+                                        Content="Check it"
+                                        Style="{StaticResource Status_Button_style}" />
+                                    <Button
+                                        Margin="6,0,0,0"
+                                        Command="{Binding CopyLayoutCodeCommand}"
+                                        Content="Make one"
+                                        Style="{StaticResource Status_Button_style}" />
+                                </StackPanel>
+                                <TextBlock
+                                    Style="{StaticResource OptionHelpTextStyle}"
+                                    Text="{Binding LayoutShareStatus}"
+                                    TextWrapping="Wrap" />
+                                <ItemsControl Margin="0,4,0,0" ItemsSource="{Binding LayoutMatches}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Grid Margin="0,1">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*" />
+                                                    <ColumnDefinition Width="Auto" />
+                                                </Grid.ColumnDefinitions>
+                                                <TextBlock
+                                                    Grid.Column="0"
+                                                    Style="{StaticResource OptionHelpTextStyle}"
+                                                    Text="{Binding Name}"
+                                                    ToolTip="{Binding Purpose}" />
+                                                <TextBlock
+                                                    Grid.Column="1"
+                                                    Margin="8,0,0,0"
+                                                    Style="{StaticResource OptionHelpTextStyle}"
+                                                    Text="{Binding Match}" />
+                                            </Grid>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+            <TabItem Header="Rules">
+                <ScrollViewer
+                    x:Name="AvatarTabRules"
+                    HorizontalScrollBarVisibility="Disabled"
+                    VerticalScrollBarVisibility="Auto">
+                    <StackPanel Margin="0,0,6,0">
+                        <Border Padding="0" Style="{StaticResource OptionCardStyle}">
+                            <StackPanel Margin="10">
+                                <sections:ScopeSection DataContext="{Binding Scope}" />
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+            <TabItem Header="Diagnostics">
+                <ScrollViewer
+                    x:Name="AvatarTabDiagnostics"
+                    HorizontalScrollBarVisibility="Disabled"
+                    VerticalScrollBarVisibility="Auto">
+                    <StackPanel Margin="0,0,6,0">
+                        <Border
+                            Padding="0"
+                            Style="{StaticResource OptionCardStyle}">
+                            <StackPanel Margin="10">
+                                <TextBlock
+                                    Margin="0,0,0,4"
+                                    Style="{StaticResource OptionFieldLabelStyle}"
+                                    Text="What reaches your avatar" />
+                                <ItemsControl ItemsSource="{Binding Readiness}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Grid Margin="0,3">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="Auto" />
+                                                    <ColumnDefinition Width="110" />
+                                                    <ColumnDefinition Width="Auto" />
+                                                    <ColumnDefinition Width="*" />
+                                                </Grid.ColumnDefinitions>
+                                                <Ellipse
+                                                    Grid.Column="0"
+                                                    Width="8"
+                                                    Height="8"
+                                                    Margin="0,0,8,0"
+                                                    VerticalAlignment="Center"
+                                                    Fill="{Binding State, Converter={StaticResource ReadinessStateToBrushConverter}}"
+                                                    ToolTip="{Binding State}" />
+                                                <TextBlock
+                                                    Grid.Column="1"
+                                                    VerticalAlignment="Center"
+                                                    Style="{StaticResource OptionFieldLabelStyle}"
+                                                    Text="{Binding Feature}" />
+                                                <TextBlock
+                                                    Grid.Column="2"
+                                                    Margin="0,0,10,0"
+                                                    VerticalAlignment="Center"
+                                                    Foreground="{Binding State, Converter={StaticResource ReadinessStateToBrushConverter}}"
+                                                    Style="{StaticResource OptionFieldLabelStyle}"
+                                                    Text="{Binding Headline}" />
+                                                <TextBlock
+                                                    Grid.Column="3"
+                                                    VerticalAlignment="Center"
+                                                    Style="{StaticResource OptionHelpTextStyle}"
+                                                    Text="{Binding Detail}"
+                                                    TextWrapping="Wrap" />
+                                            </Grid>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                                <TextBlock
+                                    Margin="0,8,0,0"
+                                    Style="{StaticResource OptionHelpTextStyle}"
+                                    Text="{Binding SpeechText}" />
+        
+                                <TextBlock
+                                    Margin="0,10,0,2"
+                                    Style="{StaticResource OptionFieldLabelStyle}"
+                                    Text="What else is on this avatar"
+                                    Visibility="{Binding HasEcosystems, Converter={StaticResource BoolToVisibilityConverter}}" />
+                                <ItemsControl ItemsSource="{Binding Ecosystems}">
+                                    <ItemsControl.ItemsPanel>
+                                        <ItemsPanelTemplate>
+                                            <WrapPanel />
+                                        </ItemsPanelTemplate>
+                                    </ItemsControl.ItemsPanel>
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Border
+                                                Margin="0,2,6,2"
+                                                Padding="7,3"
+                                                Background="{StaticResource TileSurfaceBrush}"
+                                                CornerRadius="9"
+                                                ToolTip="{Binding Description}">
+                                                <TextBlock
+                                                    FontSize="{StaticResource FontSizeCaption}"
+                                                    Style="{StaticResource OptionFieldLabelStyle}"
+                                                    Text="{Binding DisplayName}" />
+                                            </Border>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </StackPanel>
+                        </Border>
+                        <Border
+                            Padding="0"
+                            Style="{StaticResource OptionCardStyle}">
+                            <StackPanel Margin="10">
+                                <TextBlock
+                                    Margin="0,0,0,4"
+                                    Style="{StaticResource OptionFieldLabelStyle}"
+                                    Text="Does VRChat keep what this app sets?" />
+                                <TextBlock
+                                    Margin="0,0,0,6"
+                                    Style="{StaticResource OptionHelpTextStyle}"
+                                    Text="VRChat writes an avatar's saved settings to disk when you switch avatar or close it. Change something above, then come back after switching and check: this compares what this app sent against what VRChat actually kept."
+                                    TextWrapping="Wrap" />
+                                <Button
+                                    HorizontalAlignment="Left"
+                                    Command="{Binding CheckSavedWritesCommand}"
+                                    Content="Check"
+                                    Style="{StaticResource Status_Button_style}" />
+                                <TextBlock
+                                    Margin="0,6,0,0"
+                                    Style="{StaticResource OptionHelpTextStyle}"
+                                    Text="{Binding SavedWrites.Summary}"
+                                    TextWrapping="Wrap" />
+                            </StackPanel>
+                        </Border>
+                        <Border
+                            Padding="0"
+                            Style="{StaticResource OptionCardStyle}">
+                            <StackPanel Margin="10">
+                                <TextBlock
+                                    Margin="0,0,0,4"
+                                    Style="{StaticResource OptionFieldLabelStyle}"
+                                    Text="Controlling the app from your avatar" />
+                                <TextBlock
+                                    Style="{StaticResource OptionFieldLabelStyle}"
+                                    Text="{Binding Layout.Headline}" />
+                                <TextBlock
+                                    Style="{StaticResource OptionHelpTextStyle}"
+                                    Text="{Binding Layout.Detail}"
+                                    TextWrapping="Wrap" />
+                                <TextBlock
+                                    Margin="0,6,0,2"
+                                    Style="{StaticResource OptionFieldLabelStyle}"
+                                    Text="Controls this avatar is missing"
+                                    Visibility="{Binding HasMissingControls, Converter={StaticResource BoolToVisibilityConverter}}" />
+                                <ItemsControl ItemsSource="{Binding Layout.MissingControls}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <TextBlock
+                                                Margin="0,1"
+                                                Style="{StaticResource OptionHelpTextStyle}"
+                                                Text="{Binding}" />
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </StackPanel>
+                        </Border>
+                        <Border
+                            Padding="0"
+                            Style="{StaticResource OptionCardStyle}">
+                            <StackPanel Margin="10">
+                                <TextBlock
+                                    Margin="0,0,0,4"
+                                    Style="{StaticResource OptionFieldLabelStyle}"
+                                    Text="Changed, but not something you can drive" />
+                                <TextBlock
+                                    Margin="0,0,0,6"
+                                    Style="{StaticResource OptionHelpTextStyle}"
+                                    Text="These moved recently and are not in the list above, which usually means the avatar reports them without accepting them."
+                                    TextWrapping="Wrap" />
+                                <ItemsControl ItemsSource="{Binding RecentlyChanged}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <TextBlock
+                                                Margin="0,1"
+                                                Style="{StaticResource OptionHelpTextStyle}"
+                                                Text="{Binding Key}" />
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+        </TabControl>
     </Grid>
 </UserControl>
