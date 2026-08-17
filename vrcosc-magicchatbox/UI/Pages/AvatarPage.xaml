@@ -164,6 +164,35 @@
             VerticalScrollBarVisibility="Auto">
             <StackPanel>
 
+                <!--  Shown only while the avatar connection is off. First time round it introduces the
+                      feature; afterwards it is the way back on, because every other card on this page is
+                      empty without it and Options is a long way to go to find that out.  -->
+                <Border
+                    Padding="0"
+                    Style="{StaticResource OptionCardStyle}"
+                    Visibility="{Binding BridgeIsOff, Converter={StaticResource BoolToVisibilityConverter}}">
+                    <StackPanel Margin="10">
+                        <TextBlock Style="{StaticResource TileTitleStyle}" Text="{Binding BridgeIntroHeadline}" />
+                        <TextBlock
+                            Margin="0,4,0,0"
+                            Style="{StaticResource TileDescriptionStyle}"
+                            Text="{Binding BridgeIntroBody}"
+                            TextWrapping="Wrap" />
+                        <StackPanel Margin="0,10,0,0" Orientation="Horizontal">
+                            <Button
+                                Command="{Binding TurnOnBridgeCommand}"
+                                Content="Turn it on"
+                                Style="{StaticResource Status_Button_style}" />
+                            <Button
+                                Margin="8,0,0,0"
+                                Command="{Binding DismissBridgeIntroCommand}"
+                                Content="Not now"
+                                Style="{StaticResource Status_Button_style}"
+                                Visibility="{Binding CanDismissBridgeIntro, Converter={StaticResource BoolToVisibilityConverter}}" />
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+
                 <Border Padding="0" Style="{StaticResource OptionCardStyle}">
                     <StackPanel Margin="10">
                         <TextBlock Style="{StaticResource TileTitleStyle}" Text="{Binding AvatarName}" />

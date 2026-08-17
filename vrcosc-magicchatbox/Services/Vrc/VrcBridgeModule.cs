@@ -66,10 +66,15 @@ public partial class VrcBridgeModule : ObservableObject, IModule
             () => Settings.EnableBridge && Settings.EnableParameterInput,
             marshal ?? (action => Task.Run(action)));
 
-        _schema = new AvatarSchemaStore(() =>
-        {
-            lock (_lock) return _epoch?.Current ?? long.MinValue;
-        });
+        _schema = new AvatarSchemaStore(
+            () =>
+            {
+                lock (_lock) return _epoch?.Current;
+            },
+            () =>
+            {
+                lock (_lock) return _epoch?.CurrentAvatarId;
+            });
 
         _identity = new AvatarIdentityResolver(
             () => CurrentAvatarId,

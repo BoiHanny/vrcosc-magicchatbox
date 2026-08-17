@@ -44,18 +44,38 @@ internal sealed class VrcSchemaHarvester : IDisposable
 {
     private const string ParameterPrefix = "/avatar/parameters/";
 
+    /// <summary>How many times a run of failures is re-asked before the harvester gives up on it.</summary>
+    /// <remarks>
+    /// Bounded rather than endless because the two ways a peer stops answering are not the same problem. A
+    /// dropped fetch against a peer that is still there resolves within a couple of seconds; VRChat having
+    /// closed does not resolve at all, and re-asking it every thirty seconds for the rest of the session is
+    /// a background task that can never succeed. The recovery for the second case is the handshake, which
+    /// raises <c>PeerConnected</c> when a peer comes back and starts the count again from zero.
+    /// </remarks>
+    internal const int MaxRetryAttempts = 6;
+
+    private static readonly TimeSpan FirstRetryDelay = TimeSpan.FromSeconds(1);
+    private static readonly TimeSpan MaxRetryDelay = TimeSpan.FromSeconds(30);
+
     private readonly OscQueryService _query;
     private readonly VrcAvatarEpoch _epoch;
     private readonly IVrcSchemaSink _sink;
     private readonly Channel<VrcHarvestTrigger> _requests;
+    private readonly Func<TimeSpan, CancellationToken, Task> _delay;
 
     private long _requested;
     private long _completed;
     private long _abandoned;
     private long _failed;
+    private long _retried;
+    private int _consecutiveFailures;
     private bool _disposed;
 
-    internal VrcSchemaHarvester(OscQueryService query, VrcAvatarEpoch epoch, IVrcSchemaSink sink)
+    internal VrcSchemaHarvester(
+        OscQueryService query,
+        VrcAvatarEpoch epoch,
+        IVrcSchemaSink sink,
+        Func<TimeSpan, CancellationToken, Task>? delay = null)
     {
         ArgumentNullException.ThrowIfNull(query);
         ArgumentNullException.ThrowIfNull(epoch);
@@ -64,6 +84,7 @@ internal sealed class VrcSchemaHarvester : IDisposable
         _query = query;
         _epoch = epoch;
         _sink = sink;
+        _delay = delay ?? Task.Delay;
 
         // DropWrite with capacity 1: a queued request has not been acted on yet, so a second one would
         // ask an identical question. Never DropOldest — the pending request is already the newest.
@@ -85,6 +106,22 @@ internal sealed class VrcSchemaHarvester : IDisposable
 
     /// <summary>Harvests where the peer did not answer.</summary>
     internal long Failed => Interlocked.Read(ref _failed);
+
+    /// <summary>Requests re-asked by the backoff after a failure, rather than by an event.</summary>
+    internal long Retried => Interlocked.Read(ref _retried);
+
+    /// <summary>How long the run of failures ending at <paramref name="attempt"/> waits before re-asking.</summary>
+    /// <remarks>
+    /// Doubling from one second to a thirty-second ceiling. The first step is short because the common
+    /// failure is a peer that was mid-restart and is already back; the ceiling exists because past a few
+    /// seconds the cause is no longer transient and the only thing more frequent polling buys is noise.
+    /// </remarks>
+    internal static TimeSpan DelayFor(int attempt)
+    {
+        int step = attempt < 1 ? 1 : attempt;
+        double seconds = FirstRetryDelay.TotalSeconds * Math.Pow(2, step - 1);
+        return seconds >= MaxRetryDelay.TotalSeconds ? MaxRetryDelay : TimeSpan.FromSeconds(seconds);
+    }
 
     /// <summary>Drains harvest requests until cancelled.</summary>
     internal async Task RunAsync(CancellationToken cancellationToken)
@@ -175,12 +212,23 @@ internal sealed class VrcSchemaHarvester : IDisposable
     /// <remarks>
     /// Called from the mDNS/handshake loop and from the OSC receive loop. Does no work beyond a
     /// non-blocking channel write — the receive loop must not wait on an HTTP request.
+    /// <para>
+    /// An event-driven request also clears the failure budget, and that is what makes the ceiling on
+    /// retries safe. A run of failures against a peer that has gone away spends the budget once; a peer
+    /// coming back, or the wearer changing avatar, is new information about a different situation and
+    /// starts again from zero rather than inheriting the exhausted count.
+    /// </para>
     /// </remarks>
-    private void Request(VrcHarvestTrigger trigger)
+    private void Request(VrcHarvestTrigger trigger, bool resetBudget = true)
     {
         if (_disposed)
         {
             return;
+        }
+
+        if (resetBudget)
+        {
+            Interlocked.Exchange(ref _consecutiveFailures, 0);
         }
 
         if (_requests.Writer.TryWrite(trigger))
@@ -203,19 +251,25 @@ internal sealed class VrcSchemaHarvester : IDisposable
         catch (Exception) when (!cancellationToken.IsCancellationRequested)
         {
             // A peer that vanished mid-fetch is an ordinary event, not an error worth propagating into
-            // the handshake loop. The next trigger re-asks.
-            Interlocked.Increment(ref _failed);
+            // the handshake loop.
+            Fail(trigger, cancellationToken);
             return;
         }
 
         if (snapshot is not { } tree)
         {
-            Interlocked.Increment(ref _failed);
+            Fail(trigger, cancellationToken);
             return;
         }
 
+        // The peer answered, so whatever run of failures preceded this is over even though this particular
+        // answer is about to be thrown away.
+        Interlocked.Exchange(ref _consecutiveFailures, 0);
+
         if (!_epoch.IsCurrent(epochAtRequest))
         {
+            // Not re-asked here: the epoch only moves when /avatar/change arrives, and that event has
+            // already queued a request of its own.
             Interlocked.Increment(ref _abandoned);
             return;
         }
@@ -255,5 +309,50 @@ internal sealed class VrcSchemaHarvester : IDisposable
 
         _sink.OnSchemaHarvested(new VrcAvatarSchemaHarvest(tree.AvatarId, epochAtRequest, parameters, fixedReadings));
         Interlocked.Increment(ref _completed);
+    }
+
+    /// <summary>Counts a failure and re-asks the same question after a backoff.</summary>
+    /// <remarks>
+    /// Without this the class asks once per event and stops. Nothing else re-triggers a harvest — an avatar
+    /// change or a peer handshake, neither of which a person performs on request — so a single dropped fetch
+    /// left the schema empty for as long as somebody kept wearing the avatar they had on, and every surface
+    /// built over the schema reported that avatar as having no parameters at all.
+    /// </remarks>
+    private void Fail(VrcHarvestTrigger trigger, CancellationToken cancellationToken)
+    {
+        Interlocked.Increment(ref _failed);
+
+        int attempt = Interlocked.Increment(ref _consecutiveFailures);
+        if (attempt > MaxRetryAttempts)
+        {
+            return;
+        }
+
+        _ = RetryAfterAsync(trigger, DelayFor(attempt), cancellationToken);
+    }
+
+    /// <remarks>
+    /// Deliberately not awaited by the drain loop. Waiting there would hold the single reader for the whole
+    /// backoff, so an avatar change arriving during it would sit unread behind a delay that exists for an
+    /// entirely unrelated peer problem.
+    /// </remarks>
+    private async Task RetryAfterAsync(VrcHarvestTrigger trigger, TimeSpan delay, CancellationToken cancellationToken)
+    {
+        try
+        {
+            await _delay(delay, cancellationToken).ConfigureAwait(false);
+        }
+        catch (OperationCanceledException)
+        {
+            return;
+        }
+
+        if (_disposed || cancellationToken.IsCancellationRequested)
+        {
+            return;
+        }
+
+        Interlocked.Increment(ref _retried);
+        Request(trigger, resetBudget: false);
     }
 }

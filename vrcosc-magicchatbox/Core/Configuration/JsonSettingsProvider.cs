@@ -28,6 +28,7 @@ public sealed class JsonSettingsProvider<T> : ISettingsProvider<T>, IDisposable 
     private Timer _debounceTimer;
     private const int DebounceDelayMs = 2000;
     private volatile bool _loaded;
+    private volatile bool _loadedFromFile;
     private bool _disposed;
     private bool _loadFailed;
     private bool _saveFailureLogged;
@@ -57,6 +58,15 @@ public sealed class JsonSettingsProvider<T> : ISettingsProvider<T>, IDisposable 
                 }
             }
             return _settings;
+        }
+    }
+
+    public bool LoadedFromFile
+    {
+        get
+        {
+            _ = Value;
+            return _loadedFromFile;
         }
     }
 
@@ -108,6 +118,8 @@ public sealed class JsonSettingsProvider<T> : ISettingsProvider<T>, IDisposable 
 
             if (!loadedFromFile)
                 _settings = new T();
+
+            _loadedFromFile = loadedFromFile;
 
             if (!_loadFailed)
                 SubscribeAutoSave();

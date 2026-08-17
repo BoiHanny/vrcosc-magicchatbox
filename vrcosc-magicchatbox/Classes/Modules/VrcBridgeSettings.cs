@@ -15,6 +15,8 @@ public partial class VrcBridgeSettings : VersionedSettings
 
     [ObservableProperty] private bool _enableAvatarConfig = false;
 
+    [ObservableProperty] private bool _bridgeIntroSeen = false;
+
     [ObservableProperty] private int _oscReceivePort = 0;
 
     [ObservableProperty] private string _vrchatPeerPrefix = "VRChat-Client-";

@@ -143,4 +143,81 @@ public class AvatarSchemaStoreTests
 
         Assert.Equal("avtr_test", store.Current.AvatarId);
     }
+
+    [Fact]
+    public void A_harvest_arriving_while_the_transport_is_stopped_is_dropped()
+    {
+        // Null means "there is no current avatar", which is a different statement from "nobody wired an
+        // epoch source". A harvest landing after the bridge stopped describes an avatar we are no longer
+        // tracking, and installing it would leave the page describing it after the next start.
+        var store = new AvatarSchemaStore(() => null);
+
+        store.OnSchemaHarvested(Harvest("avtr_test", 3, ("A", SignalKind.Bool, true)));
+
+        Assert.True(store.Current.IsEmpty);
+        Assert.Equal(1, store.StaleDropped);
+    }
+
+    [Fact]
+    public void A_harvest_for_a_different_avatar_on_the_same_epoch_is_dropped()
+    {
+        // The epoch only moves when /avatar/change arrives. A tree VRChat has not rebuilt yet answers the
+        // new epoch with the old avatar's parameters, and the epoch check alone cannot see that.
+        var store = new AvatarSchemaStore(() => 4, () => "avtr_wearing");
+
+        store.OnSchemaHarvested(Harvest("avtr_previous", 4, ("A", SignalKind.Bool, true)));
+
+        Assert.True(store.Current.IsEmpty);
+        Assert.Equal(1, store.MismatchDropped);
+        Assert.Equal(0, store.StaleDropped);
+    }
+
+    [Fact]
+    public void A_harvest_is_kept_when_it_names_the_avatar_being_worn()
+    {
+        var store = new AvatarSchemaStore(() => 4, () => "avtr_wearing");
+
+        store.OnSchemaHarvested(Harvest("avtr_wearing", 4, ("A", SignalKind.Bool, true)));
+
+        Assert.Equal("avtr_wearing", store.Current.AvatarId);
+        Assert.Equal(0, store.MismatchDropped);
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData(null)]
+    public void A_harvest_is_kept_when_nobody_can_say_which_avatar_is_worn(string? wearing)
+    {
+        // The id is not always known before the schema arrives, and the harvest is often what teaches it.
+        // Refusing here would be refusing the answer for not already being known.
+        var store = new AvatarSchemaStore(() => 4, () => wearing);
+
+        store.OnSchemaHarvested(Harvest("avtr_test", 4, ("A", SignalKind.Bool, true)));
+
+        Assert.Equal("avtr_test", store.Current.AvatarId);
+        Assert.Equal(0, store.MismatchDropped);
+    }
+
+    [Fact]
+    public void A_harvest_that_names_no_avatar_is_kept()
+    {
+        // Some trees carry no avatar id at all. Dropping those would mean never having a schema on a peer
+        // that does not publish one.
+        var store = new AvatarSchemaStore(() => 4, () => "avtr_wearing");
+
+        store.OnSchemaHarvested(Harvest(string.Empty, 4, ("A", SignalKind.Bool, true)));
+
+        Assert.Single(store.Current.Parameters);
+        Assert.Equal(0, store.MismatchDropped);
+    }
+
+    [Fact]
+    public void A_throwing_avatar_source_does_not_lose_the_harvest()
+    {
+        var store = new AvatarSchemaStore(() => 4, () => throw new InvalidOperationException("no transport"));
+
+        store.OnSchemaHarvested(Harvest("avtr_test", 4, ("A", SignalKind.Bool, true)));
+
+        Assert.Equal("avtr_test", store.Current.AvatarId);
+    }
 }

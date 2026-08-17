@@ -35,6 +35,10 @@ public partial class AvatarPageViewModel : ObservableObject
 
     [ObservableProperty] private AvatarPageRung _rung = AvatarPageRung.BridgeOff;
     [ObservableProperty] private string _rungMessage = string.Empty;
+    [ObservableProperty] private bool _bridgeIsOff = true;
+    [ObservableProperty] private bool _canDismissBridgeIntro;
+    [ObservableProperty] private string _bridgeIntroHeadline = string.Empty;
+    [ObservableProperty] private string _bridgeIntroBody = string.Empty;
     [ObservableProperty] private string _avatarName = "No avatar yet";
     [ObservableProperty] private string _avatarId = string.Empty;
     [ObservableProperty] private string _parameterSummary = string.Empty;
@@ -212,6 +216,8 @@ public partial class AvatarPageViewModel : ObservableObject
 
         RungMessage = AvatarPageRungs.Describe(Rung);
 
+        RefreshBridgeIntro();
+
         RebuildGroups();
         RebuildRecent(bridge);
         RebuildReadiness(bridge, schema, identity.IsKnown);
@@ -225,6 +231,46 @@ public partial class AvatarPageViewModel : ObservableObject
 
         ApplyGlobalsOnceForThisAvatar(bridge, schema);
         ApplyAutomaticOnceForThisAvatar(bridge, schema);
+    }
+
+    private void RefreshBridgeIntro()
+    {
+        BridgeIsOff = !Settings.EnableBridge;
+
+        if (!BridgeIsOff)
+        {
+            CanDismissBridgeIntro = false;
+            return;
+        }
+
+        bool firstTime = !Settings.BridgeIntroSeen;
+        CanDismissBridgeIntro = firstTime;
+
+        BridgeIntroHeadline = firstTime
+            ? "See and control what you are wearing"
+            : "Avatar features are switched off";
+
+        BridgeIntroBody = firstTime
+            ? "MagicChatbox can read your avatar's own controls from VRChat and set them from here, so a look you save comes back the next time you wear it. It listens on this PC only and nothing leaves your machine."
+            : "Nothing on this page can read your avatar until this is on.";
+    }
+
+    [RelayCommand]
+    private void TurnOnBridge()
+    {
+        Settings.EnableBridge = true;
+        Settings.EnableParameterInput = true;
+        Settings.BridgeIntroSeen = true;
+        _settingsProvider.Save();
+        RefreshBridgeIntro();
+    }
+
+    [RelayCommand]
+    private void DismissBridgeIntro()
+    {
+        Settings.BridgeIntroSeen = true;
+        _settingsProvider.Save();
+        RefreshBridgeIntro();
     }
 
     private void RebuildReadiness(Services.Vrc.VrcBridgeModule bridge, AvatarSchemaSnapshot schema, bool avatarKnown)

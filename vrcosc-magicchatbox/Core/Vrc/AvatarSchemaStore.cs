@@ -25,17 +25,20 @@ public sealed record AvatarSchemaSnapshot(
 public sealed class AvatarSchemaStore : IVrcSchemaSink
 {
     private readonly object _gate = new();
-    private readonly Func<long> _currentEpoch;
+    private readonly Func<long?>? _currentEpoch;
+    private readonly Func<string?>? _currentAvatarId;
 
     private AvatarSchemaSnapshot _current = AvatarSchemaSnapshot.Empty;
     private Dictionary<string, VrcParameterDeclaration> _byName = new(StringComparer.Ordinal);
 
     private long _harvests;
     private long _staleDropped;
+    private long _mismatchDropped;
 
-    public AvatarSchemaStore(Func<long>? currentEpoch = null)
+    public AvatarSchemaStore(Func<long?>? currentEpoch = null, Func<string?>? currentAvatarId = null)
     {
-        _currentEpoch = currentEpoch ?? (() => long.MinValue);
+        _currentEpoch = currentEpoch;
+        _currentAvatarId = currentAvatarId;
     }
 
     public event Action<AvatarSchemaSnapshot>? SchemaChanged;
@@ -49,6 +52,8 @@ public sealed class AvatarSchemaStore : IVrcSchemaSink
 
     public long StaleDropped => System.Threading.Interlocked.Read(ref _staleDropped);
 
+    public long MismatchDropped => System.Threading.Interlocked.Read(ref _mismatchDropped);
+
     public void OnSchemaHarvested(VrcAvatarSchemaHarvest harvest)
     {
         if (harvest == null)
@@ -56,10 +61,15 @@ public sealed class AvatarSchemaStore : IVrcSchemaSink
 
         System.Threading.Interlocked.Increment(ref _harvests);
 
-        long now = ReadEpoch();
-        if (now != long.MinValue && harvest.Epoch != now)
+        if (IsStaleEpoch(harvest.Epoch))
         {
             System.Threading.Interlocked.Increment(ref _staleDropped);
+            return;
+        }
+
+        if (IsForAnotherAvatar(harvest.AvatarId))
+        {
+            System.Threading.Interlocked.Increment(ref _mismatchDropped);
             return;
         }
 
@@ -124,15 +134,45 @@ public sealed class AvatarSchemaStore : IVrcSchemaSink
         return matched;
     }
 
-    private long ReadEpoch()
+    private bool IsStaleEpoch(long harvestEpoch)
     {
+        if (_currentEpoch is null)
+            return false;
+
+        long? now;
         try
         {
-            return _currentEpoch();
+            now = _currentEpoch();
         }
         catch
         {
-            return long.MinValue;
+            return false;
         }
+
+        if (now is not { } current)
+            return true;
+
+        return harvestEpoch != current;
+    }
+
+    private bool IsForAnotherAvatar(string? harvestAvatarId)
+    {
+        if (_currentAvatarId is null || string.IsNullOrEmpty(harvestAvatarId))
+            return false;
+
+        string? wearing;
+        try
+        {
+            wearing = _currentAvatarId();
+        }
+        catch
+        {
+            return false;
+        }
+
+        if (string.IsNullOrEmpty(wearing))
+            return false;
+
+        return !string.Equals(harvestAvatarId, wearing, StringComparison.Ordinal);
     }
 }

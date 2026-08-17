@@ -12,5 +12,7 @@ public interface ISettingsProvider<T> where T : class, new()
 
     void Reload();
 
+    bool LoadedFromFile => true;
+
     event EventHandler SettingsChanged;
 }

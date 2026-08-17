@@ -20,6 +20,10 @@
          latency or a message count. Core's tests still have to be able to plant one to assert what the
          source publishes from it. -->
     <InternalsVisibleTo Include="MagicChatbox.Core.Tests" />
+    <!-- The app's own suite. VrcSchemaHarvester is internal because nothing outside the transport may ask
+         a peer to re-enumerate, but its backoff decides whether an avatar ever gets a schema at all, and
+         that is worth pinning from the suite that already covers the stores reading it. -->
+    <InternalsVisibleTo Include="MagicChatbox.Tests" />
   </ItemGroup>
 
   <!-- Vrc is the ONLY assembly that references Osc. Core must not; see D5 and the architecture tests.

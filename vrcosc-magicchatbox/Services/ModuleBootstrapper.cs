@@ -182,6 +182,10 @@ public class ModuleBootstrapper
         var timeSettings = _timeSettingsProvider.Value;
         var integrationSettings = _integrationSettingsProvider.Value;
 
+        Core.Vrc.VrcBridgeFirstRun.Apply(
+            _vrcBridgeSettingsProvider.Value,
+            _vrcBridgeSettingsProvider.LoadedFromFile);
+
         var lyricSources = LyricsSourceSelection.Reconcile(
             integrationSettings.IntgrLyrics,
             integrationSettings.IntgrLyrics_Spotify,
