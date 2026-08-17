@@ -81,6 +81,40 @@ public sealed class AvatarParameterPump : IDisposable
         Interlocked.Read(ref _failed),
         _slots.Count);
 
+    public bool TryGetLastSent(string name, out double value)
+    {
+        value = 0;
+
+        if (string.IsNullOrEmpty(name) || !_slots.TryGetValue(name, out Slot? slot))
+            return false;
+
+        lock (slot.Gate)
+        {
+            if (!slot.HasSent)
+                return false;
+
+            value = slot.Sent;
+            return true;
+        }
+    }
+
+    public IReadOnlyList<string> SentNames()
+    {
+        var names = new List<string>();
+
+        foreach (KeyValuePair<string, Slot> entry in _slots)
+        {
+            lock (entry.Value.Gate)
+            {
+                if (entry.Value.HasSent)
+                    names.Add(entry.Key);
+            }
+        }
+
+        names.Sort(StringComparer.Ordinal);
+        return names;
+    }
+
     public void SetMinInterval(string name, TimeSpan minInterval)
     {
         if (string.IsNullOrEmpty(name))

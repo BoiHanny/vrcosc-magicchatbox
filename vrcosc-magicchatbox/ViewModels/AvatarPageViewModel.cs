@@ -61,6 +61,8 @@ public partial class AvatarPageViewModel : ObservableObject
 
     [ObservableProperty] private bool _hasUndrivableRecent;
 
+    [ObservableProperty] private SavedWriteReport _savedWrites = SavedWriteReport.Empty;
+
     public ObservableCollection<ReadinessRow> Readiness { get; } = new();
 
     public ObservableCollection<AvatarConfigChange> ConfigChanges { get; } = new();
@@ -416,6 +418,28 @@ public partial class AvatarPageViewModel : ObservableObject
             CancellationToken.None,
             TaskContinuationOptions.OnlyOnRanToCompletion,
             _uiScheduler);
+    }
+
+    [RelayCommand]
+    private void CheckSavedWrites()
+    {
+        var bridge = _modules.Value.VrcBridge;
+
+        if (bridge == null || AvatarId.Length == 0)
+        {
+            SavedWrites = SavedWriteReport.Empty;
+            return;
+        }
+
+        var sent = new Dictionary<string, double>(StringComparer.Ordinal);
+
+        foreach (string name in bridge.Pump.SentNames())
+        {
+            if (bridge.Pump.TryGetLastSent(name, out double value))
+                sent[name] = value;
+        }
+
+        SavedWrites = SavedWriteAudit.Compare(sent, _localAvatarData.TryRead(AvatarId));
     }
 
     [RelayCommand]

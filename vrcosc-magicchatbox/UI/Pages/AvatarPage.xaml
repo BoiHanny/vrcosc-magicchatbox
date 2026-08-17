@@ -402,6 +402,30 @@
                         <TextBlock
                             Margin="0,0,0,4"
                             Style="{StaticResource OptionFieldLabelStyle}"
+                            Text="Does VRChat keep what this app sets?" />
+                        <TextBlock
+                            Margin="0,0,0,6"
+                            Style="{StaticResource OptionHelpTextStyle}"
+                            Text="VRChat writes an avatar's saved settings to disk when you switch avatar or close it. Change something above, then come back after switching and check: this compares what this app sent against what VRChat actually kept."
+                            TextWrapping="Wrap" />
+                        <Button
+                            HorizontalAlignment="Left"
+                            Command="{Binding CheckSavedWritesCommand}"
+                            Content="Check"
+                            Style="{StaticResource Status_Button_style}" />
+                        <TextBlock
+                            Margin="0,6,0,0"
+                            Style="{StaticResource OptionHelpTextStyle}"
+                            Text="{Binding SavedWrites.Summary}"
+                            TextWrapping="Wrap" />
+                    </StackPanel>
+                </Border>
+
+                <Border Padding="0" Style="{StaticResource OptionCardStyle}">
+                    <StackPanel Margin="10">
+                        <TextBlock
+                            Margin="0,0,0,4"
+                            Style="{StaticResource OptionFieldLabelStyle}"
                             Text="The same on every avatar" />
                         <TextBlock
                             Margin="0,0,0,6"
