@@ -38,6 +38,23 @@ public class VrcSchemaHarvestRetryTests
     }
 
     [Fact]
+    public void The_two_accounts_of_which_avatar_is_loaded_only_disagree_when_both_are_readable()
+    {
+        // The peer's tree and /avatar/change are separate reports. Either being silent is ordinary; only
+        // both speaking and disagreeing means the tree is stale.
+        var epoch = new VrcAvatarEpoch();
+
+        Assert.False(VrcSchemaHarvester.TreeLagsBehind(epoch, "avtr_one"));
+
+        epoch.AdvanceToAvatar("avtr_one");
+
+        Assert.False(VrcSchemaHarvester.TreeLagsBehind(epoch, "avtr_one"));
+        Assert.False(VrcSchemaHarvester.TreeLagsBehind(epoch, string.Empty));
+        Assert.False(VrcSchemaHarvester.TreeLagsBehind(epoch, null));
+        Assert.True(VrcSchemaHarvester.TreeLagsBehind(epoch, "avtr_previous"));
+    }
+
+    [Fact]
     public async Task A_peer_that_never_answers_is_re_asked_and_then_left_alone()
     {
         // No peer has handshaked, so every fetch returns null immediately. Without a retry this ends after

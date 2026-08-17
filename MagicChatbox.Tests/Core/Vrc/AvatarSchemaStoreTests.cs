@@ -212,6 +212,19 @@ public class AvatarSchemaStoreTests
     }
 
     [Fact]
+    public void A_harvest_arriving_before_the_first_avatar_change_is_kept()
+    {
+        // The epoch has no avatar id until /avatar/change arrives, and a peer handshake can beat it. This
+        // is the ordinary first harvest of a session, not a mismatch.
+        var store = new AvatarSchemaStore(() => 0, () => string.Empty);
+
+        store.OnSchemaHarvested(Harvest("avtr_test", 0, ("A", SignalKind.Bool, true)));
+
+        Assert.Equal("avtr_test", store.Current.AvatarId);
+        Assert.Equal(0, store.MismatchDropped);
+    }
+
+    [Fact]
     public void A_throwing_avatar_source_does_not_lose_the_harvest()
     {
         var store = new AvatarSchemaStore(() => 4, () => throw new InvalidOperationException("no transport"));

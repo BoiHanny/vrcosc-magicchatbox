@@ -243,6 +243,8 @@ public partial class AvatarPageViewModel : ObservableObject
         ReadOnlyCount = schema.ReadOnlyCount;
         ActiveGuardCount = _scope?.Decisions.Count ?? 0;
 
+        BridgeStatus = DescribeConnection(bridge, received, schema, identity);
+
         RefreshBridgeIntro();
 
         RebuildGroups();
@@ -271,6 +273,29 @@ public partial class AvatarPageViewModel : ObservableObject
 
         if (outcome.GlobalsStatus.Length > 0 && GlobalsStatus != outcome.GlobalsStatus)
             GlobalsStatus = outcome.GlobalsStatus;
+    }
+
+    private static string DescribeConnection(
+        Services.Vrc.VrcBridgeModule bridge,
+        long received,
+        AvatarSchemaSnapshot schema,
+        AvatarIdentity identity)
+    {
+        if (!bridge.IsRunning)
+            return bridge.StatusMessage;
+
+        if (received == 0)
+            return $"Listening on port {bridge.OscReceivePort}, nothing from VRChat yet";
+
+        string traffic = $"{received:N0} values in";
+
+        if (schema.IsEmpty)
+            return $"{traffic} · still reading this avatar";
+
+        if (!identity.IsKnown)
+            return $"{traffic} · {schema.Parameters.Count} parameters, avatar not named yet";
+
+        return $"{traffic} · {schema.Parameters.Count} parameters read";
     }
 
     private void RefreshBridgeIntro()

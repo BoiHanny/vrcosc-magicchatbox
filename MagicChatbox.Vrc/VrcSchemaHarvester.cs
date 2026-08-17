@@ -54,6 +54,18 @@ internal sealed class VrcSchemaHarvester : IDisposable
     /// </remarks>
     internal const int MaxRetryAttempts = 6;
 
+    /// <summary>
+    /// How many times a peer's tree is re-asked while it still names the avatar being taken off.
+    /// </summary>
+    /// <remarks>
+    /// Higher than the failure ceiling and on a much shorter delay, because this is not a peer that has
+    /// gone away -- it answered, promptly, with an account that is merely a moment stale. It catches up
+    /// well inside a second in practice; the ceiling exists only so a client that never updates its tree
+    /// cannot be polled for the rest of the session.
+    /// </remarks>
+    internal const int MaxLagAttempts = 12;
+
+    private static readonly TimeSpan LagRetryDelay = TimeSpan.FromMilliseconds(250);
     private static readonly TimeSpan FirstRetryDelay = TimeSpan.FromSeconds(1);
     private static readonly TimeSpan MaxRetryDelay = TimeSpan.FromSeconds(30);
 
@@ -68,7 +80,9 @@ internal sealed class VrcSchemaHarvester : IDisposable
     private long _abandoned;
     private long _failed;
     private long _retried;
+    private long _lagged;
     private int _consecutiveFailures;
+    private int _consecutiveLags;
     private bool _disposed;
 
     internal VrcSchemaHarvester(
@@ -109,6 +123,28 @@ internal sealed class VrcSchemaHarvester : IDisposable
 
     /// <summary>Requests re-asked by the backoff after a failure, rather than by an event.</summary>
     internal long Retried => Interlocked.Read(ref _retried);
+
+    /// <summary>Answers refused because the peer's tree still named the previous avatar.</summary>
+    internal long Lagged => Interlocked.Read(ref _lagged);
+
+    /// <remarks>
+    /// True only when both accounts are readable and disagree. Either one being empty is ordinary -- a
+    /// peer need not report an avatar at all, and the epoch has none before the first change -- and
+    /// refusing on that would mean never accepting a schema on a client that does not publish one.
+    /// </remarks>
+    internal static bool TreeLagsBehind(VrcAvatarEpoch epoch, string? treeAvatarId)
+    {
+        if (string.IsNullOrEmpty(treeAvatarId))
+        {
+            return false;
+        }
+
+        string wearing = epoch.CurrentAvatarId;
+
+        return wearing.Length > 0 && !string.Equals(treeAvatarId, wearing, StringComparison.Ordinal);
+    }
+
+    private bool LagsBehindTheEpoch(string? treeAvatarId) => TreeLagsBehind(_epoch, treeAvatarId);
 
     /// <summary>How long the run of failures ending at <paramref name="attempt"/> waits before re-asking.</summary>
     /// <remarks>
@@ -229,6 +265,7 @@ internal sealed class VrcSchemaHarvester : IDisposable
         if (resetBudget)
         {
             Interlocked.Exchange(ref _consecutiveFailures, 0);
+            Interlocked.Exchange(ref _consecutiveLags, 0);
         }
 
         if (_requests.Writer.TryWrite(trigger))
@@ -273,6 +310,26 @@ internal sealed class VrcSchemaHarvester : IDisposable
             Interlocked.Increment(ref _abandoned);
             return;
         }
+
+        // The tree is a SECOND account of which avatar is loaded, and it does not change at the same
+        // moment the first one does: /avatar/change arrives over OSC and we ask immediately, while the
+        // peer's HTTP tree still answers with the avatar being taken off. Delivering that would install
+        // the previous avatar's parameters under the new avatar's epoch, and refusing it outright would
+        // leave the new avatar with no schema at all for as long as it is worn -- so it is re-asked.
+        if (LagsBehindTheEpoch(tree.AvatarId))
+        {
+            Interlocked.Increment(ref _lagged);
+
+            int attempt = Interlocked.Increment(ref _consecutiveLags);
+            if (attempt <= MaxLagAttempts)
+            {
+                _ = RetryAfterAsync(trigger, LagRetryDelay, cancellationToken);
+            }
+
+            return;
+        }
+
+        Interlocked.Exchange(ref _consecutiveLags, 0);
 
         var parameters = new List<VrcParameterDeclaration>(tree.Parameters.Count);
         foreach (var entry in tree.Parameters)
