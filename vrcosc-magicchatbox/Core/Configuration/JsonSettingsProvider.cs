@@ -124,6 +124,8 @@ public sealed class JsonSettingsProvider<T> : ISettingsProvider<T>, IDisposable 
             if (!_loadFailed)
                 SubscribeAutoSave();
 
+            _loaded = true;
+
             SettingsChanged?.Invoke(this, EventArgs.Empty);
             if (resetApplied)
                 Save();

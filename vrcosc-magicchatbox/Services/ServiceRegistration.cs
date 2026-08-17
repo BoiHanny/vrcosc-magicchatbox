@@ -423,7 +423,9 @@ public static class ServiceRegistration
 
         services.AddSingleton<Services.Scope.ScopeRuntime>(sp => new Services.Scope.ScopeRuntime(
             sp.GetRequiredService<ISettingsProvider<ScopeSettings>>(),
-            sp.GetRequiredService<Services.Scope.ScopeFactSource>()));
+            sp.GetRequiredService<Services.Scope.ScopeFactSource>(),
+            ticks: null,
+            marshal: action => sp.GetRequiredService<IUiDispatcher>().BeginInvoke(action)));
 
         services.AddSingleton<Core.Integrations.IIntegrationGate>(sp => new Core.Integrations.IntegrationGate(
             sp.GetRequiredService<Services.Scope.ScopeRuntime>(),

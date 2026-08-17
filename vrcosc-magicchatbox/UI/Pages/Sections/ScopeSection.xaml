@@ -124,7 +124,7 @@
                                                 Text="{Binding Text, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, Delay=400}" />
                                             <Button
                                                 Margin="4,0,0,0"
-                                                Command="{Binding DataContext.RemoveTestCommand, RelativeSource={RelativeSource AncestorType=ItemsControl, AncestorLevel=2}}"
+                                                Command="{Binding DataContext.RemoveTestCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
                                                 CommandParameter="{Binding}"
                                                 Content="−"
                                                 Style="{StaticResource Status_Button_style}" />

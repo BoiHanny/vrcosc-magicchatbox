@@ -126,14 +126,31 @@ public class ScopeSectionViewModelTests
     [InlineData("42", SignalKind.Int)]
     [InlineData("0.5", SignalKind.Float)]
     [InlineData("Public", SignalKind.Text)]
-    public void A_typed_value_becomes_the_kind_it_looks_like(string typed, SignalKind expected)
+    public void A_value_typed_against_a_parameter_becomes_the_kind_it_looks_like(string typed, SignalKind expected)
     {
+        var (vm, settings) = Build();
+        vm.AddBlankRuleCommand.Execute(null);
+
+        ScopePredicateRowViewModel row = vm.Rules.Single().Predicates.Single();
+        row.Fact = new ScopeFactChoice("HR", ScopeFactKey.Parameter("HR"), false);
+        row.Text = typed;
+
+        Assert.Equal(expected, settings.Rules.Single().SafeWhen.SafePredicates.Single().Value.Kind);
+    }
+
+    [Theory]
+    [InlineData("1234")]
+    [InlineData("on")]
+    public void A_value_typed_against_a_fact_that_only_holds_words_stays_words(string typed)
+    {
+        // Comparing an Int cell against a Text one answers Unknown, so guessing a kind from the shape of
+        // what somebody typed made a guard permanently unreadable rather than simply false.
         var (vm, settings) = Build();
         vm.AddBlankRuleCommand.Execute(null);
 
         vm.Rules.Single().Predicates.Single().Text = typed;
 
-        Assert.Equal(expected, settings.Rules.Single().SafeWhen.SafePredicates.Single().Value.Kind);
+        Assert.Equal(SignalKind.Text, settings.Rules.Single().SafeWhen.SafePredicates.Single().Value.Kind);
     }
 
     [Fact]

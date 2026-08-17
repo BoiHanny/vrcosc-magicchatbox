@@ -17,7 +17,15 @@ namespace vrcosc_magicchatbox.ViewModels.Sections;
 
 public sealed record ScopeTargetChoice(string Label, ScopeTarget Target);
 
-public sealed record ScopeFactChoice(string Label, ScopeFactKey Key, bool IsGroup);
+public sealed record ScopeFactChoice(string Label, ScopeFactKey Key, bool IsGroup)
+{
+    public bool IsText => IsGroup || !Key.IsParameter;
+
+    public static ScopeFactChoice For(ScopeFactKey key) => new(
+        key.IsParameter ? key.Value[ScopeFactKey.ParameterPrefix.Length..] : key.Value,
+        key,
+        key.IsGroupMembership);
+}
 
 public sealed record ScopeOperatorChoice(string Label, ScopeOperator Op);
 
@@ -28,12 +36,23 @@ public partial class ScopePredicateRowViewModel : ObservableObject
     public ScopePredicateRowViewModel(ScopePredicate predicate, IReadOnlyList<ScopeFactChoice> facts, Action changed)
     {
         _changed = changed;
-        Facts = facts;
 
-        _fact = facts.FirstOrDefault(f => f.Key == predicate.Key) ?? facts.FirstOrDefault();
+        ScopeFactChoice? known = facts.FirstOrDefault(f => f.Key == predicate.Key);
+
+        if (known == null && !string.IsNullOrEmpty(predicate.Key.Value))
+        {
+            known = ScopeFactChoice.For(predicate.Key);
+            Facts = facts.Append(known).ToList();
+        }
+        else
+        {
+            Facts = facts;
+        }
+
+        _fact = known ?? facts.FirstOrDefault();
         _operator = Operators.FirstOrDefault(o => o.Op == predicate.Op) ?? Operators[0];
-        _text = predicate.Value.Kind == SignalKind.Text
-            ? predicate.Value.AsText()
+        _text = predicate.ValueKind == SignalKind.Text
+            ? predicate.ValueText
             : Describe(predicate.Value);
     }
 
@@ -52,7 +71,11 @@ public partial class ScopePredicateRowViewModel : ObservableObject
     };
 
     [ObservableProperty] private ScopeFactChoice _fact;
-    [ObservableProperty] private ScopeOperatorChoice _operator;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(NeedsValue))]
+    private ScopeOperatorChoice _operator;
+
     [ObservableProperty] private string _text = string.Empty;
 
     partial void OnFactChanged(ScopeFactChoice value) => _changed();
@@ -63,12 +86,22 @@ public partial class ScopePredicateRowViewModel : ObservableObject
 
     public bool NeedsValue => Operator.Op is not (ScopeOperator.IsLive or ScopeOperator.IsNotLive);
 
-    public ScopePredicate ToPredicate() =>
-        ScopePredicate.Of(Fact?.Key ?? ScopeFactKey.AvatarId, Operator.Op, ValueFor(Text));
+    public ScopePredicate ToPredicate()
+    {
+        ScopeFactKey key = Fact?.Key ?? ScopeFactKey.AvatarId;
 
-    private static SignalValue ValueFor(string text)
+        return ScopePredicate.Of(key, Operator.Op, ValueFor(Text, Fact));
+    }
+
+    public static SignalValue ValueFor(string text, ScopeFactChoice? fact)
     {
         string trimmed = (text ?? string.Empty).Trim();
+
+        if (trimmed.Length > 0 && trimmed.Length * 4 > SignalValue.MaxTextUtf8Bytes)
+            trimmed = trimmed[..Math.Min(trimmed.Length, SignalValue.MaxTextUtf8Bytes / 4)];
+
+        if (fact?.IsText == true)
+            return SignalValue.Text(trimmed);
 
         if (bool.TryParse(trimmed, out bool flag))
             return SignalValue.Bool(flag);
@@ -190,8 +223,9 @@ public partial class ScopeRuleRowViewModel : ObservableObject
         _owner.Save(this);
     }
 
-    internal void Load(ScopeRule rule)
+    internal void Load(ScopeRule stored)
     {
+        ScopeRule rule = _owner.ForDisplay(stored);
         _loading = true;
 
         Name = rule.Name;
@@ -337,7 +371,7 @@ public partial class ScopeSectionViewModel : ObservableObject
     {
         Rules.Clear();
         foreach (ScopeRule rule in Settings.Rules.Where(r => r != null))
-            Rules.Add(new ScopeRuleRowViewModel(rule, this));
+            Rules.Add(new ScopeRuleRowViewModel(ForDisplay(rule), this));
 
         AvatarGroups.Clear();
         foreach (AvatarGroup group in Settings.AvatarGroups.Where(g => g != null))
@@ -350,18 +384,121 @@ public partial class ScopeSectionViewModel : ObservableObject
         RefreshVerdicts();
     }
 
+    internal ScopeRule ForDisplay(ScopeRule rule) => MapGroups(rule, toId: false);
+
+    internal ScopeRule ForStorage(ScopeRule rule) => MapGroups(rule, toId: true);
+
+    private ScopeRule MapGroups(ScopeRule rule, bool toId)
+    {
+        ScopeGroup mapped = MapGroups(rule.SafeWhen, toId);
+        return ReferenceEquals(mapped, rule.SafeWhen) ? rule : rule with { When = mapped };
+    }
+
+    private ScopeGroup MapGroups(ScopeGroup group, bool toId)
+    {
+        var predicates = group.SafePredicates.ToBuilder();
+        bool changed = false;
+
+        for (int i = 0; i < predicates.Count; i++)
+        {
+            ScopePredicate predicate = predicates[i];
+
+            if (predicate.Op != ScopeOperator.InGroup || predicate.ValueKind != SignalKind.Text)
+                continue;
+
+            string mapped = Translate(predicate.Key, predicate.ValueText, toId);
+
+            if (!string.Equals(mapped, predicate.ValueText, StringComparison.Ordinal))
+            {
+                predicates[i] = predicate with { ValueText = mapped };
+                changed = true;
+            }
+        }
+
+        var groups = group.SafeGroups.ToBuilder();
+        for (int i = 0; i < groups.Count; i++)
+        {
+            ScopeGroup nested = MapGroups(groups[i], toId);
+            if (!ReferenceEquals(nested, groups[i]))
+            {
+                groups[i] = nested;
+                changed = true;
+            }
+        }
+
+        return changed
+            ? new ScopeGroup(group.Join, predicates.ToImmutable(), groups.ToImmutable())
+            : group;
+    }
+
+    private string Translate(ScopeFactKey key, string value, bool toId)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+            return value;
+
+        if (key == ScopeFactKey.AvatarGroup)
+        {
+            foreach (AvatarGroup group in Settings.AvatarGroups.Where(g => g != null))
+            {
+                if (toId && string.Equals(group.Name, value, StringComparison.OrdinalIgnoreCase))
+                    return group.Id;
+
+                if (!toId && string.Equals(group.Id, value, StringComparison.Ordinal))
+                    return group.Name;
+            }
+        }
+        else if (key == ScopeFactKey.WorldGroup)
+        {
+            foreach (WorldGroup group in Settings.WorldGroups.Where(g => g != null))
+            {
+                if (toId && string.Equals(group.Name, value, StringComparison.OrdinalIgnoreCase))
+                    return group.Id;
+
+                if (!toId && string.Equals(group.Id, value, StringComparison.Ordinal))
+                    return group.Name;
+            }
+        }
+
+        return value;
+    }
+
+    private bool NamesAnUnknownGroup(ScopeRule rule)
+    {
+        foreach (ScopePredicate predicate in rule.SafeWhen.SafePredicates)
+        {
+            if (predicate.Op != ScopeOperator.InGroup)
+                continue;
+
+            if (string.IsNullOrWhiteSpace(predicate.ValueText))
+                return true;
+
+            bool known = predicate.Key == ScopeFactKey.AvatarGroup
+                ? Settings.AvatarGroups.Any(g => g != null && string.Equals(g.Id, predicate.ValueText, StringComparison.Ordinal))
+                : Settings.WorldGroups.Any(g => g != null && string.Equals(g.Id, predicate.ValueText, StringComparison.Ordinal));
+
+            if (!known)
+                return true;
+        }
+
+        return false;
+    }
+
     internal void Save(ScopeRuleRowViewModel row)
     {
         if (_suppressReload)
             return;
 
-        ScopeRule updated = row.ToRule();
+        ScopeRule updated = ForStorage(row.ToRule());
         IReadOnlyList<ScopeProblem> problems = updated.Validate();
 
-        row.Sentence = ScopeMirror.Canonical(updated.SafeWhen);
-        row.Problems = problems.Count == 0
-            ? string.Empty
-            : string.Join("  ", problems.Select(p => p.Detail).Distinct());
+        row.Sentence = ScopeMirror.Canonical(ForDisplay(updated).SafeWhen);
+
+        var detail = problems.Select(p => p.Detail).ToList();
+
+        if (NamesAnUnknownGroup(updated))
+            detail.Add("Pick a group that exists — the name has to match one you made.");
+
+        row.Problems = detail.Count == 0 ? string.Empty : string.Join("  ", detail.Distinct());
 
         for (int i = 0; i < Settings.Rules.Count; i++)
         {
@@ -401,7 +538,7 @@ public partial class ScopeSectionViewModel : ObservableObject
         Settings.Rules.Add(rule);
         _settingsProvider.Save();
 
-        Rules.Add(new ScopeRuleRowViewModel(rule, this));
+        Rules.Add(new ScopeRuleRowViewModel(ForDisplay(rule), this));
         RefreshVerdicts();
 
         Status = $"Added \"{rule.Name}\". It is off until you switch it on.";
@@ -419,7 +556,7 @@ public partial class ScopeSectionViewModel : ObservableObject
         Settings.Rules.Add(rule);
         _settingsProvider.Save();
 
-        Rules.Add(new ScopeRuleRowViewModel(rule, this));
+        Rules.Add(new ScopeRuleRowViewModel(ForDisplay(rule), this));
         Status = "Added a guard. It is off until you switch it on.";
     }
 

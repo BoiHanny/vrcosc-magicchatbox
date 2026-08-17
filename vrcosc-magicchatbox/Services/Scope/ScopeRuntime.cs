@@ -36,11 +36,15 @@ public sealed class ScopeRuntime
         public ScopeHold Hold;
         public bool Committed;
         public bool CommittedAllows;
+        public bool Pending;
+        public string GuardKey = string.Empty;
     }
 
     private readonly ISettingsProvider<ScopeSettings> _settingsProvider;
     private readonly ScopeFactSource _facts;
     private readonly Func<long> _ticks;
+    private readonly Action<Action> _marshal;
+    private readonly object _evaluating = new();
 
     private readonly object _gate = new();
     private readonly Dictionary<string, RuleState> _states = new(StringComparer.Ordinal);
@@ -51,14 +55,19 @@ public sealed class ScopeRuntime
     public ScopeRuntime(
         ISettingsProvider<ScopeSettings> settingsProvider,
         ScopeFactSource facts,
-        Func<long>? ticks = null)
+        Func<long>? ticks = null,
+        Action<Action>? marshal = null)
     {
         _settingsProvider = settingsProvider ?? throw new ArgumentNullException(nameof(settingsProvider));
         _facts = facts ?? throw new ArgumentNullException(nameof(facts));
-        _ticks = ticks ?? Stopwatch.GetTimestamp;
+        _ticks = ticks ?? MonotonicTicks;
+        _marshal = marshal ?? (action => action());
 
         _facts.FactsChanged += OnFactsChanged;
     }
+
+    private static long MonotonicTicks() =>
+        (long)(Stopwatch.GetTimestamp() * ((double)TimeSpan.TicksPerSecond / Stopwatch.Frequency));
 
     public event Action? DecisionsChanged;
 
@@ -69,7 +78,14 @@ public sealed class ScopeRuntime
 
     public bool IsUnsettled
     {
-        get { lock (_gate) return _decisions.Any(d => d.Verdict == ScopeVerdict.Settling); }
+        get
+        {
+            lock (_gate)
+            {
+                return _decisions.Any(d => d.Verdict == ScopeVerdict.Settling)
+                       || _states.Values.Any(s => s.Pending);
+            }
+        }
     }
 
     public ScopeSettings Settings => _settingsProvider.Value;
@@ -103,6 +119,12 @@ public sealed class ScopeRuntime
     }
 
     public void Evaluate()
+    {
+        lock (_evaluating)
+            EvaluateOnce();
+    }
+
+    private void EvaluateOnce()
     {
         ScopeSettings settings = Settings;
         ScopeFacts facts = _facts.Current;
@@ -154,9 +176,22 @@ public sealed class ScopeRuntime
 
             if (!settings.Enabled)
                 _states.Clear();
+            else
+                Forget(_states, decisions);
         }
 
-        DecisionsChanged?.Invoke();
+        _marshal(() => DecisionsChanged?.Invoke());
+    }
+
+    private static void Forget(Dictionary<string, RuleState> states, List<ScopeDecision> decided)
+    {
+        if (states.Count == decided.Count)
+            return;
+
+        var alive = new HashSet<string>(decided.Select(d => d.RuleId), StringComparer.Ordinal);
+
+        foreach (string id in states.Keys.Where(id => !alive.Contains(id)).ToList())
+            states.Remove(id);
     }
 
     private static void Tighten(Dictionary<string, ScopeDecision> map, string key, ScopeDecision decision)
@@ -185,10 +220,21 @@ public sealed class ScopeRuntime
                 _states[rule.Id] = state;
             }
 
+            string guardKey = ScopeMirror.Canonical(rule.SafeWhen);
+            if (!string.Equals(state.GuardKey, guardKey, StringComparison.Ordinal))
+            {
+                state.GuardKey = guardKey;
+                state.Hold.Reset();
+                state.Committed = false;
+                state.CommittedAllows = false;
+            }
+
             state.Hold.Observe(outcome, now);
 
             if (outcome == ScopeOutcome.Unknown)
             {
+                state.Pending = false;
+
                 if (state.Committed)
                     return state.CommittedAllows ? ScopeVerdict.Allowed : ScopeVerdict.Blocked;
 
@@ -197,12 +243,15 @@ public sealed class ScopeRuntime
 
             if (!state.Hold.HasHeldFor(outcome, rule.Dwell, now))
             {
+                state.Pending = true;
+
                 if (state.Committed)
                     return state.CommittedAllows ? ScopeVerdict.Allowed : ScopeVerdict.Blocked;
 
                 return ScopeVerdict.Settling;
             }
 
+            state.Pending = false;
             state.Committed = true;
             state.CommittedAllows = outcome == ScopeOutcome.True;
             return state.CommittedAllows ? ScopeVerdict.Allowed : ScopeVerdict.Blocked;

@@ -21,6 +21,7 @@ public sealed class ScopeService : IDisposable
     private bool _disposed;
     private Core.Vrc.AvatarSchemaStore _watchedSchema;
     private VrcLogModule _watchedRadar;
+    private bool _bridgeWasRunning;
 
     public ScopeService(
         ScopeFactSource facts,
@@ -45,8 +46,8 @@ public sealed class ScopeService : IDisposable
 
         _started = true;
 
-        _settingsProvider.SettingsChanged += OnSettingsChanged;
         _runtime.SyncGroups();
+        _settingsProvider.SettingsChanged += OnSettingsChanged;
 
         _timer = new Timer(_ => Sample(), null, TimeSpan.Zero, SampleInterval);
     }
@@ -65,6 +66,7 @@ public sealed class ScopeService : IDisposable
         try
         {
             Subscribe();
+            NoteBridgeRestart();
             _facts.Refresh();
 
             if (_runtime.IsUnsettled)
@@ -74,6 +76,16 @@ public sealed class ScopeService : IDisposable
         {
             Classes.DataAndSecurity.Logging.WriteException(ex, MSGBox: false);
         }
+    }
+
+    private void NoteBridgeRestart()
+    {
+        bool running = _bridge()?.IsRunning == true;
+
+        if (running && !_bridgeWasRunning)
+            _autopilot?.ForgetAvatar();
+
+        _bridgeWasRunning = running;
     }
 
     private void Subscribe()
