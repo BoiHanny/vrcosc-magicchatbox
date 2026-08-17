@@ -330,7 +330,8 @@ public sealed class AvatarParameterPump : IDisposable
         if (names.Count == 0)
             return;
 
-        names.Sort(StringComparer.Ordinal);
+        if (_options.MaxSendsPerTick > 0)
+            names.Sort(StringComparer.Ordinal);
 
         long now = Stopwatch.GetTimestamp();
         int budget = _options.MaxSendsPerTick > 0 ? _options.MaxSendsPerTick : names.Count;

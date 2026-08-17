@@ -131,7 +131,7 @@
                         Width="auto"
                         Margin="4,10,0,2"
                         Style="{StaticResource OptionHelpTextStyle}"
-                        Text="While this is on, avatar values are sent the old way as well as through the new connection. Leave it on until you have seen your avatar react — turning it off is only worth doing once you know the new connection is working." />
+                        Text="While this is on, every avatar value is sent twice — once the old way and once through the new connection. It exists as a safety net for the switch-over and doubles the traffic to VRChat, so leave it off unless the new connection is not reaching your avatar." />
                     <CheckBox
                         x:Name="MirrorToLegacyOsc_checkbox"
                         Margin="4,2"

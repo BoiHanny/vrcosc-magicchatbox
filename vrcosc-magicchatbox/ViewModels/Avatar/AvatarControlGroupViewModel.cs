@@ -15,6 +15,8 @@ public partial class AvatarControlGroupViewModel : ObservableObject
 
     public int RowCount => Rows.Count;
 
+    public string Header => $"{DisplayName}  ({RowCount})";
+
     public AvatarControlGroupViewModel(string name, string displayName, IEnumerable<AvatarControlRowViewModel> rows)
     {
         Name = name;

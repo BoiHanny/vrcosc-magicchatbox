@@ -117,7 +117,7 @@ public partial class AvatarPageViewModel : ObservableObject
 
     private readonly IAvatarParameterSink _sink;
     private readonly Dictionary<string, Avatar.AvatarControlRowViewModel> _rows = new(StringComparer.Ordinal);
-    private string _rowsSignature = string.Empty;
+    private string _viewKey = string.Empty;
     private string _globalsAppliedTo = string.Empty;
     private string _automaticAppliedTo = string.Empty;
 
@@ -846,9 +846,14 @@ public partial class AvatarPageViewModel : ObservableObject
         }
     }
 
+    private bool SchemaIsForThisAvatar(AvatarSchemaSnapshot schema)
+        => !schema.IsEmpty
+            && AvatarId.Length > 0
+            && string.Equals(schema.AvatarId, AvatarId, StringComparison.Ordinal);
+
     private void ApplyGlobalsOnceForThisAvatar(Services.Vrc.VrcBridgeModule bridge, AvatarSchemaSnapshot schema)
     {
-        if (!ApplyGlobalsOnAvatarChange || schema.IsEmpty || AvatarId.Length == 0)
+        if (!ApplyGlobalsOnAvatarChange || !SchemaIsForThisAvatar(schema))
             return;
 
         if (string.Equals(_globalsAppliedTo, AvatarId, StringComparison.Ordinal))
@@ -990,7 +995,7 @@ public partial class AvatarPageViewModel : ObservableObject
 
     private void ApplyAutomaticOnceForThisAvatar(Services.Vrc.VrcBridgeModule bridge, AvatarSchemaSnapshot schema)
     {
-        if (schema.IsEmpty || AvatarId.Length == 0)
+        if (!SchemaIsForThisAvatar(schema))
             return;
 
         if (string.Equals(_automaticAppliedTo, AvatarId, StringComparison.Ordinal))
@@ -1099,6 +1104,21 @@ public partial class AvatarPageViewModel : ObservableObject
 
         AvatarSchemaSnapshot schema = bridge.Schema.Current;
 
+        string viewKey = $"{schema.AvatarId}{schema.Epoch}{Search.Trim()}{HideAdult}{WritableOnly}";
+
+        if (string.Equals(viewKey, _viewKey, StringComparison.Ordinal))
+        {
+            foreach (KeyValuePair<string, Avatar.AvatarControlRowViewModel> pair in _rows)
+            {
+                if (bridge.Senses.TryGetParameter(pair.Key, out AvatarSense sense))
+                    pair.Value.ObserveExternal(sense.Value, true);
+            }
+
+            return;
+        }
+
+        _viewKey = viewKey;
+
         AvatarControlView view = AvatarControlCatalog.Build(
             schema,
             bridge.Senses,
@@ -1114,40 +1134,31 @@ public partial class AvatarPageViewModel : ObservableObject
             ? string.Empty
             : $"{view.HiddenGroupCount} group(s) hidden";
 
-        string signature = string.Join(
-            "|",
-            view.Groups.Select(g => g.Name + ":" + string.Join(",", g.Rows.Select(r => r.Name))));
+        var expanded = Groups
+            .Where(g => g.IsExpanded)
+            .Select(g => g.Name)
+            .ToHashSet(StringComparer.Ordinal);
 
-        if (!string.Equals(signature, _rowsSignature, StringComparison.Ordinal))
-        {
-            _rowsSignature = signature;
-            _rows.Clear();
-            Groups.Clear();
+        bool searching = Search.Trim().Length > 0;
 
-            foreach (AvatarControlGroup group in view.Groups)
-            {
-                var rows = new List<Avatar.AvatarControlRowViewModel>(group.Rows.Count);
-
-                foreach (AvatarControlRow row in group.Rows)
-                {
-                    Avatar.AvatarControlRowViewModel rowViewModel = BuildRow(row);
-                    _rows[row.Name] = rowViewModel;
-                    rows.Add(rowViewModel);
-                }
-
-                Groups.Add(new Avatar.AvatarControlGroupViewModel(group.Name, group.DisplayName, rows));
-            }
-
-            return;
-        }
+        _rows.Clear();
+        Groups.Clear();
 
         foreach (AvatarControlGroup group in view.Groups)
         {
+            var rows = new List<Avatar.AvatarControlRowViewModel>(group.Rows.Count);
+
             foreach (AvatarControlRow row in group.Rows)
             {
-                if (_rows.TryGetValue(row.Name, out Avatar.AvatarControlRowViewModel? existing))
-                    existing.ObserveExternal(row.Value, row.HasValue);
+                Avatar.AvatarControlRowViewModel rowViewModel = BuildRow(row);
+                _rows[row.Name] = rowViewModel;
+                rows.Add(rowViewModel);
             }
+
+            Groups.Add(new Avatar.AvatarControlGroupViewModel(group.Name, group.DisplayName, rows)
+            {
+                IsExpanded = searching || expanded.Contains(group.Name),
+            });
         }
     }
 

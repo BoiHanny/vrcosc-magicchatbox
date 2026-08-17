@@ -715,7 +715,7 @@
                                 Padding="3,0"
                                 VerticalContentAlignment="Center"
                                 FontSize="{StaticResource FontSizeBody}"
-                                Text="{Binding Search, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                Text="{Binding Search, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, Delay=250}" />
                             <TextBlock
                                 Margin="12,0,0,0"
                                 VerticalAlignment="Center"
@@ -743,11 +743,24 @@
                         <DataTemplate>
                             <Border Padding="0" Style="{StaticResource OptionCardStyle}">
                                 <StackPanel Margin="10">
-                                    <TextBlock
+                                    <!--
+                                        Collapsed until asked for. A collapsed ItemsControl is never
+                                        measured, so it builds no containers at all - which is the
+                                        difference between a few hundred elements on this page and
+                                        fourteen thousand on a 684 parameter avatar.
+                                    -->
+                                    <CheckBox
                                         Margin="0,0,0,4"
-                                        Style="{StaticResource OptionFieldLabelStyle}"
-                                        Text="{Binding DisplayName}" />
-                                    <ItemsControl x:Name="AvatarRowList" ItemsSource="{Binding Rows}" ItemTemplate="{StaticResource AvatarControlRowTemplate}" />
+                                        IsChecked="{Binding IsExpanded, Mode=TwoWay}">
+                                        <TextBlock
+                                            Style="{StaticResource OptionFieldLabelStyle}"
+                                            Text="{Binding Header}" />
+                                    </CheckBox>
+                                    <ItemsControl
+                                        x:Name="AvatarRowList"
+                                        ItemTemplate="{StaticResource AvatarControlRowTemplate}"
+                                        ItemsSource="{Binding Rows}"
+                                        Visibility="{Binding IsExpanded, Converter={StaticResource BoolToVisibilityConverter}}" />
                                 </StackPanel>
                             </Border>
                         </DataTemplate>

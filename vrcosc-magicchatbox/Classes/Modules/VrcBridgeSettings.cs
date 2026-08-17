@@ -11,7 +11,7 @@ public partial class VrcBridgeSettings : VersionedSettings
 
     [ObservableProperty] private bool _enableParameterInput = false;
 
-    [ObservableProperty] private bool _mirrorToLegacyOsc = true;
+    [ObservableProperty] private bool _mirrorToLegacyOsc = false;
 
     [ObservableProperty] private bool _enableAvatarConfig = false;
 
