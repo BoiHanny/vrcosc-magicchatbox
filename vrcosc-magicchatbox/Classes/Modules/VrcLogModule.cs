@@ -64,9 +64,7 @@ public partial class VrcLogModule : ObservableObject, IModule
         Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + "Low",
         "VRChat", "VRChat");
 
-    private static readonly Regex JoiningRegex = new(
-        @"Joining (wrld_[a-f0-9\-]+:\d+(?:~\w+\([^)]*\))*)",
-        RegexOptions.Compiled);
+    public event Action? OnInstanceChanged;
 
     private readonly ISettingsProvider<VrcLogSettings> _settingsProvider;
     private readonly IntegrationSettings _integrationSettings;
@@ -867,9 +865,13 @@ public partial class VrcLogModule : ObservableObject, IModule
 
     private void ParseJoiningLine(string line)
     {
-        var keyMatch = JoiningRegex.Match(line);
-        if (keyMatch.Success)
-            _currentInstanceKey = keyMatch.Groups[1].Value;
+        string parsedKey = MagicChatbox.Vrc.VrcInstanceKey.ReadFromJoiningLine(line);
+        if (parsedKey.Length > 0)
+        {
+            _currentInstanceKey = parsedKey;
+            CurrentInstance = MagicChatbox.Vrc.VrcInstanceKey.Parse(parsedKey);
+            OnInstanceChanged?.Invoke();
+        }
 
         string type = "Public";
         string ownerUserId = string.Empty;
@@ -1045,6 +1047,7 @@ public partial class VrcLogModule : ObservableObject, IModule
             _avatarBlockedWarnedThisRoom = false;
             _inBootstrapMode = false;
             _currentInstanceKey = string.Empty;
+            CurrentInstance = MagicChatbox.Vrc.VrcInstance.None;
             _peakPlayerCount = 0;
         }
 
@@ -1120,6 +1123,8 @@ public partial class VrcLogModule : ObservableObject, IModule
         }
     }
 
+    public MagicChatbox.Vrc.VrcInstance CurrentInstance { get; private set; } = MagicChatbox.Vrc.VrcInstance.None;
+
     public string? GetCurrentJoinUrl()
     {
         if (string.IsNullOrEmpty(_currentInstanceKey)) return null;
@@ -1134,14 +1139,7 @@ public partial class VrcLogModule : ObservableObject, IModule
         return $"https://vrchat.com/home/launch?worldId={Uri.EscapeDataString(worldId)}&instanceId={Uri.EscapeDataString(instanceId)}";
     }
 
-    private bool IsPublicInstance()
-    {
-        return !string.IsNullOrEmpty(_currentInstanceKey) &&
-               !_currentInstanceKey.Contains("~private(") &&
-               !_currentInstanceKey.Contains("~friends(") &&
-               !_currentInstanceKey.Contains("~hidden(") &&
-               !_currentInstanceKey.Contains("~group(");
-    }
+    private bool IsPublicInstance() => CurrentInstance.IsPublic;
 
     private void ResetState()
     {
@@ -1166,6 +1164,7 @@ public partial class VrcLogModule : ObservableObject, IModule
             _peakPlayerCountThisSession = 0;
             _worldJoinedAt = DateTime.MinValue;
             _currentInstanceKey = string.Empty;
+            CurrentInstance = MagicChatbox.Vrc.VrcInstance.None;
             _encounterRecords.Clear();
             _lastLogActivity = DateTime.UtcNow;
             _lastVrchatProcessSeen = DateTime.UtcNow;

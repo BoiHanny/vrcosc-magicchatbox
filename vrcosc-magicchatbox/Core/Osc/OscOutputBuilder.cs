@@ -19,6 +19,7 @@ public sealed class OscOutputBuilder
     private readonly IntegrationDisplayState _integrationDisplay;
     private readonly AppSettings _appSettings;
     private readonly ModuleFaultTracker _faultTracker;
+    private readonly Integrations.IIntegrationGate _gate;
     private readonly HashSet<string> _unorderedProvidersLogged = new(StringComparer.OrdinalIgnoreCase);
 
     public OscOutputBuilder(
@@ -26,13 +27,15 @@ public sealed class OscOutputBuilder
         IAppState appState,
         IntegrationDisplayState integrationDisplay,
         ISettingsProvider<AppSettings> appSettingsProvider,
-        ModuleFaultTracker faultTracker)
+        ModuleFaultTracker faultTracker,
+        Integrations.IIntegrationGate gate = null)
     {
         _providers = providers;
         _appState = appState;
         _integrationDisplay = integrationDisplay;
         _appSettings = appSettingsProvider.Value;
         _faultTracker = faultTracker;
+        _gate = gate ?? Integrations.AlwaysOpenIntegrationGate.Instance;
     }
 
     public OscBuildResult Build(bool allowExternalRefresh = true)
@@ -58,6 +61,9 @@ public sealed class OscOutputBuilder
         void TryAddProvider(IOscProvider provider)
         {
             if (!provider.IsEnabledForCurrentMode(isVR))
+                return;
+
+            if (!_gate.Permits(provider.UiKey))
                 return;
 
             if (_faultTracker.IsFaulted(provider.SortKey))

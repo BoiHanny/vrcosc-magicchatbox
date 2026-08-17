@@ -73,11 +73,26 @@ public static class IntegrationTileCatalog
     private static readonly Dictionary<string, IntegrationTile> ByMasterProperty =
         Tiles.ToDictionary(t => t.MasterProperty, StringComparer.Ordinal);
 
+    private static readonly Dictionary<string, string> UiKeyAliases = new(StringComparer.OrdinalIgnoreCase)
+    {
+        ["ComponentStat"] = "Component",
+        ["NetworkStatistics"] = "Network",
+    };
+
     public static bool TryGet(string key, out IntegrationTile tile)
     {
         tile = null;
-        return !string.IsNullOrWhiteSpace(key) && ByKey.TryGetValue(key.Trim(), out tile);
+        if (string.IsNullOrWhiteSpace(key))
+            return false;
+
+        string trimmed = key.Trim();
+        if (UiKeyAliases.TryGetValue(trimmed, out string alias))
+            trimmed = alias;
+
+        return ByKey.TryGetValue(trimmed, out tile);
     }
+
+    public static string ResolveKey(string key) => TryGet(key, out var tile) ? tile.Key : key?.Trim() ?? string.Empty;
 
     public static string DisplayNameFor(string key)
         => TryGet(key, out var tile) ? tile.DisplayName : key;

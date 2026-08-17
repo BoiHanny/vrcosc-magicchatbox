@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <IsPackable>false</IsPackable>
+    <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+    <!-- CS8509 is an error here for the reason it is one in Vrc: the evaluator switches over
+         ScopeOperator and ScopeJoin with no discard arm, so adding a member without deciding what it
+         means fails the build rather than silently evaluating to Unknown and never firing. -->
+    <WarningsAsErrors>$(WarningsAsErrors);CS8509</WarningsAsErrors>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="MagicChatbox.Tests" />
+  </ItemGroup>
+
+  <!-- Vocabulary ONLY. The guard language must stay reachable from a unit test with no WPF, no settings
+       provider and no transport; the moment it can see those, "would this rule fire" stops being a
+       question anybody can answer without booting the app. -->
+  <ItemGroup>
+    <ProjectReference Include="..\MagicChatbox.Vocabulary\MagicChatbox.Vocabulary.csproj" />
+  </ItemGroup>
+
+</Project>

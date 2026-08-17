@@ -245,6 +245,7 @@
     <ProjectReference Include="..\MagicChatbox.Kernel\MagicChatbox.Kernel.csproj" />
     <ProjectReference Include="..\MagicChatbox.Osc\MagicChatbox.Osc.csproj" />
     <ProjectReference Include="..\MagicChatbox.Vrc\MagicChatbox.Vrc.csproj" />
+    <ProjectReference Include="..\MagicChatbox.Scope\MagicChatbox.Scope.csproj" />
   </ItemGroup>
 
   <ItemGroup>

@@ -63,6 +63,7 @@ public class ModuleBootstrapper
     private readonly DiscordRichPresenceService _discordRichPresence;
     private readonly IPrivacyConsentService _consentService;
     private readonly IToastService _toast;
+    private readonly Scope.ScopeService _scope;
     private readonly TaskCompletionSource _startupComplete = new(TaskCreationOptions.RunContinuationsAsynchronously);
 
     public void SignalStartupComplete() => _startupComplete.TrySetResult();
@@ -109,8 +110,10 @@ public class ModuleBootstrapper
         Lazy<DiscordOAuthHandler> discordOAuth,
         DiscordRichPresenceService discordRichPresence,
         IPrivacyConsentService consentService,
-        IToastService toast)
+        IToastService toast,
+        Scope.ScopeService scope = null)
     {
+        _scope = scope;
         _host = host;
         _appState = appState;
         _env = env;
@@ -185,6 +188,8 @@ public class ModuleBootstrapper
         Core.Vrc.VrcBridgeFirstRun.Apply(
             _vrcBridgeSettingsProvider.Value,
             _vrcBridgeSettingsProvider.LoadedFromFile);
+
+        _scope?.Start();
 
         var lyricSources = LyricsSourceSelection.Reconcile(
             integrationSettings.IntgrLyrics,

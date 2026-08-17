@@ -390,6 +390,47 @@ public static class ServiceRegistration
             new Lazy<NetworkStatisticsModule>(() => sp.GetRequiredService<NetworkStatisticsModule>()),
             sp.GetRequiredService<OscDisplayState>()));
         services.AddSingleton<ModuleBootstrapper>();
+
+        services.AddSingleton<Services.Scope.ScopeFactSource>(sp =>
+        {
+            var host = new Lazy<IModuleHost>(() => sp.GetRequiredService<IModuleHost>());
+            var appState = sp.GetRequiredService<IAppState>();
+            var dispatcher = sp.GetRequiredService<IUiDispatcher>();
+
+            Services.Vrc.VrcBridgeModule Bridge() => host.Value.VrcBridge;
+            Classes.Modules.VrcLogModule Radar() => host.Value.VrcRadar;
+
+            return new Services.Scope.ScopeFactSource(
+                () => Bridge()?.Identity ?? Core.Vrc.AvatarIdentity.Unknown,
+                () => Bridge()?.Schema.Current ?? Core.Vrc.AvatarSchemaSnapshot.Empty,
+                () => Bridge()?.Senses.Snapshot() ?? Array.Empty<Core.Vrc.AvatarSense>(),
+                () => Bridge()?.IsRunning == true,
+                () => Radar()?.CurrentInstance ?? MagicChatbox.Vrc.VrcInstance.None,
+                () => Radar()?.CurrentWorldName ?? string.Empty,
+                () => Radar()?.PlayerCount ?? 0,
+                () => Radar()?.IsRadarRunning == true,
+                () => appState.IsVRRunning,
+                action => dispatcher.BeginInvoke(action));
+        });
+
+        services.AddSingleton<Services.Scope.ScopeRuntime>(sp => new Services.Scope.ScopeRuntime(
+            sp.GetRequiredService<ISettingsProvider<ScopeSettings>>(),
+            sp.GetRequiredService<Services.Scope.ScopeFactSource>()));
+
+        services.AddSingleton<Core.Integrations.IIntegrationGate>(sp => new Core.Integrations.IntegrationGate(
+            sp.GetRequiredService<Services.Scope.ScopeRuntime>(),
+            sp.GetRequiredService<IPrivacyConsentService>()));
+
+        services.AddSingleton<Services.Scope.ScopeService>(sp =>
+        {
+            var host = new Lazy<IModuleHost>(() => sp.GetRequiredService<IModuleHost>());
+            return new Services.Scope.ScopeService(
+                sp.GetRequiredService<Services.Scope.ScopeFactSource>(),
+                sp.GetRequiredService<Services.Scope.ScopeRuntime>(),
+                sp.GetRequiredService<ISettingsProvider<ScopeSettings>>(),
+                () => host.Value.VrcBridge,
+                () => host.Value.VrcRadar);
+        });
         services.AddSingleton<ITtsPlaybackService>(sp => new TtsPlaybackService(
             new Lazy<TTSModule>(() => sp.GetRequiredService<TTSModule>()),
             sp.GetRequiredService<TtsAudioDisplayState>(),
@@ -692,7 +733,8 @@ public static class ServiceRegistration
             sp.GetRequiredService<IAppState>(),
             sp.GetRequiredService<IntegrationDisplayState>(),
             sp.GetRequiredService<ISettingsProvider<AppSettings>>(),
-            sp.GetRequiredService<ModuleFaultTracker>()));
+            sp.GetRequiredService<ModuleFaultTracker>(),
+            sp.GetRequiredService<Core.Integrations.IIntegrationGate>()));
         services.AddSingleton<OscBuildResultPresenter>(sp => new OscBuildResultPresenter(
             sp.GetRequiredService<OscDisplayState>(),
             sp.GetRequiredService<IntegrationDisplayState>(),
