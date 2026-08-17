@@ -115,6 +115,43 @@ public sealed class AvatarSenseStore : IVrcObservationSink
         return rows;
     }
 
+    public IReadOnlyList<AvatarSense> MostActiveParameters(int take)
+    {
+        var rows = new List<(AvatarSense Sense, long Changes)>();
+
+        foreach (KeyValuePair<string, Cell> entry in _cells)
+        {
+            if (entry.Key.Length <= ParameterKeyPrefix.Length
+                || !entry.Key.StartsWith(ParameterKeyPrefix, StringComparison.OrdinalIgnoreCase))
+            {
+                continue;
+            }
+
+            Cell cell = entry.Value;
+
+            lock (cell)
+            {
+                if (cell.SeenTicks == 0)
+                    continue;
+
+                rows.Add((
+                    new AvatarSense(
+                        entry.Key[ParameterKeyPrefix.Length..],
+                        cell.Kind,
+                        cell.Value,
+                        cell.Text,
+                        new DateTime(cell.SeenTicks, DateTimeKind.Utc)),
+                    cell.Changes));
+            }
+        }
+
+        return rows
+            .OrderByDescending(r => r.Changes)
+            .Take(Math.Max(0, take))
+            .Select(r => r.Sense)
+            .ToList();
+    }
+
     public IReadOnlyList<AvatarSense> MostActive(int take)
     {
         var rows = new List<(AvatarSense Sense, long Changes)>();

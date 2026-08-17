@@ -98,6 +98,18 @@ namespace MagicChatbox.Avatar.Editor
                 VRCExpressionParameters.ValueType.Bool, false,
                 VRCExpressionsMenu.Control.ControlType.Button),
 
+            // Level rather than edge: these follow the switch, so an avatar that remembers one puts
+            // you back where you left off rather than waiting for a press that never comes.
+            new MagicChatboxControl(
+                "MCB/Ctrl/Afk", "Away",
+                VRCExpressionParameters.ValueType.Bool, true,
+                VRCExpressionsMenu.Control.ControlType.Toggle),
+
+            new MagicChatboxControl(
+                "MCB/Ctrl/Status/Cycle", "Cycle my status",
+                VRCExpressionParameters.ValueType.Bool, true,
+                VRCExpressionsMenu.Control.ControlType.Toggle),
+
             // The Config tier. These are toggles rather than buttons, and saved rather than
             // momentary, because the whole point is that the avatar remembers them: wear the avatar
             // and the feature stays off for as long as you are wearing it.

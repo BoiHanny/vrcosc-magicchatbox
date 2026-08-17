@@ -192,12 +192,29 @@ public class UnityPackageContractTests
     [Fact]
     public void The_generated_menu_respects_the_eight_control_cap()
     {
+        // This used to assert the control list was no longer than one page, which only held while the
+        // list was short: the ninth control would have failed a test rather than filled a second page.
+        // Pagination is the thing that has to be true, because VRChat silently discards a ninth
+        // control on a page and the creator sees a menu that is simply missing something.
         string source = File.ReadAllText(EditorScript());
 
-        Assert.Contains("8", source, StringComparison.Ordinal);
+        Assert.Contains("MenuPageSize = 8", source, StringComparison.Ordinal);
+        Assert.Contains("onPage == MenuPageSize - 1", source, StringComparison.Ordinal);
+        Assert.Contains("SubMenu", source, StringComparison.Ordinal);
+
+        // A page spends one of its eight slots on the link to the next page, so seven controls per
+        // page is the real capacity. Anything that makes a page hold eight of its own is the bug.
+        Assert.DoesNotContain("onPage == MenuPageSize)", source, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void The_controls_are_worth_more_than_one_page_now()
+    {
+        // Recorded deliberately: the moment this passed is the moment the cap test above stopped
+        // being a check on the control list and started being a check on pagination.
         Assert.True(
-            ControlsInEditorScript().Count <= 8,
-            "more controls than a single VRChat menu page holds");
+            ControlsInEditorScript().Count > 8,
+            "the control list fits one page again - the pagination assertions above are now untested by it");
     }
 
     [Fact]

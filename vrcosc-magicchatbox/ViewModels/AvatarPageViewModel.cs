@@ -639,10 +639,19 @@ public partial class AvatarPageViewModel : ObservableObject
 
     private void RebuildRecent(Services.Vrc.VrcBridgeModule bridge)
     {
-        IReadOnlyList<AvatarSense> recent = bridge.Senses.MostActive(8);
+        IReadOnlyList<AvatarSense> recent = bridge.Senses.MostActiveParameters(8);
+
+        var spelling = bridge.Schema.Current.Parameters
+            .GroupBy(p => p.Name, StringComparer.OrdinalIgnoreCase)
+            .ToDictionary(g => g.Key, g => g.First().Name, StringComparer.OrdinalIgnoreCase);
 
         RecentlyChanged.Clear();
+
         foreach (AvatarSense sense in recent)
-            RecentlyChanged.Add(sense);
+        {
+            RecentlyChanged.Add(spelling.TryGetValue(sense.Key, out string? declared)
+                ? sense with { Key = declared }
+                : sense);
+        }
     }
 }

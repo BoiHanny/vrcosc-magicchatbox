@@ -133,6 +133,13 @@ public static class AvatarParameterContract
             "false to true", "stops all output and text-to-speech", "EnableBridge and EnableParameterInput",
             "Deliberately one-way: it cannot be undone from the avatar, so a misbehaving world cannot switch MagicChatbox back on."),
 
+        new("MCB/Ctrl/Afk", AvatarParameterKind.Bool, AvatarParameterFlow.AvatarToApp, AvatarParameterTier.Control,
+            "0 or 1", "marks you away and back", "EnableBridge and EnableParameterInput",
+            "Follows the switch rather than the press, so an avatar that remembers it puts you back where you left off."),
+        new("MCB/Ctrl/Status/Cycle", AvatarParameterKind.Bool, AvatarParameterFlow.AvatarToApp, AvatarParameterTier.Control,
+            "0 or 1", "cycles through your status messages", "EnableBridge and EnableParameterInput",
+            "Follows the switch rather than the press."),
+
         new("MCB/Cfg/Sending", AvatarParameterKind.Bool, AvatarParameterFlow.AvatarToApp, AvatarParameterTier.Config,
             "0 or 1", "IAppState.MasterSwitch", "EnableBridge and EnableAvatarConfig",
             "Save it off on an avatar to stop MagicChatbox sending anything while you wear it. Holding it on is refused."),

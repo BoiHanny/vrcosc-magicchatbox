@@ -48,6 +48,7 @@ public class ModuleBootstrapper
     private readonly ISettingsProvider<TrackerBatterySettings> _trackerSettingsProvider;
     private readonly ISettingsProvider<Classes.Modules.Vr.VrPerformanceSettings> _vrPerformanceSettingsProvider;
     private readonly ISettingsProvider<VrcBridgeSettings> _vrcBridgeSettingsProvider;
+    private readonly ISettingsProvider<AppSettings> _appSettingsProvider;
     private readonly Core.Vrc.IAvatarParameterSink _parameterSink;
     private readonly ITtsPlaybackService _ttsPlayback;
     private readonly Vr.IOpenVrSessionService _openVrSession;
@@ -94,6 +95,7 @@ public class ModuleBootstrapper
         ISettingsProvider<TrackerBatterySettings> trackerSettingsProvider,
         ISettingsProvider<Classes.Modules.Vr.VrPerformanceSettings> vrPerformanceSettingsProvider,
         ISettingsProvider<VrcBridgeSettings> vrcBridgeSettingsProvider,
+        ISettingsProvider<AppSettings> appSettingsProvider,
         Core.Vrc.IAvatarParameterSink parameterSink,
         ITtsPlaybackService ttsPlayback,
         Vr.IOpenVrSessionService openVrSession,
@@ -136,6 +138,7 @@ public class ModuleBootstrapper
         _trackerSettingsProvider = trackerSettingsProvider;
         _vrPerformanceSettingsProvider = vrPerformanceSettingsProvider;
         _vrcBridgeSettingsProvider = vrcBridgeSettingsProvider;
+        _appSettingsProvider = appSettingsProvider;
         _parameterSink = parameterSink;
         _ttsPlayback = ttsPlayback;
         _openVrSession = openVrSession;
@@ -268,7 +271,8 @@ public class ModuleBootstrapper
             _vrcBridgeSettingsProvider,
             () => vrcRadar?.CurrentWorldName is { Length: > 0 } world && world != "Not in a world" ? world : null,
             () => vrcRadar?.InstanceType?.Contains("Public", StringComparison.OrdinalIgnoreCase) == true,
-            Core.Vrc.InboundCommandRegistry.Build(_appState, _ttsPlayback),
+            Core.Vrc.InboundCommandRegistry.Build(
+                _appState, _ttsPlayback, _appSettingsProvider.Value, () => _host.Afk),
             action => _dispatcher.BeginInvoke(action),
             Core.Vrc.AvatarConfigBindingRegistry.Build(_appState, integrationSettings)));
 

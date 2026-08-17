@@ -75,9 +75,13 @@ Every value below is written to `/avatar/parameters/<name>`. Names are case sens
 |---|---|---|---|---|
 | `MCB/Ctrl/Tts/Stop` | Bool | false to true | stops text-to-speech playback | EnableBridge and EnableParameterInput |
 | `MCB/Ctrl/Panic` | Bool | false to true | stops all output and text-to-speech | EnableBridge and EnableParameterInput |
+| `MCB/Ctrl/Afk` | Bool | 0 or 1 | marks you away and back | EnableBridge and EnableParameterInput |
+| `MCB/Ctrl/Status/Cycle` | Bool | 0 or 1 | cycles through your status messages | EnableBridge and EnableParameterInput |
 
 - `MCB/Ctrl/Tts/Stop` — Acts on the rising edge only, so holding it down does nothing further. Costs no synced parameter bits.
 - `MCB/Ctrl/Panic` — Deliberately one-way: it cannot be undone from the avatar, so a misbehaving world cannot switch MagicChatbox back on.
+- `MCB/Ctrl/Afk` — Follows the switch rather than the press, so an avatar that remembers it puts you back where you left off.
+- `MCB/Ctrl/Status/Cycle` — Follows the switch rather than the press.
 
 ## Config
 
