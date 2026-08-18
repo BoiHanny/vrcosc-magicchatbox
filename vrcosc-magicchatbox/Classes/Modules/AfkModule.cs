@@ -20,6 +20,18 @@ public partial class AfkModuleSettings : ObservableObject
 {
     public event EventHandler SettingsChanged;
 
+    public AfkModuleSettings()
+    {
+        AllStyles.CollectionChanged += (_, _) => RefreshStyleSnapshot();
+    }
+
+    private void RefreshStyleSnapshot()
+    {
+        var snapshot = new AfkStyle[AllStyles.Count];
+        AllStyles.CopyTo(snapshot, 0);
+        Volatile.Write(ref _allStylesSnapshot, snapshot);
+    }
+
     protected virtual void OnSettingsChanged()
     {
         SettingsChanged?.Invoke(this, EventArgs.Empty);
@@ -81,8 +93,13 @@ public partial class AfkModuleSettings : ObservableObject
     [JsonIgnore]
     public ObservableCollection<AfkStyle> AllStyles { get; } = new();
 
+    private IReadOnlyList<AfkStyle> _allStylesSnapshot = Array.Empty<AfkStyle>();
+
     [JsonIgnore]
-    public AfkStyle? ActiveStyle => AfkStyleSeed.Resolve(AllStyles, ActiveStyleId);
+    public IReadOnlyList<AfkStyle> AllStylesSnapshot => Volatile.Read(ref _allStylesSnapshot);
+
+    [JsonIgnore]
+    public AfkStyle? ActiveStyle => AfkStyleSeed.Resolve(AllStylesSnapshot, ActiveStyleId);
 
     public bool EnsureStyles()
     {
