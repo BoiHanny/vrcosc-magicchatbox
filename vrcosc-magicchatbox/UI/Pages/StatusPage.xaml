@@ -736,19 +736,19 @@
                     Color="{StaticResource AccentLightBlueColor}" />
 
                 <!--
-                    The same subtle lift every Options section already gives its own card - not the
-                    brighter Integrations-tile gradient, which is tuned for a fixed white title and went
-                    pale and washed-out under the status text's own colors (light gray, or the green that
-                    means "this one is active"). Selected lightens the same two stops by one step rather
-                    than switching hue.
+                    Top-to-bottom on purpose, not corner-to-corner: at this row's own height every x
+                    position along a line of text sees the same background color, so the card can go
+                    richer than a flat fill without any letter landing on a lighter patch than its
+                    neighbour. A corner-to-corner gradient tried that first and read as washed-out,
+                    because different parts of the same line of text sat on different parts of it.
                 -->
-                <LinearGradientBrush x:Key="StatusRowSurfaceBrush" StartPoint="1,1" EndPoint="0,0" po:Freeze="True">
-                    <GradientStop Color="{StaticResource SurfaceGradientStartColor}" />
-                    <GradientStop Offset="1" Color="{StaticResource SurfaceGradientEndColor}" />
+                <LinearGradientBrush x:Key="StatusRowSurfaceBrush" StartPoint="0,0" EndPoint="0,1" po:Freeze="True">
+                    <GradientStop Offset="0" Color="#FF4A4070" />
+                    <GradientStop Offset="1" Color="#FF2C2448" />
                 </LinearGradientBrush>
-                <LinearGradientBrush x:Key="StatusRowSelectedBrush" StartPoint="1,1" EndPoint="0,0" po:Freeze="True">
-                    <GradientStop Color="#FF4C4270" />
-                    <GradientStop Offset="1" Color="#FF554A7E" />
+                <LinearGradientBrush x:Key="StatusRowSelectedBrush" StartPoint="0,0" EndPoint="0,1" po:Freeze="True">
+                    <GradientStop Offset="0" Color="#FF5C5296" />
+                    <GradientStop Offset="1" Color="#FF3A3162" />
                 </LinearGradientBrush>
 
                 <Style x:Key="ActiveStatusText" TargetType="TextBlock">
@@ -792,18 +792,6 @@
                     gradient would fight the gradient every frame; a border is one solid color and costs
                     nothing extra to swap.
                 -->
-                <!--
-                    The same pastel edge the Pulsoid tile's "-15% always" badge outlines itself with -
-                    this app's one recurring "something special is happening here" signature. Marking
-                    the active status with plain LimeGreen was the one place on this page reaching
-                    outside that language for a color that appears nowhere else in the app.
-                -->
-                <LinearGradientBrush x:Key="StatusActiveHologramBrush" StartPoint="0,1" EndPoint="1,0" po:Freeze="True">
-                    <GradientStop Offset="0" Color="#8FF4E8" />
-                    <GradientStop Offset="0.5" Color="#C9A6FF" />
-                    <GradientStop Offset="1" Color="#FFA8DF" />
-                </LinearGradientBrush>
-
                 <Style x:Key="StatusRowCardStyle" TargetType="Border">
                     <Setter Property="Background" Value="{StaticResource StatusRowSurfaceBrush}" />
                     <Setter Property="BorderBrush" Value="#FF150C33" />
@@ -866,9 +854,9 @@
                             -->
                             <Grid Grid.Column="0" Visibility="{Binding DataContext.IsSelectionMode, RelativeSource={RelativeSource AncestorType=ListBox}, Converter={StaticResource InverseBoolToVisibilityConverter}}">
                                 <Border
-                                    Background="{StaticResource TileIconFrameBrush}"
-                                    BorderBrush="{StaticResource StatusActiveHologramBrush}"
-                                    BorderThickness="1.4"
+                                    Background="{StaticResource SurfaceButtonDarkBrush}"
+                                    BorderBrush="LimeGreen"
+                                    BorderThickness="1"
                                     CornerRadius="4">
                                     <Image
                                         Width="22"
@@ -882,8 +870,7 @@
                                     Height="35"
                                     HorizontalAlignment="Left"
                                     VerticalAlignment="Center"
-                                    Background="{StaticResource TileIconFrameBrush}"
-                                    BorderBrush="{StaticResource TileIconFrameBorderBrush}"
+                                    Background="{StaticResource SurfaceButtonDarkBrush}"
                                     Command="{Binding DataContext.ActivateStatusCommand, RelativeSource={RelativeSource AncestorType=ListBox}}"
                                     CommandParameter="{Binding}"
                                     Cursor="Hand"
