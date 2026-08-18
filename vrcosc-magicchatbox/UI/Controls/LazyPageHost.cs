@@ -1,5 +1,5 @@
 using System;
-using System.Collections.Generic;
+using vrcosc_magicchatbox.Classes.DataAndSecurity;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
@@ -11,10 +11,6 @@ namespace vrcosc_magicchatbox.UI.Controls
 {
     public sealed class LazyPageHost : Decorator
     {
-        private const int RestoreAttempts = 12;
-
-        private readonly Dictionary<string, double> _scrollOffsets = new(StringComparer.Ordinal);
-
         private DispatcherTimer? _teardown;
 
         public static readonly DependencyProperty PageTemplateProperty = DependencyProperty.Register(
@@ -93,8 +89,8 @@ namespace vrcosc_magicchatbox.UI.Controls
 
             Child = PageTemplate.LoadContent() as UIElement;
 
-            if (_scrollOffsets.Count > 0)
-                QueueScrollRestore(RestoreAttempts);
+            if (Child != null)
+                Logging.WriteInfo($"Page built: {Child.GetType().Name}");
         }
 
         public void Release()
@@ -106,9 +102,11 @@ namespace vrcosc_magicchatbox.UI.Controls
 
             CommitPendingEdit();
             ReleaseFocus();
-            CaptureScrollOffsets();
 
+            string released = Child.GetType().Name;
             Child = null;
+
+            Logging.WriteInfo($"Page released: {released}");
         }
 
         private static void OnStateChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
@@ -202,56 +200,5 @@ namespace vrcosc_magicchatbox.UI.Controls
             return false;
         }
 
-        private void CaptureScrollOffsets()
-        {
-            _scrollOffsets.Clear();
-            ForEachScrollViewer(Child, (name, viewer) => _scrollOffsets[name] = viewer.VerticalOffset);
-        }
-
-        private void QueueScrollRestore(int attemptsLeft)
-        {
-            Dispatcher.BeginInvoke(
-                DispatcherPriority.Background,
-                new Action(() => RestoreScrollOffsets(attemptsLeft)));
-        }
-
-        private void RestoreScrollOffsets(int attemptsLeft)
-        {
-            if (Child == null || _scrollOffsets.Count == 0)
-                return;
-
-            bool settled = true;
-
-            ForEachScrollViewer(Child, (name, viewer) =>
-            {
-                if (!_scrollOffsets.TryGetValue(name, out double offset) || offset <= 0)
-                    return;
-
-                viewer.ScrollToVerticalOffset(offset);
-
-                if (Math.Abs(viewer.VerticalOffset - offset) > 0.5)
-                    settled = false;
-            });
-
-            if (!settled && attemptsLeft > 0)
-                QueueScrollRestore(attemptsLeft - 1);
-        }
-
-        private static void ForEachScrollViewer(DependencyObject? root, Action<string, ScrollViewer> visit)
-        {
-            if (root == null)
-                return;
-
-            if (root is ScrollViewer viewer
-                && viewer.Name is { Length: > 0 } name
-                && !name.StartsWith("PART_", StringComparison.Ordinal))
-            {
-                visit(name, viewer);
-            }
-
-            int count = VisualTreeHelper.GetChildrenCount(root);
-            for (int i = 0; i < count; i++)
-                ForEachScrollViewer(VisualTreeHelper.GetChild(root, i), visit);
-        }
     }
 }
