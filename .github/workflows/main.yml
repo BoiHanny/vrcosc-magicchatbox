@@ -245,7 +245,7 @@ jobs:
     # Step 5: Restore Dependencies
     - name: Restore Dependencies
       if: steps.resolve_release.outputs.is_tag_release != 'true' || steps.check_release.outputs.release_exists == 'false'
-      run: dotnet restore ${{ env.Solution_Name }} -r win-x64
+      run: dotnet restore ${{ env.Solution_Name }} -r win-x64 -p:Configuration=Release -p:PublishReadyToRun=true
 
     # Step 6: Publish application to a stable output folder
     - name: Publish Application
