@@ -2,20 +2,21 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Windows;
+using System.Windows.Controls;
 using vrcosc_magicchatbox.UI.Pages;
+using vrcosc_magicchatbox.UI.Pages.Options;
 using Xunit;
 
 namespace MagicChatbox.Tests.UI;
 
 /// <summary>
-/// The options page builds three sections up front and the remaining nineteen in background chunks,
-/// so that opening it does not hitch. This checks the sections all arrive.
+/// The options page shows every section's title immediately, with a "Loading…" placeholder standing
+/// in for the eighteen sections it builds in background chunks, so opening it does not hitch. This
+/// checks the placeholders get replaced and the deep link map is fully populated once they do.
 /// </summary>
 /// <remarks>
-/// Deferring them moved nineteen x:Names out of the generated fields and into ones the page recovers
-/// by hand after each chunk is loaded. A name that no longer matches leaves a null behind, and the
-/// only thing that reads those fields is the deep link from the tray menu - which fails silently,
-/// scrolling nowhere, and no other test would notice.
+/// The only thing that reads the realized section references is the deep link from the tray menu -
+/// which fails silently, scrolling nowhere, and no other test would notice.
 /// </remarks>
 public class OptionsPageSectionRealizationTests
 {
@@ -54,14 +55,23 @@ public class OptionsPageSectionRealizationTests
     }
 
     [Fact]
-    public void The_deferred_chunks_all_reach_the_panel()
+    public void The_deferred_chunks_all_replace_their_placeholders()
     {
-        int? childCount = null;
+        Type? spotifyContentBefore = null;
+        Type? eggDevContentBefore = null;
+        Type? spotifyContentAfter = null;
+        Type? eggDevContentAfter = null;
 
         Exception? failure = WpfHost.RunInWindow(
             () => new OptionsPage(),
             page =>
             {
+                var spotifyWrapper = (ContentControl)page.FindName("OptionsWrapper_Spotify")!;
+                var eggDevWrapper = (ContentControl)page.FindName("OptionsWrapper_EggDev")!;
+
+                spotifyContentBefore = spotifyWrapper.Content.GetType();
+                eggDevContentBefore = eggDevWrapper.Content.GetType();
+
                 var realize = typeof(OptionsPage).GetMethod(
                     "EnsureSectionsRealized", BindingFlags.Instance | BindingFlags.NonPublic);
                 Assert.NotNull(realize);
@@ -74,12 +84,15 @@ public class OptionsPageSectionRealizationTests
                 Assert.NotNull(queue);
                 Assert.Empty(queue!);
 
-                childCount = ((System.Windows.Controls.Panel)page.FindName("SectionsPanel")!).Children.Count;
+                spotifyContentAfter = spotifyWrapper.Content.GetType();
+                eggDevContentAfter = eggDevWrapper.Content.GetType();
             });
 
         Assert.True(failure == null, "the options page did not build: " + failure);
-        Assert.NotNull(childCount);
-        Assert.True(childCount >= 7, "expected the deferred chunks to be appended, got " + childCount);
+        Assert.Equal(typeof(StackPanel), spotifyContentBefore);
+        Assert.Equal(typeof(StackPanel), eggDevContentBefore);
+        Assert.Equal(typeof(SpotifySection), spotifyContentAfter);
+        Assert.Equal(typeof(EggDevSection), eggDevContentAfter);
     }
 
 }

@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Navigation;
+using System.Windows.Data;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
 using System.Windows.Threading;
@@ -30,25 +31,6 @@ public partial class OptionsPage : UserControl
 
     private readonly Queue<string> _pendingChunkKeys = new(DeferredChunkKeys);
 
-    private ContentControl? OptionsWrapper_Spotify;
-    private ContentControl? OptionsWrapper_Lyrics;
-    private ContentControl? OptionsWrapper_Twitch;
-    private ContentControl? OptionsWrapper_TikTokLive;
-    private ContentControl? OptionsWrapper_Discord;
-    private ContentControl? OptionsWrapper_VrcRadar;
-    private ContentControl? OptionsWrapper_Time;
-    private ContentControl? OptionsWrapper_Weather;
-    private ContentControl? OptionsWrapper_Pulsoid;
-    private ContentControl? OptionsWrapper_ComponentStats;
-    private ContentControl? OptionsWrapper_NetworkStatistics;
-    private ContentControl? OptionsWrapper_WindowActivity;
-    private ContentControl? OptionsWrapper_VrPerformance;
-    private ContentControl? OptionsWrapper_TrackerBattery;
-    private ContentControl? OptionsWrapper_OpenAI;
-    private ContentControl? OptionsWrapper_Tts;
-    private ContentControl? OptionsWrapper_AppOptions;
-    private ContentControl? OptionsWrapper_Privacy;
-    private ContentControl? OptionsWrapper_EggDev;
     private PrivacySection? PrivacySectionControl;
     private TtsOptionsSection? TtsOptionsSectionControl;
 
@@ -140,53 +122,51 @@ public partial class OptionsPage : UserControl
 
     private void LoadChunk(string key)
     {
-        if (Resources[key] is not DataTemplate template)
-            return;
-
-        if (template.LoadContent() is not FrameworkElement root)
-            return;
-
         switch (key)
         {
             case "OptionsDeferredChunk1":
-                OptionsWrapper_Spotify = root.FindName("OptionsWrapper_Spotify") as ContentControl;
-                OptionsWrapper_Lyrics = root.FindName("OptionsWrapper_Lyrics") as ContentControl;
-                OptionsWrapper_Twitch = root.FindName("OptionsWrapper_Twitch") as ContentControl;
+                Realize(OptionsWrapper_Spotify, new SpotifySection(), nameof(OptionsPageViewModel.SpotifySection));
+                Realize(OptionsWrapper_Lyrics, new LyricsSection(), nameof(OptionsPageViewModel.LyricsSection));
+                Realize(OptionsWrapper_Twitch, new TwitchSection(), nameof(OptionsPageViewModel.TwitchSection));
                 break;
             case "OptionsDeferredChunk2":
-                OptionsWrapper_TikTokLive = root.FindName("OptionsWrapper_TikTokLive") as ContentControl;
-                OptionsWrapper_Discord = root.FindName("OptionsWrapper_Discord") as ContentControl;
-                OptionsWrapper_VrcRadar = root.FindName("OptionsWrapper_VrcRadar") as ContentControl;
+                Realize(OptionsWrapper_TikTokLive, new TikTokLiveSection(), nameof(OptionsPageViewModel.TikTokLiveSection));
+                Realize(OptionsWrapper_Discord, new DiscordSection(), nameof(OptionsPageViewModel.DiscordSection));
+                Realize(OptionsWrapper_VrcRadar, new VrcRadarSection(), nameof(OptionsPageViewModel.VrcRadarSection));
                 break;
             case "OptionsDeferredChunk3":
-                OptionsWrapper_Time = root.FindName("OptionsWrapper_Time") as ContentControl;
-                OptionsWrapper_Weather = root.FindName("OptionsWrapper_Weather") as ContentControl;
-                OptionsWrapper_Pulsoid = root.FindName("OptionsWrapper_Pulsoid") as ContentControl;
+                Realize(OptionsWrapper_Time, new TimeOptionsSection(), nameof(OptionsPageViewModel.TimeOptionsSection));
+                Realize(OptionsWrapper_Weather, new WeatherSection(), nameof(OptionsPageViewModel.WeatherSection));
+                Realize(OptionsWrapper_Pulsoid, new PulsoidSection(), nameof(OptionsPageViewModel.PulsoidSection));
                 break;
             case "OptionsDeferredChunk4":
-                OptionsWrapper_ComponentStats = root.FindName("OptionsWrapper_ComponentStats") as ContentControl;
-                OptionsWrapper_NetworkStatistics = root.FindName("OptionsWrapper_NetworkStatistics") as ContentControl;
-                OptionsWrapper_WindowActivity = root.FindName("OptionsWrapper_WindowActivity") as ContentControl;
+                Realize(OptionsWrapper_ComponentStats, new ComponentStatsSection(), nameof(OptionsPageViewModel.ComponentStatsSection));
+                Realize(OptionsWrapper_NetworkStatistics, new NetworkStatisticsSection(), nameof(OptionsPageViewModel.NetworkStatisticsSection));
+                Realize(OptionsWrapper_WindowActivity, new WindowActivitySection(), nameof(OptionsPageViewModel.WindowActivitySection));
                 break;
             case "OptionsDeferredChunk5":
-                OptionsWrapper_VrPerformance = root.FindName("OptionsWrapper_VrPerformance") as ContentControl;
-                OptionsWrapper_TrackerBattery = root.FindName("OptionsWrapper_TrackerBattery") as ContentControl;
-                OptionsWrapper_OpenAI = root.FindName("OptionsWrapper_OpenAI") as ContentControl;
+                Realize(OptionsWrapper_VrPerformance, new VrPerformanceSection(), nameof(OptionsPageViewModel.VrPerformanceSection));
+                Realize(OptionsWrapper_TrackerBattery, new TrackerBatterySection(), nameof(OptionsPageViewModel.TrackerBatterySection));
+                Realize(OptionsWrapper_OpenAI, new OpenAISection(), nameof(OptionsPageViewModel.OpenAISection));
                 break;
             case "OptionsDeferredChunk6":
-                OptionsWrapper_Tts = root.FindName("OptionsWrapper_Tts") as ContentControl;
-                TtsOptionsSectionControl = root.FindName("TtsOptionsSectionControl") as TtsOptionsSection;
-                OptionsWrapper_AppOptions = root.FindName("OptionsWrapper_AppOptions") as ContentControl;
-                OptionsWrapper_Privacy = root.FindName("OptionsWrapper_Privacy") as ContentControl;
-                PrivacySectionControl = root.FindName("PrivacySectionControl") as PrivacySection;
+                TtsOptionsSectionControl = new TtsOptionsSection();
+                Realize(OptionsWrapper_Tts, TtsOptionsSectionControl, nameof(OptionsPageViewModel.TtsSection));
+                Realize(OptionsWrapper_AppOptions, new AppOptionsSection(), nameof(OptionsPageViewModel.AppOptionsSection));
+                PrivacySectionControl = new PrivacySection();
+                Realize(OptionsWrapper_Privacy, PrivacySectionControl, nameof(OptionsPageViewModel.PrivacySection));
                 break;
             case "OptionsDeferredChunk7":
-                OptionsWrapper_EggDev = root.FindName("OptionsWrapper_EggDev") as ContentControl;
+                Realize(OptionsWrapper_EggDev, new EggDevSection(), nameof(OptionsPageViewModel.EggDevSection));
                 break;
         }
+    }
 
-        SectionsPanel.Children.Add(root);
-        PlayChunkEntrance(root);
+    private static void Realize(ContentControl wrapper, FrameworkElement content, string vmPropertyPath)
+    {
+        content.SetBinding(DataContextProperty, new Binding(vmPropertyPath));
+        wrapper.Content = content;
+        PlayChunkEntrance(content);
     }
 
     private static void PlayChunkEntrance(FrameworkElement chunk)
@@ -217,28 +197,28 @@ public partial class OptionsPage : UserControl
         _sectionMap ??= new Dictionary<string, FrameworkElement>
         {
             ["Settings_Status"] = OptionsWrapper_Status,
-            ["Settings_VrcRadar"] = OptionsWrapper_VrcRadar!,
-            ["Settings_HeartRate"] = OptionsWrapper_Pulsoid!,
-            ["Settings_Time"] = OptionsWrapper_Time!,
-            ["Settings_Weather"] = OptionsWrapper_Weather!,
-            ["Settings_Twitch"] = OptionsWrapper_Twitch!,
-            ["Settings_TikTokLive"] = OptionsWrapper_TikTokLive!,
-            ["Settings_Discord"] = OptionsWrapper_Discord!,
-            ["Settings_Spotify"] = OptionsWrapper_Spotify!,
-            ["Settings_OpenAI"] = OptionsWrapper_OpenAI!,
-            ["Settings_ComponentStats"] = OptionsWrapper_ComponentStats!,
-            ["Settings_NetworkStatistics"] = OptionsWrapper_NetworkStatistics!,
+            ["Settings_VrcRadar"] = OptionsWrapper_VrcRadar,
+            ["Settings_HeartRate"] = OptionsWrapper_Pulsoid,
+            ["Settings_Time"] = OptionsWrapper_Time,
+            ["Settings_Weather"] = OptionsWrapper_Weather,
+            ["Settings_Twitch"] = OptionsWrapper_Twitch,
+            ["Settings_TikTokLive"] = OptionsWrapper_TikTokLive,
+            ["Settings_Discord"] = OptionsWrapper_Discord,
+            ["Settings_Spotify"] = OptionsWrapper_Spotify,
+            ["Settings_OpenAI"] = OptionsWrapper_OpenAI,
+            ["Settings_ComponentStats"] = OptionsWrapper_ComponentStats,
+            ["Settings_NetworkStatistics"] = OptionsWrapper_NetworkStatistics,
             ["Settings_Chatting"] = OptionsWrapper_Chatting,
-            ["Settings_TTS"] = OptionsWrapper_Tts!,
+            ["Settings_TTS"] = OptionsWrapper_Tts,
             ["Settings_MediaLink"] = OptionsWrapper_MediaLink,
-            ["Settings_AppOptions"] = OptionsWrapper_AppOptions!,
-            ["Settings_EggDev"] = OptionsWrapper_EggDev!,
-            ["Settings_TrackerBattery"] = OptionsWrapper_TrackerBattery!,
-            ["Settings_VrPerformance"] = OptionsWrapper_VrPerformance!,
-            ["Settings_Lyrics"] = OptionsWrapper_Lyrics!,
-            ["Settings_Privacy"] = OptionsWrapper_Privacy!,
+            ["Settings_AppOptions"] = OptionsWrapper_AppOptions,
+            ["Settings_EggDev"] = OptionsWrapper_EggDev,
+            ["Settings_TrackerBattery"] = OptionsWrapper_TrackerBattery,
+            ["Settings_VrPerformance"] = OptionsWrapper_VrPerformance,
+            ["Settings_Lyrics"] = OptionsWrapper_Lyrics,
+            ["Settings_Privacy"] = OptionsWrapper_Privacy,
             [MenuNavigationService.PrivacySoundpadTarget] = PrivacySectionControl!.SoundpadBridgeRow,
-            ["Settings_WindowActivity"] = OptionsWrapper_WindowActivity!,
+            ["Settings_WindowActivity"] = OptionsWrapper_WindowActivity,
         };
     }
 
