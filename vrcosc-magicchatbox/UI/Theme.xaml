@@ -1854,8 +1854,21 @@
                             <Setter TargetName="face" Property="BorderBrush" Value="{StaticResource FeatureOnEdgeBrush}" />
                             <Setter TargetName="dot" Property="Fill" Value="{StaticResource FeatureOnEdgeBrush}" />
                             <Setter Property="Foreground" Value="{StaticResource FeatureOnTextBrush}" />
-                            <!--  The pulse is the only thing on the page that says "this is going out right now".  -->
-                            <Trigger.EnterActions>
+                        </Trigger>
+                        <!--
+                            The pulse is the only thing on the page that says "this is going out right
+                            now", and it repeats forever. Visibility is a condition rather than just
+                            IsChecked because the checked state comes from a saved setting that outlives
+                            the page: leaving the page never unchecks it, so a pulse keyed on IsChecked
+                            alone would never reach its stop action and would go on animating a chip
+                            nobody can see.
+                        -->
+                        <MultiTrigger>
+                            <MultiTrigger.Conditions>
+                                <Condition Property="IsChecked" Value="True" />
+                                <Condition Property="IsVisible" Value="True" />
+                            </MultiTrigger.Conditions>
+                            <MultiTrigger.EnterActions>
                                 <BeginStoryboard Name="LivePulse">
                                     <Storyboard RepeatBehavior="Forever">
                                         <DoubleAnimation
@@ -1867,11 +1880,11 @@
                                             Duration="0:0:0.75" />
                                     </Storyboard>
                                 </BeginStoryboard>
-                            </Trigger.EnterActions>
-                            <Trigger.ExitActions>
+                            </MultiTrigger.EnterActions>
+                            <MultiTrigger.ExitActions>
                                 <StopStoryboard BeginStoryboardName="LivePulse" />
-                            </Trigger.ExitActions>
-                        </Trigger>
+                            </MultiTrigger.ExitActions>
+                        </MultiTrigger>
                         <Trigger Property="IsEnabled" Value="False">
                             <Setter Property="Opacity" Value="0.45" />
                             <Setter Property="Cursor" Value="Arrow" />

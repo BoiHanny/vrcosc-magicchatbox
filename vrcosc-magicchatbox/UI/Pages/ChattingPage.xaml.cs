@@ -17,6 +17,8 @@ namespace vrcosc_magicchatbox.UI.Pages
 
         private Action? _scrollToEndHandler;
 
+        private ChattingPageViewModel? _attachedVm;
+
         public ChattingPage()
         {
             InitializeComponent();
@@ -37,7 +39,7 @@ namespace vrcosc_magicchatbox.UI.Pages
             };
 
             Loaded += (_, _) => Attach();
-            Unloaded += (_, _) => Detach(DataContext as ChattingPageViewModel);
+            Unloaded += (_, _) => Detach(_attachedVm);
         }
 
         private void Attach()
@@ -47,6 +49,7 @@ namespace vrcosc_magicchatbox.UI.Pages
 
             _scrollToEndHandler = () => RecentScroll.ScrollToEnd();
             vm.ScrollToEndRequested += _scrollToEndHandler;
+            _attachedVm = vm;
         }
 
         private void Detach(ChattingPageViewModel? vm)
@@ -58,6 +61,7 @@ namespace vrcosc_magicchatbox.UI.Pages
                 vm.ScrollToEndRequested -= _scrollToEndHandler;
 
             _scrollToEndHandler = null;
+            _attachedVm = null;
         }
 
         public void SendChat() => ButtonChattingTxt_Click(null, null);

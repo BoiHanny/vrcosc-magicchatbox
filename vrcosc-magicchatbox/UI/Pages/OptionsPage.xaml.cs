@@ -49,9 +49,9 @@ public partial class OptionsPage : UserControl
 
     private Dictionary<string, FrameworkElement>? _sectionMap;
 
-    private bool _attached;
+    private OptionsPageViewModel? _attachedVm;
 
-    private bool _chunksQueued;
+    private bool _chunkQueued;
 
     public OptionsPage()
     {
@@ -69,52 +69,56 @@ public partial class OptionsPage : UserControl
 
     private void OnLoaded(object sender, RoutedEventArgs e)
     {
-        if (DataContext is OptionsPageViewModel vm && !_attached)
+        if (DataContext is OptionsPageViewModel vm && _attachedVm == null)
         {
             vm.ScrollToSectionRequested += OnScrollToSectionRequested;
-            _attached = true;
+            _attachedVm = vm;
         }
 
-        if (!_chunksQueued)
-        {
-            _chunksQueued = true;
-            Dispatcher.BeginInvoke(DispatcherPriority.Background, new Action(LoadNextChunk));
-        }
+        QueueNextChunk();
     }
 
-    private void OnUnloaded(object sender, RoutedEventArgs e)
+    private void OnUnloaded(object sender, RoutedEventArgs e) => DetachViewModel();
+
+    private void DetachViewModel()
     {
-        if (DataContext is OptionsPageViewModel vm && _attached)
-        {
-            vm.ScrollToSectionRequested -= OnScrollToSectionRequested;
-            _attached = false;
-        }
+        if (_attachedVm == null)
+            return;
+
+        _attachedVm.ScrollToSectionRequested -= OnScrollToSectionRequested;
+        _attachedVm = null;
     }
 
     private void OptionsPage_DataContextChanged(object sender, DependencyPropertyChangedEventArgs e)
     {
-        if (e.OldValue is OptionsPageViewModel oldVm && _attached)
-        {
-            oldVm.ScrollToSectionRequested -= OnScrollToSectionRequested;
-            _attached = false;
-        }
+        if (e.OldValue is OptionsPageViewModel)
+            DetachViewModel();
 
-        if (e.NewValue is OptionsPageViewModel newVm && !_attached)
+        if (e.NewValue is OptionsPageViewModel newVm && _attachedVm == null)
         {
             newVm.ScrollToSectionRequested += OnScrollToSectionRequested;
-            _attached = true;
+            _attachedVm = newVm;
         }
+    }
+
+    private void QueueNextChunk()
+    {
+        if (_chunkQueued || _pendingChunkKeys.Count == 0)
+            return;
+
+        _chunkQueued = true;
+        Dispatcher.BeginInvoke(DispatcherPriority.Background, new Action(LoadNextChunk));
     }
 
     private void LoadNextChunk()
     {
-        if (_pendingChunkKeys.Count == 0)
+        _chunkQueued = false;
+
+        if (_pendingChunkKeys.Count == 0 || !IsLoaded)
             return;
 
         LoadChunk(_pendingChunkKeys.Dequeue());
-
-        if (_pendingChunkKeys.Count > 0)
-            Dispatcher.BeginInvoke(DispatcherPriority.Background, new Action(LoadNextChunk));
+        QueueNextChunk();
     }
 
     private void EnsureSectionsRealized()

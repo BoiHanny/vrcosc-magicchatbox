@@ -21,7 +21,7 @@ namespace vrcosc_magicchatbox.UI.Pages
 
         private readonly Dictionary<FrameworkElement, (ScrollViewer Scroller, ScrollChangedEventHandler Handler)> _ribbonScrollHooks = new();
 
-        private bool _attached;
+        private IntegrationsPageViewModel? _attachedVm;
 
         private IntegrationsPageViewModel? VM => DataContext as IntegrationsPageViewModel;
 
@@ -44,22 +44,24 @@ namespace vrcosc_magicchatbox.UI.Pages
         private void Attach()
         {
             var vm = VM;
-            if (vm == null || _attached) return;
+            if (vm == null || _attachedVm != null) return;
 
             vm.IntegrationDisplay.PropertyChanged += IntegrationDisplay_PropertyChanged;
             HookIntegrationSortOrder();
 
             vm.TileLayoutChanged += OnTileLayoutChanged;
             vm.TileShown += OnTileShown;
-            _attached = true;
+            _attachedVm = vm;
 
             ApplyIntegrationOrder();
         }
 
         private void Detach(IntegrationsPageViewModel? vm)
         {
-            if (!_attached) return;
-            _attached = false;
+            if (_attachedVm == null) return;
+
+            vm ??= _attachedVm;
+            _attachedVm = null;
 
             if (vm != null)
             {
@@ -79,7 +81,7 @@ namespace vrcosc_magicchatbox.UI.Pages
 
         private void OnUnloaded(object sender, RoutedEventArgs e)
         {
-            Detach(VM);
+            Detach(_attachedVm);
 
             foreach (var hook in _ribbonScrollHooks.Values)
                 hook.Scroller.ScrollChanged -= hook.Handler;

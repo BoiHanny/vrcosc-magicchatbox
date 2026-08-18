@@ -11,6 +11,8 @@ namespace vrcosc_magicchatbox.UI.Controls
 {
     public sealed class LazyPageHost : Decorator
     {
+        private const int RestoreAttempts = 12;
+
         private readonly Dictionary<string, double> _scrollOffsets = new(StringComparer.Ordinal);
 
         private DispatcherTimer? _teardown;
@@ -92,7 +94,7 @@ namespace vrcosc_magicchatbox.UI.Controls
             Child = PageTemplate.LoadContent() as UIElement;
 
             if (_scrollOffsets.Count > 0)
-                Dispatcher.BeginInvoke(DispatcherPriority.Loaded, new Action(RestoreScrollOffsets));
+                QueueScrollRestore(RestoreAttempts);
         }
 
         public void Release()
@@ -103,6 +105,7 @@ namespace vrcosc_magicchatbox.UI.Controls
                 return;
 
             CommitPendingEdit();
+            ReleaseFocus();
             CaptureScrollOffsets();
 
             Child = null;
@@ -122,7 +125,12 @@ namespace vrcosc_magicchatbox.UI.Controls
 
             Visibility = Visibility.Collapsed;
 
-            if (!KeepAlive && Child != null)
+            if (Child == null)
+                return;
+
+            CommitPendingEdit();
+
+            if (!KeepAlive)
                 ScheduleTeardown();
         }
 
@@ -153,6 +161,20 @@ namespace vrcosc_magicchatbox.UI.Controls
                 return;
 
             Release();
+        }
+
+        private void ReleaseFocus()
+        {
+            if (Keyboard.FocusedElement is DependencyObject focused && IsInThisPage(focused))
+                Keyboard.ClearFocus();
+
+            DependencyObject? scope = FocusManager.GetFocusScope(this);
+            if (scope != null
+                && FocusManager.GetFocusedElement(scope) is DependencyObject scoped
+                && IsInThisPage(scoped))
+            {
+                FocusManager.SetFocusedElement(scope, null);
+            }
         }
 
         private void CommitPendingEdit()
@@ -186,13 +208,33 @@ namespace vrcosc_magicchatbox.UI.Controls
             ForEachScrollViewer(Child, (name, viewer) => _scrollOffsets[name] = viewer.VerticalOffset);
         }
 
-        private void RestoreScrollOffsets()
+        private void QueueScrollRestore(int attemptsLeft)
         {
+            Dispatcher.BeginInvoke(
+                DispatcherPriority.Background,
+                new Action(() => RestoreScrollOffsets(attemptsLeft)));
+        }
+
+        private void RestoreScrollOffsets(int attemptsLeft)
+        {
+            if (Child == null || _scrollOffsets.Count == 0)
+                return;
+
+            bool settled = true;
+
             ForEachScrollViewer(Child, (name, viewer) =>
             {
-                if (_scrollOffsets.TryGetValue(name, out double offset) && offset > 0)
-                    viewer.ScrollToVerticalOffset(offset);
+                if (!_scrollOffsets.TryGetValue(name, out double offset) || offset <= 0)
+                    return;
+
+                viewer.ScrollToVerticalOffset(offset);
+
+                if (Math.Abs(viewer.VerticalOffset - offset) > 0.5)
+                    settled = false;
             });
+
+            if (!settled && attemptsLeft > 0)
+                QueueScrollRestore(attemptsLeft - 1);
         }
 
         private static void ForEachScrollViewer(DependencyObject? root, Action<string, ScrollViewer> visit)
@@ -200,8 +242,12 @@ namespace vrcosc_magicchatbox.UI.Controls
             if (root == null)
                 return;
 
-            if (root is ScrollViewer viewer && viewer.Name is { Length: > 0 } name)
+            if (root is ScrollViewer viewer
+                && viewer.Name is { Length: > 0 } name
+                && !name.StartsWith("PART_", StringComparison.Ordinal))
+            {
                 visit(name, viewer);
+            }
 
             int count = VisualTreeHelper.GetChildrenCount(root);
             for (int i = 0; i < count; i++)
