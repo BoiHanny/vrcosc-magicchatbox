@@ -24,7 +24,7 @@
 		<WarningLevel>4</WarningLevel>
 		<DebugType>none</DebugType>
 		<Prefer32Bit>false</Prefer32Bit>
-		<PublishReadyToRun>true</PublishReadyToRun>
+		<PublishReadyToRun>false</PublishReadyToRun>
 		<SatelliteResourceLanguages>en</SatelliteResourceLanguages>
 	</PropertyGroup>
 
