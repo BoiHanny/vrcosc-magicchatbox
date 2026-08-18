@@ -265,7 +265,13 @@ namespace vrcosc_magicchatbox.ViewModels
         [ObservableProperty]
         private bool _MasterSwitch = true;
         [ObservableProperty]
-        private bool _IsUiObservable = true;
+        [NotifyPropertyChangedFor(nameof(IsUiObservable))]
+        private bool _IsWindowOnScreen = true;
+        [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(IsUiObservable))]
+        private bool _IsTrayMenuOpen = false;
+
+        public bool IsUiObservable => IsWindowOnScreen || IsTrayMenuOpen;
 
         private int _selectedMenuIndex = 3;
 

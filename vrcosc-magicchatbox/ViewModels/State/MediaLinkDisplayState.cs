@@ -64,7 +64,7 @@ public sealed partial class MediaLinkDisplayState : ObservableObject
         set { _savedSessionSettings = value; OnPropertyChanged(); }
     }
 
-    private ObservableCollection<MediaLinkStyle> _mediaLinkSeekbarStyles;
+    private ObservableCollection<MediaLinkStyle> _mediaLinkSeekbarStyles = new();
     public ObservableCollection<MediaLinkStyle> MediaLinkSeekbarStyles
     {
         get => _mediaLinkSeekbarStyles;
@@ -84,6 +84,9 @@ public sealed partial class MediaLinkDisplayState : ObservableObject
         get => _selectedMediaLinkSeekbarStyle;
         set
         {
+            if (value == null)
+                return;
+
             if (_selectedMediaLinkSeekbarStyle != value)
             {
                 _selectedMediaLinkSeekbarStyle = value;

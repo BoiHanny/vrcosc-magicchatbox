@@ -41,7 +41,14 @@ public sealed partial class TtsAudioDisplayState : ObservableObject
     public Voice SelectedTikTokTTSVoice
     {
         get => _selectedTikTokTTSVoice;
-        set { _selectedTikTokTTSVoice = value; OnPropertyChanged(); }
+        set
+        {
+            if (value == null)
+                return;
+
+            _selectedTikTokTTSVoice = value;
+            OnPropertyChanged();
+        }
     }
 
     private List<AudioDevice> _auxOutputDevices = new();
@@ -69,7 +76,14 @@ public sealed partial class TtsAudioDisplayState : ObservableObject
     public AudioDevice SelectedPlaybackOutputDevice
     {
         get => _selectedPlaybackOutputDevice;
-        set { _selectedPlaybackOutputDevice = value; OnPropertyChanged(); }
+        set
+        {
+            if (value == null)
+                return;
+
+            _selectedPlaybackOutputDevice = value;
+            OnPropertyChanged();
+        }
     }
 
     public void UpdateToggleVoiceText(bool toggleVoiceWithV)

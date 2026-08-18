@@ -16,9 +16,17 @@ public interface IAppState : INotifyPropertyChanged
 
     int MainWindowBlurEffect { get; set; }
 
-    bool IsUiObservable
+    bool IsWindowOnScreen
     {
         get => true;
         set { }
     }
+
+    bool IsTrayMenuOpen
+    {
+        get => false;
+        set { }
+    }
+
+    bool IsUiObservable => IsWindowOnScreen || IsTrayMenuOpen;
 }

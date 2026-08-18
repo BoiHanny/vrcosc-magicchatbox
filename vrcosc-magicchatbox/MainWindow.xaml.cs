@@ -160,7 +160,7 @@ namespace vrcosc_magicchatbox
         private void UpdateUiObservable()
         {
             if (DataContext is ViewModel viewModel)
-                viewModel.IsUiObservable = IsVisible && WindowState != WindowState.Minimized;
+                viewModel.IsWindowOnScreen = IsVisible && WindowState != WindowState.Minimized;
         }
 
         private IntPtr WindowProc(IntPtr hwnd, int uMsg, IntPtr wParam, IntPtr lParam, ref bool handled)

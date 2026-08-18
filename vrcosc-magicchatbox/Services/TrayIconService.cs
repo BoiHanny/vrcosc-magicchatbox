@@ -67,8 +67,6 @@ public sealed class TrayIconService : ITrayIconService
     private int _mediaActionInProgress;
     private bool _disposed;
     private bool _menuOpen;
-    private bool _lastKnownMainWindowObservable;
-    private bool _settingUiObservable;
 
     public event EventHandler<bool>? MenuOpenChanged;
 
@@ -92,8 +90,6 @@ public sealed class TrayIconService : ITrayIconService
         _integrationSettings = integrationSettingsProvider.Value;
         _weatherSettings = weatherSettingsProvider.Value;
         _ttsSettings = ttsSettingsProvider.Value;
-        _lastKnownMainWindowObservable = _appState.IsUiObservable;
-        _appState.PropertyChanged += AppState_PropertyChanged;
     }
 
     public bool IsInitialized => _notifyIcon is not null && !_disposed;
@@ -550,7 +546,6 @@ public sealed class TrayIconService : ITrayIconService
             return;
 
         _disposed = true;
-        _appState.PropertyChanged -= AppState_PropertyChanged;
         HideMenu();
         if (_menuWindow is not null)
         {
@@ -621,37 +616,8 @@ public sealed class TrayIconService : ITrayIconService
             return;
 
         _menuOpen = open;
-        ApplyUiObservable();
+        _appState.IsTrayMenuOpen = open;
         MenuOpenChanged?.Invoke(this, open);
-    }
-
-    private void AppState_PropertyChanged(object? sender, PropertyChangedEventArgs e)
-    {
-        if (_settingUiObservable)
-            return;
-
-        if (e.PropertyName is not null && e.PropertyName != nameof(IAppState.IsUiObservable))
-            return;
-
-        _lastKnownMainWindowObservable = _appState.IsUiObservable;
-        ApplyUiObservable();
-    }
-
-    private void ApplyUiObservable()
-    {
-        bool desired = _lastKnownMainWindowObservable || _menuOpen;
-        if (_appState.IsUiObservable == desired)
-            return;
-
-        _settingUiObservable = true;
-        try
-        {
-            _appState.IsUiObservable = desired;
-        }
-        finally
-        {
-            _settingUiObservable = false;
-        }
     }
 
     private static bool IsControllablePlaybackState(GlobalSystemMediaTransportControlsSessionPlaybackStatus status)
