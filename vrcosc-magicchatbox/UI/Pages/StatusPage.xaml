@@ -419,7 +419,7 @@
                                                         <Image
                                                             Width="11"
                                                             Height="11"
-                                                            Source="/Img/Icons/Delete_ico.png" />
+                                                            Source="/MagicChatbox;component/Img/Icons/Delete_ico.png" />
                                                     </Button>
                                                     <Button
                                                         Grid.Column="2"
@@ -433,7 +433,7 @@
                                                         <Image
                                                             Width="11"
                                                             Height="11"
-                                                            Source="/Img/Icons/Edit_ico.png" />
+                                                            Source="/MagicChatbox;component/Img/Icons/Edit_ico.png" />
                                                     </Button>
                                                     <Button
                                                         Grid.Column="3"
@@ -554,7 +554,7 @@
                             Width="18"
                             Height="18"
                             RenderOptions.BitmapScalingMode="HighQuality"
-                            Source="/Img/Icons/Next_ico.png" />
+                            Source="/MagicChatbox;component/Img/Icons/Next_ico.png" />
                     </Button>
                 </StackPanel>
             </Grid>
@@ -736,29 +736,19 @@
                     Color="{StaticResource AccentLightBlueColor}" />
 
                 <!--
-                    Same three-stop diagonal used for every Integrations tile, so a status row and an
-                    integration tile read as the same kind of surface. Selected lightens each stop by
-                    one step rather than switching hue, so a selected row still reads as "this surface,
-                    picked" and not as a different kind of thing.
+                    The same subtle lift every Options section already gives its own card - not the
+                    brighter Integrations-tile gradient, which is tuned for a fixed white title and went
+                    pale and washed-out under the status text's own colors (light gray, or the green that
+                    means "this one is active"). Selected lightens the same two stops by one step rather
+                    than switching hue.
                 -->
-                <LinearGradientBrush x:Key="StatusRowSurfaceBrush" StartPoint="0,0" EndPoint="1,1" po:Freeze="True">
-                    <GradientStop Offset="0" Color="#FF4A3E85" />
-                    <GradientStop Offset="0.55" Color="#FF3A2E6B" />
-                    <GradientStop Offset="1" Color="#FF2C2252" />
+                <LinearGradientBrush x:Key="StatusRowSurfaceBrush" StartPoint="1,1" EndPoint="0,0" po:Freeze="True">
+                    <GradientStop Color="{StaticResource SurfaceGradientStartColor}" />
+                    <GradientStop Offset="1" Color="{StaticResource SurfaceGradientEndColor}" />
                 </LinearGradientBrush>
-                <LinearGradientBrush x:Key="StatusRowSelectedBrush" StartPoint="0,0" EndPoint="1,1" po:Freeze="True">
-                    <GradientStop Offset="0" Color="#FF5C4EA0" />
-                    <GradientStop Offset="0.55" Color="#FF4A3E85" />
-                    <GradientStop Offset="1" Color="#FF3A2E6B" />
-                </LinearGradientBrush>
-                <!--
-                    The same teal-to-mint the Integrations rail lights up with when a tile is actually
-                    reaching the chatbox. Here it marks the one status that is live right now, so a scan
-                    down a long list finds it without reading every row.
-                -->
-                <LinearGradientBrush x:Key="StatusRowActiveRailBrush" StartPoint="0,1" EndPoint="0,0" po:Freeze="True">
-                    <GradientStop Offset="0" Color="#3FE0D2" />
-                    <GradientStop Offset="1" Color="#9DDAA8" />
+                <LinearGradientBrush x:Key="StatusRowSelectedBrush" StartPoint="1,1" EndPoint="0,0" po:Freeze="True">
+                    <GradientStop Color="#FF4C4270" />
+                    <GradientStop Offset="1" Color="#FF554A7E" />
                 </LinearGradientBrush>
 
                 <Style x:Key="ActiveStatusText" TargetType="TextBlock">
@@ -837,7 +827,7 @@
             <ListBox.ItemTemplate>
                 <DataTemplate>
                     <Border
-                        Margin="5,4"
+                        Margin="5"
                         ClipToBounds="True"
                         CornerRadius="5"
                         MouseLeftButtonUp="StatusItemRow_MouseLeftButtonUp"
@@ -845,7 +835,7 @@
                         Tag="{Binding}">
                         <Grid>
                             <Grid.RowDefinitions>
-                                <RowDefinition Height="38" />
+                                <RowDefinition Height="35" />
                             </Grid.RowDefinitions>
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="35" />
@@ -857,29 +847,11 @@
                             </Grid.ColumnDefinitions>
 
                             <!--
-                                The one status actually reaching the chatbox gets the same live-rail
-                                treatment as an Integrations tile, so scanning a long list finds it
-                                without reading every row.
+                                No separate live-rail here: it would sit at the same edge the activate
+                                icon already fills edge to edge, so it would never be visible behind it.
+                                The green-bordered icon that replaces the plain activate button already
+                                says "this one is live" on its own.
                             -->
-                            <Border
-                                Grid.Column="0"
-                                Width="3"
-                                Margin="-1,-1,0,-1"
-                                HorizontalAlignment="Left"
-                                CornerRadius="5,0,0,5"
-                                IsHitTestVisible="False">
-                                <Border.Style>
-                                    <Style TargetType="Border">
-                                        <Setter Property="Background" Value="#1AFFFFFF" />
-                                        <Style.Triggers>
-                                            <DataTrigger Binding="{Binding IsActive}" Value="True">
-                                                <Setter Property="Background" Value="{StaticResource StatusRowActiveRailBrush}" />
-                                            </DataTrigger>
-                                        </Style.Triggers>
-                                    </Style>
-                                </Border.Style>
-                            </Border>
-
                             <Grid Grid.Column="0" Visibility="{Binding DataContext.IsSelectionMode, RelativeSource={RelativeSource AncestorType=ListBox}, Converter={StaticResource InverseBoolToVisibilityConverter}}">
                                 <Border
                                     Background="{StaticResource SurfaceButtonDarkBrush}"
@@ -889,7 +861,7 @@
                                     <Image
                                         Width="22"
                                         Height="22"
-                                        Source="/Img/Icons/ActivatedStatus_ico.png"
+                                        Source="/MagicChatbox;component/Img/Icons/ActivatedStatus_ico.png"
                                         Stretch="Uniform" />
                                 </Border>
                                 <Button
@@ -907,7 +879,7 @@
                                     <Image
                                         Width="22"
                                         Height="22"
-                                        Source="/Img/Icons/ActivateStatus_ico.png"
+                                        Source="/MagicChatbox;component/Img/Icons/ActivateStatus_ico.png"
                                         Stretch="Uniform" />
                                 </Button>
                             </Grid>
@@ -939,7 +911,7 @@
                                 <Image
                                     Width="20"
                                     Height="20"
-                                    Source="/Img/Icons/Delete_ico.png" />
+                                    Source="/MagicChatbox;component/Img/Icons/Delete_ico.png" />
                             </Button>
 
                             <TextBlock
@@ -984,7 +956,7 @@
                                     <Image
                                         Width="15"
                                         Height="15"
-                                        Source="/Img/Icons/Cross_ico.png" />
+                                        Source="/MagicChatbox;component/Img/Icons/Cross_ico.png" />
                                 </Button>
 
                                 <ToggleButton
@@ -1006,7 +978,7 @@
                                         Width="15"
                                         Height="15"
                                         RenderOptions.BitmapScalingMode="Linear"
-                                        Source="/Img/Icons/Edit_ico.png" />
+                                        Source="/MagicChatbox;component/Img/Icons/Edit_ico.png" />
                                 </ToggleButton>
 
                                 <ComboBox
@@ -1041,10 +1013,10 @@
                                             <Style>
                                                 <Style.Triggers>
                                                     <DataTrigger Binding="{Binding UseInCycle}" Value="True">
-                                                        <Setter Property="Image.Source" Value="/Img/Icons/Unfavorite_ico.png" />
+                                                        <Setter Property="Image.Source" Value="/MagicChatbox;component/Img/Icons/Unfavorite_ico.png" />
                                                     </DataTrigger>
                                                     <DataTrigger Binding="{Binding UseInCycle}" Value="False">
-                                                        <Setter Property="Image.Source" Value="/Img/Icons/Favorite_ico.png" />
+                                                        <Setter Property="Image.Source" Value="/MagicChatbox;component/Img/Icons/Favorite_ico.png" />
                                                     </DataTrigger>
                                                 </Style.Triggers>
                                             </Style>
