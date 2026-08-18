@@ -27,6 +27,10 @@ namespace vrcosc_magicchatbox.UI.Controls
             nameof(SelectedIndex), typeof(int), typeof(LazyPageHost),
             new PropertyMetadata(-1, OnStateChanged));
 
+        public static readonly DependencyProperty IsHostActiveProperty = DependencyProperty.Register(
+            nameof(IsHostActive), typeof(bool), typeof(LazyPageHost),
+            new PropertyMetadata(true, OnStateChanged));
+
         public static readonly DependencyProperty KeepAliveProperty = DependencyProperty.Register(
             nameof(KeepAlive), typeof(bool), typeof(LazyPageHost),
             new PropertyMetadata(true));
@@ -56,6 +60,12 @@ namespace vrcosc_magicchatbox.UI.Controls
         {
             get => (int)GetValue(SelectedIndexProperty);
             set => SetValue(SelectedIndexProperty, value);
+        }
+
+        public bool IsHostActive
+        {
+            get => (bool)GetValue(IsHostActiveProperty);
+            set => SetValue(IsHostActiveProperty, value);
         }
 
         public bool KeepAlive
@@ -103,7 +113,7 @@ namespace vrcosc_magicchatbox.UI.Controls
 
         private void Sync()
         {
-            if (PageIndex >= 0 && PageIndex == SelectedIndex)
+            if (IsHostActive && PageIndex >= 0 && PageIndex == SelectedIndex)
             {
                 Realize();
                 Visibility = Visibility.Visible;
@@ -139,7 +149,7 @@ namespace vrcosc_magicchatbox.UI.Controls
         {
             _teardown?.Stop();
 
-            if (PageIndex == SelectedIndex)
+            if (IsHostActive && PageIndex == SelectedIndex)
                 return;
 
             Release();

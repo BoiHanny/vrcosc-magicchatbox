@@ -214,16 +214,69 @@ public class LazyPageHostTests
         Assert.False(page!.IsAlive, "the released page is still rooted, so tearing it down reclaims nothing");
     }
 
+    [Fact]
+    public void Going_to_the_tray_releases_the_page_that_was_open()
+    {
+        Exception? failure = WpfHost.RunInWindow(
+            () => Host(pageIndex: 2, selectedIndex: 2, keepAlive: false,
+                       teardown: TimeSpan.FromMilliseconds(30)),
+            element =>
+            {
+                var host = (LazyPageHost)element;
+                element.UpdateLayout();
+                Assert.True(host.IsRealized);
+
+                host.IsHostActive = false;
+                PumpPast(TimeSpan.FromMilliseconds(30));
+
+                Assert.False(host.IsRealized);
+
+                host.IsHostActive = true;
+                element.UpdateLayout();
+
+                Assert.True(host.IsRealized);
+                Assert.Equal(Visibility.Visible, host.Visibility);
+            });
+
+        Assert.True(failure == null, "tray release: " + failure);
+    }
+
+    [Fact]
+    public void A_page_is_not_built_while_the_window_is_away()
+    {
+        Exception? failure = WpfHost.RunInWindow(
+            () => Host(pageIndex: 2, selectedIndex: 0, keepAlive: false, isActive: false),
+            element =>
+            {
+                var host = (LazyPageHost)element;
+
+                // Navigating from the tray menu must not build a page nobody can see yet.
+                host.SelectedIndex = 2;
+                element.UpdateLayout();
+
+                Assert.False(host.IsRealized);
+
+                host.IsHostActive = true;
+                element.UpdateLayout();
+
+                Assert.True(host.IsRealized);
+            });
+
+        Assert.True(failure == null, "deferred build: " + failure);
+    }
+
     private static LazyPageHost Host(
         int pageIndex,
         int selectedIndex,
         bool keepAlive = true,
-        TimeSpan? teardown = null)
+        TimeSpan? teardown = null,
+        bool isActive = true)
     {
         var host = new LazyPageHost
         {
             PageTemplate = (DataTemplate)XamlReader.Parse(TemplateXaml),
             KeepAlive = keepAlive,
+            IsHostActive = isActive,
             PageIndex = pageIndex,
         };
 
