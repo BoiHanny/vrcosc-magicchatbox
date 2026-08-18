@@ -40,6 +40,8 @@ namespace vrcosc_magicchatbox.Classes.Modules
             { "Tracker", "T" },
             { "BaseStation", "B" }
         };
+        private static readonly TimeSpan RefreshInterval = TimeSpan.FromSeconds(15);
+
         private IDisposable? _sessionLease;
 
         private CVRSystem? _vrSystem;
@@ -49,6 +51,8 @@ namespace vrcosc_magicchatbox.Classes.Modules
 
         private ObservableCollection<TrackerDevice>? _observedDevices;
         private IReadOnlyList<TrackerDevice> _deviceSnapshot = Array.Empty<TrackerDevice>();
+        private readonly object _lock = new();
+        private Timer? _refreshTimer;
         private bool _disposed;
 
         private readonly ISettingsProvider<TrackerBatterySettings> _settingsProvider;
@@ -57,19 +61,47 @@ namespace vrcosc_magicchatbox.Classes.Modules
 
         public string Name => "TrackerBattery";
         public bool IsEnabled { get; set; } = true;
-        public bool IsRunning => _sessionLease != null && _session.IsAttached;
+        public bool IsRunning { get; private set; }
         public Task InitializeAsync(CancellationToken ct = default) { Initialize(); return Task.CompletedTask; }
-        public Task StartAsync(CancellationToken ct = default) => Task.CompletedTask;
-        public Task StopAsync(CancellationToken ct = default) { ReleaseSession("StopAsync"); return Task.CompletedTask; }
+
+        public Task StartAsync(CancellationToken ct = default)
+        {
+            lock (_lock)
+            {
+                if (_disposed || IsRunning)
+                    return Task.CompletedTask;
+
+                _refreshTimer = new Timer(_ => RefreshTick(), null, TimeSpan.Zero, RefreshInterval);
+                IsRunning = true;
+            }
+
+            return Task.CompletedTask;
+        }
+
+        public Task StopAsync(CancellationToken ct = default)
+        {
+            lock (_lock)
+            {
+                _refreshTimer?.Dispose();
+                _refreshTimer = null;
+                IsRunning = false;
+            }
+
+            ReleaseSession("StopAsync");
+            return Task.CompletedTask;
+        }
 
         public void Dispose()
         {
-            if (_disposed)
+            lock (_lock)
             {
-                return;
-            }
+                if (_disposed)
+                {
+                    return;
+                }
 
-            _disposed = true;
+                _disposed = true;
+            }
 
             _consentService.ConsentChanged -= OnConsentChanged;
             _tracker.PropertyChanged -= OnTrackerStateChanged;
@@ -81,7 +113,23 @@ namespace vrcosc_magicchatbox.Classes.Modules
             }
             _observedDevices = null;
 
-            ReleaseSession("Dispose");
+            StopAsync().GetAwaiter().GetResult();
+        }
+
+        private void RefreshTick()
+        {
+            if (_disposed)
+                return;
+
+            try
+            {
+                UpdateDevices();
+                BuildChatboxString();
+            }
+            catch (Exception ex)
+            {
+                Logging.WriteInfo($"Tracker battery refresh failed: {ex.Message}");
+            }
         }
 
         private readonly IAppState _appState;
@@ -345,8 +393,6 @@ namespace vrcosc_magicchatbox.Classes.Modules
 
         public string BuildChatboxString()
         {
-            UpdateDevices();
-
             bool globalEmergency = Settings.GlobalEmergency;
 
             IEnumerable<TrackerDevice> activeDevices = DeviceSnapshot

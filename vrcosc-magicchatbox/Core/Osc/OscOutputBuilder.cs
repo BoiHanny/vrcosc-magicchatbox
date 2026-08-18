@@ -50,8 +50,9 @@ public sealed class OscOutputBuilder
         string suffix = ExpandNewlines(_appSettings.OscMessageSuffix);
         bool isVR = _appState.IsVRRunning;
 
-        IEnumerable<string> orderedKeys = _integrationDisplay.IntegrationSortOrder?.Count > 0
-            ? _integrationDisplay.IntegrationSortOrder
+        IReadOnlyList<string> sortOrder = _integrationDisplay.IntegrationSortOrderSnapshot;
+        IEnumerable<string> orderedKeys = sortOrder.Count > 0
+            ? sortOrder
             : IntegrationDisplayState.DefaultSortOrder;
 
         var usedKeys = new HashSet<string>(StringComparer.OrdinalIgnoreCase);

@@ -81,14 +81,7 @@ public sealed class MediaLinkOscProvider : IOscProvider
 
     #region Core MediaLink logic (moved from OSCController.AddMediaLink)
 
-    private IReadOnlyList<MediaSessionInfo> SnapshotSessions()
-    {
-        var live = _mediaLink.MediaSessions;
-        if (live == null || live.Count == 0)
-            return Array.Empty<MediaSessionInfo>();
-
-        return live.ToArray();
-    }
+    private IReadOnlyList<MediaSessionInfo> SnapshotSessions() => _mediaLink.MediaSessionsSnapshot;
 
     private string BuildMediaText(OscBuildContext context)
     {

@@ -270,18 +270,7 @@ public partial class LyricsModule : ObservableObject, IModule
             candidates);
     }
 
-    private List<MediaSessionInfo> SnapshotSessions()
-    {
-        try
-        {
-            var sessions = _mediaLink.MediaSessions;
-            return sessions == null ? new List<MediaSessionInfo>() : sessions.ToList();
-        }
-        catch (InvalidOperationException)
-        {
-            return new List<MediaSessionInfo>();
-        }
-    }
+    private IReadOnlyList<MediaSessionInfo> SnapshotSessions() => _mediaLink.MediaSessionsSnapshot;
 
     private PositionSource? ResolvePosition()
     {

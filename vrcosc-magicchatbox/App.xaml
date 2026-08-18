@@ -474,7 +474,7 @@
                                 CornerRadius="7,0,7,0"
                                 SnapsToDevicePixels="True">
                                 <Border.Background>
-                                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                                    <LinearGradientBrush po:Freeze="True" StartPoint="0,0" EndPoint="1,1">
                                         <GradientStop Color="#22240E54" />
                                         <GradientStop Offset="1" Color="#333B3054" />
                                     </LinearGradientBrush>
@@ -843,6 +843,7 @@
                                     <Setter TargetName="buttonBorder" Property="Effect">
                                         <Setter.Value>
                                             <DropShadowEffect
+                                                po:Freeze="True"
                                                 BlurRadius="9"
                                                 ShadowDepth="0"
                                                 Color="#B4A4DB" />
@@ -886,7 +887,7 @@
                                     Opacity="0"
                                     SnapsToDevicePixels="True">
                                     <Border.Background>
-                                        <LinearGradientBrush StartPoint="0,1" EndPoint="1,0">
+                                        <LinearGradientBrush po:Freeze="True" StartPoint="0,1" EndPoint="1,0">
                                             <GradientStop Offset="0" Color="#3FE0D2" />
                                             <GradientStop Offset="0.35" Color="#6E9BFF" />
                                             <GradientStop Offset="0.65" Color="#B96BFF" />
@@ -906,7 +907,7 @@
                                         Width="16"
                                         HorizontalAlignment="Left">
                                         <Border.Background>
-                                            <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                                            <LinearGradientBrush po:Freeze="True" StartPoint="0,0" EndPoint="1,0">
                                                 <GradientStop Offset="0" Color="#00FFFFFF" />
                                                 <GradientStop Offset="0.5" Color="#A6FFFFFF" />
                                                 <GradientStop Offset="1" Color="#00FFFFFF" />
@@ -929,7 +930,7 @@
                                     Opacity="0.55"
                                     SnapsToDevicePixels="True">
                                     <Border.BorderBrush>
-                                        <LinearGradientBrush StartPoint="0,1" EndPoint="1,0">
+                                        <LinearGradientBrush po:Freeze="True" StartPoint="0,1" EndPoint="1,0">
                                             <GradientStop Offset="0" Color="#5FE6D8" />
                                             <GradientStop Offset="0.5" Color="#A97BFF" />
                                             <GradientStop Offset="1" Color="#FF8AD2" />
@@ -960,6 +961,7 @@
                                     <Setter TargetName="buttonBorder" Property="Effect">
                                         <Setter.Value>
                                             <DropShadowEffect
+                                                po:Freeze="True"
                                                 BlurRadius="11"
                                                 RenderingBias="Performance"
                                                 ShadowDepth="0"
@@ -1030,6 +1032,7 @@
                                     <Setter TargetName="buttonBorder" Property="Effect">
                                         <Setter.Value>
                                             <DropShadowEffect
+                                                po:Freeze="True"
                                                 BlurRadius="5"
                                                 ShadowDepth="0"
                                                 Color="#B9CAF7" />
@@ -1082,6 +1085,7 @@
                                     <Setter TargetName="buttonBorder" Property="Effect">
                                         <Setter.Value>
                                             <DropShadowEffect
+                                                po:Freeze="True"
                                                 BlurRadius="5"
                                                 ShadowDepth="0"
                                                 Color="#B9CAF7" />
@@ -1238,7 +1242,7 @@
                                             RadiusX="5"
                                             RadiusY="5">
                                             <Rectangle.Fill>
-                                                <LinearGradientBrush StartPoint="0.5,0" EndPoint="1.5,1">
+                                                <LinearGradientBrush po:Freeze="True" StartPoint="0.5,0" EndPoint="1.5,1">
                                                     <GradientStop Color="#FF26A3FE" />
                                                     <GradientStop Offset="1" Color="#FFA326FE" />
                                                 </LinearGradientBrush>
@@ -1428,6 +1432,7 @@
                                     <Setter TargetName="track" Property="Effect">
                                         <Setter.Value>
                                             <DropShadowEffect
+                                                po:Freeze="True"
                                                 BlurRadius="12"
                                                 Opacity="0.55"
                                                 RenderingBias="Performance"
@@ -1599,49 +1604,6 @@
                     </Setter.Value>
                 </Setter>
             </Style>
-            <LinearGradientBrush x:Key="ComboBox.Static.Background" po:Freeze="True" StartPoint="0,0" EndPoint="0,1">
-                <GradientStop Offset="0.0" Color="#FFF0F0F0" />
-                <GradientStop Offset="1.0" Color="#FFE5E5E5" />
-            </LinearGradientBrush>
-            <SolidColorBrush x:Key="ComboBox.Static.Border" po:Freeze="True" Color="#FFACACAC" />
-            <SolidColorBrush x:Key="ComboBox.Static.Glyph" po:Freeze="True" Color="#FF606060" />
-            <SolidColorBrush x:Key="ComboBox.Static.Editable.Background" po:Freeze="True" Color="#FFFFFFFF" />
-            <SolidColorBrush x:Key="ComboBox.Static.Editable.Border" po:Freeze="True" Color="#FFABADB3" />
-            <SolidColorBrush x:Key="ComboBox.Static.Editable.Button.Background" po:Freeze="True" Color="Transparent" />
-            <SolidColorBrush x:Key="ComboBox.Static.Editable.Button.Border" po:Freeze="True" Color="Transparent" />
-            <LinearGradientBrush x:Key="ComboBox.MouseOver.Background" po:Freeze="True" StartPoint="0,0" EndPoint="0,1">
-                <GradientStop Offset="0.0" Color="#FFECF4FC" />
-                <GradientStop Offset="1.0" Color="#FFDCECFC" />
-            </LinearGradientBrush>
-            <SolidColorBrush x:Key="ComboBox.MouseOver.Border" po:Freeze="True" Color="#FF7EB4EA" />
-            <SolidColorBrush x:Key="ComboBox.MouseOver.Glyph" po:Freeze="True" Color="#FF000000" />
-            <SolidColorBrush x:Key="ComboBox.MouseOver.Editable.Background" po:Freeze="True" Color="#FFFFFFFF" />
-            <SolidColorBrush x:Key="ComboBox.MouseOver.Editable.Border" po:Freeze="True" Color="#FF7EB4EA" />
-            <LinearGradientBrush x:Key="ComboBox.MouseOver.Editable.Button.Background" po:Freeze="True" StartPoint="0,0" EndPoint="0,1">
-                <GradientStop Offset="0.0" Color="#FFEBF4FC" />
-                <GradientStop Offset="1.0" Color="#FFDCECFC" />
-            </LinearGradientBrush>
-            <SolidColorBrush x:Key="ComboBox.MouseOver.Editable.Button.Border" po:Freeze="True" Color="#FF7EB4EA" />
-            <LinearGradientBrush x:Key="ComboBox.Pressed.Background" po:Freeze="True" StartPoint="0,0" EndPoint="0,1">
-                <GradientStop Offset="0.0" Color="#FFDAECFC" />
-                <GradientStop Offset="1.0" Color="#FFC4E0FC" />
-            </LinearGradientBrush>
-            <SolidColorBrush x:Key="ComboBox.Pressed.Border" po:Freeze="True" Color="#FF569DE5" />
-            <SolidColorBrush x:Key="ComboBox.Pressed.Glyph" po:Freeze="True" Color="#FF000000" />
-            <SolidColorBrush x:Key="ComboBox.Pressed.Editable.Background" po:Freeze="True" Color="#FFFFFFFF" />
-            <SolidColorBrush x:Key="ComboBox.Pressed.Editable.Border" po:Freeze="True" Color="#FF569DE5" />
-            <LinearGradientBrush x:Key="ComboBox.Pressed.Editable.Button.Background" po:Freeze="True" StartPoint="0,0" EndPoint="0,1">
-                <GradientStop Offset="0.0" Color="#FFDAEBFC" />
-                <GradientStop Offset="1.0" Color="#FFC4E0FC" />
-            </LinearGradientBrush>
-            <SolidColorBrush x:Key="ComboBox.Pressed.Editable.Button.Border" po:Freeze="True" Color="#FF569DE5" />
-            <SolidColorBrush x:Key="ComboBox.Disabled.Background" po:Freeze="True" Color="#FFF0F0F0" />
-            <SolidColorBrush x:Key="ComboBox.Disabled.Border" po:Freeze="True" Color="#FFD9D9D9" />
-            <SolidColorBrush x:Key="ComboBox.Disabled.Glyph" po:Freeze="True" Color="#FFBFBFBF" />
-            <SolidColorBrush x:Key="ComboBox.Disabled.Editable.Background" po:Freeze="True" Color="#FFFFFFFF" />
-            <SolidColorBrush x:Key="ComboBox.Disabled.Editable.Border" po:Freeze="True" Color="#FFBFBFBF" />
-            <SolidColorBrush x:Key="ComboBox.Disabled.Editable.Button.Background" po:Freeze="True" Color="Transparent" />
-            <SolidColorBrush x:Key="ComboBox.Disabled.Editable.Button.Border" po:Freeze="True" Color="Transparent" />
             <local:CountToVisibilityConverter x:Key="CountToVisibilityConverter" />
             <local:CharacterCountToBoolConverter x:Key="CharacterCountToBoolConverter" />
             <local:BoolToBlurEffectConverter x:Key="BoolToBlurEffectConverter" />

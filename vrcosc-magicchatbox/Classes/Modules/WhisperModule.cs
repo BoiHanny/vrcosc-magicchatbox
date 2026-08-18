@@ -67,7 +67,7 @@ namespace vrcosc_magicchatbox.Classes.Modules
 
         private WhisperModuleSettings()
         {
-            availableDevices = new List<RecordingDeviceInfo>();
+            AvailableDevices = new List<RecordingDeviceInfo>();
             RefreshSpeechToTextLanguages();
         }
 
@@ -232,13 +232,13 @@ namespace vrcosc_magicchatbox.Classes.Modules
 
         private void NormalizeSelectedDeviceIndex()
         {
-            if (!availableDevices.Any())
+            if (!AvailableDevices.Any())
             {
                 SelectedDeviceIndex = -1;
                 return;
             }
 
-            if (selectedDeviceIndex < 0 || selectedDeviceIndex >= availableDevices.Count)
+            if (SelectedDeviceIndex < 0 || SelectedDeviceIndex >= AvailableDevices.Count)
                 SelectedDeviceIndex = 0;
         }
 

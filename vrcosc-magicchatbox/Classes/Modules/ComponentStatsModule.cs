@@ -105,6 +105,7 @@ public class ComponentStatsModule : IModule
     private readonly Lazy<IStatePersistenceCoordinator> _persistence;
     private readonly IPrivacyConsentService _consentService;
     private readonly IToastService? _toast;
+    private readonly IProcessPresenceService? _processPresence;
 
     public ComponentStatsModule(
         ISettingsProvider<ComponentStatsSettings> settingsProvider,
@@ -118,7 +119,8 @@ public class ComponentStatsModule : IModule
         Lazy<IStatePersistenceCoordinator> persistence,
         IHardwareMonitorService hwService,
         IPrivacyConsentService consentService,
-        IToastService? toast = null)
+        IToastService? toast = null,
+        IProcessPresenceService? processPresence = null)
     {
         _settingsProvider = settingsProvider;
         _staticSettingsProvider = settingsProvider;
@@ -133,6 +135,7 @@ public class ComponentStatsModule : IModule
         _hwService = hwService;
         _consentService = consentService;
         _toast = toast;
+        _processPresence = processPresence;
 
         Settings.PropertyChanged += (_, e) =>
         {
@@ -1105,18 +1108,10 @@ public class ComponentStatsModule : IModule
 
     public bool IsVRRunning()
     {
-        Process[] steamVrProcesses = Array.Empty<Process>();
-        Process[] oculusProcesses = Array.Empty<Process>();
         try
         {
-            steamVrProcesses = Process.GetProcessesByName("vrmonitor");
-            bool isSteamVRRunning = steamVrProcesses.Length > 0;
-            bool isOculusRunning = false;
-            if (AS.CountOculusSystemAsVR)
-            {
-                oculusProcesses = Process.GetProcessesByName("OVRServer_x64");
-                isOculusRunning = oculusProcesses.Length > 0;
-            }
+            bool isSteamVRRunning = IsVrProcessPresent("vrmonitor");
+            bool isOculusRunning = AS.CountOculusSystemAsVR && IsVrProcessPresent("OVRServer_x64");
 
             bool isVRRunning = isSteamVRRunning || isOculusRunning;
 
@@ -1132,12 +1127,22 @@ public class ComponentStatsModule : IModule
             Logging.WriteException(ex, MSGBox: false);
             return false;
         }
+    }
+
+    private bool IsVrProcessPresent(string processName)
+    {
+        if (_processPresence != null)
+            return _processPresence.IsRunning(processName);
+
+        var processes = Process.GetProcessesByName(processName);
+        try
+        {
+            return processes.Length > 0;
+        }
         finally
         {
-            foreach (var proc in steamVrProcesses)
-                proc.Dispose();
-            foreach (var proc in oculusProcesses)
-                proc.Dispose();
+            foreach (var process in processes)
+                process.Dispose();
         }
     }
 

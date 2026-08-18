@@ -162,7 +162,7 @@ public sealed class ScanLoopService : IDisposable
     private bool IsChatOverrideActive()
     {
         return LiveTyping.IsHolding
-            || IsChatOverrideActive(_chatStatus.ScanPause, _chatStatus.LastMessages);
+            || IsChatOverrideActive(_chatStatus.ScanPause, _chatStatus.LastMessagesSnapshot);
     }
 
     public static bool IsChatOverrideActive(bool scanPause, IEnumerable<ChatItem>? lastMessages)

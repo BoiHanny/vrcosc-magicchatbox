@@ -95,6 +95,9 @@ public partial class VrPerformanceModule : ObservableObject, IModule
 
     private void Tick()
     {
+        if (_disposed)
+            return;
+
         try
         {
             if (!_consent.IsApproved(PrivacyHook.VrPerformance))

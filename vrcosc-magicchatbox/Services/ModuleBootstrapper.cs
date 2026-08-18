@@ -1,5 +1,6 @@
 ﻿using CommunityToolkit.Mvvm.Messaging;
 using System;
+using System.Collections.Generic;
 using System.Net.Http;
 using System.Threading.Tasks;
 using vrcosc_magicchatbox.Classes.DataAndSecurity;
@@ -60,8 +61,41 @@ public class ModuleBootstrapper
     private readonly IPrivacyConsentService _consentService;
     private readonly IToastService _toast;
     private readonly TaskCompletionSource _startupComplete = new(TaskCreationOptions.RunContinuationsAsynchronously);
+    private readonly object _teardownLock = new();
+    private List<Action> _teardownActions = new();
 
     public void SignalStartupComplete() => _startupComplete.TrySetResult();
+
+    private void TrackSubscription(Action unsubscribe)
+    {
+        lock (_teardownLock)
+            _teardownActions.Add(unsubscribe);
+    }
+
+    public void TeardownSubscriptions()
+    {
+        List<Action> actions;
+        lock (_teardownLock)
+        {
+            if (_teardownActions.Count == 0)
+                return;
+
+            actions = _teardownActions;
+            _teardownActions = new List<Action>();
+        }
+
+        foreach (var unsubscribe in actions)
+        {
+            try
+            {
+                unsubscribe();
+            }
+            catch (Exception ex)
+            {
+                Logging.WriteInfo($"ModuleBootstrapper: teardown action failed: {ex.Message}");
+            }
+        }
+    }
 
     public ModuleBootstrapper(
         IModuleHost host,
@@ -260,6 +294,7 @@ public class ModuleBootstrapper
                 _host.Pulsoid = pulsoid;
                 _host.RegisterModule(pulsoid);
                 integrationSettings.PropertyChanged += pulsoid.PropertyChangedHandler;
+                TrackSubscription(() => integrationSettings.PropertyChanged -= pulsoid.PropertyChangedHandler);
 
                 pulsoid.RestoreAuthStateFromSettings();
                 _ = Task.Run(async () =>
@@ -281,6 +316,7 @@ public class ModuleBootstrapper
                 _host.Soundpad = soundpad;
                 _host.RegisterModule(soundpad);
                 integrationSettings.PropertyChanged += soundpad.PropertyChangedHandler;
+                TrackSubscription(() => integrationSettings.PropertyChanged -= soundpad.PropertyChangedHandler);
             }
 
             if (twitch != null)
@@ -294,6 +330,7 @@ public class ModuleBootstrapper
                 _host.TikTokLive = tikTokLive;
                 _host.RegisterModule(tikTokLive);
                 integrationSettings.PropertyChanged += tikTokLive.PropertyChangedHandler;
+                TrackSubscription(() => integrationSettings.PropertyChanged -= tikTokLive.PropertyChangedHandler);
             }
 
             if (discord != null)
@@ -301,6 +338,7 @@ public class ModuleBootstrapper
                 _host.Discord = discord;
                 _host.RegisterModule(discord);
                 integrationSettings.PropertyChanged += discord.PropertyChangedHandler;
+                TrackSubscription(() => integrationSettings.PropertyChanged -= discord.PropertyChangedHandler);
             }
 
             if (spotify != null)
@@ -308,6 +346,7 @@ public class ModuleBootstrapper
                 _host.Spotify = spotify;
                 _host.RegisterModule(spotify);
                 integrationSettings.PropertyChanged += spotify.PropertyChangedHandler;
+                TrackSubscription(() => integrationSettings.PropertyChanged -= spotify.PropertyChangedHandler);
                 if (integrationSettings.IntgrSpotify && spotify.Settings.AutoConnectOnStartup)
                 {
                     _ = Task.Run(async () =>
@@ -337,6 +376,7 @@ public class ModuleBootstrapper
                 _host.RegisterModule(vrPerformance);
 
                 integrationSettings.PropertyChanged += vrPerformance.PropertyChangedHandler;
+                TrackSubscription(() => integrationSettings.PropertyChanged -= vrPerformance.PropertyChangedHandler);
 
                 if (integrationSettings.IntgrVrPerformance)
                     _ = vrPerformance.StartAsync();
@@ -347,6 +387,7 @@ public class ModuleBootstrapper
                 _host.Lyrics = lyrics;
                 _host.RegisterModule(lyrics);
                 integrationSettings.PropertyChanged += lyrics.PropertyChangedHandler;
+                TrackSubscription(() => integrationSettings.PropertyChanged -= lyrics.PropertyChangedHandler);
 
                 if (integrationSettings.IntgrLyrics)
                     _ = lyrics.StartAsync();
@@ -357,11 +398,12 @@ public class ModuleBootstrapper
                 _host.VrcRadar = vrcRadar;
                 _host.RegisterModule(vrcRadar);
                 integrationSettings.PropertyChanged += vrcRadar.PropertyChangedHandler;
+                TrackSubscription(() => integrationSettings.PropertyChanged -= vrcRadar.PropertyChangedHandler);
             }
 
             if (vrcRadar != null)
             {
-                vrcRadar.OnVrcWorldStateChanged += () =>
+                void OnVrcWorldStateChanged()
                 {
                     _ = Task.Run(async () =>
                     {
@@ -378,9 +420,12 @@ public class ModuleBootstrapper
                         }
                         catch (Exception ex) { Logging.WriteInfo($"Discord RP update failed: {ex.Message}"); }
                     });
-                };
+                }
 
-                _discordSettingsProvider.Value.PropertyChanged += (_, e) =>
+                vrcRadar.OnVrcWorldStateChanged += OnVrcWorldStateChanged;
+                TrackSubscription(() => vrcRadar.OnVrcWorldStateChanged -= OnVrcWorldStateChanged);
+
+                void OnDiscordRichPresenceSettingsChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
                 {
                     if (e.PropertyName is nameof(DiscordSettings.EnableRichPresence)
                         or nameof(DiscordSettings.RichPresenceDetails)
@@ -418,24 +463,39 @@ public class ModuleBootstrapper
                             catch (Exception ex) { Logging.WriteInfo($"Discord RP toggle handler failed: {ex.Message}"); }
                         });
                     }
-                };
+                }
+
+                _discordSettingsProvider.Value.PropertyChanged += OnDiscordRichPresenceSettingsChanged;
+                TrackSubscription(() => _discordSettingsProvider.Value.PropertyChanged -= OnDiscordRichPresenceSettingsChanged);
             }
 
             if (_appState is System.ComponentModel.INotifyPropertyChanged notifier)
             {
                 if (pulsoid != null)
+                {
                     notifier.PropertyChanged += pulsoid.PropertyChangedHandler;
+                    TrackSubscription(() => notifier.PropertyChanged -= pulsoid.PropertyChangedHandler);
+                }
 
                 if (soundpad != null)
+                {
                     notifier.PropertyChanged += soundpad.PropertyChangedHandler;
+                    TrackSubscription(() => notifier.PropertyChanged -= soundpad.PropertyChangedHandler);
+                }
 
                 if (tikTokLive != null)
+                {
                     notifier.PropertyChanged += tikTokLive.PropertyChangedHandler;
+                    TrackSubscription(() => notifier.PropertyChanged -= tikTokLive.PropertyChangedHandler);
+                }
 
                 if (vrcRadar != null)
+                {
                     notifier.PropertyChanged += vrcRadar.PropertyChangedHandler;
+                    TrackSubscription(() => notifier.PropertyChanged -= vrcRadar.PropertyChangedHandler);
+                }
 
-                notifier.PropertyChanged += (_, e) =>
+                void OnMasterSwitchChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
                 {
                     if (e.PropertyName == nameof(IAppState.MasterSwitch) && !_appState.MasterSwitch)
                     {
@@ -445,7 +505,10 @@ public class ModuleBootstrapper
                             catch (Exception ex) { Logging.WriteInfo($"Discord RP clear on master off failed: {ex.Message}"); }
                         });
                     }
-                };
+                }
+
+                notifier.PropertyChanged += OnMasterSwitchChanged;
+                TrackSubscription(() => notifier.PropertyChanged -= OnMasterSwitchChanged);
             }
         });
 

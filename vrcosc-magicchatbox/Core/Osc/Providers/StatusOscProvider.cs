@@ -69,13 +69,14 @@ public sealed class StatusOscProvider : IOscProvider
                 return new OscSegment { Text = afkText };
         }
 
-        if (!_intgr.IntgrStatus || _chatStatus.StatusList == null || _chatStatus.StatusList.Count == 0)
+        if (!_intgr.IntgrStatus || _chatStatus.StatusListSnapshot.Count == 0)
             return null;
 
         if (_app.CycleStatus)
             CycleStatus();
 
-        StatusItem? active = _chatStatus.StatusList.FirstOrDefault(item => item.IsActive);
+        var statusList = _chatStatus.StatusListSnapshot;
+        StatusItem? active = statusList.FirstOrDefault(item => item.IsActive);
         if (active == null) return null;
 
         bool prefixIcon = _app.PrefixIconStatus;
@@ -98,7 +99,8 @@ public sealed class StatusOscProvider : IOscProvider
 
     private void CycleStatus()
     {
-        if (_chatStatus.StatusList == null || _chatStatus.StatusList.Count == 0)
+        var statusList = _chatStatus.StatusListSnapshot;
+        if (statusList.Count == 0)
             return;
 
         if (DateTime.Now - _oscDisplay.LastSwitchCycle < TimeSpan.FromSeconds(_app.SwitchStatusInterval))
@@ -107,7 +109,7 @@ public sealed class StatusOscProvider : IOscProvider
         if (_app.CycleOverrideCurrentGroup && !string.IsNullOrEmpty(_app.CycleOverrideGroupId))
         {
             var overrideGroupId = _app.CycleOverrideGroupId;
-            var overrideItems = _chatStatus.StatusList
+            var overrideItems = statusList
                 .Where(item => item.UseInCycle && item.GroupId == overrideGroupId)
                 .ToList();
 
@@ -118,12 +120,12 @@ public sealed class StatusOscProvider : IOscProvider
             }
         }
 
-        var activeGroupIds = _chatStatus.GroupList
+        var activeGroupIds = _chatStatus.GroupListSnapshot
             .Where(g => g.IsActiveForCycle)
             .Select(g => g.GroupId)
             .ToHashSet();
 
-        var cycleItems = _chatStatus.StatusList
+        var cycleItems = statusList
             .Where(item => item.UseInCycle
                            && (item.GroupId == null || activeGroupIds.Contains(item.GroupId)))
             .ToList();
@@ -181,9 +183,7 @@ public sealed class StatusOscProvider : IOscProvider
 
     private void ClearActiveItem()
     {
-        var statusList = _chatStatus.StatusList;
-        if (statusList == null)
-            return;
+        var statusList = _chatStatus.StatusListSnapshot;
 
         for (int i = 0; i < statusList.Count; i++)
         {

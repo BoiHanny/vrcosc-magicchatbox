@@ -1,11 +1,27 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
+using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Collections.Specialized;
+using System.Linq;
+using System.Threading;
 using vrcosc_magicchatbox.ViewModels.Models;
 
 namespace vrcosc_magicchatbox.ViewModels.State;
 
 public partial class ChatStatusDisplayState : ObservableObject
 {
+    public ChatStatusDisplayState()
+    {
+        _statusList.CollectionChanged += OnStatusListChanged;
+        _groupList.CollectionChanged += OnGroupListChanged;
+        _lastMessages.CollectionChanged += OnLastMessagesChanged;
+
+        RefreshStatusListSnapshot();
+        RefreshGroupListSnapshot();
+        RefreshLastMessagesSnapshot();
+    }
+
     [ObservableProperty] private bool _scanPause;
 
     private int _scanPauseCountDown;
@@ -31,25 +47,118 @@ public partial class ChatStatusDisplayState : ObservableObject
     [ObservableProperty] private string _chatAutocompleteSuggestion = string.Empty;
     [ObservableProperty] private bool _chatAutocompleteActive = false;
 
+    private IReadOnlyList<StatusItem> _statusListSnapshot = Array.Empty<StatusItem>();
+
     private ObservableCollection<StatusItem> _statusList = new();
     public ObservableCollection<StatusItem> StatusList
     {
         get => _statusList;
-        set { _statusList = value; OnPropertyChanged(); }
+        set
+        {
+            var replacement = value ?? new ObservableCollection<StatusItem>();
+
+            if (!ReferenceEquals(_statusList, replacement))
+            {
+                _statusList.CollectionChanged -= OnStatusListChanged;
+                _statusList = replacement;
+                _statusList.CollectionChanged += OnStatusListChanged;
+            }
+
+            RefreshStatusListSnapshot();
+            OnPropertyChanged();
+        }
     }
+
+    public IReadOnlyList<StatusItem> StatusListSnapshot => Volatile.Read(ref _statusListSnapshot);
+
+    private IReadOnlyList<StatusGroup> _groupListSnapshot = Array.Empty<StatusGroup>();
 
     private ObservableCollection<StatusGroup> _groupList = new();
     public ObservableCollection<StatusGroup> GroupList
     {
         get => _groupList;
-        set { _groupList = value; OnPropertyChanged(); }
+        set
+        {
+            var replacement = value ?? new ObservableCollection<StatusGroup>();
+
+            if (!ReferenceEquals(_groupList, replacement))
+            {
+                _groupList.CollectionChanged -= OnGroupListChanged;
+                _groupList = replacement;
+                _groupList.CollectionChanged += OnGroupListChanged;
+            }
+
+            RefreshGroupListSnapshot();
+            OnPropertyChanged();
+        }
     }
+
+    public IReadOnlyList<StatusGroup> GroupListSnapshot => Volatile.Read(ref _groupListSnapshot);
+
+    private IReadOnlyList<ChatItem> _lastMessagesSnapshot = Array.Empty<ChatItem>();
 
     private ObservableCollection<ChatItem> _lastMessages = new();
     public ObservableCollection<ChatItem> LastMessages
     {
         get => _lastMessages;
-        set { _lastMessages = value; OnPropertyChanged(); }
+        set
+        {
+            var replacement = value ?? new ObservableCollection<ChatItem>();
+
+            if (!ReferenceEquals(_lastMessages, replacement))
+            {
+                _lastMessages.CollectionChanged -= OnLastMessagesChanged;
+                _lastMessages = replacement;
+                _lastMessages.CollectionChanged += OnLastMessagesChanged;
+            }
+
+            RefreshLastMessagesSnapshot();
+            OnPropertyChanged();
+        }
+    }
+
+    public IReadOnlyList<ChatItem> LastMessagesSnapshot => Volatile.Read(ref _lastMessagesSnapshot);
+
+    private void OnStatusListChanged(object? sender, NotifyCollectionChangedEventArgs e)
+        => RefreshStatusListSnapshot();
+
+    private void OnGroupListChanged(object? sender, NotifyCollectionChangedEventArgs e)
+        => RefreshGroupListSnapshot();
+
+    private void OnLastMessagesChanged(object? sender, NotifyCollectionChangedEventArgs e)
+        => RefreshLastMessagesSnapshot();
+
+    private void RefreshStatusListSnapshot()
+    {
+        var source = _statusList;
+
+        IReadOnlyList<StatusItem> snapshot = source.Count == 0
+            ? Array.Empty<StatusItem>()
+            : source.ToArray();
+
+        Volatile.Write(ref _statusListSnapshot, snapshot);
+    }
+
+    private void RefreshGroupListSnapshot()
+    {
+        var source = _groupList;
+
+        IReadOnlyList<StatusGroup> snapshot = source.Count == 0
+            ? Array.Empty<StatusGroup>()
+            : source.ToArray();
+
+        Volatile.Write(ref _groupListSnapshot, snapshot);
+    }
+
+    private void RefreshLastMessagesSnapshot()
+    {
+        var source = _lastMessages;
+
+        IReadOnlyList<ChatItem> snapshot = source.Count == 0
+            ? Array.Empty<ChatItem>()
+            : source.ToArray();
+
+        Volatile.Write(ref _lastMessagesSnapshot, snapshot);
     }
 
     private int _statusIndex;

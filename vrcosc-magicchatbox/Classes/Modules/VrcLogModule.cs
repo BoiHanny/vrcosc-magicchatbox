@@ -89,6 +89,7 @@ public partial class VrcLogModule : ObservableObject, IModule
     private readonly IUiDispatcher _dispatcher;
     private readonly IPrivacyConsentService _consentService;
     private readonly IToastService? _toast;
+    private readonly IProcessPresenceService? _processPresence;
 
     private CancellationTokenSource? _cts;
     private bool _isRunning;
@@ -216,7 +217,8 @@ public partial class VrcLogModule : ObservableObject, IModule
         IOscSender oscSender,
         IUiDispatcher dispatcher,
         IPrivacyConsentService consentService,
-        IToastService? toast = null)
+        IToastService? toast = null,
+        IProcessPresenceService? processPresence = null)
     {
         _settingsProvider = settingsProvider;
         _integrationSettings = integrationSettings;
@@ -225,6 +227,7 @@ public partial class VrcLogModule : ObservableObject, IModule
         _dispatcher = dispatcher;
         _consentService = consentService;
         _toast = toast;
+        _processPresence = processPresence;
 
         Settings.PropertyChanged += (_, e) =>
         {
@@ -469,9 +472,7 @@ public partial class VrcLogModule : ObservableObject, IModule
                                 {
                                     try
                                     {
-                                        var procs = System.Diagnostics.Process.GetProcessesByName("VRChat");
-                                        bool running = procs.Length > 0;
-                                        foreach (var p in procs) p.Dispose();
+                                        bool running = IsVrchatProcessPresent();
                                         if (!running)
                                         {
                                             isStale = true;
@@ -537,9 +538,7 @@ public partial class VrcLogModule : ObservableObject, IModule
                     _lastProcessCheck = DateTime.UtcNow;
                     try
                     {
-                        var procs = System.Diagnostics.Process.GetProcessesByName("VRChat");
-                        var running = procs.Length > 0;
-                        foreach (var p in procs) p.Dispose();
+                        var running = IsVrchatProcessPresent();
 
                         _vrchatProcessDetected = running;
 
@@ -564,6 +563,22 @@ public partial class VrcLogModule : ObservableObject, IModule
         finally
         {
             CloseLogStream();
+        }
+    }
+
+    private bool IsVrchatProcessPresent()
+    {
+        if (_processPresence != null)
+            return _processPresence.IsRunning("VRChat");
+
+        var procs = System.Diagnostics.Process.GetProcessesByName("VRChat");
+        try
+        {
+            return procs.Length > 0;
+        }
+        finally
+        {
+            foreach (var p in procs) p.Dispose();
         }
     }
 

@@ -24,11 +24,26 @@ public sealed class OSCController
 
     public bool CreateChat(bool createItem, string? messageText = null) => _chatMgr.CreateChat(createItem, messageText);
 
-    public void BuildOSC(bool allowExternalRefresh = true)
+    public OscBuildResult? Build(bool allowExternalRefresh = true)
     {
         try
         {
-            var result = _oscBuilder.Build(allowExternalRefresh);
+            return _oscBuilder.Build(allowExternalRefresh);
+        }
+        catch (Exception ex)
+        {
+            Logging.WriteException(ex, MSGBox: false);
+            return null;
+        }
+    }
+
+    public void Present(OscBuildResult? result)
+    {
+        if (result == null)
+            return;
+
+        try
+        {
             _oscPresenter.Present(result);
         }
         catch (Exception ex)
@@ -36,4 +51,6 @@ public sealed class OSCController
             Logging.WriteException(ex, MSGBox: false);
         }
     }
+
+    public void BuildOSC(bool allowExternalRefresh = true) => Present(Build(allowExternalRefresh));
 }

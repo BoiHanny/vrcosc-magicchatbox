@@ -3,7 +3,9 @@ using System;
 using vrcosc_magicchatbox.Classes.Modules;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Collections.Specialized;
 using System.Linq;
+using System.Threading;
 
 namespace vrcosc_magicchatbox.ViewModels.State;
 
@@ -21,15 +23,49 @@ public partial class IntegrationDisplayState : ObservableObject
     public static bool IsFollower(string key)
         => FollowerKeys.Any(follower => string.Equals(follower, key, StringComparison.OrdinalIgnoreCase));
 
+    private IReadOnlyList<string> _integrationSortOrderSnapshot = Array.Empty<string>();
+
     private ObservableCollection<string> _integrationSortOrder = new(DefaultSortOrder);
+
+    public IntegrationDisplayState()
+    {
+        _integrationSortOrder.CollectionChanged += OnIntegrationSortOrderChanged;
+        RefreshIntegrationSortOrderSnapshot();
+    }
+
     public ObservableCollection<string> IntegrationSortOrder
     {
         get => _integrationSortOrder;
         set
         {
-            _integrationSortOrder = NormalizeSortOrder(value);
+            var replacement = NormalizeSortOrder(value);
+
+            if (!ReferenceEquals(_integrationSortOrder, replacement))
+            {
+                _integrationSortOrder.CollectionChanged -= OnIntegrationSortOrderChanged;
+                _integrationSortOrder = replacement;
+                _integrationSortOrder.CollectionChanged += OnIntegrationSortOrderChanged;
+            }
+
+            RefreshIntegrationSortOrderSnapshot();
             OnPropertyChanged();
         }
+    }
+
+    public IReadOnlyList<string> IntegrationSortOrderSnapshot => Volatile.Read(ref _integrationSortOrderSnapshot);
+
+    private void OnIntegrationSortOrderChanged(object? sender, NotifyCollectionChangedEventArgs e)
+        => RefreshIntegrationSortOrderSnapshot();
+
+    private void RefreshIntegrationSortOrderSnapshot()
+    {
+        var source = _integrationSortOrder;
+
+        IReadOnlyList<string> snapshot = source.Count == 0
+            ? Array.Empty<string>()
+            : source.ToArray();
+
+        Volatile.Write(ref _integrationSortOrderSnapshot, snapshot);
     }
 
     public static ObservableCollection<string> NormalizeSortOrder(IEnumerable<string> order)
