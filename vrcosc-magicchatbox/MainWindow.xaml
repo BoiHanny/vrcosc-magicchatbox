@@ -7,6 +7,7 @@
     xmlns:local="clr-namespace:vrcosc_magicchatbox.Classes"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:pages="clr-namespace:vrcosc_magicchatbox.UI.Pages"
+    xmlns:po="http://schemas.microsoft.com/winfx/2006/xaml/presentation/options"
     xmlns:vm="clr-namespace:vrcosc_magicchatbox.ViewModels"
     Title="MagicChatbox by BoiHanny"
     Width="1150"
@@ -23,7 +24,7 @@
     Topmost="{Binding AppSettingsInstance.Topmost, UpdateSourceTrigger=PropertyChanged}"
     WindowStartupLocation="CenterScreen"
     WindowStyle="SingleBorderWindow"
-    mc:Ignorable="d">
+    mc:Ignorable="d po">
 
     <WindowChrome.WindowChrome>
         <WindowChrome
@@ -128,15 +129,6 @@
 
                 <Grid Grid.ColumnSpan="2" Background="{StaticResource SurfacePrimaryBrush}">
 
-                    <Grid.Effect>
-                        <DropShadowEffect
-                            BlurRadius="12"
-                            Direction="-120"
-                            Opacity="0.2"
-                            RenderingBias="Performance"
-                            ShadowDepth="5"
-                            Color="black" />
-                    </Grid.Effect>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="150" />
                         <ColumnDefinition Width="143" />
@@ -188,6 +180,7 @@
                                         <DropShadowEffect
                                             BlurRadius="16"
                                             Opacity="0.6"
+                                            po:Freeze="True"
                                             ShadowDepth="0"
                                             Color="#FFAEA7ED" />
                                     </TextBlock.Effect>
@@ -446,6 +439,12 @@
                     </Grid>
 
                 </Grid>
+                <Border
+                    Grid.Row="0"
+                    Grid.ColumnSpan="2"
+                    Height="1"
+                    VerticalAlignment="Bottom"
+                    Background="#33000000" />
                 <Grid
                     Grid.Row="1"
                     Grid.Column="1"
@@ -458,15 +457,11 @@
                         <RowDefinition Height="auto" />
 
                     </Grid.RowDefinitions>
-                    <Grid.Effect>
-                        <DropShadowEffect
-                            BlurRadius="5"
-                            Direction="-100"
-                            Opacity="0.1"
-                            RenderingBias="Performance"
-                            ShadowDepth="15"
-                            Color="DarkBlue" />
-                    </Grid.Effect>
+                    <Border
+                        Grid.RowSpan="4"
+                        Width="1"
+                        HorizontalAlignment="Left"
+                        Background="#1A00008B" />
                     <StackPanel
                         Grid.Row="3"
                         Margin="10,0,10,10"
@@ -1101,15 +1096,7 @@
                                     FontSize="13"
                                     Foreground="{StaticResource TextSecondaryBrush}"
                                     RenderOptions.BitmapScalingMode="NearestNeighbor"
-                                    Text="Voice">
-                                    <TextBlock.Effect>
-                                        <DropShadowEffect
-                                            BlurRadius="10"
-                                            Opacity="0.5"
-                                            ShadowDepth="0"
-                                            Color="{StaticResource GradientDeepPurpleColor}" />
-                                    </TextBlock.Effect>
-                                </TextBlock>
+                                    Text="Voice" />
                                 <ComboBox
                                     x:Name="TikTokTTSVoices_combo"
                                     Width="135"
@@ -1138,15 +1125,7 @@
                                     FontSize="13"
                                     Foreground="{StaticResource TextSecondaryBrush}"
                                     RenderOptions.BitmapScalingMode="NearestNeighbor"
-                                    Text="TTS volume">
-                                    <TextBlock.Effect>
-                                        <DropShadowEffect
-                                            BlurRadius="10"
-                                            Opacity="0.5"
-                                            ShadowDepth="0"
-                                            Color="{StaticResource GradientDeepPurpleColor}" />
-                                    </TextBlock.Effect>
-                                </TextBlock>
+                                    Text="TTS volume" />
                                 <Slider
                                     x:Name="VolumeSlider"
                                     Width="134.5"
@@ -1156,15 +1135,7 @@
                                     Minimum="0"
                                     RenderOptions.BitmapScalingMode="NearestNeighbor"
                                     Style="{StaticResource CustomSlider}"
-                                    Value="{Binding TtsSettingsInstance.TtsVolume, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}">
-                                    <Slider.Effect>
-                                        <DropShadowEffect
-                                            BlurRadius="10"
-                                            Opacity="0.3"
-                                            ShadowDepth="0"
-                                            Color="{StaticResource GradientDeepPurpleColor}" />
-                                    </Slider.Effect>
-                                </Slider>
+                                    Value="{Binding TtsSettingsInstance.TtsVolume, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                             </StackPanel>
                         </StackPanel>
 
@@ -1273,6 +1244,7 @@
                         <DropShadowEffect
                             BlurRadius="15"
                             Opacity="0.8"
+                            po:Freeze="True"
                             ShadowDepth="0"
                             Color="Black" />
                     </TextBlock.Effect>

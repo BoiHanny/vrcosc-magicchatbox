@@ -5,12 +5,13 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:local="clr-namespace:vrcosc_magicchatbox.Classes"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:po="http://schemas.microsoft.com/winfx/2006/xaml/presentation/options"
     xmlns:vm="clr-namespace:vrcosc_magicchatbox.ViewModels"
     d:DataContext="{d:DesignInstance Type=vm:StatusPageViewModel,
                                      IsDesignTimeCreatable=False}"
     Background="{StaticResource SurfaceCardBrush}"
     FontFamily="{DynamicResource FontPrimary}"
-    mc:Ignorable="d">
+    mc:Ignorable="d po">
     <UserControl.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
@@ -216,16 +217,6 @@
         </Grid.RowDefinitions>
 
         <Grid Grid.Row="0" Background="{StaticResource SurfaceVariantBrush}">
-            <Grid.Effect>
-                <DropShadowEffect
-                    BlurRadius="10"
-                    Direction="-90"
-                    Opacity="0.5"
-                    RenderingBias="Performance"
-                    ShadowDepth="5"
-                    Color="{StaticResource TextSubtleColor}" />
-            </Grid.Effect>
-
             <Grid Visibility="{Binding IsSelectionMode, Converter={StaticResource InverseBoolToVisibilityConverter}}">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*" />
@@ -319,13 +310,6 @@
                             <Border.BorderThickness>
                                 <Thickness>1</Thickness>
                             </Border.BorderThickness>
-                            <Border.Effect>
-                                <DropShadowEffect
-                                    BlurRadius="20"
-                                    Opacity="0.6"
-                                    ShadowDepth="4"
-                                    Color="Black" />
-                            </Border.Effect>
                             <StackPanel>
                                 <Button
                                     Margin="2,2,2,4"
@@ -680,13 +664,6 @@
                             BorderBrush="#3F2970"
                             BorderThickness="1"
                             CornerRadius="8">
-                            <Border.Effect>
-                                <DropShadowEffect
-                                    BlurRadius="16"
-                                    Opacity="0.7"
-                                    ShadowDepth="3"
-                                    Color="Black" />
-                            </Border.Effect>
                             <StackPanel>
                                 <TextBlock
                                     Margin="6,2,6,6"
@@ -724,6 +701,12 @@
                     </Popup>
                 </StackPanel>
             </Grid>
+
+            <Border
+                Height="1"
+                VerticalAlignment="Bottom"
+                Background="#80A39BB6"
+                IsHitTestVisible="False" />
         </Grid>
 
         <ListBox
@@ -743,36 +726,14 @@
             VirtualizingPanel.IsVirtualizing="True"
             VirtualizingPanel.VirtualizationMode="Recycling">
             <ListBox.Resources>
-                <local:CountThresholdConverter x:Key="StatusEffectThresholdConverter" />
-
-                <DropShadowEffect
-                    x:Key="StatusCardShadow"
-                    BlurRadius="8"
-                    Direction="0"
-                    Opacity="0.9"
-                    RenderingBias="Performance"
-                    ShadowDepth="0"
-                    Color="Black" />
-                <DropShadowEffect
-                    x:Key="StatusTextShadow"
-                    BlurRadius="18"
-                    Opacity="0.7"
-                    RenderingBias="Performance"
-                    ShadowDepth="0"
-                    Color="WhiteSmoke" />
                 <DropShadowEffect
                     x:Key="StatusEditTextShadow"
+                    po:Freeze="True"
                     BlurRadius="18"
                     Opacity="0.9"
                     RenderingBias="Performance"
                     ShadowDepth="0"
                     Color="{StaticResource AccentLightBlueColor}" />
-                <DropShadowEffect
-                    x:Key="StatusActiveIconShadow"
-                    BlurRadius="15"
-                    RenderingBias="Performance"
-                    ShadowDepth="0"
-                    Color="LimeGreen" />
                 <Style x:Key="ActiveStatusText" TargetType="TextBlock">
                     <Style.Triggers>
                         <DataTrigger Binding="{Binding IsActive}" Value="True">
@@ -797,34 +758,13 @@
                     </Style.Triggers>
                 </Style>
                 <Style x:Key="StatusShadowBorder" TargetType="Border">
-                    <Setter Property="Effect" Value="{StaticResource StatusCardShadow}" />
-                    <Setter Property="CacheMode">
-                        <Setter.Value>
-                            <BitmapCache RenderAtScale="1.0" />
-                        </Setter.Value>
-                    </Setter>
-                    <Style.Triggers>
-                        <DataTrigger Binding="{Binding Items.Count, RelativeSource={RelativeSource AncestorType=ListBox}, Converter={StaticResource StatusEffectThresholdConverter}, ConverterParameter=30}" Value="True">
-                            <Setter Property="Effect" Value="{x:Null}" />
-                        </DataTrigger>
-                    </Style.Triggers>
+                    <Setter Property="BorderBrush" Value="#FF150C33" />
+                    <Setter Property="BorderThickness" Value="1" />
                 </Style>
                 <Style
                     x:Key="ActiveStatusTextShadow"
                     BasedOn="{StaticResource ActiveStatusText}"
-                    TargetType="TextBlock">
-                    <Setter Property="Effect" Value="{StaticResource StatusTextShadow}" />
-                    <Setter Property="CacheMode">
-                        <Setter.Value>
-                            <BitmapCache RenderAtScale="1.0" />
-                        </Setter.Value>
-                    </Setter>
-                    <Style.Triggers>
-                        <DataTrigger Binding="{Binding Items.Count, RelativeSource={RelativeSource AncestorType=ListBox}, Converter={StaticResource StatusEffectThresholdConverter}, ConverterParameter=30}" Value="True">
-                            <Setter Property="Effect" Value="{x:Null}" />
-                        </DataTrigger>
-                    </Style.Triggers>
-                </Style>
+                    TargetType="TextBlock" />
                 <Style
                     x:Key="ActiveStatusTextEditShadow"
                     BasedOn="{StaticResource ActiveStatusTextEdit}"
@@ -835,24 +775,6 @@
                             <BitmapCache RenderAtScale="1.0" />
                         </Setter.Value>
                     </Setter>
-                    <Style.Triggers>
-                        <DataTrigger Binding="{Binding Items.Count, RelativeSource={RelativeSource AncestorType=ListBox}, Converter={StaticResource StatusEffectThresholdConverter}, ConverterParameter=30}" Value="True">
-                            <Setter Property="Effect" Value="{x:Null}" />
-                        </DataTrigger>
-                    </Style.Triggers>
-                </Style>
-                <Style x:Key="ActiveStatusIconStyle" TargetType="Image">
-                    <Setter Property="Effect" Value="{StaticResource StatusActiveIconShadow}" />
-                    <Setter Property="CacheMode">
-                        <Setter.Value>
-                            <BitmapCache RenderAtScale="1.0" />
-                        </Setter.Value>
-                    </Setter>
-                    <Style.Triggers>
-                        <DataTrigger Binding="{Binding Items.Count, RelativeSource={RelativeSource AncestorType=ListBox}, Converter={StaticResource StatusEffectThresholdConverter}, ConverterParameter=30}" Value="True">
-                            <Setter Property="Effect" Value="{x:Null}" />
-                        </DataTrigger>
-                    </Style.Triggers>
                 </Style>
             </ListBox.Resources>
             <ListBox.ItemContainerStyle>
@@ -912,13 +834,16 @@
                                 </Grid.ColumnDefinitions>
 
                                 <Grid Grid.Column="0" Visibility="{Binding DataContext.IsSelectionMode, RelativeSource={RelativeSource AncestorType=ListBox}, Converter={StaticResource InverseBoolToVisibilityConverter}}">
-                                    <Border Background="{StaticResource SurfaceButtonDarkBrush}">
+                                    <Border
+                                        Background="{StaticResource SurfaceButtonDarkBrush}"
+                                        BorderBrush="LimeGreen"
+                                        BorderThickness="1"
+                                        CornerRadius="4">
                                         <Image
                                             Width="22"
                                             Height="22"
                                             Source="/Img/Icons/ActivatedStatus_ico.png"
-                                            Stretch="Uniform"
-                                            Style="{StaticResource ActiveStatusIconStyle}" />
+                                            Stretch="Uniform" />
                                     </Border>
                                     <Button
                                         Name="Activatebutton"
@@ -1098,15 +1023,11 @@
             Grid.Row="2"
             HorizontalAlignment="Stretch"
             Background="{StaticResource SurfaceVariantBrush}">
-            <Grid.Effect>
-                <DropShadowEffect
-                    BlurRadius="10"
-                    Direction="90"
-                    Opacity="0.5"
-                    RenderingBias="Performance"
-                    ShadowDepth="5"
-                    Color="{StaticResource TextSubtleColor}" />
-            </Grid.Effect>
+            <Border
+                Height="1"
+                VerticalAlignment="Top"
+                Background="#80A39BB6"
+                IsHitTestVisible="False" />
             <TextBlock
                 Margin="16,0,0,0"
                 HorizontalAlignment="Left"
@@ -1139,16 +1060,7 @@
                     Style="{StaticResource LightInputTextBox}"
                     Text="{Binding ChatStatus.NewStatusItemTxt, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                     TextAlignment="Left"
-                    TextChanged="NewFavText_TextChanged">
-                    <TextBox.Effect>
-                        <DropShadowEffect
-                            BlurRadius="5"
-                            Direction="-23"
-                            RenderingBias="Performance"
-                            ShadowDepth="0"
-                            Color="DarkBlue" />
-                    </TextBox.Effect>
-                </TextBox>
+                    TextChanged="NewFavText_TextChanged" />
                 <TextBlock
                     Width="auto"
                     Margin="0,0,8,0"

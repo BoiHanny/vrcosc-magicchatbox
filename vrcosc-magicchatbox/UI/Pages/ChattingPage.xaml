@@ -408,22 +408,17 @@
                 d:Visibility="Collapsed"
                 RenderOptions.BitmapScalingMode="NearestNeighbor"
                 Visibility="{Binding Modules.IntelliChat.Settings.IntelliChatWaitingToAccept, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
-                <Border Margin="10,0" CornerRadius="5">
+                <Border
+                    Margin="10,0"
+                    BorderBrush="#4090EE90"
+                    BorderThickness="1"
+                    CornerRadius="5">
                     <Border.Background>
                         <LinearGradientBrush StartPoint="0.5,0" EndPoint="0.5,1">
                             <GradientStop Color="#3E5750" />
                             <GradientStop Offset="1" Color="{StaticResource SurfaceMidGradientColor}" />
                         </LinearGradientBrush>
                     </Border.Background>
-                    <Border.Effect>
-                        <DropShadowEffect
-                            BlurRadius="35"
-                            Direction="-90"
-                            Opacity="0.5"
-                            RenderingBias="Performance"
-                            ShadowDepth="5"
-                            Color="LightGreen" />
-                    </Border.Effect>
                     <Grid Margin="3">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*" />
@@ -449,16 +444,7 @@
                             FontSize="15"
                             Foreground="AntiqueWhite"
                             Text="{Binding Modules.IntelliChat.Settings.IntelliChatTxt, UpdateSourceTrigger=PropertyChanged}"
-                            TextWrapping="Wrap">
-                            <TextBlock.Effect>
-                                <DropShadowEffect
-                                    BlurRadius="20"
-                                    Opacity="1"
-                                    RenderingBias="Performance"
-                                    ShadowDepth="0"
-                                    Color="Black" />
-                            </TextBlock.Effect>
-                        </TextBlock>
+                            TextWrapping="Wrap" />
 
 
 
@@ -470,7 +456,6 @@
                             Margin="5"
                             HorizontalAlignment="Right"
                             VerticalAlignment="Top"
-                            Effect="{StaticResource ImageShadowEffect}"
                             Opacity="0.5"
                             RenderOptions.BitmapScalingMode="HighQuality"
                             Source="/Img/Icons/OpenAI.png" />
@@ -487,16 +472,7 @@
                                 FontFamily="/Fonts/#Albert Sans"
                                 FontSize="18"
                                 Foreground="{StaticResource TextChatAccentBrush}"
-                                Text="IntelliChat">
-                                <TextBlock.Effect>
-                                    <DropShadowEffect
-                                        BlurRadius="20"
-                                        Opacity="0.9"
-                                        RenderingBias="Performance"
-                                        ShadowDepth="0"
-                                        Color="Purple" />
-                                </TextBlock.Effect>
-                            </TextBlock>
+                                Text="IntelliChat" />
                             <TextBlock
                                 Width="auto"
                                 Height="Auto"
@@ -685,22 +661,17 @@
                 d:Visibility="Collapsed"
                 RenderOptions.BitmapScalingMode="NearestNeighbor"
                 Visibility="{Binding Modules.IntelliChat.Settings.IntelliChatError, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
-                <Border Margin="10,0" CornerRadius="5">
+                <Border
+                    Margin="10,0"
+                    BorderBrush="#60C71585"
+                    BorderThickness="1"
+                    CornerRadius="5">
                     <Border.Background>
                         <LinearGradientBrush StartPoint="0.5,0" EndPoint="0.5,1">
                             <GradientStop Color="MediumVioletRed" />
                             <GradientStop Offset="1" Color="{StaticResource SurfaceMidGradientColor}" />
                         </LinearGradientBrush>
                     </Border.Background>
-                    <Border.Effect>
-                        <DropShadowEffect
-                            BlurRadius="35"
-                            Direction="-90"
-                            Opacity="0.9"
-                            RenderingBias="Performance"
-                            ShadowDepth="5"
-                            Color="MediumVioletRed" />
-                    </Border.Effect>
                     <Grid Margin="3">
 
                         <StackPanel
@@ -721,16 +692,7 @@
                                 FontWeight="Bold"
                                 Foreground="MediumVioletRed"
                                 Text="{Binding Modules.IntelliChat.Settings.IntelliChatErrorTxt, UpdateSourceTrigger=PropertyChanged}"
-                                TextWrapping="Wrap">
-                                <TextBlock.Effect>
-                                    <DropShadowEffect
-                                        BlurRadius="20"
-                                        Opacity="1"
-                                        RenderingBias="Performance"
-                                        ShadowDepth="0"
-                                        Color="Black" />
-                                </TextBlock.Effect>
-                            </TextBlock>
+                                TextWrapping="Wrap" />
 
 
                         </StackPanel>
