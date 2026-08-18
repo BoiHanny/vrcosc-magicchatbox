@@ -5,12 +5,17 @@ using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Media;
+using System.Windows.Media.Animation;
 using System.Windows.Threading;
 
 namespace vrcosc_magicchatbox.UI.Controls
 {
     public sealed class LazyPageHost : Decorator
     {
+        private static readonly Duration EnterDuration = new(TimeSpan.FromMilliseconds(170));
+
+        private readonly TranslateTransform _slide = new();
+
         private DispatcherTimer? _teardown;
 
         public static readonly DependencyProperty PageTemplateProperty = DependencyProperty.Register(
@@ -40,6 +45,7 @@ namespace vrcosc_magicchatbox.UI.Controls
         public LazyPageHost()
         {
             Visibility = Visibility.Collapsed;
+            RenderTransform = _slide;
         }
 
         public DataTemplate? PageTemplate
@@ -100,6 +106,7 @@ namespace vrcosc_magicchatbox.UI.Controls
             if (Child == null)
                 return;
 
+            StopTransition();
             CommitPendingEdit();
             ReleaseFocus();
 
@@ -116,11 +123,18 @@ namespace vrcosc_magicchatbox.UI.Controls
         {
             if (IsHostActive && PageIndex >= 0 && PageIndex == SelectedIndex)
             {
+                bool wasHidden = Visibility != Visibility.Visible;
+
                 Realize();
                 Visibility = Visibility.Visible;
+
+                if (wasHidden)
+                    PlayEnterTransition();
+
                 return;
             }
 
+            StopTransition();
             Visibility = Visibility.Collapsed;
 
             if (Child == null)
@@ -130,6 +144,29 @@ namespace vrcosc_magicchatbox.UI.Controls
 
             if (!KeepAlive)
                 ScheduleTeardown();
+        }
+
+        private void PlayEnterTransition()
+        {
+            var ease = new CubicEase { EasingMode = EasingMode.EaseOut };
+
+            BeginAnimation(OpacityProperty, new DoubleAnimation(0.0, 1.0, EnterDuration)
+            {
+                FillBehavior = FillBehavior.Stop,
+                EasingFunction = ease,
+            });
+
+            _slide.BeginAnimation(TranslateTransform.YProperty, new DoubleAnimation(10.0, 0.0, EnterDuration)
+            {
+                FillBehavior = FillBehavior.Stop,
+                EasingFunction = ease,
+            });
+        }
+
+        private void StopTransition()
+        {
+            BeginAnimation(OpacityProperty, null);
+            _slide.BeginAnimation(TranslateTransform.YProperty, null);
         }
 
         private void ScheduleTeardown()

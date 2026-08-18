@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Navigation;
+using System.Windows.Media;
+using System.Windows.Media.Animation;
 using System.Windows.Threading;
 using vrcosc_magicchatbox.Services;
 using vrcosc_magicchatbox.UI.Pages.Options;
@@ -175,6 +177,28 @@ public partial class OptionsPage : UserControl
         }
 
         SectionsPanel.Children.Add(root);
+        PlayChunkEntrance(root);
+    }
+
+    private static void PlayChunkEntrance(FrameworkElement chunk)
+    {
+        var slide = new TranslateTransform();
+        chunk.RenderTransform = slide;
+
+        var ease = new CubicEase { EasingMode = EasingMode.EaseOut };
+        var duration = new Duration(TimeSpan.FromMilliseconds(220));
+
+        chunk.BeginAnimation(OpacityProperty, new DoubleAnimation(0.0, 1.0, duration)
+        {
+            FillBehavior = FillBehavior.Stop,
+            EasingFunction = ease,
+        });
+
+        slide.BeginAnimation(TranslateTransform.YProperty, new DoubleAnimation(14.0, 0.0, duration)
+        {
+            FillBehavior = FillBehavior.Stop,
+            EasingFunction = ease,
+        });
     }
 
     private void EnsureSectionMap()

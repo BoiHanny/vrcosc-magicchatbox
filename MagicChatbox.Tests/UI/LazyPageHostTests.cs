@@ -265,6 +265,60 @@ public class LazyPageHostTests
         Assert.True(failure == null, "deferred build: " + failure);
     }
 
+    [Fact]
+    public void Leaving_mid_transition_does_not_strand_the_host_faded_out()
+    {
+        Exception? failure = WpfHost.RunInWindow(
+            () => Host(pageIndex: 2, selectedIndex: 0, keepAlive: false,
+                       teardown: TimeSpan.FromMilliseconds(30)),
+            element =>
+            {
+                var host = (LazyPageHost)element;
+
+                // Arrive - the entrance animation starts from zero opacity.
+                host.SelectedIndex = 2;
+                element.UpdateLayout();
+
+                // Leave again immediately, while that animation is still running.
+                host.SelectedIndex = 0;
+                PumpPast(TimeSpan.FromMilliseconds(30));
+
+                Assert.False(host.IsRealized);
+
+                // Come back. A held animation value would leave the page invisible.
+                host.SelectedIndex = 2;
+                element.UpdateLayout();
+
+                Assert.True(host.IsRealized);
+                Assert.Equal(1.0, host.Opacity);
+            });
+
+        Assert.True(failure == null, "interrupted transition: " + failure);
+    }
+
+    [Fact]
+    public void The_transition_leaves_no_animation_holding_the_host()
+    {
+        Exception? failure = WpfHost.RunInWindow(
+            () => Host(pageIndex: 2, selectedIndex: 2, keepAlive: false,
+                       teardown: TimeSpan.FromMilliseconds(30)),
+            element =>
+            {
+                var host = (LazyPageHost)element;
+                element.UpdateLayout();
+
+                host.SelectedIndex = 0;
+                PumpPast(TimeSpan.FromMilliseconds(30));
+
+                // The animations are FillBehavior.Stop, so the properties must be back at their
+                // base values rather than pinned by a clock that outlived the page.
+                Assert.Equal(1.0, host.Opacity);
+                Assert.False(host.IsRealized);
+            });
+
+        Assert.True(failure == null, "transition cleanup: " + failure);
+    }
+
     private static LazyPageHost Host(
         int pageIndex,
         int selectedIndex,
