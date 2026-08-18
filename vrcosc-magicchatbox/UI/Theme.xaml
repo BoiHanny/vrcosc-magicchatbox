@@ -748,7 +748,6 @@
                 <ControlTemplate TargetType="{x:Type TextBox}">
                     <ScrollViewer
                         x:Name="PART_ContentHost"
-                        Margin="{TemplateBinding Padding}"
                         Focusable="False"
                         HorizontalScrollBarVisibility="Hidden"
                         VerticalScrollBarVisibility="Hidden" />
