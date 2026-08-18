@@ -1,10 +1,10 @@
 <ResourceDictionary
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:xaml="clr-namespace:vrcosc_magicchatbox.Classes"
-    xmlns:sys="clr-namespace:System;assembly=System.Runtime"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:po="http://schemas.microsoft.com/winfx/2006/xaml/presentation/options"
+    xmlns:sys="clr-namespace:System;assembly=System.Runtime"
+    xmlns:xaml="clr-namespace:vrcosc_magicchatbox.Classes"
     mc:Ignorable="po">
 
     <!--
@@ -48,41 +48,116 @@
         4.12:1 on the gradient (#FF40365B) - i.e. ~108 field labels sat on or under the AA
         floor. #FFB3A3C4 measures 5.16:1 on cards and 4.72:1 on the gradient. Do not darken.
     -->
-    <SolidColorBrush x:Key="TextLabelBrush" Color="#FFB3A3C4" po:Freeze="True" />
-    <SolidColorBrush x:Key="TextPrimaryBrush" Color="#FFB9B5C1" po:Freeze="True" />
-    <SolidColorBrush x:Key="TextBodyBrush" Color="#FFB9B5C1" po:Freeze="True" />
-    <SolidColorBrush x:Key="TextMutedBrush" Color="#FFA29BB5" po:Freeze="True" />
-    <SolidColorBrush x:Key="TextAccentBrush" Color="#BDAEE2" po:Freeze="True" />
-    <SolidColorBrush x:Key="TextDarkBrush" Color="#FF240E54" po:Freeze="True" />
+    <SolidColorBrush
+        x:Key="TextLabelBrush"
+        po:Freeze="True"
+        Color="#FFB3A3C4" />
+    <SolidColorBrush
+        x:Key="TextPrimaryBrush"
+        po:Freeze="True"
+        Color="#FFB9B5C1" />
+    <SolidColorBrush
+        x:Key="TextBodyBrush"
+        po:Freeze="True"
+        Color="#FFB9B5C1" />
+    <SolidColorBrush
+        x:Key="TextMutedBrush"
+        po:Freeze="True"
+        Color="#FFA29BB5" />
+    <SolidColorBrush
+        x:Key="TextAccentBrush"
+        po:Freeze="True"
+        Color="#BDAEE2" />
+    <SolidColorBrush
+        x:Key="TextDarkBrush"
+        po:Freeze="True"
+        Color="#FF240E54" />
 
-    <SolidColorBrush x:Key="SurfacePrimaryBrush" Color="#FF2D1265" po:Freeze="True" />
-    <SolidColorBrush x:Key="SurfaceDarkBrush" Color="#FF240E54" po:Freeze="True" />
-    <SolidColorBrush x:Key="SurfaceCardBrush" Color="#FF3B3054" po:Freeze="True" />
-    <SolidColorBrush x:Key="SurfaceGradientStartBrush" Color="#FF3A3053" po:Freeze="True" />
+    <SolidColorBrush
+        x:Key="SurfacePrimaryBrush"
+        po:Freeze="True"
+        Color="#FF2D1265" />
+    <SolidColorBrush
+        x:Key="SurfaceDarkBrush"
+        po:Freeze="True"
+        Color="#FF240E54" />
+    <SolidColorBrush
+        x:Key="SurfaceCardBrush"
+        po:Freeze="True"
+        Color="#FF3B3054" />
+    <SolidColorBrush
+        x:Key="SurfaceGradientStartBrush"
+        po:Freeze="True"
+        Color="#FF3A3053" />
     <Color x:Key="SurfaceGradientStartColor">#FF3A3053</Color>
-    <SolidColorBrush x:Key="SurfaceGradientEndBrush" Color="#FF40365B" po:Freeze="True" />
+    <SolidColorBrush
+        x:Key="SurfaceGradientEndBrush"
+        po:Freeze="True"
+        Color="#FF40365B" />
     <Color x:Key="SurfaceGradientEndColor">#FF40365B</Color>
 
-    <SolidColorBrush x:Key="InputBackgroundBrush" Color="#FF7B7195" po:Freeze="True" />
-    <SolidColorBrush x:Key="ControlBorderBrush" Color="#FF2D1265" po:Freeze="True" />
-    <SolidColorBrush x:Key="ButtonTextBrush" Color="#9B90D1" po:Freeze="True" />
+    <SolidColorBrush
+        x:Key="InputBackgroundBrush"
+        po:Freeze="True"
+        Color="#FF7B7195" />
+    <SolidColorBrush
+        x:Key="ControlBorderBrush"
+        po:Freeze="True"
+        Color="#FF2D1265" />
+    <SolidColorBrush
+        x:Key="ButtonTextBrush"
+        po:Freeze="True"
+        Color="#9B90D1" />
     <!--
         STROKE ONLY. This is a divider/outline colour and must never be used as a Foreground:
         against the dark popup and card surfaces it lands around 3.7:1, well under the 4.5:1
         floor the rest of the app holds to. For muted body text use TextMutedBrush.
     -->
-    <SolidColorBrush x:Key="BorderMutedBrush" Color="#FF7D7397" po:Freeze="True" />
-    <SolidColorBrush x:Key="AccentTealBrush" Color="#FF31B7B4" po:Freeze="True" />
-    <SolidColorBrush x:Key="AccentDeepPurpleBrush" Color="#FF302573" po:Freeze="True" />
-    <SolidColorBrush x:Key="AccentLightPurpleBrush" Color="#FFC3A9FF" po:Freeze="True" />
-    <SolidColorBrush x:Key="TextSecondaryBrush" Color="#FFA498C7" po:Freeze="True" />
-    <SolidColorBrush x:Key="TextSubtleBrush" Color="#FFA39BB6" po:Freeze="True" />
-    <SolidColorBrush x:Key="SurfaceVariantBrush" Color="#FF493F65" po:Freeze="True" />
+    <SolidColorBrush
+        x:Key="BorderMutedBrush"
+        po:Freeze="True"
+        Color="#FF7D7397" />
+    <SolidColorBrush
+        x:Key="AccentTealBrush"
+        po:Freeze="True"
+        Color="#FF31B7B4" />
+    <SolidColorBrush
+        x:Key="AccentDeepPurpleBrush"
+        po:Freeze="True"
+        Color="#FF302573" />
+    <SolidColorBrush
+        x:Key="AccentLightPurpleBrush"
+        po:Freeze="True"
+        Color="#FFC3A9FF" />
+    <SolidColorBrush
+        x:Key="TextSecondaryBrush"
+        po:Freeze="True"
+        Color="#FFA498C7" />
+    <SolidColorBrush
+        x:Key="TextSubtleBrush"
+        po:Freeze="True"
+        Color="#FFA39BB6" />
+    <SolidColorBrush
+        x:Key="SurfaceVariantBrush"
+        po:Freeze="True"
+        Color="#FF493F65" />
 
-    <SolidColorBrush x:Key="StatusSuccessBrush" Color="#FF4CAF50" po:Freeze="True" />
-    <SolidColorBrush x:Key="StatusWarningBrush" Color="#FFFFC107" po:Freeze="True" />
-    <SolidColorBrush x:Key="StatusErrorBrush" Color="#FFE53935" po:Freeze="True" />
-    <SolidColorBrush x:Key="StatusErrorDarkBrush" Color="#FF6B0000" po:Freeze="True" />
+    <SolidColorBrush
+        x:Key="StatusSuccessBrush"
+        po:Freeze="True"
+        Color="#FF4CAF50" />
+    <SolidColorBrush
+        x:Key="StatusWarningBrush"
+        po:Freeze="True"
+        Color="#FFFFC107" />
+    <SolidColorBrush
+        x:Key="StatusErrorBrush"
+        po:Freeze="True"
+        Color="#FFE53935" />
+    <SolidColorBrush
+        x:Key="StatusErrorDarkBrush"
+        po:Freeze="True"
+        Color="#FF6B0000" />
 
     <Color x:Key="GradientDeepPurpleColor">#FF251153</Color>
     <Color x:Key="GradientNavyBlueColor">#FF10178C</Color>
@@ -96,38 +171,113 @@
     <Color x:Key="SurfacePrimaryColor">#FF2D1265</Color>
     <Color x:Key="AccentSlateBlueColor">#FF483D8B</Color>
 
-    <SolidColorBrush x:Key="TextChatAccentBrush" Color="#FF94CCBF" po:Freeze="True" />
-    <SolidColorBrush x:Key="ButtonHighlightBrush" Color="#FFAEA7ED" po:Freeze="True" />
-    <SolidColorBrush x:Key="SurfaceButtonDarkBrush" Color="#FF3A1F73" po:Freeze="True" />
-    <SolidColorBrush x:Key="TextAccentBlueBrush" Color="#FF9AA1FF" po:Freeze="True" />
-    <SolidColorBrush x:Key="TextLabelLightBrush" Color="#FFA296D4" po:Freeze="True" />
-    <SolidColorBrush x:Key="TextSuccessLightBrush" Color="#FF9DDAA8" po:Freeze="True" />
-    <SolidColorBrush x:Key="TextDarkMutedBrush" Color="#FFA199C3" po:Freeze="True" />
-    <SolidColorBrush x:Key="SurfaceMidPurpleBrush" Color="#FF41375C" po:Freeze="True" />
-    <SolidColorBrush x:Key="SurfaceDarkPurpleBrush" Color="#FF3B2075" po:Freeze="True" />
-    <SolidColorBrush x:Key="SurfaceMidGradientBrush" Color="#FF403670" po:Freeze="True" />
+    <SolidColorBrush
+        x:Key="TextChatAccentBrush"
+        po:Freeze="True"
+        Color="#FF94CCBF" />
+    <SolidColorBrush
+        x:Key="ButtonHighlightBrush"
+        po:Freeze="True"
+        Color="#FFAEA7ED" />
+    <SolidColorBrush
+        x:Key="SurfaceButtonDarkBrush"
+        po:Freeze="True"
+        Color="#FF3A1F73" />
+    <SolidColorBrush
+        x:Key="TextAccentBlueBrush"
+        po:Freeze="True"
+        Color="#FF9AA1FF" />
+    <SolidColorBrush
+        x:Key="TextLabelLightBrush"
+        po:Freeze="True"
+        Color="#FFA296D4" />
+    <SolidColorBrush
+        x:Key="TextSuccessLightBrush"
+        po:Freeze="True"
+        Color="#FF9DDAA8" />
+    <SolidColorBrush
+        x:Key="TextDarkMutedBrush"
+        po:Freeze="True"
+        Color="#FFA199C3" />
+    <SolidColorBrush
+        x:Key="SurfaceMidPurpleBrush"
+        po:Freeze="True"
+        Color="#FF41375C" />
+    <SolidColorBrush
+        x:Key="SurfaceDarkPurpleBrush"
+        po:Freeze="True"
+        Color="#FF3B2075" />
+    <SolidColorBrush
+        x:Key="SurfaceMidGradientBrush"
+        po:Freeze="True"
+        Color="#FF403670" />
     <Color x:Key="SurfaceMidGradientColor">#FF403670</Color>
-    <SolidColorBrush x:Key="AccentLightBlueBrush" Color="#FFB0E6FC" po:Freeze="True" />
+    <SolidColorBrush
+        x:Key="AccentLightBlueBrush"
+        po:Freeze="True"
+        Color="#FFB0E6FC" />
     <Color x:Key="AccentLightBlueColor">#FFB0E6FC</Color>
-    <SolidColorBrush x:Key="SurfaceButtonPanelBrush" Color="#FF483472" po:Freeze="True" />
+    <SolidColorBrush
+        x:Key="SurfaceButtonPanelBrush"
+        po:Freeze="True"
+        Color="#FF483472" />
 
-    <SolidColorBrush x:Key="TextSectionHeaderBrush" Color="#FFBDAEE2" po:Freeze="True" />
-    <SolidColorBrush x:Key="TextMutedGrayBrush" Color="#FF9AA3B5" po:Freeze="True" />
-    <SolidColorBrush x:Key="TextSoftPurpleBrush" Color="#FFB5ABC9" po:Freeze="True" />
-    <SolidColorBrush x:Key="TextLightPurpleBrush" Color="#FFD4CEE2" po:Freeze="True" />
+    <SolidColorBrush
+        x:Key="TextSectionHeaderBrush"
+        po:Freeze="True"
+        Color="#FFBDAEE2" />
+    <SolidColorBrush
+        x:Key="TextMutedGrayBrush"
+        po:Freeze="True"
+        Color="#FF9AA3B5" />
+    <SolidColorBrush
+        x:Key="TextSoftPurpleBrush"
+        po:Freeze="True"
+        Color="#FFB5ABC9" />
+    <SolidColorBrush
+        x:Key="TextLightPurpleBrush"
+        po:Freeze="True"
+        Color="#FFD4CEE2" />
     <Color x:Key="AccentBlueGradientColor">#FF63A8F9</Color>
-    <SolidColorBrush x:Key="TextDimLabelBrush" Color="#FFA29BB8" po:Freeze="True" />
-    <SolidColorBrush x:Key="TextHighlightCyanBrush" Color="#FF7ED6FF" po:Freeze="True" />
-    <SolidColorBrush x:Key="TextDangerRedBrush" Color="#FFFF6B6B" po:Freeze="True" />
-    <SolidColorBrush x:Key="SurfaceCardDarkBrush" Color="#FF3A2F54" po:Freeze="True" />
-    <SolidColorBrush x:Key="BorderAccentPurpleBrush" Color="#FF7169B7" po:Freeze="True" />
-    <SolidColorBrush x:Key="TextSubtlePurpleBrush" Color="#FFA197D4" po:Freeze="True" />
-    <SolidColorBrush x:Key="StatusErrorDarkerBrush" Color="#FF8A0000" po:Freeze="True" />
+    <SolidColorBrush
+        x:Key="TextDimLabelBrush"
+        po:Freeze="True"
+        Color="#FFA29BB8" />
+    <SolidColorBrush
+        x:Key="TextHighlightCyanBrush"
+        po:Freeze="True"
+        Color="#FF7ED6FF" />
+    <SolidColorBrush
+        x:Key="TextDangerRedBrush"
+        po:Freeze="True"
+        Color="#FFFF6B6B" />
+    <SolidColorBrush
+        x:Key="SurfaceCardDarkBrush"
+        po:Freeze="True"
+        Color="#FF3A2F54" />
+    <SolidColorBrush
+        x:Key="BorderAccentPurpleBrush"
+        po:Freeze="True"
+        Color="#FF7169B7" />
+    <SolidColorBrush
+        x:Key="TextSubtlePurpleBrush"
+        po:Freeze="True"
+        Color="#FFA197D4" />
+    <SolidColorBrush
+        x:Key="StatusErrorDarkerBrush"
+        po:Freeze="True"
+        Color="#FF8A0000" />
     <Color x:Key="AccentPulsoidColor">#FF05B4A8</Color>
     <Color x:Key="AccentDiscordColor">#FF5865F2</Color>
-    <SolidColorBrush x:Key="AccentDiscordBrush" Color="#FF5865F2" po:Freeze="True" />
+    <SolidColorBrush
+        x:Key="AccentDiscordBrush"
+        po:Freeze="True"
+        Color="#FF5865F2" />
     <Color x:Key="AccentSpotifyColor">#FF1DB954</Color>
-    <SolidColorBrush x:Key="AccentSpotifyBrush" Color="#FF1DB954" po:Freeze="True" />
+    <SolidColorBrush
+        x:Key="AccentSpotifyBrush"
+        po:Freeze="True"
+        Color="#FF1DB954" />
 
 
 
@@ -707,15 +857,15 @@
     -->
     <!--
         The top bar tabs.
-
+        
         Hover and selected drive SEPARATE elements on purpose. Sharing them means the later
         storyboard wins on a contested property, so hovering the tab you are already on dimmed it -
         the hover animation was overwriting the selected one. Kept apart, hovering the current tab
         simply adds glow on top of it and nothing fights.
-
+        
         Hover is deliberately fast - in at 90ms, out at 170ms. In wants to feel instant, out wants to
         feel like it is trailing your cursor rather than being switched off.
-
+        
         Everything animated is a scale or an opacity. Both compose on the render thread, so the bar
         keeps moving while the UI thread is busy, which during a scan tick it often is; animating
         width or colour would stutter in exactly the moments the app is working hardest.
@@ -733,8 +883,10 @@
                 <ControlTemplate TargetType="{x:Type Button}">
                     <Grid Background="Transparent" ClipToBounds="False">
 
-                        <!--  SELECTED: the wash. Brightest at the bottom, so the tab reads as lit
-                              from its underline upward.  -->
+                        <!--
+                            SELECTED: the wash. Brightest at the bottom, so the tab reads as lit
+                            from its underline upward.
+                        -->
                         <Border x:Name="ActiveWash" Opacity="0">
                             <Border.Background>
                                 <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
@@ -1034,7 +1186,7 @@
         13px, so the size is corrected to the 15 they all actually use. Medium (500) sits one
         deliberate step under the SemiBold (600) headers: a label names a control, it does not
         compete with the thing that names a section.
-
+        
         Call sites vary in Margin - preserve any local Margin as a local override when adopting.
     -->
     <Style x:Key="OptionFieldLabelStyle" TargetType="{x:Type TextBlock}">
@@ -1051,7 +1203,7 @@
         Live numeric values (heart rate, battery %, component and network stats). Weight only,
         deliberately no FontSize, so each call site keeps the size its context needs while the
         number still catches a scanning eye ahead of its label.
-
+        
         Do NOT pair this with Typography.NumeralAlignment="Tabular" to stop digits jittering -
         neither font ships a `tnum` feature (checked both GSUB feature lists), so the property
         compiles, runs, and does nothing. Give the readout a fixed-width container instead.
@@ -1257,21 +1409,30 @@
         slightly muddy; this keeps the same violet family but adds depth across the diagonal and lets
         the title stay the brightest thing on the tile.
     -->
-    <SolidColorBrush x:Key="TileDescriptionBrush" Color="#FFBCB1DD" po:Freeze="True" />
-    <SolidColorBrush x:Key="TileIconFrameBrush" Color="#26A98CFF" po:Freeze="True" />
-    <SolidColorBrush x:Key="TileIconFrameBorderBrush" Color="#33C3A9FF" po:Freeze="True" />
+    <SolidColorBrush
+        x:Key="TileDescriptionBrush"
+        po:Freeze="True"
+        Color="#FFBCB1DD" />
+    <SolidColorBrush
+        x:Key="TileIconFrameBrush"
+        po:Freeze="True"
+        Color="#26A98CFF" />
+    <SolidColorBrush
+        x:Key="TileIconFrameBorderBrush"
+        po:Freeze="True"
+        Color="#33C3A9FF" />
 
     <!--
         Integration tile title and description. These were 16 + 16 identical inline blocks in
         IntegrationsPage.xaml where title and description differed by size and colour only, with
         no weight separation at all - the gap that prompted this pass.
-
+        
         SemiBold (600), not Bold (700), even though Comfortaa reaches 700 for real. Comfortaa is
         a rounded display face with generous stroke contrast; at 20px over the TileSurfaceBrush
         gradient with a drop shadow on top, 700 blooms and the counters in a/o/e close up. Ink
         width Regular->SemiBold is +6%, ->Bold +8.4%, so 600 buys nearly all the contrast and
         keeps 700 in reserve for something that genuinely needs to be louder.
-
+        
         Effect uses DynamicResource on purpose: TextBlockShadowEffect lives in App.xaml, and
         Theme.xaml is merged INTO App, so a StaticResource lookup from in here cannot see it.
     -->
@@ -1296,7 +1457,7 @@
         <Setter Property="RenderOptions.BitmapScalingMode" Value="NearestNeighbor" />
     </Style>
 
-    <LinearGradientBrush x:Key="TileSurfaceBrush" StartPoint="0,0" EndPoint="1,1" po:Freeze="True">
+    <LinearGradientBrush x:Key="TileSurfaceBrush" po:Freeze="True" StartPoint="0,0" EndPoint="1,1">
         <GradientStop Offset="0" Color="#FF4A3E85" />
         <GradientStop Offset="0.55" Color="#FF3A2E6B" />
         <GradientStop Offset="1" Color="#FF2C2252" />
@@ -1381,19 +1542,58 @@
         Deck tokens live here, beside the deck styles: a merged dictionary cannot resolve a
         StaticResource declared in its parent.
     -->
-    <SolidColorBrush x:Key="DeckSurfaceBrush" Color="#FF2C2148" po:Freeze="True" />
-    <SolidColorBrush x:Key="DeckSurfaceHoverBrush" Color="#FF3A2D5A" po:Freeze="True" />
-    <SolidColorBrush x:Key="DeckSurfacePressedBrush" Color="#FF221A3C" po:Freeze="True" />
-    <SolidColorBrush x:Key="DeckEdgeBrush" Color="#FF4A3C72" po:Freeze="True" />
-    <SolidColorBrush x:Key="DeckEdgeHoverBrush" Color="#FFA97BFF" po:Freeze="True" />
-    <SolidColorBrush x:Key="DeckTextBrush" Color="#FFC6B9E8" po:Freeze="True" />
-    <SolidColorBrush x:Key="DeckTextMutedBrush" Color="#FF9689B8" po:Freeze="True" />
-    <SolidColorBrush x:Key="DeckTextOnBrush" Color="#FF17102E" po:Freeze="True" />
-    <SolidColorBrush x:Key="RouteOnBrush" Color="#FFB9A6EE" po:Freeze="True" />
-    <SolidColorBrush x:Key="RouteOnEdgeBrush" Color="#FFD3C4FF" po:Freeze="True" />
-    <SolidColorBrush x:Key="FeatureOnFillBrush" Color="#3DB96BFF" po:Freeze="True" />
-    <SolidColorBrush x:Key="FeatureOnEdgeBrush" Color="#FFB96BFF" po:Freeze="True" />
-    <SolidColorBrush x:Key="FeatureOnTextBrush" Color="#FFEFE4FF" po:Freeze="True" />
+    <SolidColorBrush
+        x:Key="DeckSurfaceBrush"
+        po:Freeze="True"
+        Color="#FF2C2148" />
+    <SolidColorBrush
+        x:Key="DeckSurfaceHoverBrush"
+        po:Freeze="True"
+        Color="#FF3A2D5A" />
+    <SolidColorBrush
+        x:Key="DeckSurfacePressedBrush"
+        po:Freeze="True"
+        Color="#FF221A3C" />
+    <SolidColorBrush
+        x:Key="DeckEdgeBrush"
+        po:Freeze="True"
+        Color="#FF4A3C72" />
+    <SolidColorBrush
+        x:Key="DeckEdgeHoverBrush"
+        po:Freeze="True"
+        Color="#FFA97BFF" />
+    <SolidColorBrush
+        x:Key="DeckTextBrush"
+        po:Freeze="True"
+        Color="#FFC6B9E8" />
+    <SolidColorBrush
+        x:Key="DeckTextMutedBrush"
+        po:Freeze="True"
+        Color="#FF9689B8" />
+    <SolidColorBrush
+        x:Key="DeckTextOnBrush"
+        po:Freeze="True"
+        Color="#FF17102E" />
+    <SolidColorBrush
+        x:Key="RouteOnBrush"
+        po:Freeze="True"
+        Color="#FFB9A6EE" />
+    <SolidColorBrush
+        x:Key="RouteOnEdgeBrush"
+        po:Freeze="True"
+        Color="#FFD3C4FF" />
+    <SolidColorBrush
+        x:Key="FeatureOnFillBrush"
+        po:Freeze="True"
+        Color="#3DB96BFF" />
+    <SolidColorBrush
+        x:Key="FeatureOnEdgeBrush"
+        po:Freeze="True"
+        Color="#FFB96BFF" />
+    <SolidColorBrush
+        x:Key="FeatureOnTextBrush"
+        po:Freeze="True"
+        Color="#FFEFE4FF" />
 
     <!--
         ============================================================================================
@@ -1565,7 +1765,7 @@
         <Setter Property="Width" Value="96" />
         <Setter Property="Height" Value="22" />
         <Setter Property="Content" Value="VR ONLY" />
-        <!-- matches DeckChipBase: this sits in the same chip row and must not read as a different face -->
+        <!--  matches DeckChipBase: this sits in the same chip row and must not read as a different face  -->
         <Setter Property="FontFamily" Value="{StaticResource FontPrimary}" />
         <Setter Property="FontSize" Value="{StaticResource FontSizeMicro}" />
         <Setter Property="Foreground" Value="{StaticResource DeckTextMutedBrush}" />
@@ -1638,11 +1838,26 @@
         a message is either the live one or history, and the page has to say which at a glance.
         ============================================================================================
     -->
-    <SolidColorBrush x:Key="ChatCardBrush" Color="#FF332951" po:Freeze="True" />
-    <SolidColorBrush x:Key="ChatCardHoverBrush" Color="#FF3C3160" po:Freeze="True" />
-    <SolidColorBrush x:Key="ChatCardLiveBrush" Color="#FF3A2C63" po:Freeze="True" />
-    <SolidColorBrush x:Key="ChatTextBrush" Color="#FFE2DCF2" po:Freeze="True" />
-    <SolidColorBrush x:Key="ChatEditTextBrush" Color="#FF9FE4FF" po:Freeze="True" />
+    <SolidColorBrush
+        x:Key="ChatCardBrush"
+        po:Freeze="True"
+        Color="#FF332951" />
+    <SolidColorBrush
+        x:Key="ChatCardHoverBrush"
+        po:Freeze="True"
+        Color="#FF3C3160" />
+    <SolidColorBrush
+        x:Key="ChatCardLiveBrush"
+        po:Freeze="True"
+        Color="#FF3A2C63" />
+    <SolidColorBrush
+        x:Key="ChatTextBrush"
+        po:Freeze="True"
+        Color="#FFE2DCF2" />
+    <SolidColorBrush
+        x:Key="ChatEditTextBrush"
+        po:Freeze="True"
+        Color="#FF9FE4FF" />
 
     <!--
         The live message and the history behind it. Only the ground and the edge change: keeping the
@@ -1934,7 +2149,7 @@
         <Setter Property="Height" Value="22" />
         <Setter Property="Background" Value="{StaticResource DeckSurfaceBrush}" />
         <Setter Property="Foreground" Value="{StaticResource DeckTextBrush}" />
-        <!-- matches DeckChipBase: this sits in the same chip row and must not read as a different face -->
+        <!--  matches DeckChipBase: this sits in the same chip row and must not read as a different face  -->
         <Setter Property="FontFamily" Value="{StaticResource FontPrimary}" />
         <Setter Property="FontSize" Value="{StaticResource FontSizeMicro}" />
         <Setter Property="Padding" Value="11,0,10,0" />
@@ -2140,12 +2355,12 @@
         The lyrics Gap/Hold stepper row. It appears twice - on the Integrations ribbon and on the
         Options timing card - and had drifted to two type scales and two button sizes. Keyed here so
         both sites render the same widget instead of two hand-kept copies.
-
+        
         DataContext contract: a LyricsSectionViewModel (NudgeGapThresholdCommand,
         NudgeLineHoldCommand, Settings.GapThresholdSeconds, Settings.LineHoldSeconds). On the
         Options card that is already the ambient DataContext (Content="{Binding}"); on the
         Integrations page it hangs off the page VM (Content="{Binding LyricsTuning}").
-
+        
         Status_Button_style lives in App.xaml, which merges this dictionary before defining it, so
         the reference has to be DynamicResource - StaticResource would be a forward reference and
         would throw at load.

@@ -742,11 +742,11 @@
                     neighbour. A corner-to-corner gradient tried that first and read as washed-out,
                     because different parts of the same line of text sat on different parts of it.
                 -->
-                <LinearGradientBrush x:Key="StatusRowSurfaceBrush" StartPoint="0,0" EndPoint="0,1" po:Freeze="True">
+                <LinearGradientBrush x:Key="StatusRowSurfaceBrush" po:Freeze="True" StartPoint="0,0.5" EndPoint="1,0">
                     <GradientStop Offset="0" Color="#FF4A4070" />
                     <GradientStop Offset="1" Color="#FF2C2448" />
                 </LinearGradientBrush>
-                <LinearGradientBrush x:Key="StatusRowSelectedBrush" StartPoint="0,0" EndPoint="0,1" po:Freeze="True">
+                <LinearGradientBrush x:Key="StatusRowSelectedBrush" po:Freeze="True" StartPoint="0,0.5" EndPoint="1,0">
                     <GradientStop Offset="0" Color="#FF5C5296" />
                     <GradientStop Offset="1" Color="#FF3A3162" />
                 </LinearGradientBrush>
@@ -855,9 +855,9 @@
                             <Grid Grid.Column="0" Visibility="{Binding DataContext.IsSelectionMode, RelativeSource={RelativeSource AncestorType=ListBox}, Converter={StaticResource InverseBoolToVisibilityConverter}}">
                                 <Border
                                     Background="{StaticResource SurfaceButtonDarkBrush}"
-                                    BorderBrush="LimeGreen"
-                                    BorderThickness="1"
-                                    CornerRadius="4">
+                                    BorderBrush="#B170C5"
+                                    BorderThickness="2,1.5,2,1.5"
+                                    CornerRadius="4,0,0,4">
                                     <Image
                                         Width="22"
                                         Height="22"
@@ -939,90 +939,90 @@
                                 Style="{StaticResource ActiveStatusTextEditShadow}"
                                 Text="{Binding editMsg}"
                                 Visibility="{Binding IsEditing, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}" />
-                                <Button
-                                    x:Name="CancelEditbutton"
-                                    Grid.Column="2"
-                                    Width="20"
-                                    Height="20"
-                                    Margin="0,0,5,0"
-                                    HorizontalAlignment="Right"
-                                    VerticalAlignment="Center"
-                                    Background="{StaticResource StatusErrorDarkBrush}"
-                                    Click="CancelEditbutton_Click"
-                                    Cursor="Hand"
-                                    Style="{DynamicResource CancelEditbutton}"
-                                    Tag="{Binding}"
-                                    Visibility="{Binding IsEditing, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
-                                    <Image
-                                        Width="15"
-                                        Height="15"
-                                        Source="/MagicChatbox;component/Img/Icons/Cross_ico.png" />
-                                </Button>
+                            <Button
+                                x:Name="CancelEditbutton"
+                                Grid.Column="2"
+                                Width="20"
+                                Height="20"
+                                Margin="0,0,5,0"
+                                HorizontalAlignment="Right"
+                                VerticalAlignment="Center"
+                                Background="{StaticResource StatusErrorDarkBrush}"
+                                Click="CancelEditbutton_Click"
+                                Cursor="Hand"
+                                Style="{DynamicResource CancelEditbutton}"
+                                Tag="{Binding}"
+                                Visibility="{Binding IsEditing, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
+                                <Image
+                                    Width="15"
+                                    Height="15"
+                                    Source="/MagicChatbox;component/Img/Icons/Cross_ico.png" />
+                            </Button>
 
-                                <ToggleButton
-                                    x:Name="Editbutton"
-                                    Grid.Column="3"
-                                    Width="25"
-                                    Height="35"
-                                    HorizontalAlignment="Left"
-                                    VerticalAlignment="Center"
-                                    Background="{StaticResource SurfaceButtonPanelBrush}"
-                                    Checked="Editbutton_Checked"
-                                    Cursor="Hand"
-                                    IsChecked="{Binding IsEditing}"
-                                    Style="{StaticResource StatusItemEditToggleStyle}"
-                                    Tag="{Binding}"
-                                    Unchecked="Editbutton_Checked"
-                                    Visibility="{Binding DataContext.IsSelectionMode, RelativeSource={RelativeSource AncestorType=ListBox}, Converter={StaticResource InverseBoolToVisibilityConverter}}">
-                                    <Image
-                                        Width="15"
-                                        Height="15"
-                                        RenderOptions.BitmapScalingMode="Linear"
-                                        Source="/MagicChatbox;component/Img/Icons/Edit_ico.png" />
-                                </ToggleButton>
+                            <ToggleButton
+                                x:Name="Editbutton"
+                                Grid.Column="3"
+                                Width="25"
+                                Height="35"
+                                HorizontalAlignment="Left"
+                                VerticalAlignment="Center"
+                                Background="{StaticResource SurfaceButtonPanelBrush}"
+                                Checked="Editbutton_Checked"
+                                Cursor="Hand"
+                                IsChecked="{Binding IsEditing}"
+                                Style="{StaticResource StatusItemEditToggleStyle}"
+                                Tag="{Binding}"
+                                Unchecked="Editbutton_Checked"
+                                Visibility="{Binding DataContext.IsSelectionMode, RelativeSource={RelativeSource AncestorType=ListBox}, Converter={StaticResource InverseBoolToVisibilityConverter}}">
+                                <Image
+                                    Width="15"
+                                    Height="15"
+                                    RenderOptions.BitmapScalingMode="Linear"
+                                    Source="/MagicChatbox;component/Img/Icons/Edit_ico.png" />
+                            </ToggleButton>
 
-                                <ComboBox
-                                    Grid.Column="4"
-                                    Width="90"
-                                    HorizontalAlignment="Center"
-                                    VerticalAlignment="Center"
-                                    VerticalContentAlignment="Center"
-                                    DisplayMemberPath="Name"
-                                    FontSize="12"
-                                    ItemsSource="{Binding DataContext.ChatStatus.GroupList, RelativeSource={RelativeSource AncestorType=ListBox}}"
-                                    SelectedValue="{Binding GroupId, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                    SelectedValuePath="GroupId"
-                                    Style="{StaticResource FlatComboBoxStyle}"
-                                    ToolTip="Assign to group"
-                                    Visibility="{Binding DataContext.IsSelectionMode, RelativeSource={RelativeSource AncestorType=ListBox}, Converter={StaticResource InverseBoolToVisibilityConverter}}" />
+                            <ComboBox
+                                Grid.Column="4"
+                                Width="90"
+                                HorizontalAlignment="Center"
+                                VerticalAlignment="Center"
+                                VerticalContentAlignment="Center"
+                                DisplayMemberPath="Name"
+                                FontSize="12"
+                                ItemsSource="{Binding DataContext.ChatStatus.GroupList, RelativeSource={RelativeSource AncestorType=ListBox}}"
+                                SelectedValue="{Binding GroupId, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                SelectedValuePath="GroupId"
+                                Style="{StaticResource FlatComboBoxStyle}"
+                                ToolTip="Assign to group"
+                                Visibility="{Binding DataContext.IsSelectionMode, RelativeSource={RelativeSource AncestorType=ListBox}, Converter={StaticResource InverseBoolToVisibilityConverter}}" />
 
-                                <Button
-                                    Name="Favbutton"
-                                    Grid.Column="5"
-                                    Width="35"
-                                    Height="35"
-                                    HorizontalAlignment="Left"
-                                    VerticalAlignment="Center"
-                                    Background="Transparent"
-                                    Click="Favbutton_Click"
-                                    Cursor="Hand"
-                                    Style="{DynamicResource Favbutton}"
-                                    Visibility="{Binding DataContext.IsSelectionMode, RelativeSource={RelativeSource AncestorType=ListBox}, Converter={StaticResource InverseBoolToVisibilityConverter}}">
-                                    <Image Width="22" Height="22">
-                                        <Image.Style>
-                                            <Style>
-                                                <Style.Triggers>
-                                                    <DataTrigger Binding="{Binding UseInCycle}" Value="True">
-                                                        <Setter Property="Image.Source" Value="/MagicChatbox;component/Img/Icons/Unfavorite_ico.png" />
-                                                    </DataTrigger>
-                                                    <DataTrigger Binding="{Binding UseInCycle}" Value="False">
-                                                        <Setter Property="Image.Source" Value="/MagicChatbox;component/Img/Icons/Favorite_ico.png" />
-                                                    </DataTrigger>
-                                                </Style.Triggers>
-                                            </Style>
-                                        </Image.Style>
-                                    </Image>
-                                </Button>
+                            <Button
+                                Name="Favbutton"
+                                Grid.Column="5"
+                                Width="35"
+                                Height="35"
+                                HorizontalAlignment="Left"
+                                VerticalAlignment="Center"
+                                Background="Transparent"
+                                Click="Favbutton_Click"
+                                Cursor="Hand"
+                                Style="{DynamicResource Favbutton}"
+                                Visibility="{Binding DataContext.IsSelectionMode, RelativeSource={RelativeSource AncestorType=ListBox}, Converter={StaticResource InverseBoolToVisibilityConverter}}">
+                                <Image Width="22" Height="22">
+                                    <Image.Style>
+                                        <Style>
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding UseInCycle}" Value="True">
+                                                    <Setter Property="Image.Source" Value="/MagicChatbox;component/Img/Icons/Unfavorite_ico.png" />
+                                                </DataTrigger>
+                                                <DataTrigger Binding="{Binding UseInCycle}" Value="False">
+                                                    <Setter Property="Image.Source" Value="/MagicChatbox;component/Img/Icons/Favorite_ico.png" />
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Image.Style>
+                                </Image>
+                            </Button>
                         </Grid>
                     </Border>
                 </DataTemplate>

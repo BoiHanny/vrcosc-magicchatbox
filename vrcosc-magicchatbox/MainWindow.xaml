@@ -68,8 +68,8 @@
                     Grid.Row="1"
                     IsHostActive="{Binding DataContext.IsWindowOnScreen, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=True}"
                     KeepAlive="False"
-                    PageIndex="1"
-                    SelectedIndex="{Binding DataContext.SelectedMenuIndex, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=-1}">
+                    SelectedIndex="{Binding DataContext.SelectedMenuIndex, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=-1}"
+                    PageIndex="1">
                     <controls:LazyPageHost.PageTemplate>
                         <DataTemplate>
                             <pages:StatusPage DataContext="{Binding DataContext.Status, RelativeSource={RelativeSource AncestorType=Window}}" />
@@ -83,8 +83,8 @@
                     Grid.Row="1"
                     IsHostActive="{Binding DataContext.IsWindowOnScreen, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=True}"
                     KeepAlive="False"
-                    PageIndex="3"
-                    SelectedIndex="{Binding DataContext.SelectedMenuIndex, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=-1}">
+                    SelectedIndex="{Binding DataContext.SelectedMenuIndex, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=-1}"
+                    PageIndex="3">
                     <controls:LazyPageHost.PageTemplate>
                         <DataTemplate>
                             <pages:OptionsPage DataContext="{Binding DataContext.Options, RelativeSource={RelativeSource AncestorType=Window}}" />
@@ -98,8 +98,8 @@
                     Grid.Row="1"
                     IsHostActive="{Binding DataContext.IsWindowOnScreen, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=True}"
                     KeepAlive="False"
-                    PageIndex="2"
-                    SelectedIndex="{Binding DataContext.SelectedMenuIndex, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=-1}">
+                    SelectedIndex="{Binding DataContext.SelectedMenuIndex, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=-1}"
+                    PageIndex="2">
                     <controls:LazyPageHost.PageTemplate>
                         <DataTemplate>
                             <pages:ChattingPage DataContext="{Binding DataContext.Chatting, RelativeSource={RelativeSource AncestorType=Window}}" />
@@ -178,9 +178,9 @@
                                     </TextBlock.Foreground>
                                     <TextBlock.Effect>
                                         <DropShadowEffect
+                                            po:Freeze="True"
                                             BlurRadius="16"
                                             Opacity="0.6"
-                                            po:Freeze="True"
                                             ShadowDepth="0"
                                             Color="#FFAEA7ED" />
                                     </TextBlock.Effect>
@@ -1204,8 +1204,8 @@
                     Grid.Row="1"
                     IsHostActive="{Binding DataContext.IsWindowOnScreen, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=True}"
                     KeepAlive="False"
-                    PageIndex="0"
-                    SelectedIndex="{Binding DataContext.SelectedMenuIndex, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=-1}">
+                    SelectedIndex="{Binding DataContext.SelectedMenuIndex, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=-1}"
+                    PageIndex="0">
                     <controls:LazyPageHost.PageTemplate>
                         <DataTemplate>
                             <pages:IntegrationsPage DataContext="{Binding DataContext.Integrations, RelativeSource={RelativeSource AncestorType=Window}}" />
@@ -1242,9 +1242,9 @@
                     Text="MagicChatbox">
                     <TextBlock.Effect>
                         <DropShadowEffect
+                            po:Freeze="True"
                             BlurRadius="15"
                             Opacity="0.8"
-                            po:Freeze="True"
                             ShadowDepth="0"
                             Color="Black" />
                     </TextBlock.Effect>

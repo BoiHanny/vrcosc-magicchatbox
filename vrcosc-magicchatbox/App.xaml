@@ -4,21 +4,14 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:local="clr-namespace:vrcosc_magicchatbox.Classes"
     xmlns:local1="clr-namespace:vrcosc_magicchatbox"
-    xmlns:theme="clr-namespace:Microsoft.Windows.Themes;assembly=PresentationFramework.Aero2"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:po="http://schemas.microsoft.com/winfx/2006/xaml/presentation/options"
+    xmlns:theme="clr-namespace:Microsoft.Windows.Themes;assembly=PresentationFramework.Aero2"
     mc:Ignorable="po">
     <Application.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary Source="/MagicChatbox;component/UI/Theme.xaml" />
-                <!--
-                    The converters have to be app-level, not per-page. A UserControl's own XAML is
-                    parsed before it is attached to any parent, so a StaticResource inside it can
-                    only reach the application dictionary - a page merging this further down the
-                    tree is already too late. SegmentPreview asked for BoolToVisibilityConverter
-                    and threw on construction until this line existed.
-                -->
                 <ResourceDictionary Source="/MagicChatbox;component/UI/Resources/SharedConverters.xaml" />
             </ResourceDictionary.MergedDictionaries>
 
@@ -26,6 +19,7 @@
                 x:Key="TextBlockShadowEffect"
                 BlurRadius="10"
                 Opacity="1"
+                RenderingBias="Performance"
                 ShadowDepth="0"
                 Color="#251153" />
 
@@ -34,6 +28,7 @@
                 po:Freeze="True"
                 BlurRadius="25"
                 Opacity="0.4"
+                RenderingBias="Performance"
                 ShadowDepth="0"
                 Color="#251153" />
             <Style x:Key="CircleButton" TargetType="Button">
@@ -67,18 +62,6 @@
                     </Setter.Value>
                 </Setter>
             </Style>
-            <!--
-                Options section header. Family, size and colour are template-bound to the setters
-                below so the style owns them. FontWeight is deliberately NOT template-bound and is
-                pinned to SemiBold inside the template: 600 is the specced weight for this role,
-                and pinning it means a call site cannot reintroduce Bold 700.
-
-                FontSize is the top rung of the Options ladder and must stay above the styles it
-                contains: section header 18 (FontSizeHeading) > subsection header 16
-                (OptionSubsectionHeaderStyle) > field label 15 (FontSizeBody). At 18 SemiBold,
-                Albert Sans measures a 21.6px line box (LineSpacing 1.2), which clears the
-                Height="30" the call sites hard-code with room to spare.
-            -->
             <Style x:Key="ExpandCollapseToggleButtonStyle" TargetType="ToggleButton">
                 <Setter Property="Background" Value="Transparent" />
                 <Setter Property="Foreground" Value="{StaticResource TextSectionHeaderBrush}" />
@@ -161,11 +144,6 @@
                     </Trigger>
                 </Style.Triggers>
             </Style>
-            <!--
-                Same header role as ExpandCollapseToggleButtonStyle, dev-only accent colours.
-                Keep FontSize and the template's pinned SemiBold in step with that style: the
-                weight is not exposed as a setter so a call site cannot reintroduce Bold 700.
-            -->
             <Style x:Key="ExpandCollapseToggleButtonStyleDEV" TargetType="ToggleButton">
                 <Setter Property="Background" Value="Transparent" />
                 <Setter Property="Foreground" Value="{StaticResource TextSectionHeaderBrush}" />
@@ -263,15 +241,42 @@
                     </Setter.Value>
                 </Setter>
             </Style>
-            <SolidColorBrush x:Key="Button.Static.Background" po:Freeze="True" Color="#240E54" />
-            <SolidColorBrush x:Key="Button.Static.Border" po:Freeze="True" Color="#240E54" />
-            <SolidColorBrush x:Key="Button.MouseOver.Background" po:Freeze="True" Color="#191551" />
-            <SolidColorBrush x:Key="Button.MouseOver.Border" po:Freeze="True" Color="#191551" />
-            <SolidColorBrush x:Key="Button.Pressed.Background" po:Freeze="True" Color="#13103d" />
-            <SolidColorBrush x:Key="Button.Pressed.Border" po:Freeze="True" Color="#13103d" />
-            <SolidColorBrush x:Key="Button.Disabled.Background" po:Freeze="True" Color="#FF2F2F2F" />
-            <SolidColorBrush x:Key="Button.Disabled.Border" po:Freeze="True" Color="#FF2F2F2F" />
-            <SolidColorBrush x:Key="Button.Disabled.Foreground" po:Freeze="True" Color="Gray" />
+            <SolidColorBrush
+                x:Key="Button.Static.Background"
+                po:Freeze="True"
+                Color="#240E54" />
+            <SolidColorBrush
+                x:Key="Button.Static.Border"
+                po:Freeze="True"
+                Color="#240E54" />
+            <SolidColorBrush
+                x:Key="Button.MouseOver.Background"
+                po:Freeze="True"
+                Color="#191551" />
+            <SolidColorBrush
+                x:Key="Button.MouseOver.Border"
+                po:Freeze="True"
+                Color="#191551" />
+            <SolidColorBrush
+                x:Key="Button.Pressed.Background"
+                po:Freeze="True"
+                Color="#13103d" />
+            <SolidColorBrush
+                x:Key="Button.Pressed.Border"
+                po:Freeze="True"
+                Color="#13103d" />
+            <SolidColorBrush
+                x:Key="Button.Disabled.Background"
+                po:Freeze="True"
+                Color="#FF2F2F2F" />
+            <SolidColorBrush
+                x:Key="Button.Disabled.Border"
+                po:Freeze="True"
+                Color="#FF2F2F2F" />
+            <SolidColorBrush
+                x:Key="Button.Disabled.Foreground"
+                po:Freeze="True"
+                Color="Gray" />
             <Style x:Key="FocusVisual1">
                 <Setter Property="Control.Template">
                     <Setter.Value>
@@ -300,11 +305,26 @@
                     </Setter.Value>
                 </Setter>
             </Style>
-            <SolidColorBrush x:Key="Button.Static.Background2" po:Freeze="True" Color="#FFDDDDDD" />
-            <SolidColorBrush x:Key="Button.Static.Border2" po:Freeze="True" Color="#FF707070" />
-            <SolidColorBrush x:Key="Button.Disabled.Background2" po:Freeze="True" Color="#FFF4F4F4" />
-            <SolidColorBrush x:Key="Button.Disabled.Border2" po:Freeze="True" Color="#FFADB2B5" />
-            <SolidColorBrush x:Key="Button.Disabled.Foreground2" po:Freeze="True" Color="#FF838383" />
+            <SolidColorBrush
+                x:Key="Button.Static.Background2"
+                po:Freeze="True"
+                Color="#FFDDDDDD" />
+            <SolidColorBrush
+                x:Key="Button.Static.Border2"
+                po:Freeze="True"
+                Color="#FF707070" />
+            <SolidColorBrush
+                x:Key="Button.Disabled.Background2"
+                po:Freeze="True"
+                Color="#FFF4F4F4" />
+            <SolidColorBrush
+                x:Key="Button.Disabled.Border2"
+                po:Freeze="True"
+                Color="#FFADB2B5" />
+            <SolidColorBrush
+                x:Key="Button.Disabled.Foreground2"
+                po:Freeze="True"
+                Color="#FF838383" />
             <Style x:Key="FocusVisual3">
                 <Setter Property="Control.Template">
                     <Setter.Value>
@@ -319,15 +339,42 @@
                     </Setter.Value>
                 </Setter>
             </Style>
-            <SolidColorBrush x:Key="Button.Static.Background3" po:Freeze="True" Color="#FF240E54" />
-            <SolidColorBrush x:Key="Button.Static.Border3" po:Freeze="True" Color="#FF240E54" />
-            <SolidColorBrush x:Key="Button.MouseOver.Background2" po:Freeze="True" Color="#191551" />
-            <SolidColorBrush x:Key="Button.MouseOver.Border2" po:Freeze="True" Color="#191551" />
-            <SolidColorBrush x:Key="Button.Pressed.Background2" po:Freeze="True" Color="#13103d" />
-            <SolidColorBrush x:Key="Button.Pressed.Border2" po:Freeze="True" Color="#13103d" />
-            <SolidColorBrush x:Key="Button.Disabled.Background3" po:Freeze="True" Color="#FF2F2F2F" />
-            <SolidColorBrush x:Key="Button.Disabled.Border3" po:Freeze="True" Color="#FF2F2F2F" />
-            <SolidColorBrush x:Key="Button.Disabled.Foreground3" po:Freeze="True" Color="#FF838383" />
+            <SolidColorBrush
+                x:Key="Button.Static.Background3"
+                po:Freeze="True"
+                Color="#FF240E54" />
+            <SolidColorBrush
+                x:Key="Button.Static.Border3"
+                po:Freeze="True"
+                Color="#FF240E54" />
+            <SolidColorBrush
+                x:Key="Button.MouseOver.Background2"
+                po:Freeze="True"
+                Color="#191551" />
+            <SolidColorBrush
+                x:Key="Button.MouseOver.Border2"
+                po:Freeze="True"
+                Color="#191551" />
+            <SolidColorBrush
+                x:Key="Button.Pressed.Background2"
+                po:Freeze="True"
+                Color="#13103d" />
+            <SolidColorBrush
+                x:Key="Button.Pressed.Border2"
+                po:Freeze="True"
+                Color="#13103d" />
+            <SolidColorBrush
+                x:Key="Button.Disabled.Background3"
+                po:Freeze="True"
+                Color="#FF2F2F2F" />
+            <SolidColorBrush
+                x:Key="Button.Disabled.Border3"
+                po:Freeze="True"
+                Color="#FF2F2F2F" />
+            <SolidColorBrush
+                x:Key="Button.Disabled.Foreground3"
+                po:Freeze="True"
+                Color="#FF838383" />
             <Style x:Key="Status_Button_style_Small" TargetType="{x:Type Button}">
                 <Setter Property="FocusVisualStyle" Value="{StaticResource FocusVisual3}" />
                 <Setter Property="Background" Value="{StaticResource Button.Static.Background3}" />
@@ -845,6 +892,7 @@
                                             <DropShadowEffect
                                                 po:Freeze="True"
                                                 BlurRadius="9"
+                                                RenderingBias="Performance"
                                                 ShadowDepth="0"
                                                 Color="#B4A4DB" />
                                         </Setter.Value>
@@ -1034,6 +1082,7 @@
                                             <DropShadowEffect
                                                 po:Freeze="True"
                                                 BlurRadius="5"
+                                                RenderingBias="Performance"
                                                 ShadowDepth="0"
                                                 Color="#B9CAF7" />
                                         </Setter.Value>
@@ -1087,6 +1136,7 @@
                                             <DropShadowEffect
                                                 po:Freeze="True"
                                                 BlurRadius="5"
+                                                RenderingBias="Performance"
                                                 ShadowDepth="0"
                                                 Color="#B9CAF7" />
                                         </Setter.Value>
@@ -1281,6 +1331,7 @@
                                         BlurRadius="11"
                                         Direction="0"
                                         Opacity="0"
+                                        RenderingBias="Performance"
                                         ShadowDepth="0"
                                         Color="#D596FF" />
                                 </Border.Effect>
@@ -1328,16 +1379,35 @@
 
 
 
-            <!--  Control deck + scrollbar tokens. The accent ramp means exactly one thing across the app:
-                  "this is on". Only the master switch wears it, so it never competes with the status rail.  -->
+            <!--
+                Control deck + scrollbar tokens. The accent ramp means exactly one thing across the app:
+                "this is on". Only the master switch wears it, so it never competes with the status rail.
+            -->
 
-            <!--  Off track is LIGHTER than the tile, not darker. A dark track measured 1.37:1 against the
-                  tile surface, which made the app's primary control the least visible thing in its row.  -->
-            <SolidColorBrush x:Key="SwitchTrackOffBrush" po:Freeze="True" Color="#FF584B8C" />
-            <SolidColorBrush x:Key="SwitchEdgeOffBrush" po:Freeze="True" Color="#FF7A6BB5" />
-            <SolidColorBrush x:Key="SwitchThumbOffBrush" po:Freeze="True" Color="#FFE3DCF5" />
-            <SolidColorBrush x:Key="SwitchThumbOnBrush" po:Freeze="True" Color="#FFFDFBFF" />
-            <SolidColorBrush x:Key="SwitchEdgeOnBrush" po:Freeze="True" Color="#FFCBB0FF" />
+            <!--
+                Off track is LIGHTER than the tile, not darker. A dark track measured 1.37:1 against the
+                tile surface, which made the app's primary control the least visible thing in its row.
+            -->
+            <SolidColorBrush
+                x:Key="SwitchTrackOffBrush"
+                po:Freeze="True"
+                Color="#FF584B8C" />
+            <SolidColorBrush
+                x:Key="SwitchEdgeOffBrush"
+                po:Freeze="True"
+                Color="#FF7A6BB5" />
+            <SolidColorBrush
+                x:Key="SwitchThumbOffBrush"
+                po:Freeze="True"
+                Color="#FFE3DCF5" />
+            <SolidColorBrush
+                x:Key="SwitchThumbOnBrush"
+                po:Freeze="True"
+                Color="#FFFDFBFF" />
+            <SolidColorBrush
+                x:Key="SwitchEdgeOnBrush"
+                po:Freeze="True"
+                Color="#FFCBB0FF" />
             <LinearGradientBrush x:Key="AccentRampBrush" po:Freeze="True" StartPoint="0,1" EndPoint="1,0">
                 <GradientStop Offset="0" Color="#FF3FE0D2" />
                 <GradientStop Offset="0.35" Color="#FF6E9BFF" />
@@ -1345,9 +1415,18 @@
                 <GradientStop Offset="1" Color="#FFFF6FC7" />
             </LinearGradientBrush>
 
-            <SolidColorBrush x:Key="ScrollThumbBrush" po:Freeze="True" Color="#8FC0B2F0" />
-            <SolidColorBrush x:Key="ScrollThumbHoverBrush" po:Freeze="True" Color="#E0D6CCFF" />
-            <SolidColorBrush x:Key="ScrollTrackHoverBrush" po:Freeze="True" Color="#1AFFFFFF" />
+            <SolidColorBrush
+                x:Key="ScrollThumbBrush"
+                po:Freeze="True"
+                Color="#8FC0B2F0" />
+            <SolidColorBrush
+                x:Key="ScrollThumbHoverBrush"
+                po:Freeze="True"
+                Color="#E0D6CCFF" />
+            <SolidColorBrush
+                x:Key="ScrollTrackHoverBrush"
+                po:Freeze="True"
+                Color="#1AFFFFFF" />
             <LinearGradientBrush x:Key="AccentRampVerticalBrush" po:Freeze="True" StartPoint="0,1" EndPoint="0,0">
                 <GradientStop Offset="0" Color="#FF3FE0D2" />
                 <GradientStop Offset="0.5" Color="#FF6E9BFF" />
@@ -1385,8 +1464,10 @@
                                         BorderThickness="1"
                                         CornerRadius="11"
                                         SnapsToDevicePixels="True" />
-                                    <!--  The thumb rides inside the track. The old 25px ball overhung a 20px
-                                          rail by 2.5px top and bottom, which is most of what dated it.  -->
+                                    <!--
+                                        The thumb rides inside the track. The old 25px ball overhung a 20px
+                                        rail by 2.5px top and bottom, which is most of what dated it.
+                                    -->
                                     <Border
                                         x:Name="knob"
                                         Width="16"
@@ -1418,9 +1499,11 @@
                                 </Trigger>
 
                                 <Trigger Property="IsChecked" Value="True">
-                                    <!--  The explicit setter is the resting truth. Tiles are torn down and
-                                          re-added on every reorder and hide, and a position that exists only
-                                          as an animation clock parks the thumb on the wrong side.  -->
+                                    <!--
+                                        The explicit setter is the resting truth. Tiles are torn down and
+                                        re-added on every reorder and hide, and a position that exists only
+                                        as an animation clock parks the thumb on the wrong side.
+                                    -->
                                     <Setter TargetName="knob" Property="RenderTransform">
                                         <Setter.Value>
                                             <TranslateTransform X="20" />
@@ -1530,9 +1613,11 @@
                 <Setter Property="Template">
                     <Setter.Value>
                         <ControlTemplate TargetType="{x:Type ScrollBar}">
-                            <!--  Layout width stays 8 so nothing in the app reflows; the bar is thinner
-                                  visually, not structurally. Width lives on the setter only, so the
-                                  horizontal orientation trigger can actually override it.  -->
+                            <!--
+                                Layout width stays 8 so nothing in the app reflows; the bar is thinner
+                                visually, not structurally. Width lives on the setter only, so the
+                                horizontal orientation trigger can actually override it.
+                            -->
                             <Grid
                                 x:Name="GridRoot"
                                 Width="8"
@@ -1630,9 +1715,9 @@
                                     ContentTemplate="{TemplateBinding ContentTemplate}" />
                                 <Button
                                     Margin="0,4,8,0"
-                                    Panel.ZIndex="1"
                                     HorizontalAlignment="Right"
                                     VerticalAlignment="Top"
+                                    Panel.ZIndex="1"
                                     Command="{Binding DataContext.ResetSectionCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
                                     CommandParameter="{Binding Tag, RelativeSource={RelativeSource TemplatedParent}}"
                                     Content="Reset"
@@ -1720,7 +1805,7 @@
                                 Background="{TemplateBinding Background}"
                                 BorderBrush="{TemplateBinding BorderBrush}"
                                 BorderThickness="{TemplateBinding BorderThickness}"
-                                CornerRadius="5,0,0,5"
+                                CornerRadius="3,0,0,3"
                                 SnapsToDevicePixels="true">
                                 <ContentPresenter
                                     x:Name="contentPresenter"
