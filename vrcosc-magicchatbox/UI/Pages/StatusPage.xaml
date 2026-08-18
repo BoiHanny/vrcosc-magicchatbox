@@ -734,6 +734,33 @@
                     RenderingBias="Performance"
                     ShadowDepth="0"
                     Color="{StaticResource AccentLightBlueColor}" />
+
+                <!--
+                    Same three-stop diagonal used for every Integrations tile, so a status row and an
+                    integration tile read as the same kind of surface. Selected lightens each stop by
+                    one step rather than switching hue, so a selected row still reads as "this surface,
+                    picked" and not as a different kind of thing.
+                -->
+                <LinearGradientBrush x:Key="StatusRowSurfaceBrush" StartPoint="0,0" EndPoint="1,1" po:Freeze="True">
+                    <GradientStop Offset="0" Color="#FF4A3E85" />
+                    <GradientStop Offset="0.55" Color="#FF3A2E6B" />
+                    <GradientStop Offset="1" Color="#FF2C2252" />
+                </LinearGradientBrush>
+                <LinearGradientBrush x:Key="StatusRowSelectedBrush" StartPoint="0,0" EndPoint="1,1" po:Freeze="True">
+                    <GradientStop Offset="0" Color="#FF5C4EA0" />
+                    <GradientStop Offset="0.55" Color="#FF4A3E85" />
+                    <GradientStop Offset="1" Color="#FF3A2E6B" />
+                </LinearGradientBrush>
+                <!--
+                    The same teal-to-mint the Integrations rail lights up with when a tile is actually
+                    reaching the chatbox. Here it marks the one status that is live right now, so a scan
+                    down a long list finds it without reading every row.
+                -->
+                <LinearGradientBrush x:Key="StatusRowActiveRailBrush" StartPoint="0,1" EndPoint="0,0" po:Freeze="True">
+                    <GradientStop Offset="0" Color="#3FE0D2" />
+                    <GradientStop Offset="1" Color="#9DDAA8" />
+                </LinearGradientBrush>
+
                 <Style x:Key="ActiveStatusText" TargetType="TextBlock">
                     <Style.Triggers>
                         <DataTrigger Binding="{Binding IsActive}" Value="True">
@@ -757,14 +784,6 @@
                         </DataTrigger>
                     </Style.Triggers>
                 </Style>
-                <Style x:Key="StatusShadowBorder" TargetType="Border">
-                    <Setter Property="BorderBrush" Value="#FF150C33" />
-                    <Setter Property="BorderThickness" Value="1" />
-                </Style>
-                <Style
-                    x:Key="ActiveStatusTextShadow"
-                    BasedOn="{StaticResource ActiveStatusText}"
-                    TargetType="TextBlock" />
                 <Style
                     x:Key="ActiveStatusTextEditShadow"
                     BasedOn="{StaticResource ActiveStatusTextEdit}"
@@ -775,6 +794,27 @@
                             <BitmapCache RenderAtScale="1.0" />
                         </Setter.Value>
                     </Setter>
+                </Style>
+
+                <!--
+                    The row card itself. IsMouseOver only ever brightens the border - the same touch
+                    ChatComposerShell uses - because a hover state that changed the fill on top of a
+                    gradient would fight the gradient every frame; a border is one solid color and costs
+                    nothing extra to swap.
+                -->
+                <Style x:Key="StatusRowCardStyle" TargetType="Border">
+                    <Setter Property="Background" Value="{StaticResource StatusRowSurfaceBrush}" />
+                    <Setter Property="BorderBrush" Value="#FF150C33" />
+                    <Setter Property="BorderThickness" Value="1" />
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding IsSelected}" Value="True">
+                            <Setter Property="Background" Value="{StaticResource StatusRowSelectedBrush}" />
+                            <Setter Property="BorderBrush" Value="{StaticResource AccentLightPurpleBrush}" />
+                        </DataTrigger>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter Property="BorderBrush" Value="{StaticResource BorderAccentPurpleBrush}" />
+                        </Trigger>
+                    </Style.Triggers>
                 </Style>
             </ListBox.Resources>
             <ListBox.ItemContainerStyle>
@@ -797,137 +837,136 @@
             <ListBox.ItemTemplate>
                 <DataTemplate>
                     <Border
-                        Margin="5"
+                        Margin="5,4"
                         ClipToBounds="True"
                         CornerRadius="5"
                         MouseLeftButtonUp="StatusItemRow_MouseLeftButtonUp"
+                        Style="{StaticResource StatusRowCardStyle}"
                         Tag="{Binding}">
-                        <Border.Style>
-                            <Style TargetType="Border">
-                                <Setter Property="Background" Value="DarkSlateBlue" />
-                                <Style.Triggers>
-                                    <DataTrigger Binding="{Binding IsSelected}" Value="True">
-                                        <Setter Property="Background" Value="#3F2C7A" />
-                                    </DataTrigger>
-                                </Style.Triggers>
-                            </Style>
-                        </Border.Style>
                         <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="38" />
+                            </Grid.RowDefinitions>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="35" />
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+
+                            <!--
+                                The one status actually reaching the chatbox gets the same live-rail
+                                treatment as an Integrations tile, so scanning a long list finds it
+                                without reading every row.
+                            -->
                             <Border
-                                Width="auto"
-                                Height="auto"
-                                Background="Transparent"
-                                CornerRadius="5"
-                                IsHitTestVisible="False"
-                                Style="{StaticResource StatusShadowBorder}" />
-                            <Grid>
-                                <Grid.RowDefinitions>
-                                    <RowDefinition Height="35" />
-                                </Grid.RowDefinitions>
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="35" />
-                                    <ColumnDefinition Width="Auto" />
-                                    <ColumnDefinition Width="*" />
-                                    <ColumnDefinition Width="Auto" />
-                                    <ColumnDefinition Width="Auto" />
-                                    <ColumnDefinition Width="Auto" />
-                                </Grid.ColumnDefinitions>
+                                Grid.Column="0"
+                                Width="3"
+                                Margin="-1,-1,0,-1"
+                                HorizontalAlignment="Left"
+                                CornerRadius="5,0,0,5"
+                                IsHitTestVisible="False">
+                                <Border.Style>
+                                    <Style TargetType="Border">
+                                        <Setter Property="Background" Value="#1AFFFFFF" />
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding IsActive}" Value="True">
+                                                <Setter Property="Background" Value="{StaticResource StatusRowActiveRailBrush}" />
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Border.Style>
+                            </Border>
 
-                                <Grid Grid.Column="0" Visibility="{Binding DataContext.IsSelectionMode, RelativeSource={RelativeSource AncestorType=ListBox}, Converter={StaticResource InverseBoolToVisibilityConverter}}">
-                                    <Border
-                                        Background="{StaticResource SurfaceButtonDarkBrush}"
-                                        BorderBrush="LimeGreen"
-                                        BorderThickness="1"
-                                        CornerRadius="4">
-                                        <Image
-                                            Width="22"
-                                            Height="22"
-                                            Source="/Img/Icons/ActivatedStatus_ico.png"
-                                            Stretch="Uniform" />
-                                    </Border>
-                                    <Button
-                                        Name="Activatebutton"
-                                        Width="35"
-                                        Height="35"
-                                        HorizontalAlignment="Left"
-                                        VerticalAlignment="Center"
-                                        Background="{StaticResource SurfaceButtonDarkBrush}"
-                                        Command="{Binding DataContext.ActivateStatusCommand, RelativeSource={RelativeSource AncestorType=ListBox}}"
-                                        CommandParameter="{Binding}"
-                                        Cursor="Hand"
-                                        Style="{DynamicResource Activatebutton}"
-                                        Visibility="{Binding IsActive, Converter={StaticResource InverseBoolToVisibilityConverter}}">
-                                        <Image
-                                            Width="22"
-                                            Height="22"
-                                            Source="/Img/Icons/ActivateStatus_ico.png"
-                                            Stretch="Uniform" />
-                                    </Button>
-                                </Grid>
-
-                                <CheckBox
-                                    Grid.Column="0"
-                                    Margin="6,0,0,0"
-                                    HorizontalAlignment="Center"
-                                    VerticalAlignment="Center"
-                                    Click="StatusItemCheckBox_Click"
-                                    IsChecked="{Binding IsSelected, Mode=TwoWay}"
-                                    Style="{DynamicResource SettingsCheckbox}"
-                                    Tag="{Binding}"
-                                    Visibility="{Binding DataContext.IsSelectionMode, RelativeSource={RelativeSource AncestorType=ListBox}, Converter={StaticResource BoolToVisibilityConverter}}" />
-
+                            <Grid Grid.Column="0" Visibility="{Binding DataContext.IsSelectionMode, RelativeSource={RelativeSource AncestorType=ListBox}, Converter={StaticResource InverseBoolToVisibilityConverter}}">
+                                <Border
+                                    Background="{StaticResource SurfaceButtonDarkBrush}"
+                                    BorderBrush="LimeGreen"
+                                    BorderThickness="1"
+                                    CornerRadius="4">
+                                    <Image
+                                        Width="22"
+                                        Height="22"
+                                        Source="/Img/Icons/ActivatedStatus_ico.png"
+                                        Stretch="Uniform" />
+                                </Border>
                                 <Button
-                                    x:Name="Deletebutton"
-                                    Grid.Column="1"
-                                    Width="30"
+                                    Name="Activatebutton"
+                                    Width="35"
                                     Height="35"
                                     HorizontalAlignment="Left"
                                     VerticalAlignment="Center"
-                                    Background="#3F2970"
-                                    Click="DeleteButton_Click"
+                                    Background="{StaticResource SurfaceButtonDarkBrush}"
+                                    Command="{Binding DataContext.ActivateStatusCommand, RelativeSource={RelativeSource AncestorType=ListBox}}"
+                                    CommandParameter="{Binding}"
                                     Cursor="Hand"
-                                    Style="{DynamicResource Deletebutton}"
-                                    Tag="{Binding}"
-                                    Visibility="{Binding DataContext.IsSelectionMode, RelativeSource={RelativeSource AncestorType=ListBox}, Converter={StaticResource InverseBoolToVisibilityConverter}}">
+                                    Style="{DynamicResource Activatebutton}"
+                                    Visibility="{Binding IsActive, Converter={StaticResource InverseBoolToVisibilityConverter}}">
                                     <Image
-                                        Width="20"
-                                        Height="20"
-                                        Source="/Img/Icons/Delete_ico.png" />
+                                        Width="22"
+                                        Height="22"
+                                        Source="/Img/Icons/ActivateStatus_ico.png"
+                                        Stretch="Uniform" />
                                 </Button>
+                            </Grid>
 
-                                <TextBlock
-                                    Grid.Column="2"
-                                    Margin="8,0,0,0"
-                                    VerticalAlignment="Center"
-                                    FontFamily="/Fonts/#Comfortaa"
-                                    FontSize="16"
-                                    Foreground="DarkSlateBlue"
-                                    Style="{StaticResource ActiveStatusTextShadow}"
-                                    Text="{Binding msg}"
-                                    Visibility="{Binding IsEditing, Converter={StaticResource InverseBoolToVisibilityConverter}, UpdateSourceTrigger=PropertyChanged}" />
-                                <TextBlock
-                                    Grid.Column="2"
-                                    Margin="8,0,0,0"
-                                    VerticalAlignment="Center"
-                                    FontFamily="/Fonts/#Comfortaa"
-                                    FontSize="16"
-                                    Style="{StaticResource ActiveStatusText}"
-                                    Text="{Binding msg}"
-                                    Visibility="{Binding IsEditing, Converter={StaticResource InverseBoolToVisibilityConverter}, UpdateSourceTrigger=PropertyChanged}" />
-                                <TextBox
-                                    x:Name="EditTextBox"
-                                    Grid.Column="2"
-                                    Margin="7,0,30,0"
-                                    VerticalAlignment="Center"
-                                    local:TextBoxBehaviour.HandleEnterKey="True"
-                                    Background="Transparent"
-                                    FontFamily="/Fonts/#Comfortaa"
-                                    FontSize="16"
-                                    FontWeight="Medium"
-                                    IsReadOnly="{Binding IsEditing, Converter={StaticResource InvertBooleanConverter}, UpdateSourceTrigger=PropertyChanged}"
-                                    Style="{StaticResource ActiveStatusTextEditShadow}"
-                                    Text="{Binding editMsg}"
-                                    Visibility="{Binding IsEditing, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}" />
+                            <CheckBox
+                                Grid.Column="0"
+                                Margin="6,0,0,0"
+                                HorizontalAlignment="Center"
+                                VerticalAlignment="Center"
+                                Click="StatusItemCheckBox_Click"
+                                IsChecked="{Binding IsSelected, Mode=TwoWay}"
+                                Style="{DynamicResource SettingsCheckbox}"
+                                Tag="{Binding}"
+                                Visibility="{Binding DataContext.IsSelectionMode, RelativeSource={RelativeSource AncestorType=ListBox}, Converter={StaticResource BoolToVisibilityConverter}}" />
+
+                            <Button
+                                x:Name="Deletebutton"
+                                Grid.Column="1"
+                                Width="30"
+                                Height="35"
+                                HorizontalAlignment="Left"
+                                VerticalAlignment="Center"
+                                Background="#3F2970"
+                                Click="DeleteButton_Click"
+                                Cursor="Hand"
+                                Style="{DynamicResource Deletebutton}"
+                                Tag="{Binding}"
+                                Visibility="{Binding DataContext.IsSelectionMode, RelativeSource={RelativeSource AncestorType=ListBox}, Converter={StaticResource InverseBoolToVisibilityConverter}}">
+                                <Image
+                                    Width="20"
+                                    Height="20"
+                                    Source="/Img/Icons/Delete_ico.png" />
+                            </Button>
+
+                            <TextBlock
+                                Grid.Column="2"
+                                Margin="10,0,6,0"
+                                VerticalAlignment="Center"
+                                FontFamily="/Fonts/#Comfortaa"
+                                FontSize="16"
+                                FontWeight="SemiBold"
+                                Style="{StaticResource ActiveStatusText}"
+                                Text="{Binding msg}"
+                                TextTrimming="CharacterEllipsis"
+                                Visibility="{Binding IsEditing, Converter={StaticResource InverseBoolToVisibilityConverter}, UpdateSourceTrigger=PropertyChanged}" />
+                            <TextBox
+                                x:Name="EditTextBox"
+                                Grid.Column="2"
+                                Margin="7,0,30,0"
+                                VerticalAlignment="Center"
+                                local:TextBoxBehaviour.HandleEnterKey="True"
+                                Background="Transparent"
+                                FontFamily="/Fonts/#Comfortaa"
+                                FontSize="16"
+                                FontWeight="Medium"
+                                IsReadOnly="{Binding IsEditing, Converter={StaticResource InvertBooleanConverter}, UpdateSourceTrigger=PropertyChanged}"
+                                Style="{StaticResource ActiveStatusTextEditShadow}"
+                                Text="{Binding editMsg}"
+                                Visibility="{Binding IsEditing, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}" />
                                 <Button
                                     x:Name="CancelEditbutton"
                                     Grid.Column="2"
@@ -1012,7 +1051,6 @@
                                         </Image.Style>
                                     </Image>
                                 </Button>
-                            </Grid>
                         </Grid>
                     </Border>
                 </DataTemplate>
