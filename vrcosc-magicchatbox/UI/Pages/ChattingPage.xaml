@@ -93,7 +93,7 @@
                     <Grid Grid.Column="1" Margin="4,0,0,0">
                         <TextBox
                             x:Name="NewChattingTxt"
-                            Padding="6,0"
+                            Padding="4,0,6,0"
                             VerticalContentAlignment="Center"
                             FontFamily="{StaticResource FontPrimary}"
                             FontSize="{StaticResource FontSizeBody}"
