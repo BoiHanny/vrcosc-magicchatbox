@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Navigation;
@@ -24,6 +25,8 @@ public partial class OptionsPage : UserControl
         "OptionsDeferredChunk6",
         "OptionsDeferredChunk7",
     };
+
+    private static readonly TimeSpan ChunkTickBudget = TimeSpan.FromMilliseconds(6);
 
     private readonly Queue<string> _pendingChunkKeys = new(DeferredChunkKeys);
 
@@ -109,7 +112,7 @@ public partial class OptionsPage : UserControl
             return;
 
         _chunkQueued = true;
-        Dispatcher.BeginInvoke(DispatcherPriority.Background, new Action(LoadNextChunk));
+        Dispatcher.BeginInvoke(DispatcherPriority.Input, new Action(LoadNextChunk));
     }
 
     private void LoadNextChunk()
@@ -119,7 +122,13 @@ public partial class OptionsPage : UserControl
         if (_pendingChunkKeys.Count == 0 || !IsLoaded)
             return;
 
-        LoadChunk(_pendingChunkKeys.Dequeue());
+        var tick = Stopwatch.StartNew();
+        do
+        {
+            LoadChunk(_pendingChunkKeys.Dequeue());
+        }
+        while (_pendingChunkKeys.Count > 0 && tick.Elapsed < ChunkTickBudget);
+
         QueueNextChunk();
     }
 
@@ -186,7 +195,7 @@ public partial class OptionsPage : UserControl
         chunk.RenderTransform = slide;
 
         var ease = new CubicEase { EasingMode = EasingMode.EaseOut };
-        var duration = new Duration(TimeSpan.FromMilliseconds(220));
+        var duration = new Duration(TimeSpan.FromMilliseconds(160));
 
         chunk.BeginAnimation(OpacityProperty, new DoubleAnimation(0.0, 1.0, duration)
         {
