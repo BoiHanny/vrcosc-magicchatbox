@@ -170,6 +170,9 @@ public sealed class ScanLoopService : IDisposable
         return scanPause && lastMessages != null && lastMessages.Any(x => x.IsRunning);
     }
 
+    public static bool ShouldPresent(bool started, bool disposed, bool chatOverrideActive, bool liveTypingHolding)
+        => started && !disposed && !chatOverrideActive && !liveTypingHolding;
+
     public async Task Scantick(bool firstRun = false)
     {
         if (!_started || _disposed) return;
@@ -198,7 +201,13 @@ public sealed class ScanLoopService : IDisposable
                 if (!_started || _disposed) return;
                 if (IsChatOverrideActive()) return;
 
-                Osc.BuildOSC();
+                var osc = Osc;
+                var built = await Task.Run(() => osc.Build()).ConfigureAwait(true);
+
+                if (!ShouldPresent(_started, _disposed, IsChatOverrideActive(), LiveTyping.IsHolding))
+                    return;
+
+                osc.Present(built);
 
                 long nowMs = nowUtc.Ticks / TimeSpan.TicksPerMillisecond;
                 long lastMs = _lastOSCMessageTime.Ticks / TimeSpan.TicksPerMillisecond;

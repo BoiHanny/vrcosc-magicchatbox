@@ -9,6 +9,7 @@ public sealed class OSCController
     private readonly ChatStateManager _chatMgr;
     private readonly OscOutputBuilder _oscBuilder;
     private readonly OscBuildResultPresenter _oscPresenter;
+    private readonly System.Threading.Lock _buildGate = new();
 
     public OSCController(
         ChatStateManager chatMgr,
@@ -28,7 +29,10 @@ public sealed class OSCController
     {
         try
         {
-            return _oscBuilder.Build(allowExternalRefresh);
+            lock (_buildGate)
+            {
+                return _oscBuilder.Build(allowExternalRefresh);
+            }
         }
         catch (Exception ex)
         {

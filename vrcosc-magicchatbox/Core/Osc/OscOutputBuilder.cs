@@ -21,7 +21,7 @@ public sealed class OscOutputBuilder
     private readonly IntegrationDisplayState _integrationDisplay;
     private readonly AppSettings _appSettings;
     private readonly ModuleFaultTracker _faultTracker;
-    private readonly HashSet<string> _unorderedProvidersLogged = new(StringComparer.OrdinalIgnoreCase);
+    private readonly System.Collections.Concurrent.ConcurrentDictionary<string, byte> _unorderedProvidersLogged = new(StringComparer.OrdinalIgnoreCase);
 
     public OscOutputBuilder(
         IEnumerable<IOscProvider> providers,
@@ -110,7 +110,7 @@ public sealed class OscOutputBuilder
             if (usedKeys.Contains(provider.SortKey))
                 continue;
 
-            if (_unorderedProvidersLogged.Add(provider.SortKey))
+            if (_unorderedProvidersLogged.TryAdd(provider.SortKey, 0))
             {
                 Classes.DataAndSecurity.Logging.WriteInfo(
                     $"OscOutputBuilder: provider '{provider.SortKey}' (UiKey '{provider.UiKey}') is not present in IntegrationSortOrder; appending via safety-net path.");

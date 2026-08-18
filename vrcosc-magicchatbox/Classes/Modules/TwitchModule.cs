@@ -34,7 +34,7 @@ public sealed partial class TwitchModule : ObservableObject, IModule
     private readonly IToastService? _toast;
     private volatile bool _twitchErrorShown;
 
-    private bool refreshInProgress;
+    private volatile bool refreshInProgress;
     private DateTime lastRefreshUtc = DateTime.MinValue;
     private DateTime lastTokenValidationUtc = DateTime.MinValue;
     private DateTime lastFollowerRefreshUtc = DateTime.MinValue;
