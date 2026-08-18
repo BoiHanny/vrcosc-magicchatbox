@@ -1,4 +1,5 @@
 using System;
+using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -65,6 +66,9 @@ public sealed class TrayIconService : ITrayIconService
     private bool _showMainWindowForPendingNotification = true;
     private int _mediaActionInProgress;
     private bool _disposed;
+    private bool _menuOpen;
+
+    public event EventHandler<bool>? MenuOpenChanged;
 
     public TrayIconService(
         IUiDispatcher ui,
@@ -89,6 +93,8 @@ public sealed class TrayIconService : ITrayIconService
     }
 
     public bool IsInitialized => _notifyIcon is not null && !_disposed;
+
+    public bool IsMenuOpen => _menuOpen;
 
     public void Initialize(MainWindow mainWindow)
     {
@@ -543,9 +549,12 @@ public sealed class TrayIconService : ITrayIconService
         HideMenu();
         if (_menuWindow is not null)
         {
+            _menuWindow.IsVisibleChanged -= MenuWindow_IsVisibleChanged;
             _menuWindow.Close();
             _menuWindow = null;
         }
+
+        _menuOpen = false;
 
         if (_notifyIcon is not null)
         {
@@ -586,9 +595,29 @@ public sealed class TrayIconService : ITrayIconService
         if (_disposed)
             return;
 
-        _menuWindow ??= new TrayMenuWindow(this);
+        if (_menuWindow is null)
+        {
+            _menuWindow = new TrayMenuWindow(this);
+            _menuWindow.IsVisibleChanged += MenuWindow_IsVisibleChanged;
+        }
+
         RefreshMenu();
         _menuWindow.ShowNearCursor();
+    }
+
+    private void MenuWindow_IsVisibleChanged(object sender, DependencyPropertyChangedEventArgs e)
+    {
+        SetMenuOpen(_menuWindow?.IsVisible ?? false);
+    }
+
+    private void SetMenuOpen(bool open)
+    {
+        if (_menuOpen == open)
+            return;
+
+        _menuOpen = open;
+        _appState.IsTrayMenuOpen = open;
+        MenuOpenChanged?.Invoke(this, open);
     }
 
     private static bool IsControllablePlaybackState(GlobalSystemMediaTransportControlsSessionPlaybackStatus status)

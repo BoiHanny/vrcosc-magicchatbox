@@ -7,6 +7,7 @@
     xmlns:local="clr-namespace:vrcosc_magicchatbox.Classes"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:pages="clr-namespace:vrcosc_magicchatbox.UI.Pages"
+    xmlns:po="http://schemas.microsoft.com/winfx/2006/xaml/presentation/options"
     xmlns:vm="clr-namespace:vrcosc_magicchatbox.ViewModels"
     Title="MagicChatbox by BoiHanny"
     Width="1150"
@@ -16,13 +17,14 @@
     VerticalAlignment="Bottom"
     d:DataContext="{d:DesignInstance Type=vm:ViewModel,
                                      IsDesignTimeCreatable=True}"
+    Background="{StaticResource SurfaceDarkBrush}"
     FontFamily="{DynamicResource FontPrimary}"
     IsEnabled="{Binding AppSettingsInstance.AppIsEnabled, UpdateSourceTrigger=PropertyChanged}"
     Opacity="{Binding AppSettingsInstance.AppOpacity, UpdateSourceTrigger=PropertyChanged}"
     Topmost="{Binding AppSettingsInstance.Topmost, UpdateSourceTrigger=PropertyChanged}"
     WindowStartupLocation="CenterScreen"
     WindowStyle="SingleBorderWindow"
-    mc:Ignorable="d">
+    mc:Ignorable="d po">
 
     <WindowChrome.WindowChrome>
         <WindowChrome
@@ -43,10 +45,7 @@
             BorderBrush="{StaticResource SurfaceDarkBrush}"
             BorderThickness="1">
             <Border.Effect>
-                <BlurEffect
-                    d:Radius="0"
-                    KernelType="Gaussian"
-                    Radius="{Binding MainWindowBlurEffect}" />
+                <Binding Converter="{StaticResource BlurRadiusToEffectConverter}" Path="MainWindowBlurEffect" />
             </Border.Effect>
             <Grid HorizontalAlignment="Stretch" Background="{StaticResource SurfaceCardBrush}">
 
@@ -64,27 +63,49 @@
 
 
 
-                <pages:StatusPage
+                <controls:LazyPageHost
+                    x:Name="statusHost"
                     Grid.Row="1"
-                    d:Visibility="Collapsed"
-                    DataContext="{Binding Status}"
-                    Visibility="{Binding DataContext.SelectedMenuIndex, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource IndexToVisibilityConverter}, FallbackValue=Collapsed, ConverterParameter=1}" />
+                    IsHostActive="{Binding DataContext.IsWindowOnScreen, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=True}"
+                    KeepAlive="False"
+                    SelectedIndex="{Binding DataContext.SelectedMenuIndex, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=-1}"
+                    PageIndex="1">
+                    <controls:LazyPageHost.PageTemplate>
+                        <DataTemplate>
+                            <pages:StatusPage DataContext="{Binding DataContext.Status, RelativeSource={RelativeSource AncestorType=Window}}" />
+                        </DataTemplate>
+                    </controls:LazyPageHost.PageTemplate>
+                </controls:LazyPageHost>
 
 
-                <pages:OptionsPage
-                    x:Name="optionsPage"
+                <controls:LazyPageHost
+                    x:Name="optionsHost"
                     Grid.Row="1"
-                    d:Visibility="Collapsed"
-                    DataContext="{Binding Options}"
-                    Visibility="{Binding DataContext.SelectedMenuIndex, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource IndexToVisibilityConverter}, FallbackValue=Collapsed, ConverterParameter=3}" />
+                    IsHostActive="{Binding DataContext.IsWindowOnScreen, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=True}"
+                    KeepAlive="False"
+                    SelectedIndex="{Binding DataContext.SelectedMenuIndex, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=-1}"
+                    PageIndex="3">
+                    <controls:LazyPageHost.PageTemplate>
+                        <DataTemplate>
+                            <pages:OptionsPage DataContext="{Binding DataContext.Options, RelativeSource={RelativeSource AncestorType=Window}}" />
+                        </DataTemplate>
+                    </controls:LazyPageHost.PageTemplate>
+                </controls:LazyPageHost>
 
 
-                <pages:ChattingPage
-                    x:Name="chattingPage"
+                <controls:LazyPageHost
+                    x:Name="chattingHost"
                     Grid.Row="1"
-                    d:Visibility="Visible"
-                    DataContext="{Binding Chatting}"
-                    Visibility="{Binding DataContext.SelectedMenuIndex, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource IndexToVisibilityConverter}, FallbackValue=Collapsed, ConverterParameter=2}" />
+                    IsHostActive="{Binding DataContext.IsWindowOnScreen, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=True}"
+                    KeepAlive="False"
+                    SelectedIndex="{Binding DataContext.SelectedMenuIndex, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=-1}"
+                    PageIndex="2">
+                    <controls:LazyPageHost.PageTemplate>
+                        <DataTemplate>
+                            <pages:ChattingPage DataContext="{Binding DataContext.Chatting, RelativeSource={RelativeSource AncestorType=Window}}" />
+                        </DataTemplate>
+                    </controls:LazyPageHost.PageTemplate>
+                </controls:LazyPageHost>
 
                 <!--
                     The full-width "Some integrations can't be showed because a limit on characters"
@@ -108,15 +129,6 @@
 
                 <Grid Grid.ColumnSpan="2" Background="{StaticResource SurfacePrimaryBrush}">
 
-                    <Grid.Effect>
-                        <DropShadowEffect
-                            BlurRadius="12"
-                            Direction="-120"
-                            Opacity="0.2"
-                            RenderingBias="Performance"
-                            ShadowDepth="5"
-                            Color="black" />
-                    </Grid.Effect>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="150" />
                         <ColumnDefinition Width="143" />
@@ -126,45 +138,54 @@
                         <ColumnDefinition />
                     </Grid.ColumnDefinitions>
                     <Border>
-                        <Grid x:Name="Drag_area" MouseDown="Drag_area_MouseDown">
-                            <TextBlock
-                                Grid.Column="0"
-                                Padding="0,12,0,0"
-                                HorizontalAlignment="Center"
-                                VerticalAlignment="Center"
-                                FontFamily="/Fonts/#Albert Sans"
-                                FontSize="16"
-                                Foreground="White"
-                                RenderOptions.BitmapScalingMode="NearestNeighbor"
-                                Text="MagicChatbox">
-                                <TextBlock.Effect>
-                                    <DropShadowEffect
-                                        BlurRadius="15"
-                                        Direction="315"
-                                        Opacity="1"
-                                        ShadowDepth="0"
-                                        Color="LightBlue" />
-                                </TextBlock.Effect>
-                            </TextBlock>
-                            <TextBlock
-                                Grid.Column="0"
-                                Padding="20,12,0,0"
-                                HorizontalAlignment="left"
-                                VerticalAlignment="top"
-                                FontFamily="/Fonts/#Albert Sans"
-                                FontSize="{StaticResource FontSizeMicro}"
-                                Foreground="MediumPurple"
-                                RenderOptions.BitmapScalingMode="NearestNeighbor"
-                                Text="VRC OSC">
-                                <TextBlock.Effect>
-                                    <DropShadowEffect
-                                        BlurRadius="15"
-                                        Direction="315"
-                                        Opacity="1"
-                                        ShadowDepth="0"
-                                        Color="LightBlue" />
-                                </TextBlock.Effect>
-                            </TextBlock>
+                        <!--  Transparent so the whole corner drags, not only the glyphs themselves.  -->
+                        <Grid
+                            x:Name="Drag_area"
+                            Background="Transparent"
+                            MouseDown="Drag_area_MouseDown">
+                            <!--
+                                Stacked rather than two absolutely placed text blocks faking it: one
+                                was centred and the other pinned top-left, so they never shared an
+                                edge at any window size.
+                            -->
+                            <StackPanel
+                                Margin="16,0,0,0"
+                                HorizontalAlignment="Left"
+                                VerticalAlignment="Center">
+                                <TextBlock
+                                    Margin="1,0,0,1"
+                                    FontFamily="{StaticResource FontPrimary}"
+                                    FontSize="{StaticResource FontSizeFine}"
+                                    FontWeight="Medium"
+                                    Foreground="{StaticResource TextSubtlePurpleBrush}"
+                                    Text="VRC OSC" />
+
+                                <!--
+                                    The wordmark carries the display face and a purple bloom. The
+                                    old glow was LightBlue, which is the haze that sat over this
+                                    corner and belonged to no other part of the app.
+                                -->
+                                <TextBlock
+                                    FontFamily="{StaticResource FontSecondary}"
+                                    FontSize="{StaticResource FontSizeBody}"
+                                    FontWeight="Bold"
+                                    Text="MagicChatbox">
+                                    <TextBlock.Foreground>
+                                        <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                                            <GradientStop Offset="0" Color="#FFFFFFFF" />
+                                            <GradientStop Offset="1" Color="#FFCFC6FF" />
+                                        </LinearGradientBrush>
+                                    </TextBlock.Foreground>
+                                    <TextBlock.Effect>
+                                        <DropShadowEffect
+                                            po:Freeze="True"
+                                            BlurRadius="16"
+                                            Opacity="0.6"
+                                            ShadowDepth="0"
+                                            Color="#FFAEA7ED" />
+                                    </TextBlock.Effect>
+                                </TextBlock>
+                            </StackPanel>
                         </Grid>
                     </Border>
 
@@ -174,34 +195,11 @@
                         WindowChrome.IsHitTestVisibleInChrome="True">
                         <Button
                             Name="MenuButton_0"
-                            Margin="0,0,0,0"
-                            Background="{StaticResource SurfaceDarkBrush}"
-                            BorderThickness="0"
+                            local:ButtonProperties.IsActive="{Binding SelectedMenuIndex, Converter={StaticResource IndexToBoolConverter}, ConverterParameter=0}"
                             Command="{Binding ChangeMenuCommand}"
                             CommandParameter="0"
                             Content="Integrations"
-                            Cursor="Hand"
-                            FontFamily="/Fonts/#Comfortaa"
-                            FontSize="18"
-                            Foreground="White">
-                            <!--  The selected tab carries SemiBold; the 4px highlight bar alone was the only cue.  -->
-                            <Button.Style>
-                                <Style BasedOn="{StaticResource MenuItemStyle}" TargetType="Button">
-                                    <Setter Property="FontWeight" Value="Normal" />
-                                    <Style.Triggers>
-                                        <DataTrigger Binding="{Binding SelectedMenuIndex}" Value="0">
-                                            <Setter Property="FontWeight" Value="SemiBold" />
-                                        </DataTrigger>
-                                    </Style.Triggers>
-                                </Style>
-                            </Button.Style>
-                        </Button>
-                        <Border
-                            Height="4"
-                            VerticalAlignment="Top"
-                            Background="{StaticResource ButtonHighlightBrush}"
-                            IsHitTestVisible="False"
-                            Visibility="{Binding SelectedMenuIndex, Converter={StaticResource IndexToVisibilityConverter}, FallbackValue=Collapsed, ConverterParameter=0}" />
+                            Style="{StaticResource TopBarTabStyle}" />
                     </Grid>
                     <Grid
                         Grid.Column="2"
@@ -209,33 +207,11 @@
                         WindowChrome.IsHitTestVisibleInChrome="True">
                         <Button
                             Name="MenuButton_1"
-                            Margin="0,0,0,0"
-                            Background="{StaticResource SurfaceDarkBrush}"
-                            BorderThickness="0"
+                            local:ButtonProperties.IsActive="{Binding SelectedMenuIndex, Converter={StaticResource IndexToBoolConverter}, ConverterParameter=1}"
                             Command="{Binding ChangeMenuCommand}"
                             CommandParameter="1"
                             Content="Status"
-                            Cursor="Hand"
-                            FontFamily="/Fonts/#Comfortaa"
-                            FontSize="18"
-                            Foreground="White">
-                            <Button.Style>
-                                <Style BasedOn="{StaticResource MenuItemStyle}" TargetType="Button">
-                                    <Setter Property="FontWeight" Value="Normal" />
-                                    <Style.Triggers>
-                                        <DataTrigger Binding="{Binding SelectedMenuIndex}" Value="1">
-                                            <Setter Property="FontWeight" Value="SemiBold" />
-                                        </DataTrigger>
-                                    </Style.Triggers>
-                                </Style>
-                            </Button.Style>
-                        </Button>
-                        <Border
-                            Height="4"
-                            VerticalAlignment="Top"
-                            Background="{StaticResource ButtonHighlightBrush}"
-                            IsHitTestVisible="False"
-                            Visibility="{Binding SelectedMenuIndex, Converter={StaticResource IndexToVisibilityConverter}, FallbackValue=Collapsed, ConverterParameter=1}" />
+                            Style="{StaticResource TopBarTabStyle}" />
                     </Grid>
                     <Grid
                         Grid.Column="3"
@@ -243,33 +219,11 @@
                         WindowChrome.IsHitTestVisibleInChrome="True">
                         <Button
                             Name="MenuButton_2"
-                            Margin="0,0,0,0"
-                            Background="{StaticResource SurfaceDarkBrush}"
-                            BorderThickness="0"
+                            local:ButtonProperties.IsActive="{Binding SelectedMenuIndex, Converter={StaticResource IndexToBoolConverter}, ConverterParameter=2}"
                             Command="{Binding ChangeMenuCommand}"
                             CommandParameter="2"
                             Content="Chatting"
-                            Cursor="Hand"
-                            FontFamily="/Fonts/#Comfortaa"
-                            FontSize="18"
-                            Foreground="White">
-                            <Button.Style>
-                                <Style BasedOn="{StaticResource MenuItemStyle}" TargetType="Button">
-                                    <Setter Property="FontWeight" Value="Normal" />
-                                    <Style.Triggers>
-                                        <DataTrigger Binding="{Binding SelectedMenuIndex}" Value="2">
-                                            <Setter Property="FontWeight" Value="SemiBold" />
-                                        </DataTrigger>
-                                    </Style.Triggers>
-                                </Style>
-                            </Button.Style>
-                        </Button>
-                        <Border
-                            Height="4"
-                            VerticalAlignment="Top"
-                            Background="{StaticResource ButtonHighlightBrush}"
-                            IsHitTestVisible="False"
-                            Visibility="{Binding SelectedMenuIndex, Converter={StaticResource IndexToVisibilityConverter}, FallbackValue=Collapsed, ConverterParameter=2}" />
+                            Style="{StaticResource TopBarTabStyle}" />
                     </Grid>
                     <Grid
                         Grid.Column="4"
@@ -277,33 +231,11 @@
                         WindowChrome.IsHitTestVisibleInChrome="True">
                         <Button
                             Name="MenuButton_3"
-                            Margin="0,0,0,0"
-                            Background="{StaticResource SurfaceDarkBrush}"
-                            BorderThickness="0"
+                            local:ButtonProperties.IsActive="{Binding SelectedMenuIndex, Converter={StaticResource IndexToBoolConverter}, ConverterParameter=3}"
                             Command="{Binding ChangeMenuCommand}"
                             CommandParameter="3"
                             Content="Options"
-                            Cursor="Hand"
-                            FontFamily="/Fonts/#Comfortaa"
-                            FontSize="18"
-                            Foreground="White">
-                            <Button.Style>
-                                <Style BasedOn="{StaticResource MenuItemStyle}" TargetType="Button">
-                                    <Setter Property="FontWeight" Value="Normal" />
-                                    <Style.Triggers>
-                                        <DataTrigger Binding="{Binding SelectedMenuIndex}" Value="3">
-                                            <Setter Property="FontWeight" Value="SemiBold" />
-                                        </DataTrigger>
-                                    </Style.Triggers>
-                                </Style>
-                            </Button.Style>
-                        </Button>
-                        <Border
-                            Height="4"
-                            VerticalAlignment="Top"
-                            Background="{StaticResource ButtonHighlightBrush}"
-                            IsHitTestVisible="False"
-                            Visibility="{Binding SelectedMenuIndex, Converter={StaticResource IndexToVisibilityConverter}, FallbackValue=Collapsed, ConverterParameter=3}" />
+                            Style="{StaticResource TopBarTabStyle}" />
                     </Grid>
 
                     <!--
@@ -507,6 +439,12 @@
                     </Grid>
 
                 </Grid>
+                <Border
+                    Grid.Row="0"
+                    Grid.ColumnSpan="2"
+                    Height="1"
+                    VerticalAlignment="Bottom"
+                    Background="#33000000" />
                 <Grid
                     Grid.Row="1"
                     Grid.Column="1"
@@ -519,15 +457,11 @@
                         <RowDefinition Height="auto" />
 
                     </Grid.RowDefinitions>
-                    <Grid.Effect>
-                        <DropShadowEffect
-                            BlurRadius="5"
-                            Direction="-100"
-                            Opacity="0.1"
-                            RenderingBias="Performance"
-                            ShadowDepth="15"
-                            Color="DarkBlue" />
-                    </Grid.Effect>
+                    <Border
+                        Grid.RowSpan="4"
+                        Width="1"
+                        HorizontalAlignment="Left"
+                        Background="#1A00008B" />
                     <StackPanel
                         Grid.Row="3"
                         Margin="10,0,10,10"
@@ -852,8 +786,10 @@
                                             <ColumnDefinition Width="Auto" />
                                         </Grid.ColumnDefinitions>
 
-                                        <!--  A Grid does not clip, so without trimming the label draws
-                                              at its full width and runs under the pill.  -->
+                                        <!--
+                                            A Grid does not clip, so without trimming the label draws
+                                            at its full width and runs under the pill.
+                                        -->
                                         <TextBlock
                                             Grid.Column="0"
                                             Margin="0,0,8,0"
@@ -883,9 +819,11 @@
                                                     </Style.Triggers>
                                                 </Style>
                                             </Border.Style>
-                                            <!--  "HERE" rather than "AT KEYBOARD": the header already
-                                                  says keyboard, and repeating it made the row too
-                                                  wide.  -->
+                                            <!--
+                                                "HERE" rather than "AT KEYBOARD": the header already
+                                                says keyboard, and repeating it made the row too
+                                                wide.
+                                            -->
                                             <TextBlock
                                                 VerticalAlignment="Center"
                                                 FontFamily="/Fonts/#Albert Sans"
@@ -1158,15 +1096,7 @@
                                     FontSize="13"
                                     Foreground="{StaticResource TextSecondaryBrush}"
                                     RenderOptions.BitmapScalingMode="NearestNeighbor"
-                                    Text="Voice">
-                                    <TextBlock.Effect>
-                                        <DropShadowEffect
-                                            BlurRadius="10"
-                                            Opacity="0.5"
-                                            ShadowDepth="0"
-                                            Color="{StaticResource GradientDeepPurpleColor}" />
-                                    </TextBlock.Effect>
-                                </TextBlock>
+                                    Text="Voice" />
                                 <ComboBox
                                     x:Name="TikTokTTSVoices_combo"
                                     Width="135"
@@ -1195,15 +1125,7 @@
                                     FontSize="13"
                                     Foreground="{StaticResource TextSecondaryBrush}"
                                     RenderOptions.BitmapScalingMode="NearestNeighbor"
-                                    Text="TTS volume">
-                                    <TextBlock.Effect>
-                                        <DropShadowEffect
-                                            BlurRadius="10"
-                                            Opacity="0.5"
-                                            ShadowDepth="0"
-                                            Color="{StaticResource GradientDeepPurpleColor}" />
-                                    </TextBlock.Effect>
-                                </TextBlock>
+                                    Text="TTS volume" />
                                 <Slider
                                     x:Name="VolumeSlider"
                                     Width="134.5"
@@ -1213,15 +1135,7 @@
                                     Minimum="0"
                                     RenderOptions.BitmapScalingMode="NearestNeighbor"
                                     Style="{StaticResource CustomSlider}"
-                                    Value="{Binding TtsSettingsInstance.TtsVolume, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}">
-                                    <Slider.Effect>
-                                        <DropShadowEffect
-                                            BlurRadius="10"
-                                            Opacity="0.3"
-                                            ShadowDepth="0"
-                                            Color="{StaticResource GradientDeepPurpleColor}" />
-                                    </Slider.Effect>
-                                </Slider>
+                                    Value="{Binding TtsSettingsInstance.TtsVolume, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                             </StackPanel>
                         </StackPanel>
 
@@ -1285,12 +1199,19 @@
 
 
                 </Grid>
-                <pages:IntegrationsPage
-                    x:Name="integrationsPage"
+                <controls:LazyPageHost
+                    x:Name="integrationsHost"
                     Grid.Row="1"
-                    d:Visibility="Collapsed"
-                    DataContext="{Binding Integrations}"
-                    Visibility="{Binding DataContext.SelectedMenuIndex, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource IndexToVisibilityConverter}, FallbackValue=Collapsed, ConverterParameter=0}" />
+                    IsHostActive="{Binding DataContext.IsWindowOnScreen, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=True}"
+                    KeepAlive="False"
+                    SelectedIndex="{Binding DataContext.SelectedMenuIndex, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=-1}"
+                    PageIndex="0">
+                    <controls:LazyPageHost.PageTemplate>
+                        <DataTemplate>
+                            <pages:IntegrationsPage DataContext="{Binding DataContext.Integrations, RelativeSource={RelativeSource AncestorType=Window}}" />
+                        </DataTemplate>
+                    </controls:LazyPageHost.PageTemplate>
+                </controls:LazyPageHost>
             </Grid>
         </Border>
 
@@ -1321,6 +1242,7 @@
                     Text="MagicChatbox">
                     <TextBlock.Effect>
                         <DropShadowEffect
+                            po:Freeze="True"
                             BlurRadius="15"
                             Opacity="0.8"
                             ShadowDepth="0"

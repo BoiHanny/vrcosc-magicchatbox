@@ -36,6 +36,8 @@ public sealed class WeatherOscProvider : IOscProvider
         string text = _weather.BuildWeatherOnlyText();
         if (string.IsNullOrWhiteSpace(text)) return null;
 
-        return new OscSegment { Text = text };
+        text = WeatherBudget.Bound(text, context.RemainingCharsIf(text) + text.Length);
+
+        return string.IsNullOrEmpty(text) ? null : new OscSegment { Text = text };
     }
 }

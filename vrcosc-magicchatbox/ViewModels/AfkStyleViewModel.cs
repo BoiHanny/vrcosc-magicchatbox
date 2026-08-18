@@ -17,15 +17,8 @@ using vrcosc_magicchatbox.Core.State;
 
 namespace vrcosc_magicchatbox.ViewModels;
 
-/// <summary>
-/// Backs both the style switch in the side panel and the style editor in Options. One view model for
-/// both so a rename or an edit shows up in the other place immediately, and so the preview everyone
-/// sees is produced by the same <see cref="AfkStyle.Render"/> the chatbox line comes from.
-/// </summary>
 public partial class AfkStyleViewModel : ObservableObject
 {
-    // A stand-in duration for previews. Long enough to show a two-part duration without being so long
-    // it misleads about width.
     private const string PreviewElapsed = "12ᵐ 04ˢ";
 
     private readonly Lazy<IModuleHost> _modules;
@@ -62,15 +55,8 @@ public partial class AfkStyleViewModel : ObservableObject
         }
     }
 
-    /// <summary>
-    /// The live collection, deliberately not a copy. Handing WPF a fresh list on every read makes the
-    /// bound ComboBox rebuild its items, and a rebuilding ComboBox writes its own idea of the
-    /// selection back through the two-way binding - which is how selecting nothing at all ended up
-    /// silently changing which style was active.
-    /// </summary>
     public ObservableCollection<AfkStyle>? Styles => Settings?.AllStyles;
 
-    /// <summary>Shipped styles come from code, so the editor shows them but will not let them be changed.</summary>
     public bool CanEditSelected => SelectedStyle is { IsBuiltIn: false };
 
     public string EditHint => SelectedStyle is { IsBuiltIn: true }
@@ -97,7 +83,6 @@ public partial class AfkStyleViewModel : ObservableObject
         }
     }
 
-    /// <summary>What the chatbox will actually show, built by the same code that builds the real line.</summary>
     public string PreviewLine
     {
         get
@@ -110,10 +95,6 @@ public partial class AfkStyleViewModel : ObservableObject
         }
     }
 
-    /// <summary>
-    /// What this style spends of the 144 character line. Decorated text is not free - bold and
-    /// monospace letters cost two each - and the line is shared with every other integration.
-    /// </summary>
     public string PreviewCost
     {
         get
@@ -130,7 +111,6 @@ public partial class AfkStyleViewModel : ObservableObject
     [ObservableProperty] private AfkTextStyle _composerStyle = AfkTextStyle.Superscript;
     [ObservableProperty] private string _composerInput = string.Empty;
 
-    /// <summary>The styler's output for whatever is typed in the composer box, ready to be copied out.</summary>
     public string ComposerOutput => UnicodeTextStyler.Apply(ComposerInput, ComposerStyle);
 
     public string ComposerCost
@@ -165,8 +145,6 @@ public partial class AfkStyleViewModel : ObservableObject
             _dispatcher.BeginInvoke(RaiseStyleChanged);
     }
 
-    // Editing the selected style's wording has to move the preview, which means listening to the
-    // style itself and not only to the settings object holding it.
     private void ObserveSelectedStyle(AfkStyle? style = null)
     {
         style ??= _observedSettings?.ActiveStyle;
@@ -230,17 +208,12 @@ public partial class AfkStyleViewModel : ObservableObject
         settings.CustomStyles.Remove(style);
         settings.AllStyles.Remove(style);
 
-        // Never leave nothing selected: the AFK line would go blank with no way to tell why.
         var next = AfkStyleSeed.Resolve(settings.AllStyles, null);
         settings.ActiveStyleId = next?.Id ?? string.Empty;
         settings.SaveSettings();
         RaiseStyleChanged();
     }
 
-    /// <summary>
-    /// Writes out only the styles you made. The shipped ones are code, so exporting a copy of them
-    /// would only give the machine on the other end a stale duplicate of what it already has.
-    /// </summary>
     [RelayCommand]
     private void ExportStyles()
     {
@@ -300,8 +273,6 @@ public partial class AfkStyleViewModel : ObservableObject
 
             foreach (var incoming in payload.Styles)
             {
-                // Nothing arriving from a file may claim to be shipped, and nothing may land on an id
-                // already in use - either would let an import quietly overwrite what is already here.
                 var copy = incoming.Clone(UniqueName(settings, incoming.Name));
                 copy.IsBuiltIn = false;
 
@@ -346,7 +317,6 @@ public partial class AfkStyleViewModel : ObservableObject
         RaiseStyleChanged();
     }
 
-    /// <summary>Drops the composer's output straight into the field being written, no clipboard detour.</summary>
     [RelayCommand]
     private void ApplyComposerTo(string? target)
     {

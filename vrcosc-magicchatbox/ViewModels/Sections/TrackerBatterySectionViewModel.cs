@@ -33,7 +33,13 @@ public partial class TrackerBatterySectionViewModel : ObservableObject
         AppSettings = appSettingsProvider.Value;
         IntegrationDisplay = integrationDisplay;
         Tracker = trackerDisplay;
+
+        Settings.PropertyChanged += (_, _) => OnPropertyChanged(nameof(SamplePreview));
     }
+
+    public TrackerBatterySettings Settings => _settingsProvider.Value;
+
+    public string SamplePreview => TrackerBatteryModule.BuildSampleMessage(Settings);
 
     [RelayCommand]
     private void TrackerBatteryScan()

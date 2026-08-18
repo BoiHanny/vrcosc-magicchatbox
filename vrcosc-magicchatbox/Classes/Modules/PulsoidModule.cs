@@ -26,9 +26,6 @@ public partial class PulsoidModule : ObservableObject, IModule
     private readonly IToastService? _toast;
     private volatile bool _pulsoidErrorShown;
     private volatile bool _statsErrorShown;
-    // Set when Pulsoid refuses to serve statistics for this token. Statistics are optional, so
-    // this disables that one feature for the session instead of re-asking (and re-failing) every
-    // 30 seconds. Cleared whenever the socket comes up or the token changes.
     private volatile bool _statisticsUnavailable;
 
     private readonly IOscSender _oscSender;
@@ -56,9 +53,6 @@ public partial class PulsoidModule : ObservableObject, IModule
     private DateTime _lastTokenValidationUtc = DateTime.MinValue;
     private DateTime _lastInactivityLogUtc = DateTime.MinValue;
     private static readonly TimeSpan _statsFetchInterval = TimeSpan.FromSeconds(30);
-    // An idle strap used to trigger 120 validate calls an hour. Pulsoid documents no rate limit,
-    // so this is undocumented risk landing on the code path that decides whether to sign the user
-    // out; five minutes is plenty to notice a revoked token while the device is offline anyway.
     private static readonly TimeSpan _tokenValidationInterval = TimeSpan.FromMinutes(5);
     private static readonly TimeSpan _inactivityLogInterval = TimeSpan.FromSeconds(30);
     private int _previousHeartRate = -1;
@@ -66,11 +60,6 @@ public partial class PulsoidModule : ObservableObject, IModule
     private readonly TimeSpan _stateChangeDebounce = TimeSpan.FromSeconds(2);
     private int _unchangedHeartRateCount = 0;
 
-    [ObservableProperty]
-    private string formattedHighHeartRateText;
-
-    [ObservableProperty]
-    private string formattedLowHeartRateText;
     private bool GotReadingThisInterval = false;
 
     [ObservableProperty]
@@ -81,6 +70,11 @@ public partial class PulsoidModule : ObservableObject, IModule
     [ObservableProperty]
     private DateTime heartRateLastUpdate = DateTime.Now;
     private bool isMonitoringStarted = false;
+
+    private static readonly TimeSpan MonitorStopTimeout = TimeSpan.FromSeconds(3);
+
+    private int _startInProgress;
+    private Task? _monitorLoop;
 
     [ObservableProperty]
     private bool pulsoidAccessError = false;
@@ -100,18 +94,10 @@ public partial class PulsoidModule : ObservableObject, IModule
     public bool IsRunning => isMonitoringStarted;
     public Task InitializeAsync(CancellationToken ct = default) => Task.CompletedTask;
 
-    /// <summary>
-    /// First network work happens here, not in the constructor, so the bootstrapper can hold it
-    /// until the app (and the network stack) is actually up — the same gate Spotify and Discord use.
-    /// </summary>
     public Task StartAsync(CancellationToken ct = default) => CheckMonitoringConditionsAsync();
 
     public async Task StopAsync(CancellationToken ct = default) { await StopMonitoringHeartRateAsync(); }
 
-    /// <summary>
-    /// Writes settings straight through, cancelling any pending debounce. The access token must be
-    /// on disk the moment it is set or cleared, not two seconds later when the app might be closing.
-    /// </summary>
     public void SaveSettings() => _settingsProvider.FlushPendingSave();
 
     public PulsoidModule(IAppState appState, IPulsoidClient client, IUiDispatcher dispatcher, IOscSender oscSender, IntegrationSettings integrationSettings, PulsoidOAuthHandler oAuth, ISettingsProvider<PulsoidModuleSettings> settingsProvider, IToastService? toast = null)
@@ -131,9 +117,6 @@ public partial class PulsoidModule : ObservableObject, IModule
         _client.ConnectionFailed += OnConnectionFailed;
         _client.ConnectionStateChanged += OnConnectionStateChanged;
 
-        // The token itself has to be a trigger. Nothing was ever subscribed to the module's own
-        // settings, so the AccessTokenOAuth branch in PropertyChangedHandler was unreachable and a
-        // re-authentication during an outage left the retry loop hammering the superseded token.
         Settings.PropertyChanged += PropertyChangedHandler;
 
         _processDataTimer = new System.Timers.Timer
@@ -149,15 +132,8 @@ public partial class PulsoidModule : ObservableObject, IModule
         RestoreAuthStateFromSettings();
     }
 
-    /// <summary>
-    /// Seeds the sign-in state from what is on disk, synchronously and without touching the network.
-    /// The token has always survived restarts; the flag describing it did not, because nothing ever
-    /// derived it from the stored credential. That is the whole "authentication lost on restart" bug.
-    /// </summary>
     public void RestoreAuthStateFromSettings()
     {
-        // Only "nothing usable in memory" blocks. An encrypt failure cannot occur before the first
-        // assignment, and would not be a reason to refuse a working token if it could.
         if (Settings.StoredTokenUnreadable)
         {
             SetAuthState(PulsoidAuthState.Unreadable);
@@ -173,8 +149,6 @@ public partial class PulsoidModule : ObservableObject, IModule
             return;
         }
 
-        // Optimistic on purpose: a stored token is a sign-in until Pulsoid says otherwise, so an
-        // offline or slow launch still shows "connected" instead of demanding a pointless re-auth.
         SetAuthState(PulsoidAuthState.Unverified);
         PulsoidAccessError = false;
         PulsoidAccessErrorTxt = string.Empty;
@@ -188,10 +162,6 @@ public partial class PulsoidModule : ObservableObject, IModule
 
     private void OnConnectionFailed(PulsoidConnectionError error, string message)
     {
-        // Statistics are an optional extra (the token is allowed to lack data:statistics:read).
-        // Losing them says nothing about the session's sign-in, and the live socket is the
-        // authoritative liveness signal — escalating this used to drop heart rate out of the
-        // chatbox while beats were still streaming in.
         if (error == PulsoidConnectionError.StatisticsUnavailable)
         {
             _statisticsUnavailable = true;
@@ -219,11 +189,6 @@ public partial class PulsoidModule : ObservableObject, IModule
             PulsoidAccessError = true;
             PulsoidAccessErrorTxt = message;
 
-            // Only an unambiguous rejection demotes the sign-in. A plan problem is a conclusion
-            // about the account, not an outage, so it leaves the sign-in state alone and lets the
-            // error text carry it: saying "we'll keep retrying" would be a lie, the loop has
-            // stopped. Everything else is Pulsoid or the network being unavailable, which keeps
-            // the credential and keeps retrying.
             if (error == PulsoidConnectionError.TokenInvalid)
                 SetAuthState(PulsoidAuthState.Rejected);
             else if (error != PulsoidConnectionError.SubscriptionRequired)
@@ -236,16 +201,12 @@ public partial class PulsoidModule : ObservableObject, IModule
         if (connected)
         {
             _pulsoidErrorShown = false;
-            // A fresh socket is a fresh chance for statistics too (a plan change or a re-grant
-            // between attempts is exactly the case a session-long latch would hide).
             _statsErrorShown = false;
             _statisticsUnavailable = false;
             _dispatcher.BeginInvoke(() =>
             {
                 PulsoidAccessError = false;
                 PulsoidAccessErrorTxt = "";
-                // A completed handshake is the strongest proof the token works, so this is where
-                // the sign-in becomes confirmed. Previously nothing ever set it back to true.
                 SetAuthState(PulsoidAuthState.Authenticated);
             });
             _processDataTimer.Start();
@@ -291,7 +252,7 @@ public partial class PulsoidModule : ObservableObject, IModule
     private static double CalculateSlope(Queue<int> values)
     {
         int count = values.Count;
-        double avgX = count / 2.0;
+        double avgX = (count - 1) / 2.0;
         double avgY = values.Average();
 
         double sumXY = 0;
@@ -307,12 +268,6 @@ public partial class PulsoidModule : ObservableObject, IModule
         return slope;
     }
 
-    /// <summary>
-    /// Tears the client down and brings it back up around a changed credential. Re-checking the
-    /// monitoring conditions alone is not enough: the connect loop only returns on cancellation or
-    /// a definitive rejection, so without the stop it keeps retrying with the token it captured —
-    /// which, after a re-authentication during an outage, is the dead one.
-    /// </summary>
     private async Task RestartForNewTokenAsync()
     {
         try
@@ -358,7 +313,7 @@ public partial class PulsoidModule : ObservableObject, IModule
         int allowedSpread = Settings.ThrottleMaxAdditional;
 
         int excess = rawHR - baseHR;
-        int compressibleRange = maxHumanHR - baseHR;
+        int compressibleRange = Math.Max(1, maxHumanHR - baseHR);
 
         int scaledAdjustment = (excess * allowedSpread) / compressibleRange;
 
@@ -376,9 +331,6 @@ public partial class PulsoidModule : ObservableObject, IModule
         );
     }
 
-
-
-
     private int GetOSCHeartRate()
     {
         lock (_oscHeartRatesLock)
@@ -391,7 +343,6 @@ public partial class PulsoidModule : ObservableObject, IModule
             return (int)Math.Round(_oscHeartRates.Average());
         }
     }
-
 
     private void ResetIntervalFlag()
     {
@@ -473,14 +424,36 @@ public partial class PulsoidModule : ObservableObject, IModule
         }
     }
 
-    private async Task StartMonitoringHeartRateAsync()
+    private Task StartMonitoringHeartRateAsync()
+    {
+        if (Interlocked.CompareExchange(ref _startInProgress, 1, 0) == 1)
+            return _monitorLoop ?? Task.CompletedTask;
+
+        Task loop = RunMonitorLoopAsync();
+        _monitorLoop = loop;
+        return loop;
+    }
+
+    private async Task RunMonitorLoopAsync()
+    {
+        try
+        {
+            await StartMonitoringCoreAsync().ConfigureAwait(false);
+        }
+        finally
+        {
+            Interlocked.Exchange(ref _startInProgress, 0);
+        }
+    }
+
+    private async Task StartMonitoringCoreAsync()
     {
         if (isMonitoringStarted)
         {
             if (_client.IsConnected)
                 return;
 
-            await StopMonitoringHeartRateAsync();
+            await StopMonitoringCoreAsync();
         }
 
         if (_cts != null)
@@ -489,9 +462,6 @@ public partial class PulsoidModule : ObservableObject, IModule
         isMonitoringStarted = true;
         string accessToken = Settings.AccessTokenOAuth;
 
-        // Only an unreadable store blocks: there is genuinely nothing to connect with. An encrypt
-        // failure leaves a perfectly good token in memory and must not disable heart rate for the
-        // session — that is handled below, as a warning, after this token has been used.
         if (Settings.StoredTokenUnreadable)
         {
             _dispatcher.BeginInvoke(() =>
@@ -511,8 +481,6 @@ public partial class PulsoidModule : ObservableObject, IModule
 
         if (Settings.TokenEncryptionFailed && !string.IsNullOrEmpty(accessToken))
         {
-            // Non-blocking on purpose: the credential works right now, it just was not written to
-            // disk. Saying "could not be decrypted" here was both wrong and terminal.
             Logging.WriteInfo("Pulsoid: token could not be encrypted for storage; connecting with the in-memory token for this session.");
         }
 
@@ -554,8 +522,6 @@ public partial class PulsoidModule : ObservableObject, IModule
 
         if (validation == PulsoidTokenValidation.Unknown)
         {
-            // Could not verify — offline, timeout, 429, 5xx. Keep the sign-in and connect anyway:
-            // the socket handshake is itself an auth check and owns the retry/backoff loop.
             Logging.WriteInfo("Pulsoid token could not be verified right now; connecting with the saved sign-in anyway.");
             _dispatcher.BeginInvoke(() =>
             {
@@ -576,7 +542,6 @@ public partial class PulsoidModule : ObservableObject, IModule
 
         var cts = new CancellationTokenSource();
         _cts = cts;
-        UpdateFormattedHeartRateText();
 
         try
         {
@@ -608,6 +573,30 @@ public partial class PulsoidModule : ObservableObject, IModule
 
     private async Task StopMonitoringHeartRateAsync()
     {
+        await StopMonitoringCoreAsync().ConfigureAwait(false);
+
+        Task? loop = _monitorLoop;
+        if (loop is { IsCompleted: false })
+        {
+            try
+            {
+                await loop.WaitAsync(MonitorStopTimeout).ConfigureAwait(false);
+            }
+            catch (TimeoutException)
+            {
+                Logging.WriteInfo(
+                    $"Pulsoid connection loop did not stop within {MonitorStopTimeout.TotalSeconds:0.#}s; carrying on.");
+            }
+            catch
+            {
+            }
+        }
+
+        _monitorLoop = null;
+    }
+
+    private async Task StopMonitoringCoreAsync()
+    {
         if (_cts != null)
         {
             _cts.Cancel();
@@ -633,7 +622,7 @@ public partial class PulsoidModule : ObservableObject, IModule
             });
         }
 
-        Settings.HeartRateIcon = GetSanitizedHeartRateIcon(Settings.HeartRateIcon);
+        Settings.HeartRateIcon = GetSanitizedHeartRateIcon(Settings, Settings.HeartRateIcon);
 
         if (Settings.MagicHeartRateIcons && Settings.HeartIcons != null && Settings.HeartIcons.Count > 0)
         {
@@ -654,7 +643,11 @@ public partial class PulsoidModule : ObservableObject, IModule
 
             _heartRateHistory.Enqueue(hr);
 
-            if (_heartRateHistory.Count > 1)
+            if (sampleRate <= 1)
+            {
+                Settings.HeartRateTrendIndicator = "";
+            }
+            else if (_heartRateHistory.Count > 1)
             {
                 double slope = CalculateSlope(_heartRateHistory);
                 if (slope > Settings.HeartRateTrendIndicatorSensitivity)
@@ -679,81 +672,79 @@ public partial class PulsoidModule : ObservableObject, IModule
     }
 
     public string GetHeartRateString()
+        => BuildHeartRateString(Settings, HeartRate, PulsoidDeviceOnline, PulsoidStatistics);
+
+    public static string BuildHeartRateString(
+        PulsoidModuleSettings settings,
+        int heartRate,
+        bool deviceOnline,
+        PulsoidStatisticsResponse stats)
     {
-        if (Settings.EnableHeartRateOfflineCheck && !PulsoidDeviceOnline)
+        if (settings.EnableHeartRateOfflineCheck && !deviceOnline)
             return string.Empty;
 
-        if (HeartRate <= 0)
+        if (heartRate <= 0)
             return string.Empty;
 
         StringBuilder displayTextBuilder = new StringBuilder();
 
-        if (Settings.MagicHeartIconPrefix)
+        if (settings.MagicHeartIconPrefix)
         {
-            displayTextBuilder.Append(GetHeartRatePrefixText());
+            displayTextBuilder.Append(GetHeartRatePrefixText(settings, heartRate));
         }
 
         bool showCurrentHeartRate = true;
 
-        if (Settings.PulsoidStatsEnabled)
+        if (settings.PulsoidStatsEnabled)
         {
-            showCurrentHeartRate = !Settings.HideCurrentHeartRate;
+            showCurrentHeartRate = !settings.HideCurrentHeartRate;
         }
 
         if (showCurrentHeartRate)
         {
-            displayTextBuilder.Append(" " + HeartRate.ToString());
+            displayTextBuilder.Append(" " + heartRate.ToString());
 
-            if (Settings.ShowBPMSuffix)
+            if (settings.ShowBPMSuffix)
             {
-                displayTextBuilder.Append(" bpm");
+                displayTextBuilder.Append(" " + TextUtilities.TransformToSuperscript("bpm"));
             }
         }
 
-        if (Settings.ShowHeartRateTrendIndicator && !Settings.TrendIndicatorBehindStats)
+        if (settings.ShowHeartRateTrendIndicator && !settings.TrendIndicatorBehindStats)
         {
-            displayTextBuilder.Append($" {Settings.HeartRateTrendIndicator}");
+            displayTextBuilder.Append($" {settings.HeartRateTrendIndicator}");
         }
 
-        if (Settings.PulsoidStatsEnabled && PulsoidStatistics != null)
+        if (settings.PulsoidStatsEnabled && stats != null)
         {
             List<string> statsList = new List<string>();
 
-            if (Settings.ShowCalories)
+            if (settings.ShowCalories)
             {
-                statsList.Add($"{PulsoidStatistics.calories_burned_in_kcal} kcal");
+                statsList.Add(Stat(stats.calories_burned_in_kcal.ToString(), "kcal"));
             }
-            if (Settings.ShowAverageHeartRate)
+            if (settings.ShowAverageHeartRate)
             {
-                statsList.Add($"{PulsoidStatistics.average_beats_per_minute} Avg");
+                statsList.Add(Stat(stats.average_beats_per_minute.ToString(), "avg"));
             }
-            if (Settings.ShowMaximumHeartRate)
+            if (settings.ShowMaximumHeartRate)
             {
-                statsList.Add($"{PulsoidStatistics.maximum_beats_per_minute} Max");
+                statsList.Add(Stat(stats.maximum_beats_per_minute.ToString(), "max"));
             }
-            if (Settings.ShowMinimumHeartRate)
+            if (settings.ShowMinimumHeartRate)
             {
-                statsList.Add($"{PulsoidStatistics.minimum_beats_per_minute} Min");
+                statsList.Add(Stat(stats.minimum_beats_per_minute.ToString(), "min"));
             }
-            if (Settings.ShowDuration)
+            if (settings.ShowDuration)
             {
-                TimeSpan duration = TimeSpan.FromSeconds(PulsoidStatistics.streamed_duration_in_seconds);
+                TimeSpan duration = TimeSpan.FromSeconds(stats.streamed_duration_in_seconds);
                 string formattedDuration = duration.ToString(@"hh\:mm\:ss");
 
-                if (Settings.ShowStatsTimeRange)
-                {
-                    string timeRangeDescription = Settings.SelectedStatisticsTimeRange.GetDescription();
-                    statsList.Add($"duration over {timeRangeDescription} {formattedDuration} ");
-                }
-                else
-                {
-                    statsList.Add($"duration {formattedDuration}");
-                }
-            }
+                string durationLabel = settings.ShowStatsTimeRange
+                    ? $"duration over {settings.SelectedStatisticsTimeRange.GetDescription()}"
+                    : "duration";
 
-            for (int i = 0; i < statsList.Count; i++)
-            {
-                statsList[i] = TextUtilities.TransformToSuperscript(statsList[i]);
+                statsList.Add(Stat(formattedDuration, durationLabel));
             }
 
             if (statsList.Count > 0)
@@ -763,47 +754,50 @@ public partial class PulsoidModule : ObservableObject, IModule
             }
         }
 
-        if (Settings.ShowHeartRateTrendIndicator && Settings.TrendIndicatorBehindStats)
+        if (settings.ShowHeartRateTrendIndicator && settings.TrendIndicatorBehindStats)
         {
-            displayTextBuilder.Append($" {Settings.HeartRateTrendIndicator}");
+            displayTextBuilder.Append($" {settings.HeartRateTrendIndicator}");
         }
 
-        if (Settings.HeartRateTitle)
+        if (settings.HeartRateTitle)
         {
-            string titleSeparator = Settings.SeparateTitleWithEnter ? "\v" : ": ";
-            string hrTitle = Settings.CurrentHeartRateTitle + titleSeparator;
+            string titleSeparator = settings.SeparateTitleWithEnter ? "\v" : ": ";
+            string hrTitle = settings.CurrentHeartRateTitle + titleSeparator;
             displayTextBuilder.Insert(0, hrTitle);
         }
 
         return displayTextBuilder.ToString();
     }
 
-    private string GetHeartRatePrefixText()
+    private static string Stat(string value, string label)
+        => $"{value} {TextUtilities.TransformToSuperscript(label)}";
+
+    private static string GetHeartRatePrefixText(PulsoidModuleSettings settings, int hr)
     {
-        string heartIcon = GetSanitizedHeartRateIcon(Settings.HeartRateIcon);
-        string statusText = GetTemperatureStatusText(HeartRate);
+        string heartIcon = GetSanitizedHeartRateIcon(settings, settings.HeartRateIcon);
+        string statusText = GetTemperatureStatusText(settings, hr);
         return heartIcon + statusText;
     }
 
-    private string GetTemperatureStatusText(int hr)
+    private static string GetTemperatureStatusText(PulsoidModuleSettings settings, int hr)
     {
-        if (!Settings.ShowTemperatureText)
+        if (!settings.ShowTemperatureText)
             return string.Empty;
 
-        if (hr < Settings.LowTemperatureThreshold)
-            return FormattedLowHeartRateText;
+        if (hr < settings.LowTemperatureThreshold)
+            return TextUtilities.TransformToSuperscript(settings.LowHeartRateText);
 
-        if (hr >= Settings.HighTemperatureThreshold)
-            return FormattedHighHeartRateText;
+        if (hr >= settings.HighTemperatureThreshold)
+            return TextUtilities.TransformToSuperscript(settings.HighHeartRateText);
 
         return string.Empty;
     }
 
-    private string GetSanitizedHeartRateIcon(string icon)
+    private static string GetSanitizedHeartRateIcon(PulsoidModuleSettings settings, string icon)
     {
         string sanitized = icon ?? string.Empty;
-        sanitized = StripRepeatedSuffix(sanitized, FormattedLowHeartRateText);
-        sanitized = StripRepeatedSuffix(sanitized, FormattedHighHeartRateText);
+        sanitized = StripRepeatedSuffix(sanitized, TextUtilities.TransformToSuperscript(settings.LowHeartRateText));
+        sanitized = StripRepeatedSuffix(sanitized, TextUtilities.TransformToSuperscript(settings.HighHeartRateText));
         return sanitized;
     }
 
@@ -859,8 +853,6 @@ public partial class PulsoidModule : ObservableObject, IModule
 
                     if (validation == PulsoidTokenValidation.Unknown)
                     {
-                        // An idle strap is not an auth event, and neither is a validate call we
-                        // could not complete. Keep the session; say so plainly.
                         _dispatcher.BeginInvoke(() =>
                         {
                             MarkUnreachableIfSignedIn();
@@ -1059,27 +1051,16 @@ public partial class PulsoidModule : ObservableObject, IModule
                _integrationSettings.IntgrHeartRate_OSC;
     }
 
-    /// <summary>Writes the one value that decides whether the user is signed in to Pulsoid.</summary>
     public void SetAuthState(PulsoidAuthState newState)
     {
         if (_appState.PulsoidAuthState != newState)
             _appState.PulsoidAuthState = newState;
     }
 
-    /// <summary>
-    /// Downgrades a working sign-in to "can't reach Pulsoid" without ever signing the user out.
-    /// A rejected or absent token is left alone: those are conclusions, not outages.
-    /// </summary>
     private void MarkUnreachableIfSignedIn()
     {
         if (_appState.PulsoidAuthState is PulsoidAuthState.Authenticated or PulsoidAuthState.Unverified)
             _appState.PulsoidAuthState = PulsoidAuthState.Unreachable;
-    }
-
-    public void UpdateFormattedHeartRateText()
-    {
-        FormattedLowHeartRateText = TextUtilities.TransformToSuperscript(Settings.LowHeartRateText);
-        FormattedHighHeartRateText = TextUtilities.TransformToSuperscript(Settings.HighHeartRateText);
     }
 
     public void Dispose()

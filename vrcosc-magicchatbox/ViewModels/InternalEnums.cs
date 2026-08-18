@@ -59,7 +59,13 @@ namespace vrcosc_magicchatbox.ViewModels
         [Description("Celsius (C)")]
         Celsius,
         [Description("Fahrenheit (F)")]
-        Fahrenheit
+        Fahrenheit,
+        [Description("Kelvin (K)")]
+        Kelvin,
+        [Description("Rankine (R)")]
+        Rankine,
+        [Description("Réaumur (Ré)")]
+        Reaumur
     }
 
     public enum WeatherFallbackMode
@@ -141,11 +147,11 @@ namespace vrcosc_magicchatbox.ViewModels
 
     public enum MediaLinkTimeSeekbar
     {
-        [Description("Small numbers")]
+        [Description("Just the times, in small raised digits")]
         SmallNumbers,
-        [Description("Custom")]
+        [Description("A progress bar")]
         NumbersAndSeekBar,
-        [Description("None")]
+        [Description("Nothing")]
         None
     }
 }

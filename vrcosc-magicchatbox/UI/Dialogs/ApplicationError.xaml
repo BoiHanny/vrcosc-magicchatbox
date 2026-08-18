@@ -10,6 +10,7 @@
     Title="Application Error"
     Width="700"
     Height="auto"
+    Background="{StaticResource SurfaceDarkBrush}"
     FontFamily="{DynamicResource FontPrimary}"
     Icon="/Img/MagicOSC_icon.png"
     ResizeMode="NoResize"

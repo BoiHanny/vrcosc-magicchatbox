@@ -31,6 +31,14 @@ public partial class ChatSettings : VersionedSettings
     [ObservableProperty] private int _chatAutocompleteDelayMs = 900;
     [ObservableProperty] private bool _chatAutocompleteShowHint = true;
 
+    [ObservableProperty] private bool _chatLiveTyping = false;
+
+    [ObservableProperty] private int _chatLiveTypingRateMs = 1200;
+
+    [ObservableProperty] private bool _chatLiveTypingAutoFinalize = true;
+
+    [ObservableProperty] private int _chatLiveTypingFinalizeMs = 6000;
+
     [JsonIgnore]
     public bool ChatAutocompleteUsesOpenAI => ChatAutocompleteMode == ChatAutocompleteMode.OpenAI;
 
@@ -71,13 +79,33 @@ public partial class ChatSettings : VersionedSettings
         if (value < 250) ChatAutocompleteDelayMs = 250;
         else if (value > 5000) ChatAutocompleteDelayMs = 5000;
     }
+
+    partial void OnChatLiveTypingRateMsChanged(int value)
+    {
+        if (value < ChatLiveTypingRateMinMs) ChatLiveTypingRateMs = ChatLiveTypingRateMinMs;
+        else if (value > ChatLiveTypingRateMaxMs) ChatLiveTypingRateMs = ChatLiveTypingRateMaxMs;
+    }
+
+    partial void OnChatLiveTypingFinalizeMsChanged(int value)
+    {
+        if (value < ChatLiveTypingFinalizeMinMs) ChatLiveTypingFinalizeMs = ChatLiveTypingFinalizeMinMs;
+        else if (value > ChatLiveTypingFinalizeMaxMs) ChatLiveTypingFinalizeMs = ChatLiveTypingFinalizeMaxMs;
+    }
+
+    public const int ChatLiveTypingRateMinMs = 1000;
+
+    public const int ChatLiveTypingRateMaxMs = 3000;
+
+    public const int ChatLiveTypingFinalizeMinMs = 2000;
+
+    public const int ChatLiveTypingFinalizeMaxMs = 20000;
 }
 
 public enum ChatAutocompleteMode
 {
-    [Description("Local history")]
+    [Description("Words you have typed before")]
     LocalHistory,
 
-    [Description("OpenAI next words")]
+    [Description("OpenAI guesses the next words")]
     OpenAI
 }

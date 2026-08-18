@@ -2,21 +2,13 @@
     x:Class="vrcosc_magicchatbox.UI.Pages.Options.ChattingOptionsSection"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:controls="clr-namespace:vrcosc_magicchatbox.UI.Controls"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    xmlns:modules="clr-namespace:vrcosc_magicchatbox.Classes.Modules"
     xmlns:sections="clr-namespace:vrcosc_magicchatbox.ViewModels.Sections"
     d:DataContext="{d:DesignInstance Type=sections:ChattingOptionsSectionViewModel,
                                      IsDesignTimeCreatable=False}"
     mc:Ignorable="d">
-    <UserControl.Resources>
-        <ResourceDictionary>
-            <ResourceDictionary.MergedDictionaries>
-                <ResourceDictionary Source="/UI/Resources/SharedConverters.xaml" />
-            </ResourceDictionary.MergedDictionaries>
-        </ResourceDictionary>
-    </UserControl.Resources>
-
     <Grid Margin="0,5,0,0">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
@@ -43,284 +35,372 @@
             Height="Auto"
             Margin="34,10,0,0"
             Visibility="{Binding AppSettings.Settings_Chatting, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
-            <Border Style="{StaticResource OptionCardStyle}">
-                <StackPanel>
-                    <TextBlock
-                        Grid.Column="0"
-                        Margin="2,8,0,5"
-                        Padding="0,0,0,0"
-                        Style="{StaticResource OptionFieldLabelStyle}"
-                        Text="Chat timeout" />
-                    <TextBlock
-                        Margin="0,0,0,3"
-                        FontFamily="/Fonts/#Albert Sans"
-                        FontSize="12"
-                        Foreground="{StaticResource TextMutedBrush}"
-                        Text="How many seconds the chatbox stays visible in VRChat after you send a message."
-                        TextWrapping="Wrap" />
-                    <TextBox
-                        x:Name="ScanPauseCountDown"
-                        Width="40"
-                        Margin="0,3,0,12"
-                        Padding="5,0,0,0"
-                        HorizontalAlignment="Left"
-                        VerticalContentAlignment="Center"
-                        FontSize="15"
-                        Text="{Binding AppSettings.ScanPauseTimeout, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+            <StackPanel>
 
+                <Border Style="{StaticResource OptionCardStyle}">
+                    <StackPanel>
+                        <TextBlock Style="{StaticResource OptionSubsectionHeaderStyle}" Text="How your message goes out" />
 
+                        <!--  The one place the user can see the icon setting before it reaches VRChat.  -->
+                        <controls:SegmentPreview Caption="A message you send will look like this" Line="{Binding ChatPreview}" />
 
-                    <CheckBox
-                        x:Name="ChatIconPrefix_checkbox"
-                        IsChecked="{Binding ChatSettings.PrefixChat, Mode=TwoWay}"
-                        Style="{DynamicResource SettingsCheckbox}">
-                        Add 💬 as prefix for chat messages
-                    </CheckBox>
-
-
-                    <Grid Visibility="{Binding ChatSettings.PrefixChat, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
                         <CheckBox
-                            x:Name="EnableEmojiShuffleInChat_checkbox"
-                            IsChecked="{Binding AppSettings.EnableEmojiShuffleInChats, Mode=TwoWay}"
-                            Style="{DynamicResource SettingsCheckbox}"
-                            Visibility="{Binding AppSettings.EnableEmojiShuffle, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
-                            Use your custom icon shuffle as a prefix for chat messages
+                            x:Name="ChatIconPrefix_checkbox"
+                            Margin="0,10,0,0"
+                            IsChecked="{Binding ChatSettings.PrefixChat, Mode=TwoWay}">
+                            Put an icon in front of my messages
                         </CheckBox>
-                    </Grid>
 
+                        <Grid Visibility="{Binding ChatSettings.PrefixChat, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
+                            <CheckBox
+                                x:Name="EnableEmojiShuffleInChat_checkbox"
+                                Margin="0,4,0,0"
+                                IsChecked="{Binding AppSettings.EnableEmojiShuffleInChats, Mode=TwoWay}"
+                                Visibility="{Binding AppSettings.EnableEmojiShuffle, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
+                                Use my own icons here too, instead of 💬
+                            </CheckBox>
+                        </Grid>
 
-
-                    <TextBlock
-                        Margin="0,10,0,0"
-                        Style="{StaticResource OptionFieldLabelStyle}"
-                        Text="Inline autocomplete" />
-                    <CheckBox IsChecked="{Binding ChatSettings.ChatAutocompleteEnabled, Mode=TwoWay}" Style="{DynamicResource SettingsCheckbox}">
-                        Show ghost text suggestions while typing
-                    </CheckBox>
-                    <TextBlock
-                        Margin="0,0,0,8"
-                        FontFamily="/Fonts/#Albert Sans"
-                        FontSize="12"
-                        Foreground="{StaticResource TextMutedBrush}"
-                        Text="Suggestions are subtle and only apply when you press Tab. Local history mode never calls OpenAI."
-                        TextWrapping="Wrap" />
-                    <StackPanel Margin="12,0,0,10" Visibility="{Binding ChatSettings.ChatAutocompleteEnabled, Converter={StaticResource BoolToVisibilityConverter}}">
-                        <StackPanel
-                            Margin="0,0,0,6"
-                            Orientation="Horizontal"
-                            Visibility="{Binding ChatSettings.ChatAutocompleteUsesOpenAI, Converter={StaticResource BoolToVisibilityConverter}}">
-                            <TextBlock
-                                Width="125"
-                                VerticalAlignment="Center"
-                                FontFamily="/Fonts/#Albert Sans"
-                                FontSize="13"
-                                Foreground="{StaticResource TextLabelBrush}"
-                                Text="Suggestion mode" />
-                            <ComboBox
-                                Width="175"
-                                ItemsSource="{Binding AvailableAutocompleteModes}"
-                                SelectedItem="{Binding ChatSettings.ChatAutocompleteMode, Mode=TwoWay}"
-                                Style="{StaticResource DarkComboBoxStyle}">
-                                <ComboBox.ItemTemplate>
-                                    <DataTemplate>
-                                        <TextBlock Text="{Binding Converter={StaticResource EnumDescriptionConverter}}" />
-                                    </DataTemplate>
-                                </ComboBox.ItemTemplate>
-                            </ComboBox>
-                        </StackPanel>
-                        <StackPanel Margin="0,0,0,6" Orientation="Horizontal">
-                            <TextBlock
-                                Width="125"
-                                VerticalAlignment="Center"
-                                FontFamily="/Fonts/#Albert Sans"
-                                FontSize="13"
-                                Foreground="{StaticResource TextLabelBrush}"
-                                Text="OpenAI model" />
-                            <ComboBox
-                                Width="175"
-                                ItemsSource="{Binding AvailableChatModels}"
-                                SelectedItem="{Binding IntelliChatSettings.PerformTextCompletionModel, Mode=TwoWay}"
-                                Style="{StaticResource DarkComboBoxStyle}">
-                                <ComboBox.ItemTemplate>
-                                    <DataTemplate>
-                                        <TextBlock Text="{Binding Converter={StaticResource EnumDescriptionConverter}}" />
-                                    </DataTemplate>
-                                </ComboBox.ItemTemplate>
-                            </ComboBox>
-                        </StackPanel>
-                        <StackPanel Margin="0,0,0,6" Orientation="Horizontal">
-                            <TextBlock
-                                Width="125"
-                                VerticalAlignment="Center"
-                                FontFamily="/Fonts/#Albert Sans"
-                                FontSize="13"
-                                Foreground="{StaticResource TextLabelBrush}"
-                                Text="Minimum letters"
-                                ToolTip="How many characters you must type before suggestions appear" />
-                            <TextBox
-                                Width="45"
-                                Padding="5,0,0,0"
-                                VerticalContentAlignment="Center"
-                                Text="{Binding ChatSettings.ChatAutocompleteMinCharacters, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
-                        </StackPanel>
-                        <StackPanel Margin="0,0,0,6" Orientation="Horizontal">
-                            <TextBlock
-                                Width="125"
-                                VerticalAlignment="Center"
-                                FontFamily="/Fonts/#Albert Sans"
-                                FontSize="13"
-                                Foreground="{StaticResource TextLabelBrush}"
-                                Text="Max words"
-                                ToolTip="Maximum number of words in each suggestion" />
-                            <TextBox
-                                Width="45"
-                                Padding="5,0,0,0"
-                                VerticalContentAlignment="Center"
-                                Text="{Binding ChatSettings.ChatAutocompleteMaxWords, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
-                        </StackPanel>
-                        <StackPanel Orientation="Horizontal" Visibility="{Binding ChatSettings.ChatAutocompleteUsesOpenAI, Converter={StaticResource BoolToVisibilityConverter}}">
-                            <TextBlock
-                                Width="125"
-                                VerticalAlignment="Center"
-                                FontFamily="/Fonts/#Albert Sans"
-                                FontSize="13"
-                                Foreground="{StaticResource TextLabelBrush}"
-                                Text="OpenAI delay"
-                                ToolTip="Milliseconds to wait after you stop typing before querying OpenAI" />
-                            <TextBox
-                                Width="60"
-                                Padding="5,0,0,0"
-                                VerticalContentAlignment="Center"
-                                Text="{Binding ChatSettings.ChatAutocompleteDelayMs, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
-                            <TextBlock
-                                Margin="5,5,0,0"
-                                FontFamily="/Fonts/#Albert Sans"
-                                FontSize="12"
-                                Foreground="{StaticResource TextMutedBrush}"
-                                Text="ms" />
-                        </StackPanel>
-                    </StackPanel>
-
-                    <CheckBox
-                        x:Name="ChatFX_checkbox"
-                        IsChecked="{Binding ChatSettings.ChatFX, Mode=TwoWay}"
-                        Style="{DynamicResource SettingsCheckbox}">
-                        Play FX sound for VRChat users when sending message
-                    </CheckBox>
-                    <CheckBox
-                        x:Name="ChatSendAgainFX_checkbox"
-                        IsChecked="{Binding ChatSettings.ChatSendAgainFX, Mode=TwoWay}"
-                        Style="{DynamicResource SettingsCheckbox}"
-                        Visibility="{Binding ChatSettings.ChatFX, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
-                        Play FX when clicking resend
-                    </CheckBox>
-                    <CheckBox
-                        x:Name="ChatAddSmallDelay_checkbox"
-                        IsChecked="{Binding ChatSettings.ChatAddSmallDelay, Mode=TwoWay}"
-                        Style="{DynamicResource SettingsCheckbox}">
-                        Small delay when sending message (prevents timeout)
-                    </CheckBox>
-
-                    <StackPanel Visibility="{Binding ChatSettings.ChatAddSmallDelay, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
                         <TextBlock
-                            Width="auto"
-                            Margin="2,8,0,5"
-                            Padding="0,0"
-                            VerticalAlignment="Center"
+                            Margin="2,10,0,3"
                             Style="{StaticResource OptionFieldLabelStyle}"
-                            Text="Delay before sending" />
-                        <StackPanel Margin="0,0,0,7" Orientation="Horizontal">
-                            <Slider
-                                x:Name="ChatAddSmallDelaySensitivitySlider"
-                                Width="134.5"
-                                Height="12"
-                                Margin="2.2,0,4.5,0"
-                                IsSnapToTickEnabled="True"
-                                Maximum="2"
-                                Minimum="0.1"
-                                Style="{StaticResource CustomSlider}"
-                                TickFrequency="0.1"
-                                Value="{Binding Path=ChatSettings.ChatAddSmallDelayTIME, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
-                            <TextBlock
-                                Width="auto"
-                                Padding="5,0"
-                                VerticalAlignment="Center"
-                                FontFamily="/Fonts/#Albert Sans"
-                                FontSize="13"
-                                Foreground="{StaticResource TextMutedBrush}"
-                                Text="{Binding ChatSettings.ChatAddSmallDelayTIME, UpdateSourceTrigger=PropertyChanged}" />
-                            <TextBlock
-                                Width="auto"
-                                Margin="-2,5"
-                                VerticalAlignment="Center"
-                                FontFamily="/Fonts/#Albert Sans"
-                                FontSize="13"
-                                Foreground="{StaticResource TextMutedBrush}"
-                                Text="sec" />
-                        </StackPanel>
-                    </StackPanel>
-                    <CheckBox
-                        x:Name="KeepUpdatingChat_checkbox"
-                        IsChecked="{Binding ChatSettings.KeepUpdatingChat, Mode=TwoWay}"
-                        Style="{DynamicResource SettingsCheckbox}">
-                        Override display time for chat messages (keep updating)
-                    </CheckBox>
-                    <StackPanel Visibility="{Binding ChatSettings.KeepUpdatingChat, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
+                            Text="How long your message stays up" />
                         <TextBlock
-                            Width="auto"
-                            Margin="2,8,0,5"
-                            Padding="0,0"
-                            VerticalAlignment="Center"
-                            Style="{StaticResource OptionFieldLabelStyle}"
-                            Text="Update rate of active chat message" />
-                        <StackPanel Margin="0,0,0,7" Orientation="Horizontal">
-                            <Slider
-                                x:Name="ChattingUpdateRateSensitivitySlider"
-                                Width="134.5"
-                                Height="12"
-                                Margin="2.2,0,4.5,0"
-                                IsSnapToTickEnabled="True"
-                                Maximum="10"
-                                Minimum="2"
-                                Style="{StaticResource CustomSlider}"
-                                TickFrequency="0.1"
-                                Value="{Binding Path=ChatSettings.ChattingUpdateRate, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                            Style="{StaticResource OptionHelpTextStyle}"
+                            Text="After this many seconds VRChat clears your message and your integrations get the chatbox back." />
+                        <StackPanel Orientation="Horizontal">
+                            <TextBox
+                                x:Name="ScanPauseCountDown"
+                                Width="40"
+                                Margin="0,3,0,10"
+                                Padding="5,0,0,0"
+                                HorizontalAlignment="Left"
+                                VerticalContentAlignment="Center"
+                                FontSize="{StaticResource FontSizeBody}"
+                                Text="{Binding AppSettings.ScanPauseTimeout, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                             <TextBlock
-                                Width="auto"
-                                Padding="5,0"
+                                Margin="6,0,0,7"
                                 VerticalAlignment="Center"
-                                FontFamily="/Fonts/#Albert Sans"
-                                FontSize="13"
-                                Foreground="{StaticResource TextMutedBrush}"
-                                Text="{Binding ChatSettings.ChattingUpdateRate, UpdateSourceTrigger=PropertyChanged}" />
-                            <TextBlock
-                                Width="auto"
-                                Margin="-2,5"
-                                VerticalAlignment="Center"
-                                FontFamily="/Fonts/#Albert Sans"
-                                FontSize="13"
-                                Foreground="{StaticResource TextMutedBrush}"
-                                Text="sec" />
+                                Style="{StaticResource OptionFieldLabelStyle}"
+                                Text="seconds" />
                         </StackPanel>
                     </StackPanel>
-                    <CheckBox
-                        x:Name="ChatEdit_checkbox"
-                        IsChecked="{Binding ChatSettings.ChatLiveEdit, Mode=TwoWay}"
-                        Style="{DynamicResource SettingsCheckbox}"
-                        Visibility="{Binding ChatSettings.KeepUpdatingChat, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
-                        Edit chat messages
-                    </CheckBox>
-                    <Grid Visibility="{Binding ChatSettings.ChatLiveEdit, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
+                </Border>
+
+                <Border Style="{StaticResource OptionCardStyle}">
+                    <StackPanel>
+                        <TextBlock Style="{StaticResource OptionSubsectionHeaderStyle}" Text="Live typing" />
+                        <CheckBox IsChecked="{Binding ChatSettings.ChatLiveTyping, Mode=TwoWay}">
+                            Show my words in VRChat while I am still typing them
+                        </CheckBox>
+                        <TextBlock
+                            Style="{StaticResource OptionHelpTextStyle}"
+                            Text="People around you read the line as it appears instead of waiting for you to finish. Pressing Enter still sends it as a normal message. There is a LIVE button on the chat page that switches this on and off without coming here." />
+
+                        <StackPanel Margin="12,4,0,0" Visibility="{Binding ChatSettings.ChatLiveTyping, Converter={StaticResource BoolToVisibilityConverter}}">
+                            <CheckBox IsChecked="{Binding ChatSettings.ChatLiveTypingAutoFinalize, Mode=TwoWay}">
+                                Count it as sent when I stop typing or click away
+                            </CheckBox>
+                            <TextBlock
+                                Style="{StaticResource OptionHelpTextStyle}"
+                                Text="Your words are already on screen, so this is what adds the message to your history, plays the send sound once, and starts the countdown. Without it the line stays up until you press Enter." />
+
+                            <StackPanel Margin="12,2,0,6" Visibility="{Binding ChatSettings.ChatLiveTypingAutoFinalize, Converter={StaticResource BoolToVisibilityConverter}}">
+                                <TextBlock
+                                    Margin="2,4,0,3"
+                                    Style="{StaticResource OptionFieldLabelStyle}"
+                                    Text="Count it as finished after" />
+                                <TextBlock
+                                    Style="{StaticResource OptionHelpTextStyle}"
+                                    Text="Give yourself room to think. If this is shorter than your pauses, the box clears mid-sentence and the rest arrives as a second message." />
+                                <StackPanel Margin="0,3,0,0" Orientation="Horizontal">
+                                    <Slider
+                                        x:Name="ChatLiveTypingFinalizeSlider"
+                                        Width="134.5"
+                                        Height="12"
+                                        Margin="2.2,0,4.5,0"
+                                        IsSnapToTickEnabled="True"
+                                        Maximum="20000"
+                                        Minimum="2000"
+                                        Style="{StaticResource CustomSlider}"
+                                        TickFrequency="500"
+                                        Value="{Binding Path=ChatSettings.ChatLiveTypingFinalizeMs, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                    <TextBlock
+                                        Padding="5,0"
+                                        VerticalAlignment="Center"
+                                        Style="{StaticResource OptionFieldLabelStyle}"
+                                        Text="{Binding ChatSettings.ChatLiveTypingFinalizeMs, UpdateSourceTrigger=PropertyChanged}" />
+                                    <TextBlock
+                                        VerticalAlignment="Center"
+                                        Style="{StaticResource OptionFieldLabelStyle}"
+                                        Text="ms of not typing" />
+                                </StackPanel>
+                            </StackPanel>
+
+                            <TextBlock
+                                Margin="2,4,0,3"
+                                Style="{StaticResource OptionFieldLabelStyle}"
+                                Text="Update the chatbox at most every" />
+                            <TextBlock
+                                Style="{StaticResource OptionHelpTextStyle}"
+                                Text="VRChat throws away chatbox messages that arrive too quickly. Lower is snappier and closer to that limit; raise it if your words stop appearing." />
+                            <StackPanel Margin="0,3,0,4" Orientation="Horizontal">
+                                <Slider
+                                    x:Name="ChatLiveTypingRateSlider"
+                                    Width="134.5"
+                                    Height="12"
+                                    Margin="2.2,0,4.5,0"
+                                    IsSnapToTickEnabled="True"
+                                    Maximum="3000"
+                                    Minimum="1000"
+                                    Style="{StaticResource CustomSlider}"
+                                    TickFrequency="100"
+                                    Value="{Binding Path=ChatSettings.ChatLiveTypingRateMs, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                <TextBlock
+                                    Padding="5,0"
+                                    VerticalAlignment="Center"
+                                    Style="{StaticResource OptionFieldLabelStyle}"
+                                    Text="{Binding ChatSettings.ChatLiveTypingRateMs, UpdateSourceTrigger=PropertyChanged}" />
+                                <TextBlock
+                                    VerticalAlignment="Center"
+                                    Style="{StaticResource OptionFieldLabelStyle}"
+                                    Text="ms" />
+                            </StackPanel>
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+
+                <Border Style="{StaticResource OptionCardStyle}">
+                    <StackPanel>
+                        <TextBlock Style="{StaticResource OptionSubsectionHeaderStyle}" Text="Finishing your sentences" />
+                        <CheckBox IsChecked="{Binding ChatSettings.ChatAutocompleteEnabled, Mode=TwoWay}">
+                            Suggest the rest of what I am typing
+                        </CheckBox>
+                        <TextBlock
+                            Style="{StaticResource OptionHelpTextStyle}"
+                            Text="The suggestion appears greyed out ahead of your cursor and is only accepted when you press Tab. Suggesting from what you have typed before never sends anything to OpenAI." />
+
+                        <StackPanel Margin="12,0,0,10" Visibility="{Binding ChatSettings.ChatAutocompleteEnabled, Converter={StaticResource BoolToVisibilityConverter}}">
+                            <StackPanel
+                                Margin="0,0,0,6"
+                                Orientation="Horizontal"
+                                Visibility="{Binding ChatSettings.ChatAutocompleteUsesOpenAI, Converter={StaticResource BoolToVisibilityConverter}}">
+                                <TextBlock
+                                    Width="165"
+                                    Margin="0,0,6,0"
+                                    VerticalAlignment="Center"
+                                    Style="{StaticResource OptionFieldLabelStyle}"
+                                    Text="Where suggestions come from" />
+                                <ComboBox
+                                    Width="215"
+                                    ItemsSource="{Binding AvailableAutocompleteModes}"
+                                    SelectedItem="{Binding ChatSettings.ChatAutocompleteMode, Mode=TwoWay}"
+                                    Style="{StaticResource DarkComboBoxStyle}">
+                                    <ComboBox.ItemTemplate>
+                                        <DataTemplate>
+                                            <TextBlock Text="{Binding Converter={StaticResource EnumDescriptionConverter}}" />
+                                        </DataTemplate>
+                                    </ComboBox.ItemTemplate>
+                                </ComboBox>
+                            </StackPanel>
+                            <StackPanel Margin="0,0,0,6" Orientation="Horizontal">
+                                <TextBlock
+                                    Width="165"
+                                    Margin="0,0,6,0"
+                                    VerticalAlignment="Center"
+                                    Style="{StaticResource OptionFieldLabelStyle}"
+                                    Text="Which OpenAI model" />
+                                <ComboBox
+                                    Width="215"
+                                    ItemsSource="{Binding AvailableChatModels}"
+                                    SelectedItem="{Binding IntelliChatSettings.PerformTextCompletionModel, Mode=TwoWay}"
+                                    Style="{StaticResource DarkComboBoxStyle}">
+                                    <ComboBox.ItemTemplate>
+                                        <DataTemplate>
+                                            <TextBlock Text="{Binding Converter={StaticResource EnumDescriptionConverter}}" />
+                                        </DataTemplate>
+                                    </ComboBox.ItemTemplate>
+                                </ComboBox>
+                            </StackPanel>
+                            <StackPanel Margin="0,0,0,6" Orientation="Horizontal">
+                                <TextBlock
+                                    Width="165"
+                                    Margin="0,0,6,0"
+                                    VerticalAlignment="Center"
+                                    Style="{StaticResource OptionFieldLabelStyle}"
+                                    Text="Start suggesting after" />
+                                <TextBox
+                                    Width="45"
+                                    Padding="5,0,0,0"
+                                    VerticalContentAlignment="Center"
+                                    Text="{Binding ChatSettings.ChatAutocompleteMinCharacters, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                <TextBlock
+                                    Margin="6,0,0,0"
+                                    VerticalAlignment="Center"
+                                    Style="{StaticResource OptionFieldLabelStyle}"
+                                    Text="letters" />
+                            </StackPanel>
+                            <StackPanel Margin="0,0,0,6" Orientation="Horizontal">
+                                <TextBlock
+                                    Width="165"
+                                    Margin="0,0,6,0"
+                                    VerticalAlignment="Center"
+                                    Style="{StaticResource OptionFieldLabelStyle}"
+                                    Text="Longest suggestion" />
+                                <TextBox
+                                    Width="45"
+                                    Padding="5,0,0,0"
+                                    VerticalContentAlignment="Center"
+                                    Text="{Binding ChatSettings.ChatAutocompleteMaxWords, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                <TextBlock
+                                    Margin="6,0,0,0"
+                                    VerticalAlignment="Center"
+                                    Style="{StaticResource OptionFieldLabelStyle}"
+                                    Text="words" />
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" Visibility="{Binding ChatSettings.ChatAutocompleteUsesOpenAI, Converter={StaticResource BoolToVisibilityConverter}}">
+                                <TextBlock
+                                    Width="165"
+                                    Margin="0,0,6,0"
+                                    VerticalAlignment="Center"
+                                    Style="{StaticResource OptionFieldLabelStyle}"
+                                    Text="Wait after I stop typing" />
+                                <TextBox
+                                    Width="60"
+                                    Padding="5,0,0,0"
+                                    VerticalContentAlignment="Center"
+                                    Text="{Binding ChatSettings.ChatAutocompleteDelayMs, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                <TextBlock
+                                    Margin="6,0,0,0"
+                                    VerticalAlignment="Center"
+                                    Style="{StaticResource OptionFieldLabelStyle}"
+                                    Text="thousandths of a second" />
+                            </StackPanel>
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+
+                <Border Style="{StaticResource OptionCardStyle}">
+                    <StackPanel>
+                        <TextBlock Style="{StaticResource OptionSubsectionHeaderStyle}" Text="Sound" />
+                        <CheckBox x:Name="ChatFX_checkbox" IsChecked="{Binding ChatSettings.ChatFX, Mode=TwoWay}">
+                            Play the VRChat notification sound when I send a message
+                        </CheckBox>
+                        <TextBlock
+                            Style="{StaticResource OptionHelpTextStyle}"
+                            Text="Everyone near you hears it, not just you." />
                         <CheckBox
-                            x:Name="ChatLiveEdit_checkbox"
-                            IsChecked="{Binding ChatSettings.RealTimeChatEdit, Mode=TwoWay}"
-                            Style="{DynamicResource SettingsCheckbox}"
+                            x:Name="ChatSendAgainFX_checkbox"
+                            Margin="0,4,0,0"
+                            IsChecked="{Binding ChatSettings.ChatSendAgainFX, Mode=TwoWay}"
+                            Visibility="{Binding ChatSettings.ChatFX, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
+                            Play it again when I resend the same message
+                        </CheckBox>
+                    </StackPanel>
+                </Border>
+
+                <Border Style="{StaticResource OptionCardStyle}">
+                    <StackPanel>
+                        <TextBlock Style="{StaticResource OptionSubsectionHeaderStyle}" Text="Sending" />
+
+                        <CheckBox x:Name="ChatAddSmallDelay_checkbox" IsChecked="{Binding ChatSettings.ChatAddSmallDelay, Mode=TwoWay}">
+                            Pause for a moment before sending
+                        </CheckBox>
+                        <TextBlock
+                            Style="{StaticResource OptionHelpTextStyle}"
+                            Text="VRChat sometimes drops a message that arrives the instant you press Enter. A short pause stops that happening." />
+
+                        <StackPanel Visibility="{Binding ChatSettings.ChatAddSmallDelay, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
+                            <TextBlock
+                                Margin="2,8,0,5"
+                                Style="{StaticResource OptionFieldLabelStyle}"
+                                Text="How long to pause" />
+                            <StackPanel Margin="0,0,0,7" Orientation="Horizontal">
+                                <Slider
+                                    x:Name="ChatAddSmallDelaySensitivitySlider"
+                                    Width="134.5"
+                                    Height="12"
+                                    Margin="2.2,0,4.5,0"
+                                    IsSnapToTickEnabled="True"
+                                    Maximum="2"
+                                    Minimum="0.1"
+                                    Style="{StaticResource CustomSlider}"
+                                    TickFrequency="0.1"
+                                    Value="{Binding Path=ChatSettings.ChatAddSmallDelayTIME, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                <TextBlock
+                                    Margin="0"
+                                    Padding="5,0"
+                                    VerticalAlignment="Center"
+                                    Style="{StaticResource OptionFieldLabelStyle}"
+                                    Text="{Binding ChatSettings.ChatAddSmallDelayTIME, UpdateSourceTrigger=PropertyChanged}" />
+                                <TextBlock
+                                    Margin="0"
+                                    VerticalAlignment="Center"
+                                    Style="{StaticResource OptionFieldLabelStyle}"
+                                    Text="seconds" />
+                            </StackPanel>
+                        </StackPanel>
+
+                        <CheckBox
+                            x:Name="KeepUpdatingChat_checkbox"
+                            Margin="0,6,0,0"
+                            IsChecked="{Binding ChatSettings.KeepUpdatingChat, Mode=TwoWay}">
+                            Keep my message on screen instead of letting it time out
+                        </CheckBox>
+                        <TextBlock
+                            Style="{StaticResource OptionHelpTextStyle}"
+                            Text="MagicChatbox sends the message again every few seconds so it never disappears. It stays until you clear it." />
+
+                        <StackPanel Visibility="{Binding ChatSettings.KeepUpdatingChat, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
+                            <TextBlock
+                                Margin="2,8,0,5"
+                                Style="{StaticResource OptionFieldLabelStyle}"
+                                Text="Send it again every" />
+                            <StackPanel Margin="0,0,0,7" Orientation="Horizontal">
+                                <Slider
+                                    x:Name="ChattingUpdateRateSensitivitySlider"
+                                    Width="134.5"
+                                    Height="12"
+                                    Margin="2.2,0,4.5,0"
+                                    IsSnapToTickEnabled="True"
+                                    Maximum="10"
+                                    Minimum="2"
+                                    Style="{StaticResource CustomSlider}"
+                                    TickFrequency="0.1"
+                                    Value="{Binding Path=ChatSettings.ChattingUpdateRate, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                <TextBlock
+                                    Margin="0"
+                                    Padding="5,0"
+                                    VerticalAlignment="Center"
+                                    Style="{StaticResource OptionFieldLabelStyle}"
+                                    Text="{Binding ChatSettings.ChattingUpdateRate, UpdateSourceTrigger=PropertyChanged}" />
+                                <TextBlock
+                                    Margin="0"
+                                    VerticalAlignment="Center"
+                                    Style="{StaticResource OptionFieldLabelStyle}"
+                                    Text="seconds" />
+                            </StackPanel>
+                        </StackPanel>
+
+                        <CheckBox
+                            x:Name="ChatEdit_checkbox"
+                            Margin="0,4,0,0"
+                            IsChecked="{Binding ChatSettings.ChatLiveEdit, Mode=TwoWay}"
                             Visibility="{Binding ChatSettings.KeepUpdatingChat, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
-                            Live editing
+                            Let me change a message after it has been sent
                         </CheckBox>
-                    </Grid>
-                </StackPanel>
-            </Border>
+                        <Grid Visibility="{Binding ChatSettings.ChatLiveEdit, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
+                            <CheckBox
+                                x:Name="ChatLiveEdit_checkbox"
+                                Margin="0,4,0,0"
+                                IsChecked="{Binding ChatSettings.RealTimeChatEdit, Mode=TwoWay}"
+                                Visibility="{Binding ChatSettings.KeepUpdatingChat, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
+                                Show every edit as I type it, letter by letter
+                            </CheckBox>
+                        </Grid>
+                    </StackPanel>
+                </Border>
+            </StackPanel>
         </Grid>
     </Grid>
 </UserControl>

@@ -2,6 +2,9 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Collections.Specialized;
+using System.ComponentModel;
+using System.Threading;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -15,7 +18,7 @@ using static vrcosc_magicchatbox.Classes.Modules.MediaLinkModule;
 
 namespace vrcosc_magicchatbox.Services;
 
-public sealed class MediaLinkPersistenceService : IMediaLinkPersistenceService
+public sealed class MediaLinkPersistenceService : IMediaLinkPersistenceService, IDisposable
 {
     private readonly IEnvironmentService _env;
     private readonly MediaLinkDisplayState _mediaLink;
@@ -24,6 +27,14 @@ public sealed class MediaLinkPersistenceService : IMediaLinkPersistenceService
     private readonly IUiDispatcher _dispatcher;
 
     private const string MediaLinkStylesFileName = "MediaLinkStyles.json";
+
+    private static readonly TimeSpan StyleSaveDebounce = TimeSpan.FromSeconds(2);
+
+    private readonly Lock _styleSaveGate = new();
+    private readonly HashSet<MediaLinkStyle> _watchedStyles = new();
+    private Timer? _styleSaveTimer;
+    private ObservableCollection<MediaLinkStyle>? _watchedStyleCollection;
+    private bool _disposed;
 
     public MediaLinkPersistenceService(
         IEnvironmentService env,
@@ -37,6 +48,113 @@ public sealed class MediaLinkPersistenceService : IMediaLinkPersistenceService
         _windowActivity = windowActivity;
         _appHistory = appHistory;
         _dispatcher = dispatcher;
+
+        WatchStyleEdits();
+        _mediaLink.PropertyChanged += MediaLinkStateChanged;
+    }
+
+    private void MediaLinkStateChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName == nameof(MediaLinkDisplayState.MediaLinkSeekbarStyles))
+            WatchStyleEdits();
+        else if (e.PropertyName == nameof(MediaLinkDisplayState.SelectedMediaLinkSeekbarStyle))
+            QueueStyleSave();
+    }
+
+    private void WatchStyleEdits()
+    {
+        if (_watchedStyleCollection != null)
+            _watchedStyleCollection.CollectionChanged -= StyleCollectionChanged;
+
+        foreach (MediaLinkStyle watched in _watchedStyles)
+            watched.PropertyChanged -= StyleEdited;
+
+        _watchedStyles.Clear();
+
+        _watchedStyleCollection = _mediaLink.MediaLinkSeekbarStyles;
+        if (_watchedStyleCollection == null)
+            return;
+
+        _watchedStyleCollection.CollectionChanged += StyleCollectionChanged;
+
+        foreach (MediaLinkStyle style in _watchedStyleCollection)
+        {
+            style.PropertyChanged += StyleEdited;
+            _watchedStyles.Add(style);
+        }
+    }
+
+    private void StyleCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
+    {
+        if (e.OldItems != null)
+        {
+            foreach (MediaLinkStyle removed in e.OldItems.OfType<MediaLinkStyle>())
+            {
+                removed.PropertyChanged -= StyleEdited;
+                _watchedStyles.Remove(removed);
+            }
+        }
+
+        if (e.NewItems != null)
+        {
+            foreach (MediaLinkStyle added in e.NewItems.OfType<MediaLinkStyle>())
+            {
+                if (_watchedStyles.Add(added))
+                    added.PropertyChanged += StyleEdited;
+            }
+        }
+
+        if (e.Action == NotifyCollectionChangedAction.Reset)
+            WatchStyleEdits();
+    }
+
+    private void StyleEdited(object? sender, PropertyChangedEventArgs e) => QueueStyleSave();
+
+    private void QueueStyleSave()
+    {
+        if (_disposed)
+            return;
+
+        lock (_styleSaveGate)
+        {
+            _styleSaveTimer ??= new Timer(_ => FlushStyleSave(), null, Timeout.Infinite, Timeout.Infinite);
+            _styleSaveTimer.Change(StyleSaveDebounce, Timeout.InfiniteTimeSpan);
+        }
+    }
+
+    private void FlushStyleSave()
+    {
+        try
+        {
+            SaveMediaLinkStyles();
+        }
+        catch (Exception ex)
+        {
+            Logging.WriteException(ex, MSGBox: false);
+        }
+    }
+
+    public void Dispose()
+    {
+        if (_disposed)
+            return;
+
+        _disposed = true;
+        _mediaLink.PropertyChanged -= MediaLinkStateChanged;
+
+        if (_watchedStyleCollection != null)
+            _watchedStyleCollection.CollectionChanged -= StyleCollectionChanged;
+
+        foreach (MediaLinkStyle watched in _watchedStyles)
+            watched.PropertyChanged -= StyleEdited;
+
+        _watchedStyles.Clear();
+
+        lock (_styleSaveGate)
+        {
+            _styleSaveTimer?.Dispose();
+            _styleSaveTimer = null;
+        }
     }
 
     public async Task LoadMediaSessionsAsync()
@@ -158,12 +276,16 @@ public sealed class MediaLinkPersistenceService : IMediaLinkPersistenceService
             nextAvailableID = 100;
         }
 
-        MediaLinkStyle newStyle = new MediaLinkStyle
-        {
-            ID = nextAvailableID,
-            ProgressBarLength = 8,
-            SystemDefault = false
-        };
+        MediaLinkStyle template = _mediaLink.SelectedMediaLinkSeekbarStyle
+            ?? _mediaLink.MediaLinkSeekbarStyles.FirstOrDefault(s => s.SystemDefault)
+            ?? _mediaLink.MediaLinkSeekbarStyles.FirstOrDefault();
+
+        MediaLinkStyle newStyle = template != null
+            ? CloneMediaLinkStyle(template)
+            : new MediaLinkStyle { ProgressBarLength = 8 };
+
+        newStyle.ID = nextAvailableID;
+        newStyle.SystemDefault = false;
 
         _mediaLink.MediaLinkSeekbarStyles.Add(newStyle);
         _mediaLink.SelectedMediaLinkSeekbarStyle = newStyle;
@@ -186,12 +308,15 @@ public sealed class MediaLinkPersistenceService : IMediaLinkPersistenceService
             return;
         }
 
+        int deletedId = _mediaLink.SelectedMediaLinkSeekbarStyle.ID;
+
         _mediaLink.MediaLinkSeekbarStyles.Remove(_mediaLink.SelectedMediaLinkSeekbarStyle);
-        _mediaLink.SelectedMediaLinkSeekbarStyle = _mediaLink.MediaLinkSeekbarStyles.FirstOrDefault();
+        _mediaLink.SelectedMediaLinkSeekbarStyle = _mediaLink.MediaLinkSeekbarStyles.FirstOrDefault(s => s.SystemDefault)
+            ?? _mediaLink.MediaLinkSeekbarStyles.FirstOrDefault();
 
         SaveMediaLinkStyles();
 
-        Logging.WriteInfo($"Media link style with ID {_mediaLink.SelectedMediaLinkSeekbarStyle.ID} deleted.");
+        Logging.WriteInfo($"Media link style with ID {deletedId} deleted.");
     }
 
     public void ExportSeekbarStyles(string filePath)

@@ -7,7 +7,10 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using vrcosc_magicchatbox.Classes.DataAndSecurity;
+using vrcosc_magicchatbox.Classes.Utilities;
 using vrcosc_magicchatbox.Core.Configuration;
+using vrcosc_magicchatbox.Core.Osc;
+using vrcosc_magicchatbox.Core.Osc.Text;
 using vrcosc_magicchatbox.Core.State;
 using vrcosc_magicchatbox.Services;
 
@@ -24,6 +27,14 @@ public partial class DiscordModule : ObservableObject, IModule
     private bool _disposed;
     private Timer? _channelRefreshTimer;
     private const int ChannelRefreshIntervalMs = 30_000;
+    private CancellationTokenSource? _reconnectCts;
+    private const int MaxAutoReconnectAttempts = 5;
+
+    private const int MaxChannelChars = 24;
+    private const int MinChannelChars = 12;
+    private const int MaxSpeakerNameChars = 16;
+
+    public const string UnknownSpeaker = "someone";
 
     private readonly ConcurrentDictionary<string, CancellationTokenSource> _speakerDebounce = new();
 
@@ -84,7 +95,7 @@ public partial class DiscordModule : ObservableObject, IModule
         else
         {
             Logging.WriteInfo("Discord IPC: Could not connect to any Discord pipe. Starting auto-reconnect.");
-            _ipcClient.StartAutoReconnect(OnReconnectedAsync);
+            StartAutoReconnect();
         }
     }
 
@@ -102,8 +113,70 @@ public partial class DiscordModule : ObservableObject, IModule
         catch (Exception ex) { Logging.WriteInfo($"Discord: Error during dispose: {ex.Message}"); }
     }
 
+    public void PropertyChangedHandler(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName != nameof(IntegrationSettings.IntgrDiscord))
+            return;
+
+        if (sender is not IntegrationSettings settings)
+            return;
+
+        if (settings.IntgrDiscord)
+            _ = StartAsync();
+        else
+            _ = StopAsync();
+    }
+
+    private void StartAutoReconnect()
+    {
+        _reconnectCts?.Cancel();
+        _reconnectCts?.Dispose();
+        _reconnectCts = new CancellationTokenSource();
+        var ct = _reconnectCts.Token;
+
+        _ = Task.Run(async () =>
+        {
+            for (int attempt = 1; attempt <= MaxAutoReconnectAttempts; attempt++)
+            {
+                if (ct.IsCancellationRequested || _disposed) return;
+
+                var delay = TimeSpan.FromSeconds(Math.Min(
+                    Core.Constants.DiscordReconnectMinDelay.TotalSeconds * Math.Pow(2, attempt - 1),
+                    Core.Constants.DiscordReconnectMaxDelay.TotalSeconds));
+
+                Logging.WriteInfo($"Discord IPC reconnect attempt {attempt}/{MaxAutoReconnectAttempts} in {delay.TotalSeconds:0.#}s");
+
+                try
+                {
+                    await Task.Delay(delay, ct).ConfigureAwait(false);
+                    if (ct.IsCancellationRequested || _disposed) return;
+
+                    if (_ipcClient != null && await _ipcClient.ConnectAsync(ct).ConfigureAwait(false))
+                    {
+                        await OnReconnectedAsync().ConfigureAwait(false);
+                        return;
+                    }
+                }
+                catch (OperationCanceledException)
+                {
+                    return;
+                }
+                catch (Exception ex)
+                {
+                    Logging.WriteInfo($"Discord IPC reconnect failed: {ex.Message}");
+                }
+            }
+
+            Logging.WriteInfo("Discord IPC: Reconnect attempts exhausted. Waiting for the Discord integration to be toggled.");
+        }, ct);
+    }
+
     private void StopCore()
     {
+        _reconnectCts?.Cancel();
+        _reconnectCts?.Dispose();
+        _reconnectCts = null;
+
         _dispatcher.BeginInvoke(() => IsRunning = false);
 
         if (_ipcClient != null)
@@ -119,60 +192,103 @@ public partial class DiscordModule : ObservableObject, IModule
         ResetAllOscParams();
     }
 
-    public string GetOutputString()
+    public string GetOutputString(int budget = OscBuildContext.MaxOscLength)
     {
         if (!IsInVoiceChannel || string.IsNullOrEmpty(_currentChannelId))
-            return Settings.NotInVcText;
+            return SegmentWriter.Truncate(Settings.NotInVcText, budget);
 
-        string speakingStr;
-        int speakingCount;
-
+        List<string> names;
         lock (_speakLock)
         {
             var ids = Settings.HideSelfFromSpeakers && _selfUserId != null
                 ? _speakingUserIds.Where(id => id != _selfUserId)
                 : _speakingUserIds.AsEnumerable();
 
-            var names = ids.Select(id => _userNames.GetValueOrDefault(id, $"User_{id}")).ToList();
-            speakingCount = names.Count;
-
-            if (Settings.ShowUserCountOnly)
-            {
-                speakingStr = speakingCount.ToString();
-            }
-            else if (names.Count == 0)
-            {
-                speakingStr = Settings.EmptySpeakingText;
-            }
-            else
-            {
-                var shown = names.Take(Settings.MaxSpeakingUsersToShow).ToList();
-                speakingStr = string.Join(", ", shown);
-                if (names.Count > Settings.MaxSpeakingUsersToShow)
-                    speakingStr += $" (+{names.Count - Settings.MaxSpeakingUsersToShow})";
-            }
+            names = ids.Select(id => _userNames.GetValueOrDefault(id, UnknownSpeaker)).ToList();
         }
 
-        string muteEmoji = "";
-        if (Settings.ShowMuteDeafenEmoji)
-        {
-            if (IsSelfDeafened) muteEmoji = Settings.DeafenEmoji;
-            else if (IsSelfMuted) muteEmoji = Settings.MuteEmoji;
-        }
-
-        string muteState = IsSelfDeafened ? "deafened" : IsSelfMuted ? "muted" : "unmuted";
-        string voiceState = speakingCount > 0 ? "speaking" : "quiet";
-
-        return Settings.Template
-            .Replace("{channel}", CurrentChannelName)
-            .Replace("{count}", VoiceChannelCount.ToString())
-            .Replace("{speaking}", speakingStr)
-            .Replace("{speaking_count}", speakingCount.ToString())
-            .Replace("{mute_emoji}", muteEmoji)
-            .Replace("{mute_state}", muteState)
-            .Replace("{voice_state}", voiceState)
-            .Replace("\\n", "\n").Replace("/n", "\n");
+        return BuildOutputString(
+            Settings, CurrentChannelName, VoiceChannelCount, names, IsSelfMuted, IsSelfDeafened, budget);
     }
+
+    public static string BuildOutputString(
+        DiscordSettings settings,
+        string channelName,
+        int channelCount,
+        IReadOnlyList<string> speakerNames,
+        bool isMuted,
+        bool isDeafened,
+        int budget)
+    {
+        if (budget <= 0)
+            return string.Empty;
+
+        var names = speakerNames.Select(n => SegmentWriter.Truncate(n, MaxSpeakerNameChars)).ToList();
+        string channel = SegmentWriter.Truncate(channelName, MaxChannelChars);
+
+        string muteEmoji = string.Empty;
+        if (settings.ShowMuteDeafenEmoji)
+        {
+            if (isDeafened) muteEmoji = settings.DeafenEmoji;
+            else if (isMuted) muteEmoji = settings.MuteEmoji;
+        }
+
+        string muteState = isDeafened ? "deafened" : isMuted ? "muted" : "unmuted";
+        string voiceState = names.Count > 0 ? "speaking" : "quiet";
+
+        string Speakers(int show)
+        {
+            if (settings.ShowUserCountOnly)
+                return names.Count.ToString();
+
+            if (names.Count == 0)
+                return State(settings.EmptySpeakingText).Rendered;
+
+            int take = Math.Clamp(show, 1, names.Count);
+            string shown = string.Join(", ", names.Take(take));
+
+            return names.Count > take
+                ? new SegmentWriter().Field(OscText.Value(shown), State($"(+{names.Count - take})")).Text
+                : shown;
+        }
+
+        string Render(string channelText, string speakingText)
+            => settings.Template
+                .Replace("{channel}", channelText)
+                .Replace("{count}", channelCount.ToString())
+                .Replace("{speaking}", speakingText)
+                .Replace("{speaking_count}", names.Count.ToString())
+                .Replace("{mute_emoji}", muteEmoji)
+                .Replace("{mute_state}", State(muteState).Rendered)
+                .Replace("{voice_state}", State(voiceState).Rendered)
+                .Replace("\\n", "\n").Replace("/n", "\n");
+
+        return SegmentWriter.Fit(
+            budget,
+            () => Render(channel, Speakers(settings.MaxSpeakingUsersToShow)),
+            () => Render(channel, Speakers(1)),
+            () => Render(channel, names.Count.ToString()),
+            () => Render(SegmentWriter.Truncate(channel, MinChannelChars), names.Count.ToString()));
+    }
+
+    private static OscText State(string? word)
+    {
+        string text = word?.Trim() ?? string.Empty;
+
+        foreach (char c in text)
+        {
+            if (!char.IsWhiteSpace(c) && !SuperscriptText.CanRaise(char.ToLowerInvariant(c)))
+                return OscText.Raw(text);
+        }
+
+        return OscText.Label(text);
+    }
+
+    public static string ResolveDisplayName(string? nick, string? globalName, string? username)
+        => !string.IsNullOrWhiteSpace(nick) ? nick
+         : !string.IsNullOrWhiteSpace(globalName) ? globalName
+         : !string.IsNullOrWhiteSpace(username) ? username
+         : UnknownSpeaker;
 
     private void OnIpcMessage(JObject message)
     {
@@ -200,7 +316,6 @@ public partial class DiscordModule : ObservableObject, IModule
                     if (evt == "ERROR")
                         Logging.WriteInfo($"Discord subscribe error: {data}");
                     break;
-
             }
         }
         catch (Exception ex)
@@ -358,12 +473,10 @@ public partial class DiscordModule : ObservableObject, IModule
             {
                 var user = vs["user"];
                 var userId = user?["id"]?.ToString();
-                var username = user?["username"]?.ToString() ?? $"User_{userId}";
-                var nick = vs["nick"]?.ToString();
-                var globalName = user?["global_name"]?.ToString();
-                var displayName = !string.IsNullOrEmpty(nick) ? nick
-                    : !string.IsNullOrEmpty(globalName) ? globalName
-                    : username;
+                var displayName = ResolveDisplayName(
+                    vs["nick"]?.ToString(),
+                    user?["global_name"]?.ToString(),
+                    user?["username"]?.ToString());
 
                 if (userId != null)
                 {
@@ -421,12 +534,10 @@ public partial class DiscordModule : ObservableObject, IModule
     {
         var user = data["user"];
         var userId = user?["id"]?.ToString();
-        var username = user?["username"]?.ToString() ?? $"User_{userId}";
-        var nick = data["nick"]?.ToString();
-        var globalName = user?["global_name"]?.ToString();
-        var displayName = !string.IsNullOrEmpty(nick) ? nick
-            : !string.IsNullOrEmpty(globalName) ? globalName
-            : username;
+        var displayName = ResolveDisplayName(
+            data["nick"]?.ToString(),
+            user?["global_name"]?.ToString(),
+            user?["username"]?.ToString());
 
         if (userId != null)
         {
@@ -719,7 +830,7 @@ public partial class DiscordModule : ObservableObject, IModule
 
         if (!_disposed)
         {
-            _ipcClient?.StartAutoReconnect(OnReconnectedAsync);
+            StartAutoReconnect();
         }
     }
 

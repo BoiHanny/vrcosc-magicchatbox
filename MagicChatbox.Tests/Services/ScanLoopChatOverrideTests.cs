@@ -48,3 +48,26 @@ public class ScanLoopChatOverrideTests
         Assert.False(ScanLoopService.IsChatOverrideActive(true, messages));
     }
 }
+
+public class ScanLoopPresentGuardTests
+{
+    // The build now runs on the thread pool, so the tick yields between deciding to build and
+    // presenting the result. A chat sent during that gap has already claimed the box, and presenting
+    // over it would put the status line back and drop the message the user just sent.
+    [Fact]
+    public void A_settled_tick_presents()
+    {
+        Assert.True(ScanLoopService.ShouldPresent(started: true, disposed: false, chatOverrideActive: false, liveTypingHolding: false));
+    }
+
+    [Theory]
+    [InlineData(false, false, false, false)]
+    [InlineData(true, true, false, false)]
+    [InlineData(true, false, true, false)]
+    [InlineData(true, false, false, true)]
+    public void Anything_that_claimed_the_box_during_the_build_stops_the_present(
+        bool started, bool disposed, bool chatOverrideActive, bool liveTypingHolding)
+    {
+        Assert.False(ScanLoopService.ShouldPresent(started, disposed, chatOverrideActive, liveTypingHolding));
+    }
+}

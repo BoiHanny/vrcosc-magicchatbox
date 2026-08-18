@@ -26,8 +26,6 @@ namespace vrcosc_magicchatbox
 
         private const double BylineStartBlur = 5.0;
         private const double BylineMaxOpacity = 1.0;
-        // The byline used to stay blurred and half faded until progress passed 75, which on a normal
-        // start is the last moment before the splash closes - so the thing was never really seen.
         private const double BylineFullyRevealedAt = 30.0;
 
         private const double DriftShare = 0.28;

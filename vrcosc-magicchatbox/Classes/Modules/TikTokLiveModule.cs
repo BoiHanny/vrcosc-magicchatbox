@@ -15,6 +15,7 @@ using TikTokLiveSharp.Events.Objects;
 using vrcosc_magicchatbox.Classes.DataAndSecurity;
 using vrcosc_magicchatbox.Core;
 using vrcosc_magicchatbox.Core.Configuration;
+using vrcosc_magicchatbox.Core.Osc.Text;
 using vrcosc_magicchatbox.Core.Privacy;
 using vrcosc_magicchatbox.Core.State;
 using vrcosc_magicchatbox.Services;
@@ -23,14 +24,13 @@ namespace vrcosc_magicchatbox.Classes.Modules;
 
 public sealed partial class TikTokLiveModule : ObservableObject, IModule
 {
-    private static readonly Regex MultiSpaceRegex = new("[ \t]{2,}", RegexOptions.Compiled);
     private static readonly Regex TikTokUserNameRegex = new("^[A-Za-z0-9._]{2,24}$", RegexOptions.Compiled | RegexOptions.CultureInvariant);
     private static readonly Regex FollowerCountRegex = new("\"followerCount\"\\s*:\\s*(?<value>\\d+)", RegexOptions.Compiled | RegexOptions.CultureInvariant);
     private static readonly Regex NicknameRegex = new("\"nickname\"\\s*:\\s*\"(?<value>(?:\\\\.|[^\"])*)\"", RegexOptions.Compiled | RegexOptions.CultureInvariant);
     private static readonly Regex UniqueIdRegex = new("\"uniqueId\"\\s*:\\s*\"(?<value>(?:\\\\.|[^\"])*)\"", RegexOptions.Compiled | RegexOptions.CultureInvariant);
 
-    private const int CommentPreviewLength = 60;
-    private const int UserPreviewLength = 24;
+    private const int CommentPreviewLength = TikTokLiveOutput.CommentPreviewLength;
+    private const int UserPreviewLength = TikTokLiveOutput.UserPreviewLength;
     private const int PriorityLike = 1;
     private const int PriorityComment = 2;
     private const int PriorityFollow = 3;
@@ -285,11 +285,11 @@ public sealed partial class TikTokLiveModule : ObservableObject, IModule
         return !string.IsNullOrWhiteSpace(ResolveLiveHostUserName());
     }
 
-    public string GetOutputString()
+    public string GetOutputString(int budget)
     {
         lock (_stateLock)
         {
-            return BuildOutput_NoLock();
+            return BuildOutput_NoLock(budget);
         }
     }
 
@@ -886,7 +886,7 @@ public sealed partial class TikTokLiveModule : ObservableObject, IModule
                 BuildEventTokens(
                     user: ExtractUserName(gift.User),
                     uniqueId: ExtractUniqueId(gift.User),
-                    giftName: gift.Gift?.Name,
+                    giftName: Truncate(gift.Gift?.Name, TikTokLiveOutput.GiftNameLength),
                     count: count.ToString(CultureInfo.InvariantCulture),
                     amount: gift.Amount.ToString(CultureInfo.InvariantCulture)));
 
@@ -1002,7 +1002,12 @@ public sealed partial class TikTokLiveModule : ObservableObject, IModule
         string liveSummary = BuildLiveSummary_NoLock();
         string profileOutput = BuildProfileOutput_NoLock(profileSummary);
         string liveOutput = Settings.EnableLiveConnector && _live ? BuildLiveOutput_NoLock(liveSummary) : string.Empty;
-        string output = BuildOutput_NoLock(profileOutput, liveOutput);
+
+        string output = TikTokLiveOutput.Fit(
+            Constants.OscMaxMessageLength,
+            BuildOutput_NoLock(profileOutput, liveOutput),
+            profileOutput,
+            liveOutput);
 
         return new UiSnapshot(
             _moduleRunning,
@@ -1036,7 +1041,7 @@ public sealed partial class TikTokLiveModule : ObservableObject, IModule
             BuildEventTokens(
                 profile: _activeProfileUserName,
                 displayName: _profileDisplayName,
-                followers: FormatCount(_profileFollowerCount, Settings.CompactViewerCount),
+                followers: FormatChatCount(_profileFollowerCount, Settings.CompactViewerCount),
                 followerCount: _profileFollowerCount.ToString(CultureInfo.InvariantCulture),
                 updated: _profileFetchedAtUtc == DateTime.MinValue ? string.Empty : _profileFetchedAtUtc.ToLocalTime().ToString("HH:mm", CultureInfo.CurrentCulture)));
     }
@@ -1050,21 +1055,21 @@ public sealed partial class TikTokLiveModule : ObservableObject, IModule
             Settings.SummaryTemplate,
             BuildEventTokens(
                 host: _activeHostUserName,
-                viewers: FormatCount(_viewerCount, Settings.CompactViewerCount),
+                viewers: FormatChatCount(_viewerCount, Settings.CompactViewerCount),
                 viewerCount: _viewerCount.ToString(CultureInfo.InvariantCulture),
-                likes: FormatCount(_likeTotal, Settings.CompactLikeCount),
+                likes: FormatChatCount(_likeTotal, Settings.CompactLikeCount),
                 likeCount: _likeTotal.ToString(CultureInfo.InvariantCulture),
                 roomId: _roomId));
     }
 
-    private string BuildOutput_NoLock()
+    private string BuildOutput_NoLock(int budget)
     {
         string profileSummary = BuildProfileSummary_NoLock();
         string profileOutput = BuildProfileOutput_NoLock(profileSummary);
         string liveSummary = BuildLiveSummary_NoLock();
         string liveOutput = Settings.EnableLiveConnector && _live ? BuildLiveOutput_NoLock(liveSummary) : string.Empty;
 
-        return BuildOutput_NoLock(profileOutput, liveOutput);
+        return TikTokLiveOutput.Fit(budget, BuildOutput_NoLock(profileOutput, liveOutput), profileOutput, liveOutput);
     }
 
     private string BuildProfileOutput_NoLock(string profileSummary)
@@ -1138,7 +1143,7 @@ public sealed partial class TikTokLiveModule : ObservableObject, IModule
         string message = RenderTemplate(
             Settings.ViewerMilestoneTemplate,
             BuildEventTokens(
-                viewers: FormatCount(bucket * step, Settings.CompactViewerCount),
+                viewers: FormatChatCount(bucket * step, Settings.CompactViewerCount),
                 viewerCount: (bucket * step).ToString(CultureInfo.InvariantCulture),
                 host: _activeHostUserName));
 
@@ -1170,9 +1175,9 @@ public sealed partial class TikTokLiveModule : ObservableObject, IModule
             BuildEventTokens(
                 profile: profile.UniqueId,
                 displayName: profile.DisplayName,
-                followers: FormatCount(profile.FollowerCount, Settings.CompactViewerCount),
+                followers: FormatChatCount(profile.FollowerCount, Settings.CompactViewerCount),
                 followerCount: profile.FollowerCount.ToString(CultureInfo.InvariantCulture),
-                change: FormatCount(followerIncrease, Settings.CompactViewerCount),
+                change: FormatChatCount(followerIncrease, Settings.CompactViewerCount),
                 changeCount: followerIncrease.ToString(CultureInfo.InvariantCulture),
                 updated: _profileFetchedAtUtc == DateTime.MinValue ? string.Empty : _profileFetchedAtUtc.ToLocalTime().ToString("HH:mm", CultureInfo.CurrentCulture)));
 
@@ -1412,14 +1417,14 @@ public sealed partial class TikTokLiveModule : ObservableObject, IModule
             ["amount"] = amount ?? string.Empty,
             ["total"] = total ?? string.Empty,
             ["host"] = host ?? _activeHostUserName,
-            ["viewers"] = viewers ?? FormatCount(_viewerCount, Settings.CompactViewerCount),
+            ["viewers"] = viewers ?? FormatChatCount(_viewerCount, Settings.CompactViewerCount),
             ["viewer_count"] = viewerCount ?? _viewerCount.ToString(CultureInfo.InvariantCulture),
-            ["likes"] = likes ?? FormatCount(_likeTotal, Settings.CompactLikeCount),
+            ["likes"] = likes ?? FormatChatCount(_likeTotal, Settings.CompactLikeCount),
             ["like_count"] = likeCount ?? _likeTotal.ToString(CultureInfo.InvariantCulture),
             ["room"] = roomId ?? _roomId,
             ["profile"] = profile ?? _activeProfileUserName,
             ["display_name"] = displayName ?? _profileDisplayName,
-            ["followers"] = followers ?? (_profileFollowerCount >= 0 ? FormatCount(_profileFollowerCount, Settings.CompactViewerCount) : string.Empty),
+            ["followers"] = followers ?? (_profileFollowerCount >= 0 ? FormatChatCount(_profileFollowerCount, Settings.CompactViewerCount) : string.Empty),
             ["follower_count"] = followerCount ?? (_profileFollowerCount >= 0 ? _profileFollowerCount.ToString(CultureInfo.InvariantCulture) : string.Empty),
             ["change"] = change ?? string.Empty,
             ["change_count"] = changeCount ?? string.Empty,
@@ -1465,43 +1470,16 @@ public sealed partial class TikTokLiveModule : ObservableObject, IModule
     }
 
     private static string RenderTemplate(string? template, IReadOnlyDictionary<string, string> tokens)
-    {
-        string rendered = template ?? string.Empty;
-
-        foreach (var token in tokens)
-            rendered = rendered.Replace($"{{{token.Key}}}", token.Value ?? string.Empty, StringComparison.OrdinalIgnoreCase);
-
-        rendered = rendered.Replace("\\n", "\n", StringComparison.Ordinal);
-        rendered = MultiSpaceRegex.Replace(rendered, " ");
-        return rendered.Trim();
-    }
+        => TikTokLiveOutput.Render(template, tokens);
 
     private static string Truncate(string? value, int maxLength)
-    {
-        string text = (value ?? string.Empty).Trim();
-        if (text.Length <= maxLength)
-            return text;
-
-        if (maxLength <= 3)
-            return text.Substring(0, maxLength);
-
-        return $"{text.Substring(0, maxLength - 3)}...";
-    }
+        => SegmentWriter.Truncate((value ?? string.Empty).Trim(), maxLength);
 
     private static string FormatCount(long value, bool compact)
-    {
-        if (!compact)
-            return value.ToString(CultureInfo.InvariantCulture);
+        => TikTokLiveOutput.Count(value, compact);
 
-        if (value >= 1_000_000_000)
-            return $"{value / 1_000_000_000d:0.#}B";
-        if (value >= 1_000_000)
-            return $"{value / 1_000_000d:0.#}M";
-        if (value >= 1_000)
-            return $"{value / 1_000d:0.#}K";
-
-        return value.ToString(CultureInfo.InvariantCulture);
-    }
+    private static string FormatChatCount(long value, bool compact)
+        => TikTokLiveOutput.ChatCount(value, compact);
 
     private static string SummarizeExceptionMessage(Exception exception)
     {
@@ -1534,4 +1512,62 @@ public sealed partial class TikTokLiveModule : ObservableObject, IModule
         string LastEventDisplay,
         string SummaryPreview,
         string OutputPreview);
+}
+
+public static class TikTokLiveOutput
+{
+    public const int UserPreviewLength = 24;
+
+    public const int CommentPreviewLength = 60;
+
+    public const int GiftNameLength = 24;
+
+    private static readonly Regex MultiSpaceRegex = new("[ \t]{2,}", RegexOptions.Compiled);
+
+    public static string Count(long value, bool compact)
+    {
+        if (!compact)
+            return value.ToString(CultureInfo.InvariantCulture);
+
+        if (value >= 1_000_000_000)
+            return string.Create(CultureInfo.InvariantCulture, $"{value / 1_000_000_000d:0.#}B");
+        if (value >= 1_000_000)
+            return string.Create(CultureInfo.InvariantCulture, $"{value / 1_000_000d:0.#}M");
+        if (value >= 1_000)
+            return string.Create(CultureInfo.InvariantCulture, $"{value / 1_000d:0.#}K");
+
+        return value.ToString(CultureInfo.InvariantCulture);
+    }
+
+    public static string ChatCount(long value, bool compact)
+    {
+        string text = Count(value, compact);
+
+        if (text.Length < 2 || !char.IsLetter(text[^1]))
+            return text;
+
+        return new SegmentWriter()
+            .Field(OscText.Value(text[..^1]), OscText.Unit(text[^1..]))
+            .Text;
+    }
+
+    public static string Render(string? template, IReadOnlyDictionary<string, string> tokens)
+    {
+        string rendered = template ?? string.Empty;
+
+        foreach (var token in tokens)
+            rendered = rendered.Replace($"{{{token.Key}}}", token.Value ?? string.Empty, StringComparison.OrdinalIgnoreCase);
+
+        rendered = rendered.Replace("\\n", "\n", StringComparison.Ordinal);
+        rendered = MultiSpaceRegex.Replace(rendered, " ");
+        return rendered.Trim();
+    }
+
+    public static string Fit(int budget, string? combined, string? profileOutput, string? liveOutput)
+    {
+        return SegmentWriter.Fit(
+            budget,
+            () => combined ?? string.Empty,
+            () => string.IsNullOrWhiteSpace(liveOutput) ? profileOutput ?? string.Empty : liveOutput);
+    }
 }

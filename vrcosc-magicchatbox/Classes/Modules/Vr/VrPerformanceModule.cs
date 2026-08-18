@@ -74,14 +74,18 @@ public partial class VrPerformanceModule : ObservableObject, IModule
 
     public Task StopAsync(CancellationToken ct = default)
     {
+        IDisposable? lease;
+
         lock (_lock)
         {
             _timer?.Dispose();
             _timer = null;
-            _lease?.Dispose();
+            lease = _lease;
             _lease = null;
             IsRunning = false;
         }
+
+        lease?.Dispose();
 
         _sampler.Reset();
         _degraded.Reset();
@@ -91,6 +95,9 @@ public partial class VrPerformanceModule : ObservableObject, IModule
 
     private void Tick()
     {
+        if (_disposed)
+            return;
+
         try
         {
             if (!_consent.IsApproved(PrivacyHook.VrPerformance))

@@ -27,6 +27,26 @@ public partial class TrayMenuWindow : Window
     private readonly DispatcherTimer _mediaRefreshTimer;
     private bool _isIntegrationPanelOpen;
     private bool _isStatusPanelOpen;
+    private WindowsMediaSnapshot? _lastWindowsMediaSnapshot;
+    private SpotifySnapshot? _lastSpotifySnapshot;
+
+    private readonly record struct WindowsMediaSnapshot(
+        string SessionKey,
+        string Title,
+        string Subtitle,
+        string PlayPauseGlyph,
+        bool HasProgress,
+        int ProgressValue,
+        string ProgressText);
+
+    private readonly record struct SpotifySnapshot(
+        string Title,
+        string Subtitle,
+        string Progress,
+        string PlayPauseGlyph,
+        string LikeGlyph,
+        bool HasProgress,
+        double ProgressValue);
 
     public TrayMenuWindow(TrayIconService trayIconService)
     {
@@ -38,6 +58,7 @@ public partial class TrayMenuWindow : Window
             RefreshWindowsMedia();
             RefreshSpotify();
         };
+        Closed += (_, _) => _mediaRefreshTimer.Stop();
     }
 
     public void RefreshFrom(MainWindow mainWindow)
@@ -301,23 +322,38 @@ public partial class TrayMenuWindow : Window
         MediaSessionInfo? session = _trayIconService.GetWindowsMediaSession();
         if (session is null)
         {
+            if (_lastWindowsMediaSnapshot is null)
+                return;
+
+            _lastWindowsMediaSnapshot = null;
             WindowsMediaWidget.Visibility = Visibility.Collapsed;
             return;
         }
 
-        WindowsMediaWidget.Visibility = Visibility.Visible;
-        WindowsMediaTitle.Text = ResolveWindowsMediaTitle(session);
-        WindowsMediaSubtitle.Text = ResolveWindowsMediaSubtitle(session);
-        WindowsMediaPlayPauseText.Text = session.PlaybackStatus == GlobalSystemMediaTransportControlsSessionPlaybackStatus.Playing
-            ? "⏸"
-            : "▶";
         bool hasProgress = session.FullTime > TimeSpan.Zero && !session.IsLiveTime;
-        WindowsMediaProgressBar.Visibility = hasProgress ? Visibility.Visible : Visibility.Collapsed;
-        WindowsMediaProgressText.Visibility = hasProgress ? Visibility.Visible : Visibility.Collapsed;
-        if (hasProgress)
+        var snapshot = new WindowsMediaSnapshot(
+            session.Session?.Id ?? string.Empty,
+            ResolveWindowsMediaTitle(session),
+            ResolveWindowsMediaSubtitle(session),
+            session.PlaybackStatus == GlobalSystemMediaTransportControlsSessionPlaybackStatus.Playing ? "⏸" : "▶",
+            hasProgress,
+            hasProgress ? session.TimePosition : 0,
+            hasProgress ? $"{FormatTime(session.CurrentTime)} / {FormatTime(session.FullTime)}" : string.Empty);
+
+        if (snapshot == _lastWindowsMediaSnapshot)
+            return;
+
+        _lastWindowsMediaSnapshot = snapshot;
+        WindowsMediaWidget.Visibility = Visibility.Visible;
+        WindowsMediaTitle.Text = snapshot.Title;
+        WindowsMediaSubtitle.Text = snapshot.Subtitle;
+        WindowsMediaPlayPauseText.Text = snapshot.PlayPauseGlyph;
+        WindowsMediaProgressBar.Visibility = snapshot.HasProgress ? Visibility.Visible : Visibility.Collapsed;
+        WindowsMediaProgressText.Visibility = snapshot.HasProgress ? Visibility.Visible : Visibility.Collapsed;
+        if (snapshot.HasProgress)
         {
-            WindowsMediaProgressBar.Value = session.TimePosition;
-            WindowsMediaProgressText.Text = $"{FormatTime(session.CurrentTime)} / {FormatTime(session.FullTime)}";
+            WindowsMediaProgressBar.Value = snapshot.ProgressValue;
+            WindowsMediaProgressText.Text = snapshot.ProgressText;
         }
     }
 
@@ -325,21 +361,36 @@ public partial class TrayMenuWindow : Window
     {
         if (!_trayIconService.HasSpotifyWidget())
         {
+            if (_lastSpotifySnapshot is null)
+                return;
+
+            _lastSpotifySnapshot = null;
             SpotifyWidget.Visibility = Visibility.Collapsed;
             return;
         }
 
         SpotifyDisplayState spotify = _trayIconService.SpotifyDisplay;
+        var snapshot = new SpotifySnapshot(
+            string.IsNullOrWhiteSpace(spotify.Title) ? "Spotify" : spotify.Title,
+            string.IsNullOrWhiteSpace(spotify.Artist) ? spotify.StatusText : spotify.Artist,
+            BuildSpotifyProgressText(spotify),
+            spotify.IsPlaying ? "⏸" : "▶",
+            spotify.IsLiked ? "♥" : "♡",
+            spotify.DurationMs > 0,
+            spotify.ProgressPercent);
+
+        if (snapshot == _lastSpotifySnapshot)
+            return;
+
+        _lastSpotifySnapshot = snapshot;
         SpotifyWidget.Visibility = Visibility.Visible;
-        SpotifyTitle.Text = string.IsNullOrWhiteSpace(spotify.Title) ? "Spotify" : spotify.Title;
-        SpotifySubtitle.Text = string.IsNullOrWhiteSpace(spotify.Artist)
-            ? spotify.StatusText
-            : spotify.Artist;
-        SpotifyProgress.Text = BuildSpotifyProgressText(spotify);
-        SpotifyPlayPauseText.Text = spotify.IsPlaying ? "⏸" : "▶";
-        SpotifyLikeText.Text = spotify.IsLiked ? "♥" : "♡";
-        SpotifyProgressBar.Visibility = spotify.DurationMs > 0 ? Visibility.Visible : Visibility.Collapsed;
-        SpotifyProgressBar.Value = spotify.ProgressPercent;
+        SpotifyTitle.Text = snapshot.Title;
+        SpotifySubtitle.Text = snapshot.Subtitle;
+        SpotifyProgress.Text = snapshot.Progress;
+        SpotifyPlayPauseText.Text = snapshot.PlayPauseGlyph;
+        SpotifyLikeText.Text = snapshot.LikeGlyph;
+        SpotifyProgressBar.Visibility = snapshot.HasProgress ? Visibility.Visible : Visibility.Collapsed;
+        SpotifyProgressBar.Value = snapshot.ProgressValue;
     }
 
     private void RefreshIntegrationPanel()

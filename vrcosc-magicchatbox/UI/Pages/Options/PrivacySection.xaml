@@ -12,7 +12,7 @@
     <UserControl.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
-                <ResourceDictionary Source="/UI/Resources/SharedConverters.xaml" />
+                <ResourceDictionary Source="/MagicChatbox;component/UI/Resources/SharedConverters.xaml" />
             </ResourceDictionary.MergedDictionaries>
             <Style x:Key="StateBadgeStyle" TargetType="Border">
                 <Setter Property="CornerRadius" Value="4" />
@@ -39,7 +39,7 @@
                 Width="Auto"
                 Height="30"
                 HorizontalAlignment="Left"
-                IsChecked="{Binding IsExpanded, Mode=TwoWay}"
+                IsChecked="{Binding AppSettings.Settings_Privacy, Mode=TwoWay}"
                 Style="{StaticResource ExpandCollapseToggleButtonStyle}"
                 Tag="Privacy &amp; permissions"
                 TextOptions.TextRenderingMode="ClearType" />
@@ -49,53 +49,14 @@
             Grid.Row="1"
             Height="Auto"
             Margin="34,10,0,0"
-            Visibility="{Binding IsExpanded, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
+            Visibility="{Binding AppSettings.Settings_Privacy, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
 
             <StackPanel>
-                <Border
-                    Margin="0,0,0,10"
-                    BorderBrush="#735A41"
-                    BorderThickness="1"
-                    CornerRadius="5"
-                    Style="{StaticResource OptionCardStyle}">
-                    <Border.Background>
-                        <LinearGradientBrush SpreadMethod="Pad" StartPoint="1,1" EndPoint="0,0">
-                            <GradientStop Color="{StaticResource SurfaceGradientStartColor}" />
-                            <GradientStop Offset="1" Color="{StaticResource GradientDeepPurpleColor}" />
-                        </LinearGradientBrush>
-                    </Border.Background>
-                    <TextBlock
-                        FontFamily="/Fonts/#Albert Sans"
-                        FontSize="13"
-                        Foreground="{StaticResource StatusWarningBrush}"
-                        TextWrapping="Wrap">
-                        <Run Text="🧪 Pre-release: Privacy controls are new in this release. If you notice unexpected behavior, please report it on" />
-                        <Hyperlink
-                            Foreground="{StaticResource AccentTealBrush}"
-                            NavigateUri="https://github.com/BoiHanny/vrcosc-magicchatbox/issues/new/choose"
-                            RequestNavigate="Hyperlink_RequestNavigate">
-                            <Run Text="GitHub" />
-                        </Hyperlink>
-                        <Run Text="or in our" />
-                        <Hyperlink
-                            Foreground="{StaticResource AccentTealBrush}"
-                            NavigateUri="https://discord.gg/ZaSFwBfhvG"
-                            RequestNavigate="Hyperlink_RequestNavigate">
-                            <Run Text="Discord server" />
-                        </Hyperlink>
-                        <Run Text="." />
-                    </TextBlock>
-                </Border>
-
                 <TextBlock
                     Padding="0,0,0,10"
-                    FontFamily="/Fonts/#Albert Sans"
-                    FontSize="13"
-                    Foreground="{StaticResource TextLabelBrush}"
                     Style="{StaticResource OptionHelpTextStyle}"
-                    Text="Control which system hooks MagicChatbox may use. Some features connect to external services — nothing is sent without your permission."
-                    TextWrapping="Wrap" />
-                <TextBlock Style="{StaticResource OptionSubsectionHeaderStyle}" Text="Permission-controlled features" />
+                    Text="Every row below is something on your PC that MagicChatbox can read. Nothing is read, and nothing leaves this computer, until you allow it here." />
+                <TextBlock Style="{StaticResource OptionSubsectionHeaderStyle}" Text="What MagicChatbox may look at" />
                 <Border Style="{StaticResource OptionCardStyle}">
                     <StackPanel>
 
@@ -107,17 +68,8 @@
                             </Grid.ColumnDefinitions>
 
                             <StackPanel Grid.Column="0" VerticalAlignment="Center">
-                                <TextBlock
-                                    FontFamily="/Fonts/#Comfortaa"
-                                    FontSize="13"
-                                    Foreground="{StaticResource TextSectionHeaderBrush}"
-                                    Text="🖥️  Hardware Monitor" />
-                                <TextBlock
-                                    FontFamily="/Fonts/#Albert Sans"
-                                    FontSize="11"
-                                    Foreground="{StaticResource TextMutedBrush}"
-                                    Text="CPU, RAM, GPU, and VRAM stats — no kernel driver. Denying this disables Component Stats."
-                                    TextWrapping="Wrap" />
+                                <TextBlock Style="{StaticResource OptionFieldLabelStyle}" Text="🖥️  Hardware Monitor" />
+                                <TextBlock Style="{StaticResource OptionHelpTextStyle}" Text="Reads how busy your processor, memory and graphics card are. Say no and Component stats has nothing to show." />
                             </StackPanel>
 
                             <Border
@@ -126,10 +78,10 @@
                                 Background="{StaticResource AccentDeepPurpleBrush}"
                                 Style="{StaticResource StateBadgeStyle}">
                                 <TextBlock
-                                    FontFamily="/Fonts/#Albert Sans"
-                                    FontSize="11"
+                                    FontFamily="{StaticResource FontPrimary}"
+                                    FontSize="{StaticResource FontSizeMicro}"
                                     Foreground="{StaticResource TextSectionHeaderBrush}"
-                                    Text="{Binding HardwareMonitorState}" />
+                                    Text="{Binding HardwareMonitorState, Converter={StaticResource EnumDescriptionConverter}}" />
                             </Border>
 
                             <StackPanel Grid.Column="2" Orientation="Horizontal">
@@ -161,16 +113,8 @@
                             </Grid.ColumnDefinitions>
 
                             <StackPanel Grid.Column="0" VerticalAlignment="Center">
-                                <TextBlock
-                                    FontFamily="/Fonts/#Comfortaa"
-                                    FontSize="13"
-                                    Foreground="{StaticResource TextSectionHeaderBrush}"
-                                    Text="📋  Window Activity" />
-                                <TextBlock
-                                    FontFamily="/Fonts/#Albert Sans"
-                                    FontSize="11"
-                                    Foreground="{StaticResource TextMutedBrush}"
-                                    Text="Active app name + window title (UIAutomation)" />
+                                <TextBlock Style="{StaticResource OptionFieldLabelStyle}" Text="📋  Window Activity" />
+                                <TextBlock Style="{StaticResource OptionHelpTextStyle}" Text="Reads the name of the program you are using and the title of its window." />
                             </StackPanel>
 
                             <Border
@@ -179,10 +123,10 @@
                                 Background="{StaticResource AccentDeepPurpleBrush}"
                                 Style="{StaticResource StateBadgeStyle}">
                                 <TextBlock
-                                    FontFamily="/Fonts/#Albert Sans"
-                                    FontSize="11"
+                                    FontFamily="{StaticResource FontPrimary}"
+                                    FontSize="{StaticResource FontSizeMicro}"
                                     Foreground="{StaticResource TextSectionHeaderBrush}"
-                                    Text="{Binding WindowActivityState}" />
+                                    Text="{Binding WindowActivityState, Converter={StaticResource EnumDescriptionConverter}}" />
                             </Border>
 
                             <StackPanel Grid.Column="2" Orientation="Horizontal">
@@ -214,16 +158,8 @@
                             </Grid.ColumnDefinitions>
 
                             <StackPanel Grid.Column="0" VerticalAlignment="Center">
-                                <TextBlock
-                                    FontFamily="/Fonts/#Comfortaa"
-                                    FontSize="13"
-                                    Foreground="{StaticResource TextSectionHeaderBrush}"
-                                    Text="🎵  Media Session" />
-                                <TextBlock
-                                    FontFamily="/Fonts/#Albert Sans"
-                                    FontSize="11"
-                                    Foreground="{StaticResource TextMutedBrush}"
-                                    Text="Song title · artist · playback state (Windows SMTC)" />
+                                <TextBlock Style="{StaticResource OptionFieldLabelStyle}" Text="🎵  Media Session" />
+                                <TextBlock Style="{StaticResource OptionHelpTextStyle}" Text="Reads what is playing from whatever media player Windows knows about, and whether it is paused." />
                             </StackPanel>
 
                             <Border
@@ -232,10 +168,10 @@
                                 Background="{StaticResource AccentDeepPurpleBrush}"
                                 Style="{StaticResource StateBadgeStyle}">
                                 <TextBlock
-                                    FontFamily="/Fonts/#Albert Sans"
-                                    FontSize="11"
+                                    FontFamily="{StaticResource FontPrimary}"
+                                    FontSize="{StaticResource FontSizeMicro}"
                                     Foreground="{StaticResource TextSectionHeaderBrush}"
-                                    Text="{Binding MediaSessionState}" />
+                                    Text="{Binding MediaSessionState, Converter={StaticResource EnumDescriptionConverter}}" />
                             </Border>
 
                             <StackPanel Grid.Column="2" Orientation="Horizontal">
@@ -267,16 +203,8 @@
                             </Grid.ColumnDefinitions>
 
                             <StackPanel Grid.Column="0" VerticalAlignment="Center">
-                                <TextBlock
-                                    FontFamily="/Fonts/#Comfortaa"
-                                    FontSize="13"
-                                    Foreground="{StaticResource TextSectionHeaderBrush}"
-                                    Text="💤  AFK Sensor" />
-                                <TextBlock
-                                    FontFamily="/Fonts/#Albert Sans"
-                                    FontSize="11"
-                                    Foreground="{StaticResource TextMutedBrush}"
-                                    Text="Last input timestamp (GetLastInputInfo — no keylogging)" />
+                                <TextBlock Style="{StaticResource OptionFieldLabelStyle}" Text="💤  AFK Sensor" />
+                                <TextBlock Style="{StaticResource OptionHelpTextStyle}" Text="Checks how long ago you last touched the mouse or keyboard, so it can tell you are away. It never records what you type." />
                             </StackPanel>
 
                             <Border
@@ -285,10 +213,10 @@
                                 Background="{StaticResource AccentDeepPurpleBrush}"
                                 Style="{StaticResource StateBadgeStyle}">
                                 <TextBlock
-                                    FontFamily="/Fonts/#Albert Sans"
-                                    FontSize="11"
+                                    FontFamily="{StaticResource FontPrimary}"
+                                    FontSize="{StaticResource FontSizeMicro}"
                                     Foreground="{StaticResource TextSectionHeaderBrush}"
-                                    Text="{Binding AfkSensorState}" />
+                                    Text="{Binding AfkSensorState, Converter={StaticResource EnumDescriptionConverter}}" />
                             </Border>
 
                             <StackPanel Grid.Column="2" Orientation="Horizontal">
@@ -320,16 +248,8 @@
                             </Grid.ColumnDefinitions>
 
                             <StackPanel Grid.Column="0" VerticalAlignment="Center">
-                                <TextBlock
-                                    FontFamily="/Fonts/#Comfortaa"
-                                    FontSize="13"
-                                    Foreground="{StaticResource TextSectionHeaderBrush}"
-                                    Text="🌐  Internet Access" />
-                                <TextBlock
-                                    FontFamily="/Fonts/#Albert Sans"
-                                    FontSize="11"
-                                    Foreground="{StaticResource TextMutedBrush}"
-                                    Text="Outbound HTTP — Twitch API, Pulsoid heart-rate, Weather, OpenAI, TTS, Speech detection" />
+                                <TextBlock Style="{StaticResource OptionFieldLabelStyle}" Text="🌐  Internet Access" />
+                                <TextBlock Style="{StaticResource OptionHelpTextStyle}" Text="Lets MagicChatbox reach the internet for Twitch, heart rate, weather, OpenAI and text to speech." />
                             </StackPanel>
 
                             <Border
@@ -338,10 +258,10 @@
                                 Background="{StaticResource AccentDeepPurpleBrush}"
                                 Style="{StaticResource StateBadgeStyle}">
                                 <TextBlock
-                                    FontFamily="/Fonts/#Albert Sans"
-                                    FontSize="11"
+                                    FontFamily="{StaticResource FontPrimary}"
+                                    FontSize="{StaticResource FontSizeMicro}"
                                     Foreground="{StaticResource TextSectionHeaderBrush}"
-                                    Text="{Binding InternetAccessState}" />
+                                    Text="{Binding InternetAccessState, Converter={StaticResource EnumDescriptionConverter}}" />
                             </Border>
 
                             <StackPanel Grid.Column="2" Orientation="Horizontal">
@@ -373,16 +293,8 @@
                             </Grid.ColumnDefinitions>
 
                             <StackPanel Grid.Column="0" VerticalAlignment="Center">
-                                <TextBlock
-                                    FontFamily="/Fonts/#Comfortaa"
-                                    FontSize="13"
-                                    Foreground="{StaticResource TextSectionHeaderBrush}"
-                                    Text="🎮  VR Tracker Battery" />
-                                <TextBlock
-                                    FontFamily="/Fonts/#Albert Sans"
-                                    FontSize="11"
-                                    Foreground="{StaticResource TextMutedBrush}"
-                                    Text="SteamVR / OpenVR — reads HMD, controller &amp; tracker battery levels" />
+                                <TextBlock Style="{StaticResource OptionFieldLabelStyle}" Text="🎮  VR Tracker Battery" />
+                                <TextBlock Style="{StaticResource OptionHelpTextStyle}" Text="Asks SteamVR how much battery is left in your headset, controllers and trackers." />
                             </StackPanel>
 
                             <Border
@@ -391,10 +303,10 @@
                                 Background="{StaticResource AccentDeepPurpleBrush}"
                                 Style="{StaticResource StateBadgeStyle}">
                                 <TextBlock
-                                    FontFamily="/Fonts/#Albert Sans"
-                                    FontSize="11"
+                                    FontFamily="{StaticResource FontPrimary}"
+                                    FontSize="{StaticResource FontSizeMicro}"
                                     Foreground="{StaticResource TextSectionHeaderBrush}"
-                                    Text="{Binding VrTrackerBatteryState}" />
+                                    Text="{Binding VrTrackerBatteryState, Converter={StaticResource EnumDescriptionConverter}}" />
                             </Border>
 
                             <StackPanel Grid.Column="2" Orientation="Horizontal">
@@ -426,16 +338,8 @@
                             </Grid.ColumnDefinitions>
 
                             <StackPanel Grid.Column="0" VerticalAlignment="Center">
-                                <TextBlock
-                                    FontFamily="/Fonts/#Comfortaa"
-                                    FontSize="13"
-                                    Foreground="{StaticResource TextSectionHeaderBrush}"
-                                    Text="📶  Network Statistics" />
-                                <TextBlock
-                                    FontFamily="/Fonts/#Albert Sans"
-                                    FontSize="11"
-                                    Foreground="{StaticResource TextMutedBrush}"
-                                    Text="System.Net.NetworkInformation — reads interface byte counters for throughput display" />
+                                <TextBlock Style="{StaticResource OptionFieldLabelStyle}" Text="📶  Network Statistics" />
+                                <TextBlock Style="{StaticResource OptionHelpTextStyle}" Text="Reads how much your network adapters have sent and received, for the up and down speeds." />
                             </StackPanel>
 
                             <Border
@@ -444,10 +348,10 @@
                                 Background="{StaticResource AccentDeepPurpleBrush}"
                                 Style="{StaticResource StateBadgeStyle}">
                                 <TextBlock
-                                    FontFamily="/Fonts/#Albert Sans"
-                                    FontSize="11"
+                                    FontFamily="{StaticResource FontPrimary}"
+                                    FontSize="{StaticResource FontSizeMicro}"
                                     Foreground="{StaticResource TextSectionHeaderBrush}"
-                                    Text="{Binding NetworkStatsState}" />
+                                    Text="{Binding NetworkStatsState, Converter={StaticResource EnumDescriptionConverter}}" />
                             </Border>
 
                             <StackPanel Grid.Column="2" Orientation="Horizontal">
@@ -481,16 +385,8 @@
                             </Grid.ColumnDefinitions>
 
                             <StackPanel Grid.Column="0" VerticalAlignment="Center">
-                                <TextBlock
-                                    FontFamily="/Fonts/#Comfortaa"
-                                    FontSize="13"
-                                    Foreground="{StaticResource TextSectionHeaderBrush}"
-                                    Text="🔊  Soundpad Bridge" />
-                                <TextBlock
-                                    FontFamily="/Fonts/#Albert Sans"
-                                    FontSize="11"
-                                    Foreground="{StaticResource TextMutedBrush}"
-                                    Text="Named-pipe IPC — connects to the Soundpad desktop application for playback control" />
+                                <TextBlock Style="{StaticResource OptionFieldLabelStyle}" Text="🔊  Soundpad Bridge" />
+                                <TextBlock Style="{StaticResource OptionHelpTextStyle}" Text="Talks to the Soundpad program on this PC to see what it is playing." />
                             </StackPanel>
 
                             <Border
@@ -499,10 +395,10 @@
                                 Background="{StaticResource AccentDeepPurpleBrush}"
                                 Style="{StaticResource StateBadgeStyle}">
                                 <TextBlock
-                                    FontFamily="/Fonts/#Albert Sans"
-                                    FontSize="11"
+                                    FontFamily="{StaticResource FontPrimary}"
+                                    FontSize="{StaticResource FontSizeMicro}"
                                     Foreground="{StaticResource TextSectionHeaderBrush}"
-                                    Text="{Binding SoundpadBridgeState}" />
+                                    Text="{Binding SoundpadBridgeState, Converter={StaticResource EnumDescriptionConverter}}" />
                             </Border>
 
                             <StackPanel Grid.Column="2" Orientation="Horizontal">
@@ -534,16 +430,8 @@
                             </Grid.ColumnDefinitions>
 
                             <StackPanel Grid.Column="0" VerticalAlignment="Center">
-                                <TextBlock
-                                    FontFamily="/Fonts/#Comfortaa"
-                                    FontSize="13"
-                                    Foreground="{StaticResource TextSectionHeaderBrush}"
-                                    Text="📡  VRChat Log Reader" />
-                                <TextBlock
-                                    FontFamily="/Fonts/#Albert Sans"
-                                    FontSize="11"
-                                    Foreground="{StaticResource TextMutedBrush}"
-                                    Text="File read — parses VRChat output_log.txt for world info, player events, and session stats" />
+                                <TextBlock Style="{StaticResource OptionFieldLabelStyle}" Text="📡  VRChat Log Reader" />
+                                <TextBlock Style="{StaticResource OptionHelpTextStyle}" Text="Reads VRChat's own log file to know the world you are in, who comes and goes, and how long you have been on." />
                             </StackPanel>
 
                             <Border
@@ -552,10 +440,10 @@
                                 Background="{StaticResource AccentDeepPurpleBrush}"
                                 Style="{StaticResource StateBadgeStyle}">
                                 <TextBlock
-                                    FontFamily="/Fonts/#Albert Sans"
-                                    FontSize="11"
+                                    FontFamily="{StaticResource FontPrimary}"
+                                    FontSize="{StaticResource FontSizeMicro}"
                                     Foreground="{StaticResource TextSectionHeaderBrush}"
-                                    Text="{Binding VrcLogReaderState}" />
+                                    Text="{Binding VrcLogReaderState, Converter={StaticResource EnumDescriptionConverter}}" />
                             </Border>
 
                             <StackPanel Grid.Column="2" Orientation="Horizontal">
@@ -587,17 +475,8 @@
                             </Grid.ColumnDefinitions>
 
                             <StackPanel Grid.Column="0" VerticalAlignment="Center">
-                                <TextBlock
-                                    FontFamily="/Fonts/#Comfortaa"
-                                    FontSize="13"
-                                    Foreground="{StaticResource TextSectionHeaderBrush}"
-                                    Text="🎯  VR Performance" />
-                                <TextBlock
-                                    FontFamily="/Fonts/#Albert Sans"
-                                    FontSize="11"
-                                    Foreground="{StaticResource TextMutedBrush}"
-                                    Text="SteamVR compositor — frame rate, reprojection, dropped frames and GPU frame time. Requires SteamVR"
-                                    TextWrapping="Wrap" />
+                                <TextBlock Style="{StaticResource OptionFieldLabelStyle}" Text="🎯  VR Performance" />
+                                <TextBlock Style="{StaticResource OptionHelpTextStyle}" Text="Asks SteamVR for your frame rate and dropped frames. Needs SteamVR to be running." />
                             </StackPanel>
 
                             <Border
@@ -606,10 +485,10 @@
                                 Background="{StaticResource AccentDeepPurpleBrush}"
                                 Style="{StaticResource StateBadgeStyle}">
                                 <TextBlock
-                                    FontFamily="/Fonts/#Albert Sans"
-                                    FontSize="11"
+                                    FontFamily="{StaticResource FontPrimary}"
+                                    FontSize="{StaticResource FontSizeMicro}"
                                     Foreground="{StaticResource TextSectionHeaderBrush}"
-                                    Text="{Binding VrPerformanceState}" />
+                                    Text="{Binding VrPerformanceState, Converter={StaticResource EnumDescriptionConverter}}" />
                             </Border>
 
                             <StackPanel Grid.Column="2" Orientation="Horizontal">

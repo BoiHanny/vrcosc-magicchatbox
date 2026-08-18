@@ -19,6 +19,8 @@ namespace vrcosc_magicchatbox.Classes.Modules;
 
 public class TTSModule
 {
+    private static readonly TimeSpan PlaybackGrace = TimeSpan.FromSeconds(10);
+
     private readonly TtsSettings _ttsSettings;
     private readonly TtsAudioDisplayState _ttsAudio;
     private readonly IHttpClientFactory _httpClientFactory;
@@ -100,14 +102,22 @@ public class TTSModule
         }
     }
 
-    public async Task PlayTikTokAudioAsSpeechAsync(
+    public Task PlayTikTokAudioAsSpeechAsync(
         byte[] audioData,
         string deviceId,
         CancellationToken cancelToken)
     {
         if (audioData == null || audioData.Length == 0)
-            return;
+            return Task.CompletedTask;
 
+        return Task.Run(() => PlayTikTokAudioCoreAsync(audioData, deviceId, cancelToken));
+    }
+
+    private async Task PlayTikTokAudioCoreAsync(
+        byte[] audioData,
+        string deviceId,
+        CancellationToken cancelToken)
+    {
         try
         {
             using var enumerator = new MMDeviceEnumerator();
@@ -130,16 +140,32 @@ public class TTSModule
             var tcs = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
             wasapiOut.PlaybackStopped += (_, _) => tcs.TrySetResult();
 
-            _oscSender.ToggleVoice();
-            await Task.Delay(175);
-
-            wasapiOut.Play();
-
-            using var reg = cancelToken.Register(() => wasapiOut.Stop());
-
-            await tcs.Task;
+            TimeSpan playbackBudget = mp3Reader.TotalTime + PlaybackGrace;
 
             _oscSender.ToggleVoice();
+            try
+            {
+                await Task.Delay(175).ConfigureAwait(false);
+
+                wasapiOut.Play();
+
+                using var reg = cancelToken.Register(() => wasapiOut.Stop());
+
+                try
+                {
+                    await tcs.Task.WaitAsync(playbackBudget).ConfigureAwait(false);
+                }
+                catch (TimeoutException)
+                {
+                    Logging.WriteInfo(
+                        $"TTS playback did not report finishing within {playbackBudget.TotalSeconds:0.#}s; stopping it.");
+                    try { wasapiOut.Stop(); } catch { }
+                }
+            }
+            finally
+            {
+                _oscSender.ToggleVoice();
+            }
         }
         catch (Exception ex)
         {

@@ -20,6 +20,18 @@ public partial class AfkModuleSettings : ObservableObject
 {
     public event EventHandler SettingsChanged;
 
+    public AfkModuleSettings()
+    {
+        AllStyles.CollectionChanged += (_, _) => RefreshStyleSnapshot();
+    }
+
+    private void RefreshStyleSnapshot()
+    {
+        var snapshot = new AfkStyle[AllStyles.Count];
+        AllStyles.CopyTo(snapshot, 0);
+        Volatile.Write(ref _allStylesSnapshot, snapshot);
+    }
+
     protected virtual void OnSettingsChanged()
     {
         SettingsChanged?.Invoke(this, EventArgs.Empty);
@@ -68,23 +80,9 @@ public partial class AfkModuleSettings : ObservableObject
     [ObservableProperty]
     private bool overrideAfk = false;
 
-    // The four fields above are what a style is made of, and were the whole story before styles
-    // existed. They are kept so an older settings file can be read and turned into a style once.
-
-    /// <summary>
-    /// Only the styles you made yourself are written to disk. The ones that ship with MagicChatbox
-    /// are rebuilt from code on every load, the same way the media link seekbar presets are, so
-    /// improving them in a new version actually reaches people instead of being shadowed forever by
-    /// a copy frozen in a settings file.
-    /// </summary>
     [ObservableProperty]
     private ObservableCollection<AfkStyle> customStyles = new();
 
-    /// <summary>
-    /// Reads the "Styles" array written by the one build that persisted the presets alongside your
-    /// own. Migrated into CustomStyles on load and then dropped, so the shipped ones stop being
-    /// frozen copies and yours survive.
-    /// </summary>
     [ObservableProperty]
     [property: JsonProperty("Styles", NullValueHandling = NullValueHandling.Ignore)]
     private ObservableCollection<AfkStyle>? legacyStyles;
@@ -92,18 +90,17 @@ public partial class AfkModuleSettings : ObservableObject
     [ObservableProperty]
     private string activeStyleId = string.Empty;
 
-    /// <summary>What the pickers show: the shipped styles first, then yours. Never persisted.</summary>
     [JsonIgnore]
     public ObservableCollection<AfkStyle> AllStyles { get; } = new();
 
-    [JsonIgnore]
-    public AfkStyle? ActiveStyle => AfkStyleSeed.Resolve(AllStyles, ActiveStyleId);
+    private IReadOnlyList<AfkStyle> _allStylesSnapshot = Array.Empty<AfkStyle>();
 
-    /// <summary>
-    /// Rebuilds the visible list from code plus your own styles. Safe to run more than once.
-    /// Returns true when the settings file itself needs rewriting - that is, when presets that were
-    /// once persisted have just been dropped in favour of the code ones.
-    /// </summary>
+    [JsonIgnore]
+    public IReadOnlyList<AfkStyle> AllStylesSnapshot => Volatile.Read(ref _allStylesSnapshot);
+
+    [JsonIgnore]
+    public AfkStyle? ActiveStyle => AfkStyleSeed.Resolve(AllStylesSnapshot, ActiveStyleId);
+
     public bool EnsureStyles()
     {
         bool hadPersistedPresets = LegacyStyles != null;
@@ -180,6 +177,8 @@ public partial class AfkModule : ObservableObject, IModule
     private bool overrideAfkStarted = false;
     private bool _disposed;
     private bool _timerRunning;
+    private int _lastAfkSecondsFormatted = int.MinValue;
+    private int _lastRemainingSecondsFormatted = int.MinValue;
 
     public string FriendlyTimeoutTime => FormatDuration(TimeSpan.FromSeconds(Settings.AfkTimeout), Settings.UseSmallLettersForDuration);
 
@@ -220,8 +219,6 @@ public partial class AfkModule : ObservableObject, IModule
         var settingsPath = Path.Combine(env.DataPath, "AfkModuleSettings.json");
         Settings = AfkModuleSettings.LoadSettings(settingsPath);
 
-        // Rewrite once when presets are being lifted out of the settings file, so the stale copies
-        // are actually gone rather than sitting there waiting to be read again.
         if (Settings.EnsureStyles())
             Settings.SaveSettings();
 
@@ -295,6 +292,9 @@ public partial class AfkModule : ObservableObject, IModule
 
     private void AfkTimer_Tick()
     {
+        if (_disposed)
+            return;
+
         OverrideButtonVisible = Settings.OverrideAfk || !IsAfk;
 
         if (_appState.IsVRRunning && !Settings.ActivateInVR)
@@ -307,7 +307,6 @@ public partial class AfkModule : ObservableObject, IModule
                 {
                     ExitAfkMode();
                 }
-
 
                 return;
             }
@@ -351,11 +350,21 @@ public partial class AfkModule : ObservableObject, IModule
 
         if (IsAfk)
         {
-            TimeCurrentlyAFK = FormatDuration(DateTime.Now - lastActionTime, Settings.UseSmallLettersForDuration);
+            var afkSeconds = (int)(DateTime.Now - lastActionTime).TotalSeconds;
+            if (afkSeconds != _lastAfkSecondsFormatted)
+            {
+                _lastAfkSecondsFormatted = afkSeconds;
+                TimeCurrentlyAFK = FormatDuration(TimeSpan.FromSeconds(afkSeconds), Settings.UseSmallLettersForDuration);
+            }
         }
         else
         {
-            RemainingTimeUntilAFK = FormatDuration(TimeSpan.FromSeconds(Settings.AfkTimeout - idleTime), Settings.UseSmallLettersForDuration);
+            var remainingSeconds = Settings.AfkTimeout - (int)idleTime;
+            if (remainingSeconds != _lastRemainingSecondsFormatted)
+            {
+                _lastRemainingSecondsFormatted = remainingSeconds;
+                RemainingTimeUntilAFK = FormatDuration(TimeSpan.FromSeconds(remainingSeconds), Settings.UseSmallLettersForDuration);
+            }
         }
     }
 
@@ -368,7 +377,10 @@ public partial class AfkModule : ObservableObject, IModule
             lastActionTime = DateTime.Now;
         }
 
-        TimeCurrentlyAFK = FormatDuration(DateTime.Now - lastActionTime, Settings.UseSmallLettersForDuration);
+        var afkSeconds = (int)(DateTime.Now - lastActionTime).TotalSeconds;
+        _lastAfkSecondsFormatted = afkSeconds;
+        _lastRemainingSecondsFormatted = int.MinValue;
+        TimeCurrentlyAFK = FormatDuration(TimeSpan.FromSeconds(afkSeconds), Settings.UseSmallLettersForDuration);
         AfkDetected?.Invoke(this, EventArgs.Empty);
     }
 
@@ -378,6 +390,8 @@ public partial class AfkModule : ObservableObject, IModule
         lastActionTime = DateTime.Now;
         TimeCurrentlyAFK = string.Empty;
         overrideAfkStarted = false;
+        _lastAfkSecondsFormatted = int.MinValue;
+        _lastRemainingSecondsFormatted = Settings.AfkTimeout;
         RemainingTimeUntilAFK = FormatDuration(TimeSpan.FromSeconds(Settings.AfkTimeout), Settings.UseSmallLettersForDuration);
         OverrideButtonVisible = true;
     }
@@ -438,13 +452,15 @@ public partial class AfkModule : ObservableObject, IModule
         if (_consentService == null || !_consentService.IsApproved(PrivacyHook.AfkSensor))
             return 0;
 
-        LASTINPUTINFO lastInputInfo = new LASTINPUTINFO { cbSize = (uint)Marshal.SizeOf(typeof(LASTINPUTINFO)) };
+        LASTINPUTINFO lastInputInfo = new LASTINPUTINFO { cbSize = (uint)LastInputInfoSize };
         GetLastInputInfo(ref lastInputInfo);
         return ((uint)Environment.TickCount - lastInputInfo.dwTime) / 1000;
     }
 
     [DllImport("user32.dll")]
     private static extern bool GetLastInputInfo(ref LASTINPUTINFO plii);
+
+    private static readonly int LastInputInfoSize = Marshal.SizeOf(typeof(LASTINPUTINFO));
 
     [StructLayout(LayoutKind.Sequential)]
     private struct LASTINPUTINFO

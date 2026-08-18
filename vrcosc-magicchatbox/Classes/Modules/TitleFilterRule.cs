@@ -17,12 +17,12 @@ public partial class TitleFilterRule : ObservableObject
 
 public enum FilterMode
 {
-    [Description("Exclude (hide when matches)")]
+    [Description("Hide the whole title")]
     Exclude,
 
-    [Description("Include (show only when matches)")]
+    [Description("Only show titles that match")]
     Include,
 
-    [Description("Remove matches")]
+    [Description("Cut out the matching words")]
     Remove
 }

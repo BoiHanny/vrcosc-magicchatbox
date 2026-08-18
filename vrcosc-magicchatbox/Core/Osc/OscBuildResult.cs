@@ -13,4 +13,6 @@ public sealed class OscBuildResult
     public required IReadOnlyList<string> IncludedProviders { get; init; }
 
     public required IReadOnlyList<string> TrimmedProviders { get; init; }
+
+    public required IReadOnlyDictionary<string, int> SegmentLengths { get; init; }
 }

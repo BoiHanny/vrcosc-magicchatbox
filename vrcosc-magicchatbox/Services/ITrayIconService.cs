@@ -7,6 +7,10 @@ public interface ITrayIconService : IDisposable
 {
     bool IsInitialized { get; }
 
+    bool IsMenuOpen { get; }
+
+    event EventHandler<bool>? MenuOpenChanged;
+
     void Initialize(MainWindow mainWindow);
 
     void Notify(string text, ToastAction? action = null, bool showMainWindowOnClick = true);

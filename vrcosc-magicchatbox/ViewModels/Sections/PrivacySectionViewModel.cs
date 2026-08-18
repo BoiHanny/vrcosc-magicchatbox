@@ -1,5 +1,7 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using vrcosc_magicchatbox.Classes.Modules;
+using vrcosc_magicchatbox.Core.Configuration;
 using vrcosc_magicchatbox.Core.Privacy;
 using vrcosc_magicchatbox.UI.Dialogs;
 
@@ -9,7 +11,13 @@ public partial class PrivacySectionViewModel : ObservableObject
 {
     private readonly IPrivacyConsentService _consentService;
 
-    [ObservableProperty] private bool _isExpanded = false;
+    public AppSettings AppSettings { get; }
+
+    public bool IsExpanded
+    {
+        get => AppSettings.Settings_Privacy;
+        set => AppSettings.Settings_Privacy = value;
+    }
 
     [ObservableProperty] private ConsentState _hardwareMonitorState;
     [ObservableProperty] private ConsentState _windowActivityState;
@@ -22,9 +30,12 @@ public partial class PrivacySectionViewModel : ObservableObject
     [ObservableProperty] private ConsentState _vrcLogReaderState;
     [ObservableProperty] private ConsentState _vrPerformanceState;
 
-    public PrivacySectionViewModel(IPrivacyConsentService consentService)
+    public PrivacySectionViewModel(
+        IPrivacyConsentService consentService,
+        ISettingsProvider<AppSettings> appSettingsProvider)
     {
         _consentService = consentService;
+        AppSettings = appSettingsProvider.Value;
         _consentService.ConsentChanged += (_, _) => RefreshStates();
         RefreshStates();
     }

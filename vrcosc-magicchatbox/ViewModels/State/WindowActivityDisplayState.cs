@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.ComponentModel;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Data;
@@ -16,7 +15,6 @@ namespace vrcosc_magicchatbox.ViewModels.State;
 
 public partial class WindowActivityDisplayState : ObservableObject
 {
-    private readonly object _lock = new();
     private readonly IUiDispatcher _dispatcher;
     private CollectionViewSource? _scannedAppsViewSource;
     private SortProperty _currentSortProperty;
@@ -32,6 +30,16 @@ public partial class WindowActivityDisplayState : ObservableObject
         { SortProperty.ShowInfo, true },
         { SortProperty.ApplyCustomAppName, true }
     };
+    private readonly Dictionary<SortProperty, string> _sortPropertyPaths = new()
+    {
+        { SortProperty.ProcessName, nameof(ProcessInfo.ProcessName) },
+        { SortProperty.FocusCount, nameof(ProcessInfo.FocusCount) },
+        { SortProperty.UsedNewMethod, nameof(ProcessInfo.UsedNewMethod) },
+        { SortProperty.IsPrivateApp, nameof(ProcessInfo.IsPrivateApp) },
+        { SortProperty.ShowInfo, nameof(ProcessInfo.ShowTitle) },
+        { SortProperty.ApplyCustomAppName, nameof(ProcessInfo.ApplyCustomAppName) }
+    };
+    private int _visibleScannedAppsCount;
 
     [ObservableProperty] private string _errorInWindowActivityMsg = "Error without information";
     [ObservableProperty] private bool _errorInWindowActivity = false;
@@ -128,8 +136,7 @@ public partial class WindowActivityDisplayState : ObservableObject
             _currentSortProperty = sortProperty;
             var isAscending = _sortDirection[sortProperty];
             _sortDirection[sortProperty] = !isAscending;
-            UpdateSortedApps();
-            OnPropertyChanged(nameof(ScannedApps));
+            ApplySortDescription();
             RefreshScannedAppsView();
         }
         catch (Exception ex)
@@ -144,72 +151,41 @@ public partial class WindowActivityDisplayState : ObservableObject
             RefreshScannedAppsView();
     }
 
-    private void UpdateSortedApps()
+    private void ApplySortDescription()
     {
-        lock (_lock)
+        if (_scannedAppsViewSource == null)
+            return;
+
+        if (!_sortPropertyPaths.TryGetValue(_currentSortProperty, out var propertyPath))
+            return;
+
+        var direction = _sortDirection[_currentSortProperty]
+            ? ListSortDirection.Ascending
+            : ListSortDirection.Descending;
+
+        void Apply()
         {
-            ObservableCollection<ProcessInfo> tempList = null;
             try
             {
-                var copiedList = ScannedApps.ToList();
-                IOrderedEnumerable<ProcessInfo> sortedScannedApps = null;
-
-                switch (_currentSortProperty)
-                {
-                    case SortProperty.ProcessName:
-                        sortedScannedApps = _sortDirection[_currentSortProperty]
-                            ? copiedList.OrderBy(p => p.ProcessName)
-                            : copiedList.OrderByDescending(p => p.ProcessName);
-                        break;
-                    case SortProperty.UsedNewMethod:
-                        sortedScannedApps = _sortDirection[_currentSortProperty]
-                            ? copiedList.OrderBy(p => p.UsedNewMethod)
-                            : copiedList.OrderByDescending(p => p.UsedNewMethod);
-                        break;
-                    case SortProperty.ApplyCustomAppName:
-                        sortedScannedApps = _sortDirection[_currentSortProperty]
-                            ? copiedList.OrderBy(p => p.ApplyCustomAppName)
-                            : copiedList.OrderByDescending(p => p.ApplyCustomAppName);
-                        break;
-                    case SortProperty.IsPrivateApp:
-                        sortedScannedApps = _sortDirection[_currentSortProperty]
-                            ? copiedList.OrderBy(p => p.IsPrivateApp)
-                            : copiedList.OrderByDescending(p => p.IsPrivateApp);
-                        break;
-                    case SortProperty.FocusCount:
-                        sortedScannedApps = _sortDirection[_currentSortProperty]
-                            ? copiedList.OrderBy(p => p.FocusCount)
-                            : copiedList.OrderByDescending(p => p.FocusCount);
-                        break;
-                    case SortProperty.ShowInfo:
-                        sortedScannedApps = _sortDirection[_currentSortProperty]
-                            ? copiedList.OrderBy(p => p.ShowTitle)
-                            : copiedList.OrderByDescending(p => p.ShowTitle);
-                        break;
-                }
-
-                if (sortedScannedApps != null && sortedScannedApps.Any())
-                    tempList = new ObservableCollection<ProcessInfo>(sortedScannedApps);
+                _scannedAppsViewSource.SortDescriptions.Clear();
+                _scannedAppsViewSource.SortDescriptions.Add(new SortDescription(propertyPath, direction));
             }
             catch (Exception ex)
             {
-                Logging.WriteException(ex);
-            }
-
-            if (tempList != null)
-            {
-                _dispatcher.BeginInvoke(() =>
-                {
-                    ScannedApps = tempList;
-                });
+                Logging.WriteException(ex, MSGBox: false);
             }
         }
+
+        if (_dispatcher.CheckAccess())
+            Apply();
+        else
+            _dispatcher.BeginInvoke(Apply);
     }
 
     private void Resort()
     {
         if (_hasActiveSort)
-            UpdateSortedApps();
+            ApplySortDescription();
     }
 
     private void ScannedApps_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
@@ -283,6 +259,7 @@ public partial class WindowActivityDisplayState : ObservableObject
         {
             try
             {
+                _visibleScannedAppsCount = 0;
                 _scannedAppsViewSource?.View?.Refresh();
                 UpdateFilteredAppsSummary();
             }
@@ -301,6 +278,8 @@ public partial class WindowActivityDisplayState : ObservableObject
     private void ScannedAppsViewSource_Filter(object sender, FilterEventArgs e)
     {
         e.Accepted = e.Item is ProcessInfo processInfo && MatchesFilters(processInfo);
+        if (e.Accepted)
+            _visibleScannedAppsCount++;
     }
 
     private bool MatchesFilters(ProcessInfo processInfo)
@@ -332,8 +311,7 @@ public partial class WindowActivityDisplayState : ObservableObject
     private void UpdateFilteredAppsSummary()
     {
         int totalCount = ScannedApps?.Count ?? 0;
-        int visibleCount = _scannedAppsViewSource?.View?.Cast<object>().Count() ?? 0;
-        FilteredAppsSummary = $"Showing {visibleCount} / {totalCount} apps";
+        FilteredAppsSummary = $"Showing {_visibleScannedAppsCount} / {totalCount} apps";
     }
 
     private void InitializeScannedAppsViewSource()

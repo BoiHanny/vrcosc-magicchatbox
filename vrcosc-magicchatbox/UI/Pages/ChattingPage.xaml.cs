@@ -17,6 +17,8 @@ namespace vrcosc_magicchatbox.UI.Pages
 
         private Action? _scrollToEndHandler;
 
+        private ChattingPageViewModel? _attachedVm;
+
         public ChattingPage()
         {
             InitializeComponent();
@@ -29,15 +31,37 @@ namespace vrcosc_magicchatbox.UI.Pages
 
             DataContextChanged += (_, args) =>
             {
-                if (args.OldValue is ChattingPageViewModel oldVm && _scrollToEndHandler != null)
-                    oldVm.ScrollToEndRequested -= _scrollToEndHandler;
+                if (args.OldValue is ChattingPageViewModel oldVm)
+                    Detach(oldVm);
 
-                if (args.NewValue is ChattingPageViewModel vm)
-                {
-                    _scrollToEndHandler = () => RecentScroll.ScrollToEnd();
-                    vm.ScrollToEndRequested += _scrollToEndHandler;
-                }
+                if (args.NewValue is ChattingPageViewModel)
+                    Attach();
             };
+
+            Loaded += (_, _) => Attach();
+            Unloaded += (_, _) => Detach(_attachedVm);
+        }
+
+        private void Attach()
+        {
+            if (_scrollToEndHandler != null || DataContext is not ChattingPageViewModel vm)
+                return;
+
+            _scrollToEndHandler = () => RecentScroll.ScrollToEnd();
+            vm.ScrollToEndRequested += _scrollToEndHandler;
+            _attachedVm = vm;
+        }
+
+        private void Detach(ChattingPageViewModel? vm)
+        {
+            if (_scrollToEndHandler == null)
+                return;
+
+            if (vm != null)
+                vm.ScrollToEndRequested -= _scrollToEndHandler;
+
+            _scrollToEndHandler = null;
+            _attachedVm = null;
         }
 
         public void SendChat() => ButtonChattingTxt_Click(null, null);
@@ -57,7 +81,10 @@ namespace vrcosc_magicchatbox.UI.Pages
             => VM.SendChat();
 
         private void CancelEditChatbutton_Click(object sender, RoutedEventArgs e)
-            => VM.CancelEditCommand.Execute(null);
+            => VM.CancelEditCommand.Execute(EditedItem(sender));
+
+        private static ChatItem? EditedItem(object sender)
+            => (sender as FrameworkElement)?.DataContext as ChatItem;
 
         private void ClearChat_Click(object sender, RoutedEventArgs e)
             => VM.ClearChatCommand.Execute(null);
@@ -101,26 +128,51 @@ namespace vrcosc_magicchatbox.UI.Pages
             VM.UpdateChatBoxCount(textBox?.Text ?? string.Empty);
         }
 
+        private void NewChattingTxt_LostKeyboardFocus(object sender, KeyboardFocusChangedEventArgs e)
+        {
+            if (DataContext is not ChattingPageViewModel vm)
+                return;
+
+            if (e.NewFocus is DependencyObject moved && IsOnThisPage(moved))
+                return;
+
+            vm.FinishLiveLine();
+        }
+
+        private bool IsOnThisPage(DependencyObject element)
+        {
+            for (DependencyObject? node = element; node != null; node = VisualTreeHelper.GetParent(node))
+            {
+                if (ReferenceEquals(node, this))
+                    return true;
+            }
+
+            return false;
+        }
+
         private void EditChatTextBox_KeyDown(object sender, KeyEventArgs e)
         {
             var textbox = sender as TextBox;
             if (e.Key == Key.Enter)
             {
-                if (VM.HandleEditEnter(textbox?.Text ?? ""))
+                if (VM.HandleEditEnter(EditedItem(sender), textbox?.Text ?? ""))
                 {
                     NewChattingTxt.Focus();
                     NewChattingTxt.CaretIndex = NewChattingTxt.Text.Length;
                 }
+                e.Handled = true;
             }
             if (e.Key == Key.Escape)
-                VM.HandleEditEscape();
+            {
+                VM.HandleEditEscape(EditedItem(sender));
+                e.Handled = true;
+            }
         }
 
         private void EditChatTextBox_TextChanged(object sender, TextChangedEventArgs e)
         {
-            var textbox = sender as TextBox;
-            if (textbox != null)
-                VM.HandleEditTextChanged(textbox.Text);
+            if (sender is TextBox textbox)
+                VM.HandleEditTextChanged(EditedItem(sender), textbox.Text);
         }
 
         private void ToggleButton_Checked(object sender, RoutedEventArgs e)

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using vrcosc_magicchatbox.Classes.Modules;
@@ -12,12 +13,15 @@ public sealed class OscOutputBuilder
 {
     private const string DefaultSeparator = " ┆ ";
 
+    private const string ClipMark = "…";
+
     private readonly IEnumerable<IOscProvider> _providers;
+    private readonly Dictionary<string, IOscProvider> _providerMap;
     private readonly IAppState _appState;
     private readonly IntegrationDisplayState _integrationDisplay;
     private readonly AppSettings _appSettings;
     private readonly ModuleFaultTracker _faultTracker;
-    private readonly HashSet<string> _unorderedProvidersLogged = new(StringComparer.OrdinalIgnoreCase);
+    private readonly System.Collections.Concurrent.ConcurrentDictionary<string, byte> _unorderedProvidersLogged = new(StringComparer.OrdinalIgnoreCase);
 
     public OscOutputBuilder(
         IEnumerable<IOscProvider> providers,
@@ -31,6 +35,12 @@ public sealed class OscOutputBuilder
         _integrationDisplay = integrationDisplay;
         _appSettings = appSettingsProvider.Value;
         _faultTracker = faultTracker;
+
+        _providerMap = new Dictionary<string, IOscProvider>(StringComparer.OrdinalIgnoreCase);
+        foreach (var provider in _providers)
+        {
+            _providerMap.TryAdd(provider.SortKey, provider);
+        }
     }
 
     public OscBuildResult Build(bool allowExternalRefresh = true)
@@ -40,18 +50,14 @@ public sealed class OscOutputBuilder
         string suffix = ExpandNewlines(_appSettings.OscMessageSuffix);
         bool isVR = _appState.IsVRRunning;
 
-        var providerMap = new Dictionary<string, IOscProvider>(StringComparer.OrdinalIgnoreCase);
-        foreach (var p in _providers)
-        {
-            providerMap.TryAdd(p.SortKey, p);
-        }
-
-        IEnumerable<string> orderedKeys = _integrationDisplay.IntegrationSortOrder?.Count > 0
-            ? _integrationDisplay.IntegrationSortOrder
+        IReadOnlyList<string> sortOrder = _integrationDisplay.IntegrationSortOrderSnapshot;
+        IEnumerable<string> orderedKeys = sortOrder.Count > 0
+            ? sortOrder
             : IntegrationDisplayState.DefaultSortOrder;
 
         var usedKeys = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         var collected = new List<(string Text, string UiKey, int Priority)>();
+        var collectedTexts = new SegmentTextView(collected);
 
         void TryAddProvider(IOscProvider provider)
         {
@@ -63,7 +69,7 @@ public sealed class OscOutputBuilder
 
             var context = new OscBuildContext
             {
-                CurrentSegments = collected.Select(c => c.Text).ToList(),
+                CurrentSegments = collectedTexts,
                 Separator = separator,
                 Prefix = prefix,
                 Suffix = suffix,
@@ -93,7 +99,7 @@ public sealed class OscOutputBuilder
 
         foreach (var key in orderedKeys)
         {
-            if (!providerMap.TryGetValue(key, out var provider))
+            if (!_providerMap.TryGetValue(key, out var provider))
                 continue;
             usedKeys.Add(key);
             TryAddProvider(provider);
@@ -104,7 +110,7 @@ public sealed class OscOutputBuilder
             if (usedKeys.Contains(provider.SortKey))
                 continue;
 
-            if (_unorderedProvidersLogged.Add(provider.SortKey))
+            if (_unorderedProvidersLogged.TryAdd(provider.SortKey, 0))
             {
                 Classes.DataAndSecurity.Logging.WriteInfo(
                     $"OscOutputBuilder: provider '{provider.SortKey}' (UiKey '{provider.UiKey}') is not present in IntegrationSortOrder; appending via safety-net path.");
@@ -113,11 +119,15 @@ public sealed class OscOutputBuilder
             TryAddProvider(provider);
         }
 
+        var segmentLengths = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+        foreach (var segment in collected)
+            segmentLengths[segment.UiKey] = segment.Text.Length;
+
         var trimmed = new List<string>();
-        while (collected.Count > 0)
+
+        while (collected.Count > 1)
         {
-            string message = AssembleMessage(collected.Select(c => c.Text), separator, prefix, suffix);
-            if (message.Length <= OscBuildContext.MaxOscLength)
+            if (MessageLength(collected, separator, prefix, suffix) <= OscBuildContext.MaxOscLength)
                 break;
 
             int worstIdx = 0;
@@ -131,6 +141,23 @@ public sealed class OscOutputBuilder
             collected.RemoveAt(worstIdx);
         }
 
+        bool clipped = false;
+        if (collected.Count == 1)
+        {
+            var survivor = collected[0];
+
+            string fitted = ClipToBudget(survivor.Text, OscBuildContext.MaxOscLength - prefix.Length - suffix.Length);
+            if (fitted.Length != survivor.Text.Length)
+            {
+                clipped = true;
+                segmentLengths[survivor.UiKey] = fitted.Length;
+                collected[0] = (fitted, survivor.UiKey, survivor.Priority);
+
+                if (fitted.Length == 0)
+                    trimmed.Add(survivor.UiKey);
+            }
+        }
+
         string finalMessage = collected.Count > 0
             ? AssembleMessage(collected.Select(c => c.Text), separator, prefix, suffix)
             : string.Empty;
@@ -140,9 +167,10 @@ public sealed class OscOutputBuilder
         return new OscBuildResult
         {
             Message = finalMessage,
-            ExceededLimit = trimmed.Count > 0,
-            IncludedProviders = collected.Select(c => c.UiKey).ToList(),
-            TrimmedProviders = trimmed
+            ExceededLimit = trimmed.Count > 0 || clipped,
+            IncludedProviders = collected.Where(c => c.Text.Length > 0).Select(c => c.UiKey).ToList(),
+            TrimmedProviders = trimmed,
+            SegmentLengths = segmentLengths
         };
     }
 
@@ -150,10 +178,42 @@ public sealed class OscOutputBuilder
 
     private static string AssembleMessage(IEnumerable<string> segments, string separator, string prefix, string suffix)
     {
-        string message = string.Join(separator, segments);
-        if (!string.IsNullOrEmpty(message))
-            message = $"{prefix}{message}{suffix}";
-        return message;
+        return $"{prefix}{string.Join(separator, segments)}{suffix}";
+    }
+
+    private static int MessageLength(
+        List<(string Text, string UiKey, int Priority)> segments,
+        string separator,
+        string prefix,
+        string suffix)
+    {
+        int length = prefix.Length + suffix.Length;
+
+        for (int i = 0; i < segments.Count; i++)
+            length += segments[i].Text.Length;
+
+        if (segments.Count > 1)
+            length += separator.Length * (segments.Count - 1);
+
+        return length;
+    }
+
+    internal static string ClipToBudget(string text, int budget)
+    {
+        if (budget <= 0)
+            return string.Empty;
+
+        if (text.Length <= budget)
+            return text;
+
+        bool mark = budget >= 2;
+        int cut = mark ? budget - 1 : budget;
+        if (char.IsHighSurrogate(text[cut - 1]))
+            cut--;
+
+        return mark
+            ? string.Concat(text.AsSpan(0, cut), ClipMark)
+            : text.Substring(0, cut);
     }
 
     private string GetSeparator()
@@ -191,6 +251,28 @@ public sealed class OscOutputBuilder
             "Check OSC prefix/suffix/separator settings.");
 
         return truncated;
+    }
+
+    private sealed class SegmentTextView : IReadOnlyList<string>
+    {
+        private readonly List<(string Text, string UiKey, int Priority)> _segments;
+
+        public SegmentTextView(List<(string Text, string UiKey, int Priority)> segments)
+        {
+            _segments = segments;
+        }
+
+        public int Count => _segments.Count;
+
+        public string this[int index] => _segments[index].Text;
+
+        public IEnumerator<string> GetEnumerator()
+        {
+            for (int i = 0; i < _segments.Count; i++)
+                yield return _segments[i].Text;
+        }
+
+        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
     }
 
     #endregion

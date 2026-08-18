@@ -5,8 +5,10 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Interop;
+using System.Windows.Media;
 using System.Windows.Media.Animation;
 using System.Windows.Shell;
+using System.Windows.Threading;
 using vrcosc_magicchatbox.Classes.DataAndSecurity;
 using vrcosc_magicchatbox.Classes.Modules;
 using vrcosc_magicchatbox.Core.Configuration;
@@ -58,11 +60,6 @@ namespace vrcosc_magicchatbox
             this.StateChanged += MainWindow_StateChanged;
         }
 
-        /// <summary>
-        /// Puts the window back where it was, including which monitor. Restores nothing if that place no
-        /// longer exists - an unplugged second monitor would otherwise leave the window off-screen with
-        /// no way to drag it back.
-        /// </summary>
         private void RestoreWindowPlacement()
         {
             try
@@ -109,8 +106,6 @@ namespace vrcosc_magicchatbox
                 var settings = _appSettingsProvider?.Value;
                 if (settings == null) return;
 
-                // Minimised carries no useful geometry, and while maximised the live Left/Top/Width/Height
-                // describe the maximised frame rather than the size to come back to.
                 if (WindowState == WindowState.Minimized)
                     return;
 
@@ -148,6 +143,24 @@ namespace vrcosc_magicchatbox
                 if (WindowState == WindowState.Minimized && VM.AppSettingsInstance.MinimizeToTrayOnMinimize)
                     HideToTray();
             }
+
+            UpdateUiObservable();
+        }
+
+        private void MainWindow_IsVisibleChanged(object sender, DependencyPropertyChangedEventArgs e)
+        {
+            UpdateUiObservable();
+        }
+
+        private void MainWindow_Loaded(object sender, RoutedEventArgs e)
+        {
+            UpdateUiObservable();
+        }
+
+        private void UpdateUiObservable()
+        {
+            if (DataContext is ViewModel viewModel)
+                viewModel.IsWindowOnScreen = IsVisible && WindowState != WindowState.Minimized;
         }
 
         private IntPtr WindowProc(IntPtr hwnd, int uMsg, IntPtr wParam, IntPtr lParam, ref bool handled)
@@ -175,8 +188,6 @@ namespace vrcosc_magicchatbox
             return IntPtr.Zero;
         }
 
-
-
         private void OnStartResize()
         {
             WindowChrome windowChrome = WindowChrome.GetWindowChrome(this);
@@ -188,9 +199,6 @@ namespace vrcosc_magicchatbox
             WindowChrome windowChrome = WindowChrome.GetWindowChrome(this);
             windowChrome.GlassFrameThickness = new Thickness(1);
         }
-
-
-
 
         public MainWindow(
             ScanLoopService scanLoop,
@@ -211,18 +219,35 @@ namespace vrcosc_magicchatbox
             _hotkeyManagement = hotkeyManagement;
             _appSettingsProvider = appSettingsProvider;
 
-            // Before Show(), so the window opens where it was left instead of appearing centred and
-            // then jumping. DataContext is not assigned until after Show(), which is why this reads
-            // the settings directly rather than going through the view model.
             RestoreWindowPlacement();
 
             Closing += MainWindow_ClosingAsync;
             PreviewMouseDown += MainWindow_PreviewMouseDown;
+            ContentRendered += OnFirstContentRendered;
+            Loaded += MainWindow_Loaded;
+            IsVisibleChanged += MainWindow_IsVisibleChanged;
         }
 
         public void ApplyIntegrationOrder()
         {
-            integrationsPage?.ApplyIntegrationOrder();
+            FindDescendant<UI.Pages.IntegrationsPage>(integrationsHost)?.ApplyIntegrationOrder();
+        }
+
+        private static T? FindDescendant<T>(DependencyObject? root) where T : DependencyObject
+        {
+            if (root == null) return null;
+
+            int count = VisualTreeHelper.GetChildrenCount(root);
+            for (int i = 0; i < count; i++)
+            {
+                var child = VisualTreeHelper.GetChild(root, i);
+                if (child is T match) return match;
+
+                var found = FindDescendant<T>(child);
+                if (found != null) return found;
+            }
+
+            return null;
         }
 
         private void ReorderIntegrations_Click(object sender, RoutedEventArgs e)
@@ -266,7 +291,6 @@ namespace vrcosc_magicchatbox
             Dispatcher.BeginInvoke(() => VM.Chatting.OnTranscriptionReceived(newTranscription));
         }
 
-
         public async Task InitializeAsync()
         {
             _bootstrapper.CreateLateModules();
@@ -292,7 +316,6 @@ namespace vrcosc_magicchatbox
         private void Button_minimize_Click(object sender, RoutedEventArgs e)
         { this.WindowState = WindowState.Minimized; }
 
-
         private void Drag_area_MouseDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
         {
             if (e.ChangedButton == MouseButton.Left)
@@ -307,6 +330,7 @@ namespace vrcosc_magicchatbox
         private void HideToTray(string? notificationText = "Still running in the tray.")
         {
             Hide();
+            UpdateUiObservable();
 
             if (VM.AppSettingsInstance.EnableTrayNotifications &&
                 VM.AppSettingsInstance.ShowTrayRunningReminder &&
@@ -332,8 +356,6 @@ namespace vrcosc_magicchatbox
 
         private async void MainWindow_ClosingAsync(object sender, System.ComponentModel.CancelEventArgs e)
         {
-            // Captured before the tray branch: closing to tray is still the last place the user put the
-            // window, and it is the geometry they expect back when it reopens.
             SaveWindowPlacement();
 
             if (VM.AppSettingsInstance.CloseToTray && !_isTrayClosing)
@@ -372,7 +394,6 @@ namespace vrcosc_magicchatbox
             }
         }
 
-
         public async Task SaveDataToDiskAsync()
         {
             await _persistence.PrepareForShutdownAsync();
@@ -394,7 +415,6 @@ namespace vrcosc_magicchatbox
             base.OnClosed(e);
         }
 
-
         private void TikTokTTSVoices_combo_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             if (sender is ComboBox comboBox && comboBox.SelectedItem is Voice voice)
@@ -412,7 +432,6 @@ namespace vrcosc_magicchatbox
                 }
             }
         }
-
 
         public static double ShadowOpacity
         {
@@ -455,61 +474,115 @@ namespace vrcosc_magicchatbox
         private double? _revealTop;
         private bool _parkedOffScreen;
 
-        /// <summary>
-        /// Hides the window for the several seconds it spends laying itself out. Zero opacity alone
-        /// was not enough: the window still gets an HWND, and the desktop compositor paints its frame
-        /// before WPF has drawn anything into it, which reads as a black rectangle appearing behind
-        /// the splash. Parked off the virtual desktop as well, there is nothing to see at all.
-        ///
-        /// A maximized window cannot be parked - Windows snaps it back to a monitor - so that case
-        /// relies on opacity alone.
-        /// </summary>
         public void PrepareHiddenStart()
         {
-            Opacity = 0;
-
-            if (WindowState == WindowState.Maximized)
-                return;
-
-            _revealLeft = double.IsNaN(Left) ? null : Left;
-            _revealTop = double.IsNaN(Top) ? null : Top;
-            _parkedOffScreen = true;
-
-            WindowStartupLocation = WindowStartupLocation.Manual;
-            Left = SystemParameters.VirtualScreenLeft - Width - 400;
-            Top = SystemParameters.VirtualScreenTop - Height - 400;
-        }
-
-        /// <summary>
-        /// Puts the window back where it belongs and brings it up, then hands opacity back to its
-        /// binding so the user's own window opacity setting takes over again. Clearing the local
-        /// value matters: leaving one behind would pin the window at full opacity forever and quietly
-        /// break that setting.
-        /// </summary>
-        public void FadeInAfterStartup()
-        {
-            if (!Dispatcher.CheckAccess())
+            if (WindowState != WindowState.Maximized)
             {
-                Dispatcher.BeginInvoke(FadeInAfterStartup);
+                _revealLeft = double.IsNaN(Left) ? null : Left;
+                _revealTop = double.IsNaN(Top) ? null : Top;
+                _parkedOffScreen = true;
+
+                WindowStartupLocation = WindowStartupLocation.Manual;
+                Left = SystemParameters.VirtualScreenLeft - Width - 400;
+                Top = SystemParameters.VirtualScreenTop - Height - 400;
                 return;
             }
 
+            Opacity = 0;
+        }
+
+        private bool _hasRendered;
+        private bool _revealWanted;
+        private DispatcherTimer? _revealSafetyNet;
+        private Action? _onVisible;
+
+        private void OnFirstContentRendered(object? sender, EventArgs e)
+        {
+            ContentRendered -= OnFirstContentRendered;
+            _hasRendered = true;
+
+            if (_revealWanted)
+                Reveal();
+        }
+
+        public void FadeInAfterStartup(Action? onVisible = null)
+        {
+            if (!Dispatcher.CheckAccess())
+            {
+                Dispatcher.BeginInvoke(() => FadeInAfterStartup(onVisible));
+                return;
+            }
+
+            _onVisible = onVisible;
+
+            if (_hasRendered)
+            {
+                Reveal();
+                return;
+            }
+
+            _revealWanted = true;
+
+            _revealSafetyNet?.Stop();
+            _revealSafetyNet = new DispatcherTimer(
+                TimeSpan.FromSeconds(5),
+                DispatcherPriority.Normal,
+                (_, _) =>
+                {
+                    Logging.WriteInfo("[Startup] First frame never arrived; revealing the window anyway.");
+                    Reveal();
+                },
+                Dispatcher);
+        }
+
+        public void AbandonHiddenStart()
+        {
+            if (!Dispatcher.CheckAccess())
+            {
+                Dispatcher.BeginInvoke(AbandonHiddenStart);
+                return;
+            }
+
+            _revealWanted = false;
+            _onVisible = null;
+            _revealSafetyNet?.Stop();
+            _revealSafetyNet = null;
+
+            UnparkOffScreen();
+
+            BeginAnimation(OpacityProperty, null);
+            ClearValue(OpacityProperty);
+        }
+
+        private void UnparkOffScreen()
+        {
+            if (!_parkedOffScreen)
+                return;
+
+            _parkedOffScreen = false;
+
+            if (_revealLeft is { } left && _revealTop is { } top)
+            {
+                Left = left;
+                Top = top;
+                return;
+            }
+
+            var area = SystemParameters.WorkArea;
+            Left = area.Left + ((area.Width - Width) / 2);
+            Top = area.Top + ((area.Height - Height) / 2);
+        }
+
+        private void Reveal()
+        {
+            _revealWanted = false;
+            _revealSafetyNet?.Stop();
+            _revealSafetyNet = null;
+
             if (_parkedOffScreen)
             {
-                _parkedOffScreen = false;
-
-                if (_revealLeft is { } left && _revealTop is { } top)
-                {
-                    Left = left;
-                    Top = top;
-                }
-                else
-                {
-                    // No saved placement, so honour what the XAML asked for and centre it.
-                    var area = SystemParameters.WorkArea;
-                    Left = area.Left + ((area.Width - Width) / 2);
-                    Top = area.Top + ((area.Height - Height) / 2);
-                }
+                Opacity = 0;
+                UnparkOffScreen();
             }
 
             var fadeIn = new DoubleAnimation(0, 1, TimeSpan.FromMilliseconds(260))
@@ -521,20 +594,33 @@ namespace vrcosc_magicchatbox
             {
                 BeginAnimation(OpacityProperty, null);
                 ClearValue(OpacityProperty);
+
+                Action? handover = _onVisible;
+                _onVisible = null;
+                handover?.Invoke();
             };
 
             BeginAnimation(OpacityProperty, fadeIn);
         }
 
-        public void HideStartupOverlay()
+        public void HideStartupOverlay(bool animate = true)
         {
             if (!Dispatcher.CheckAccess())
             {
-                Dispatcher.BeginInvoke(() => HideStartupOverlay());
+                Dispatcher.BeginInvoke(() => HideStartupOverlay(animate));
                 return;
             }
 
             UpdateOverlayProgress("Restoring open page...", 100);
+
+            if (!animate)
+            {
+                StartupOverlay.BeginAnimation(UIElement.OpacityProperty, null);
+                StartupOverlay.Opacity = 0;
+                StartupOverlay.Visibility = Visibility.Collapsed;
+                StartupOverlay.IsHitTestVisible = false;
+                return;
+            }
 
             var fadeOut = new DoubleAnimation(1, 0, TimeSpan.FromMilliseconds(400))
             {
@@ -549,6 +635,5 @@ namespace vrcosc_magicchatbox
         }
 
         #endregion
-
     }
 }

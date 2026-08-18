@@ -1,5 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Collections.Specialized;
+using System.ComponentModel;
 using System.Globalization;
 using System.Linq;
 using System.Text;
@@ -37,6 +40,8 @@ namespace vrcosc_magicchatbox.Classes.Modules
             { "Tracker", "T" },
             { "BaseStation", "B" }
         };
+        private static readonly TimeSpan RefreshInterval = TimeSpan.FromSeconds(15);
+
         private IDisposable? _sessionLease;
 
         private CVRSystem? _vrSystem;
@@ -44,17 +49,88 @@ namespace vrcosc_magicchatbox.Classes.Modules
         private DateTime _lastRotationUtc = DateTime.MinValue;
         private readonly StringBuilder _stringBuilder = new StringBuilder(256);
 
+        private ObservableCollection<TrackerDevice>? _observedDevices;
+        private IReadOnlyList<TrackerDevice> _deviceSnapshot = Array.Empty<TrackerDevice>();
+        private readonly object _lock = new();
+        private Timer? _refreshTimer;
+        private bool _disposed;
+
         private readonly ISettingsProvider<TrackerBatterySettings> _settingsProvider;
         public TrackerBatterySettings Settings => _settingsProvider.Value;
         public void SaveSettings() => _settingsProvider.Save();
 
         public string Name => "TrackerBattery";
         public bool IsEnabled { get; set; } = true;
-        public bool IsRunning => _sessionLease != null && _session.IsAttached;
+        public bool IsRunning { get; private set; }
         public Task InitializeAsync(CancellationToken ct = default) { Initialize(); return Task.CompletedTask; }
-        public Task StartAsync(CancellationToken ct = default) => Task.CompletedTask;
-        public Task StopAsync(CancellationToken ct = default) { ReleaseSession("StopAsync"); return Task.CompletedTask; }
-        public void Dispose() => ReleaseSession("Dispose");
+
+        public Task StartAsync(CancellationToken ct = default)
+        {
+            lock (_lock)
+            {
+                if (_disposed || IsRunning)
+                    return Task.CompletedTask;
+
+                _refreshTimer = new Timer(_ => RefreshTick(), null, TimeSpan.Zero, RefreshInterval);
+                IsRunning = true;
+            }
+
+            return Task.CompletedTask;
+        }
+
+        public Task StopAsync(CancellationToken ct = default)
+        {
+            lock (_lock)
+            {
+                _refreshTimer?.Dispose();
+                _refreshTimer = null;
+                IsRunning = false;
+            }
+
+            ReleaseSession("StopAsync");
+            return Task.CompletedTask;
+        }
+
+        public void Dispose()
+        {
+            lock (_lock)
+            {
+                if (_disposed)
+                {
+                    return;
+                }
+
+                _disposed = true;
+            }
+
+            _consentService.ConsentChanged -= OnConsentChanged;
+            _tracker.PropertyChanged -= OnTrackerStateChanged;
+
+            var observed = _observedDevices;
+            if (observed != null)
+            {
+                observed.CollectionChanged -= OnDeviceCollectionChanged;
+            }
+            _observedDevices = null;
+
+            StopAsync().GetAwaiter().GetResult();
+        }
+
+        private void RefreshTick()
+        {
+            if (_disposed)
+                return;
+
+            try
+            {
+                UpdateDevices();
+                BuildChatboxString();
+            }
+            catch (Exception ex)
+            {
+                Logging.WriteInfo($"Tracker battery refresh failed: {ex.Message}");
+            }
+        }
 
         private readonly IAppState _appState;
         private readonly TrackerDisplayState _tracker;
@@ -85,6 +161,60 @@ namespace vrcosc_magicchatbox.Classes.Modules
             _toast = toast;
 
             _consentService.ConsentChanged += OnConsentChanged;
+            _tracker.PropertyChanged += OnTrackerStateChanged;
+            AttachDeviceCollection();
+        }
+
+        private IReadOnlyList<TrackerDevice> DeviceSnapshot => Volatile.Read(ref _deviceSnapshot);
+
+        private void OnTrackerStateChanged(object? sender, PropertyChangedEventArgs e)
+        {
+            if (!string.IsNullOrEmpty(e.PropertyName)
+                && !string.Equals(e.PropertyName, nameof(TrackerDisplayState.TrackerDevices), StringComparison.Ordinal))
+            {
+                return;
+            }
+
+            AttachDeviceCollection();
+        }
+
+        private void AttachDeviceCollection()
+        {
+            var current = _tracker.TrackerDevices;
+            var previous = _observedDevices;
+
+            if (!ReferenceEquals(previous, current))
+            {
+                if (previous != null)
+                {
+                    previous.CollectionChanged -= OnDeviceCollectionChanged;
+                }
+
+                _observedDevices = current;
+
+                if (current != null)
+                {
+                    current.CollectionChanged += OnDeviceCollectionChanged;
+                }
+            }
+
+            RefreshDeviceSnapshot();
+        }
+
+        private void OnDeviceCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
+        {
+            RefreshDeviceSnapshot();
+        }
+
+        private void RefreshDeviceSnapshot()
+        {
+            var source = _observedDevices;
+
+            IReadOnlyList<TrackerDevice> snapshot = source == null || source.Count == 0
+                ? Array.Empty<TrackerDevice>()
+                : source.ToArray();
+
+            Volatile.Write(ref _deviceSnapshot, snapshot);
         }
 
         private void OnConsentChanged(object? sender, ConsentChangedEventArgs e)
@@ -135,6 +265,7 @@ namespace vrcosc_magicchatbox.Classes.Modules
 
             _trackerErrorShown = false;
             var currentSerialNumbers = new HashSet<string>();
+            IReadOnlyList<TrackerDevice> knownDevices = DeviceSnapshot;
 
             for (uint i = 0; i < Valve.VR.OpenVR.k_unMaxTrackedDeviceCount; i++)
             {
@@ -159,7 +290,7 @@ namespace vrcosc_magicchatbox.Classes.Modules
 
                 currentSerialNumbers.Add(serial);
 
-                TrackerDevice device = _tracker.TrackerDevices
+                TrackerDevice device = knownDevices
                     .FirstOrDefault(d => string.Equals(d.SerialNumber, serial, StringComparison.OrdinalIgnoreCase));
 
                 if (device == null)
@@ -226,7 +357,7 @@ namespace vrcosc_magicchatbox.Classes.Modules
                 }
             }
 
-            foreach (var device in _tracker.TrackerDevices)
+            foreach (var device in knownDevices)
             {
                 if (!currentSerialNumbers.Contains(device.SerialNumber))
                 {
@@ -252,7 +383,7 @@ namespace vrcosc_magicchatbox.Classes.Modules
 
         private void MarkAllDisconnected()
         {
-            foreach (var device in _tracker.TrackerDevices)
+            foreach (var device in DeviceSnapshot)
             {
                 device.IsConnected = false;
                 device.DeviceIndex = -1;
@@ -262,19 +393,9 @@ namespace vrcosc_magicchatbox.Classes.Modules
 
         public string BuildChatboxString()
         {
-            UpdateDevices();
-
             bool globalEmergency = Settings.GlobalEmergency;
 
-            string template = string.IsNullOrWhiteSpace(Settings.Template)
-                ? "{icon} {name} {batt}%"
-                : Settings.Template;
-
-            string separator = string.IsNullOrWhiteSpace(Settings.Separator)
-                ? " | "
-                : Settings.Separator;
-
-            IEnumerable<TrackerDevice> activeDevices = _tracker.TrackerDevices
+            IEnumerable<TrackerDevice> activeDevices = DeviceSnapshot
                 .Where(ShouldIncludeDevice);
 
             IEnumerable<TrackerDevice> orderedDevices = ApplySort(activeDevices);
@@ -302,52 +423,29 @@ namespace vrcosc_magicchatbox.Classes.Modules
 
             UpdateActiveDevices(displayDevices);
 
+            string message = ComposeMessage(displayDevices, Settings);
+
+            UpdatePreview(message);
+            return message.Trim();
+        }
+
+        public static string ComposeMessage(IEnumerable<TrackerDevice> devices, TrackerBatterySettings settings)
+        {
+            string template = string.IsNullOrWhiteSpace(settings.Template)
+                ? "{icon} {name} {batt}%"
+                : settings.Template;
+
+            string separator = string.IsNullOrWhiteSpace(settings.Separator)
+                ? " | "
+                : settings.Separator;
+
             var entries = new List<string>();
-            foreach (var device in displayDevices)
+            foreach (var device in devices)
             {
-                int lowThreshold = GetLowThreshold(device);
+                int lowThreshold = GetLowThreshold(device, settings);
                 bool isLow = device.IsConnected && device.BatteryPercentage <= lowThreshold;
 
-                string displayName = string.IsNullOrWhiteSpace(device.DisplayName)
-                    ? (device.SerialNumber ?? "Device")
-                    : device.DisplayName;
-
-                string batteryText;
-                if (device.IsCharging)
-                {
-                    batteryText = "+" + device.BatteryPercentage.ToString(CultureInfo.InvariantCulture);
-                }
-                else
-                {
-                    batteryText = device.IsConnected
-                        ? device.BatteryPercentage.ToString(CultureInfo.InvariantCulture)
-                        : Settings.OfflineBatteryText;
-                }
-
-                string statusText = device.IsConnected
-                    ? (device.IsCharging ? "Charging" : Settings.OnlineText)
-                    : Settings.OfflineText;
-
-                string lowTag = (isLow && !device.IsCharging)
-                    ? Settings.LowTag
-                    : string.Empty;
-
-                string entry = template
-                    .Replace("{icon}", device.CustomIcon ?? string.Empty)
-                    .Replace("{name}", displayName)
-                    .Replace("{batt}", batteryText ?? string.Empty)
-                    .Replace("{status}", statusText ?? string.Empty)
-                    .Replace("{low}", lowTag ?? string.Empty)
-                    .Replace("{kind}", device.DeviceKind ?? string.Empty)
-                    .Replace("{serial}", device.SerialNumber ?? string.Empty)
-                    .Replace("{model}", device.OriginalModelName ?? string.Empty);
-
-                if (Settings.CompactWhitespace)
-                {
-                    entry = CompactWhitespace(entry);
-                }
-
-                entry = TrimEntry(entry, Settings.MaxEntryLength);
+                string entry = BuildEntry(device, template, settings, isLow);
 
                 if (!string.IsNullOrWhiteSpace(entry))
                 {
@@ -357,29 +455,74 @@ namespace vrcosc_magicchatbox.Classes.Modules
 
             string message = entries.Count == 0 ? string.Empty : string.Join(separator, entries);
 
-            if (!string.IsNullOrWhiteSpace(message) && !string.IsNullOrWhiteSpace(Settings.Prefix))
+            if (!string.IsNullOrWhiteSpace(message) && !string.IsNullOrWhiteSpace(settings.Prefix))
             {
-                message = $"{Settings.Prefix} {message}";
+                message = $"{Raise(settings.Prefix, settings.UseSmallText)} {message}";
             }
 
-            if (!string.IsNullOrWhiteSpace(message) && !string.IsNullOrWhiteSpace(Settings.Suffix))
+            if (!string.IsNullOrWhiteSpace(message) && !string.IsNullOrWhiteSpace(settings.Suffix))
             {
-                message = $"{message} {Settings.Suffix}";
+                message = $"{message} {Raise(settings.Suffix, settings.UseSmallText)}";
             }
 
-            if (!string.IsNullOrWhiteSpace(message) && Settings.UseSmallText)
+            return message;
+        }
+
+        public static string BuildSampleMessage(TrackerBatterySettings settings)
+        {
+            var sample = new List<TrackerDevice>
             {
-                message = ToSmallTextPreserveSymbols(message);
+                new()
+                {
+                    SerialNumber = "SAMPLE-HMD",
+                    OriginalModelName = "Headset",
+                    DeviceKind = "HMD",
+                    CustomIcon = "🥽",
+                    IsConnected = true,
+                    BatteryLevel = 0.82f,
+                },
+                new()
+                {
+                    SerialNumber = "SAMPLE-CTRL",
+                    OriginalModelName = "Left controller",
+                    DeviceKind = "Controller",
+                    CustomIcon = "🎮",
+                    IsConnected = true,
+                    BatteryLevel = 0.14f,
+                },
+                new()
+                {
+                    SerialNumber = "SAMPLE-TRKR",
+                    OriginalModelName = "Waist tracker",
+                    DeviceKind = "Tracker",
+                    CustomIcon = "📍",
+                    IsConnected = true,
+                    BatteryLevel = 0.57f,
+                },
+            };
+
+            IEnumerable<TrackerDevice> shown = sample.Where(d => ShouldIncludeDevice(d, settings));
+
+            if (settings.GlobalEmergency)
+            {
+                shown = shown.Where(d => d.BatteryPercentage <= GetLowThreshold(d, settings));
             }
 
-            UpdatePreview(message);
-            return message.Trim();
+            var ordered = ApplySort(shown, settings).ToList();
+
+            if (settings.MaxEntries > 0 && ordered.Count > settings.MaxEntries)
+            {
+                ordered = ordered.Take(settings.MaxEntries).ToList();
+            }
+
+            return ComposeMessage(ordered, settings);
         }
 
         private void UpdateSummary(string scanStatus)
         {
-            int total = _tracker.TrackerDevices.Count;
-            int connected = _tracker.TrackerDevices.Count(d => d.IsConnected);
+            IReadOnlyList<TrackerDevice> devices = DeviceSnapshot;
+            int total = devices.Count;
+            int connected = devices.Count(d => d.IsConnected);
 
             _dispatcher.InvokeAsync(() =>
             {
@@ -543,30 +686,32 @@ namespace vrcosc_magicchatbox.Classes.Modules
             return string.Empty;
         }
 
-        private bool ShouldIncludeDevice(TrackerDevice device)
+        private bool ShouldIncludeDevice(TrackerDevice device) => ShouldIncludeDevice(device, Settings);
+
+        public static bool ShouldIncludeDevice(TrackerDevice device, TrackerBatterySettings settings)
         {
             if (device.IsHidden)
             {
                 return false;
             }
 
-            bool showDisconnected = Settings.ShowDisconnected;
+            bool showDisconnected = settings.ShowDisconnected;
             if (!showDisconnected && !device.IsConnected)
             {
                 return false;
             }
 
-            if (device.DeviceKind == "Controller" && !Settings.ShowControllers)
+            if (device.DeviceKind == "Controller" && !settings.ShowControllers)
             {
                 return false;
             }
 
-            if (device.DeviceKind == "HMD" && !Settings.ShowHeadset)
+            if (device.DeviceKind == "HMD" && !settings.ShowHeadset)
             {
                 return false;
             }
 
-            if (device.DeviceKind == "Tracker" && !Settings.ShowTrackers)
+            if (device.DeviceKind == "Tracker" && !settings.ShowTrackers)
             {
                 return false;
             }
@@ -574,16 +719,20 @@ namespace vrcosc_magicchatbox.Classes.Modules
             return true;
         }
 
-        private int GetLowThreshold(TrackerDevice device)
+        private int GetLowThreshold(TrackerDevice device) => GetLowThreshold(device, Settings);
+
+        public static int GetLowThreshold(TrackerDevice device, TrackerBatterySettings settings)
         {
             return device.UseCustomLowThreshold
                 ? device.CustomLowThreshold
-                : Settings.LowThreshold;
+                : settings.LowThreshold;
         }
 
-        private IEnumerable<TrackerDevice> ApplySort(IEnumerable<TrackerDevice> devices)
+        private IEnumerable<TrackerDevice> ApplySort(IEnumerable<TrackerDevice> devices) => ApplySort(devices, Settings);
+
+        public static IEnumerable<TrackerDevice> ApplySort(IEnumerable<TrackerDevice> devices, TrackerBatterySettings settings)
         {
-            switch (Settings.SortMode)
+            switch (settings.SortMode)
             {
                 case TrackerBatterySortMode.Name:
                     return devices.OrderBy(d => d.DisplayName);
@@ -710,6 +859,62 @@ namespace vrcosc_magicchatbox.Classes.Modules
             }
 
             return System.Text.RegularExpressions.Regex.Replace(value.Trim(), @"\s+", " ");
+        }
+
+        public static string BuildEntry(TrackerDevice device, string template, TrackerBatterySettings settings, bool isLow)
+        {
+            string displayName = string.IsNullOrWhiteSpace(device.DisplayName)
+                ? (device.SerialNumber ?? "Device")
+                : device.DisplayName;
+
+            string batteryText;
+            if (device.IsCharging)
+            {
+                batteryText = "+" + device.BatteryPercentage.ToString(CultureInfo.InvariantCulture);
+            }
+            else
+            {
+                batteryText = device.IsConnected
+                    ? device.BatteryPercentage.ToString(CultureInfo.InvariantCulture)
+                    : settings.OfflineBatteryText;
+            }
+
+            string statusText = device.IsConnected
+                ? (device.IsCharging ? "Charging" : settings.OnlineText)
+                : settings.OfflineText;
+
+            string lowTag = (isLow && !device.IsCharging)
+                ? settings.LowTag
+                : string.Empty;
+
+            bool small = settings.UseSmallText;
+
+            string entry = template
+                .Replace("{icon}", device.CustomIcon ?? string.Empty)
+                .Replace("{name}", Raise(displayName, small))
+                .Replace("{batt}", batteryText ?? string.Empty)
+                .Replace("{status}", Raise(statusText, small))
+                .Replace("{low}", lowTag ?? string.Empty)
+                .Replace("{kind}", Raise(device.DeviceKind, small))
+                .Replace("{serial}", device.SerialNumber ?? string.Empty)
+                .Replace("{model}", Raise(device.OriginalModelName, small));
+
+            if (settings.CompactWhitespace)
+            {
+                entry = CompactWhitespace(entry);
+            }
+
+            return TrimEntry(entry, settings.MaxEntryLength);
+        }
+
+        private static string Raise(string value, bool small)
+        {
+            if (!small || string.IsNullOrEmpty(value))
+            {
+                return value ?? string.Empty;
+            }
+
+            return ToSmallTextPreserveSymbols(value);
         }
 
         private static string ToSmallTextPreserveSymbols(string value)

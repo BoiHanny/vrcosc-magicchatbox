@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Globalization;
 using System.Linq;
 using System.Net.NetworkInformation;
 using System.Runtime.CompilerServices;
@@ -9,6 +10,7 @@ using System.Threading.Tasks;
 using vrcosc_magicchatbox.Classes.DataAndSecurity;
 using vrcosc_magicchatbox.Classes.Utilities;
 using vrcosc_magicchatbox.Core.Configuration;
+using vrcosc_magicchatbox.Core.Osc.Text;
 using vrcosc_magicchatbox.Core.Privacy;
 using vrcosc_magicchatbox.Core.State;
 using vrcosc_magicchatbox.Core.Toast;
@@ -77,8 +79,8 @@ public class NetworkStatisticsModule : INotifyPropertyChanged, IModule
 
         _consentService.ConsentChanged += OnConsentChanged;
 
-        if (_consentService.IsApproved(PrivacyHook.NetworkStats))
-            InitializeNetworkStatsAsync().ConfigureAwait(false);
+        if (_consentService.IsApproved(PrivacyHook.NetworkStats) && ShouldStartMonitoring())
+            BeginInitializeNetworkStats();
     }
 
     private void OnConsentChanged(object? sender, ConsentChangedEventArgs e)
@@ -101,44 +103,43 @@ public class NetworkStatisticsModule : INotifyPropertyChanged, IModule
         }
         else if (e.NewState == ConsentState.Approved && !IsInitialized)
         {
-            InitializeNetworkStatsAsync().ConfigureAwait(false);
+            BeginInitializeNetworkStats();
         }
     }
 
     public event PropertyChangedEventHandler PropertyChanged;
 
-    private string ConvertToSuperScriptIfNeeded(string unitstring)
-    {
-        if (Settings.StyledCharacters)
-        {
-            return TextUtilities.TransformToSuperscript(unitstring.Replace(":", ""));
-        }
-        else
-        {
-            return unitstring;
-        }
-    }
+    private string Measure(double amount, string unit)
+        => new SegmentWriter()
+            .Field(OscText.Value(amount.ToString("N2", CultureInfo.CurrentCulture)), Unit(unit))
+            .Text;
+
+    private OscText Unit(string unit)
+        => Settings.StyledCharacters ? OscText.Unit(unit) : OscText.Raw(unit);
+
+    private OscText Label(string label)
+        => Settings.StyledCharacters ? OscText.Label(label) : OscText.Raw(label);
 
     private string FormatData(double dataMB)
     {
         if (dataMB < 1)
-            return $"{dataMB * 1000:N2} {ConvertToSuperScriptIfNeeded("KB")}";
-        else if (dataMB >= 1_000_000)
-            return $"{dataMB / 1e6:N2} {ConvertToSuperScriptIfNeeded("TB")}";
-        else if (dataMB >= 1000)
-            return $"{dataMB / 1000:N2} {ConvertToSuperScriptIfNeeded("GB")}";
-        else
-            return $"{dataMB:N2} {ConvertToSuperScriptIfNeeded("MB")}";
+            return Measure(dataMB * 1000, "KB");
+        if (dataMB >= 1_000_000)
+            return Measure(dataMB / 1e6, "TB");
+        if (dataMB >= 1000)
+            return Measure(dataMB / 1000, "GB");
+
+        return Measure(dataMB, "MB");
     }
 
     private string FormatSpeed(double speedMbps)
     {
         if (speedMbps < 1)
-            return $"{speedMbps * 1000:N2} {ConvertToSuperScriptIfNeeded("Kbps")}";
-        else if (speedMbps >= 1000)
-            return $"{speedMbps / 1000:N2} {ConvertToSuperScriptIfNeeded("Gbps")}";
-        else
-            return $"{speedMbps:N2} {ConvertToSuperScriptIfNeeded("Mbps")}";
+            return Measure(speedMbps * 1000, "Kbps");
+        if (speedMbps >= 1000)
+            return Measure(speedMbps / 1000, "Gbps");
+
+        return Measure(speedMbps, "Mbps");
     }
 
     private Task<NetworkInterface> GetActiveNetworkInterfaceAsync(CancellationToken cancellationToken)
@@ -173,6 +174,21 @@ public class NetworkStatisticsModule : INotifyPropertyChanged, IModule
             BytesReceived = ipv4Stats.BytesReceived,
             BytesSent = ipv4Stats.BytesSent
         };
+    }
+
+    private void BeginInitializeNetworkStats()
+    {
+        _ = Task.Run(async () =>
+        {
+            try
+            {
+                await InitializeNetworkStatsAsync().ConfigureAwait(false);
+            }
+            catch (Exception ex)
+            {
+                Logging.WriteInfo($"Network statistics initialisation failed: {ex.Message}");
+            }
+        });
     }
 
     private async Task InitializeNetworkStatsAsync()
@@ -215,7 +231,7 @@ public class NetworkStatisticsModule : INotifyPropertyChanged, IModule
 
                 IsInitialized = true;
 
-                if (!_isMonitoring)
+                if (!_isMonitoring && ShouldStartMonitoring())
                 {
                     StartModule();
                 }
@@ -268,9 +284,15 @@ public class NetworkStatisticsModule : INotifyPropertyChanged, IModule
             if (!_consentService.IsApproved(PrivacyHook.NetworkStats))
                 return;
 
+            if (!ShouldStartMonitoring())
+            {
+                StopModule();
+                return;
+            }
+
             if (_activeNetworkInterface == null)
             {
-                InitializeNetworkStatsAsync().ConfigureAwait(false);
+                BeginInitializeNetworkStats();
                 if (_activeNetworkInterface == null)
                     return;
             }
@@ -341,7 +363,7 @@ public class NetworkStatisticsModule : INotifyPropertyChanged, IModule
         {
             if (ShouldStartMonitoring())
             {
-                InitializeNetworkStatsAsync().ConfigureAwait(false);
+                BeginInitializeNetworkStats();
             }
             else
             {
@@ -381,10 +403,27 @@ public class NetworkStatisticsModule : INotifyPropertyChanged, IModule
         return true;
     }
 
+    private bool _disposed;
+
     public void Dispose()
     {
+        lock (_monitoringLock)
+        {
+            if (_disposed)
+                return;
+            _disposed = true;
+        }
+
         StopModule();
-        _cancellationTokenSource.Cancel();
+
+        try
+        {
+            _cancellationTokenSource.Cancel();
+        }
+        catch (ObjectDisposedException)
+        {
+        }
+
         _cancellationTokenSource.Dispose();
         _appState.PropertyChanged -= PropertyChangedHandler;
         _integrationSettings.PropertyChanged -= PropertyChangedHandler;
@@ -399,26 +438,28 @@ public class NetworkStatisticsModule : INotifyPropertyChanged, IModule
 
         var networkStatsDescriptions = new List<string>();
 
-        if (Settings.ShowCurrentDown)
-            networkStatsDescriptions.Add($"{ConvertToSuperScriptIfNeeded("Down: ")} {FormatSpeed(CurrentDownloadSpeedMbps)}");
+        void Add(bool show, string label, string value)
+        {
+            if (show)
+                networkStatsDescriptions.Add(new SegmentWriter().Field(Label(label), OscText.Value(value)).Text);
+        }
 
-        if (Settings.ShowCurrentUp)
-            networkStatsDescriptions.Add($"{ConvertToSuperScriptIfNeeded("Up: ")} {FormatSpeed(CurrentUploadSpeedMbps)}");
-
-        if (Settings.ShowMaxDown)
-            networkStatsDescriptions.Add($"{ConvertToSuperScriptIfNeeded("Max Down: ")} {FormatSpeed(MaxDownloadSpeedMbps)}");
-
-        if (Settings.ShowMaxUp)
-            networkStatsDescriptions.Add($"{ConvertToSuperScriptIfNeeded("Max Up: ")} {FormatSpeed(MaxUploadSpeedMbps)}");
-
-        if (Settings.ShowTotalDown)
-            networkStatsDescriptions.Add($"{ConvertToSuperScriptIfNeeded("Total Down: ")} {FormatData(TotalDownloadedMB)}");
-
-        if (Settings.ShowTotalUp)
-            networkStatsDescriptions.Add($"{ConvertToSuperScriptIfNeeded("Total Up: ")} {FormatData(TotalUploadedMB)}");
+        Add(Settings.ShowCurrentDown, "Down", FormatSpeed(CurrentDownloadSpeedMbps));
+        Add(Settings.ShowCurrentUp, "Up", FormatSpeed(CurrentUploadSpeedMbps));
+        Add(Settings.ShowMaxDown, "Max Down", FormatSpeed(MaxDownloadSpeedMbps));
+        Add(Settings.ShowMaxUp, "Max Up", FormatSpeed(MaxUploadSpeedMbps));
+        Add(Settings.ShowTotalDown, "Total Down", FormatData(TotalDownloadedMB));
+        Add(Settings.ShowTotalUp, "Total Up", FormatData(TotalUploadedMB));
 
         if (Settings.ShowNetworkUtilization)
-            networkStatsDescriptions.Add($"{ConvertToSuperScriptIfNeeded("Network Utilization: ")} {NetworkUtilization:N2} %");
+        {
+            networkStatsDescriptions.Add(new SegmentWriter()
+                .Field(
+                    Label("Network Utilization"),
+                    OscText.Value(NetworkUtilization.ToString("N2", CultureInfo.CurrentCulture)),
+                    Unit("%"))
+                .Text);
+        }
 
         if (networkStatsDescriptions.Count == 0)
         {
@@ -463,24 +504,32 @@ public class NetworkStatisticsModule : INotifyPropertyChanged, IModule
         return string.Join("\v", lines);
     }
 
+    private readonly object _monitoringLock = new();
+
     public void StartModule()
     {
-        if (_isMonitoring || !IsInitialized)
-            return;
+        lock (_monitoringLock)
+        {
+            if (_isMonitoring || !IsInitialized)
+                return;
 
-        _updateTimer = new Timer(OnTimedEvent, null, TimeSpan.Zero, TimeSpan.FromMilliseconds(Interval));
-        _isMonitoring = true;
+            _updateTimer = new Timer(OnTimedEvent, null, TimeSpan.Zero, TimeSpan.FromMilliseconds(Interval));
+            _isMonitoring = true;
+        }
     }
 
     public void StopModule()
     {
-        if (!_isMonitoring)
-            return;
+        lock (_monitoringLock)
+        {
+            if (!_isMonitoring)
+                return;
 
-        _updateTimer?.Change(Timeout.Infinite, Timeout.Infinite);
-        _updateTimer?.Dispose();
-        _updateTimer = null;
-        _isMonitoring = false;
+            _updateTimer?.Change(Timeout.Infinite, Timeout.Infinite);
+            _updateTimer?.Dispose();
+            _updateTimer = null;
+            _isMonitoring = false;
+        }
     }
 
     public double CurrentDownloadSpeedMbps

@@ -11,8 +11,6 @@ public sealed partial class TtsAudioDisplayState : ObservableObject
     [ObservableProperty]
     private string _toggleVoiceText = "Toggle voice";
 
-    // The "(V)" hint advertises the in-window shortcut, which only works while ToggleVoiceWithV is
-    // on. Following the setting stops the button promising a key that is off.
     public TtsAudioDisplayState(ISettingsProvider<TtsSettings> ttsSettingsProvider)
     {
         TtsSettings settings = ttsSettingsProvider.Value;
@@ -43,7 +41,14 @@ public sealed partial class TtsAudioDisplayState : ObservableObject
     public Voice SelectedTikTokTTSVoice
     {
         get => _selectedTikTokTTSVoice;
-        set { _selectedTikTokTTSVoice = value; OnPropertyChanged(); }
+        set
+        {
+            if (value == null)
+                return;
+
+            _selectedTikTokTTSVoice = value;
+            OnPropertyChanged();
+        }
     }
 
     private List<AudioDevice> _auxOutputDevices = new();
@@ -71,7 +76,14 @@ public sealed partial class TtsAudioDisplayState : ObservableObject
     public AudioDevice SelectedPlaybackOutputDevice
     {
         get => _selectedPlaybackOutputDevice;
-        set { _selectedPlaybackOutputDevice = value; OnPropertyChanged(); }
+        set
+        {
+            if (value == null)
+                return;
+
+            _selectedPlaybackOutputDevice = value;
+            OnPropertyChanged();
+        }
     }
 
     public void UpdateToggleVoiceText(bool toggleVoiceWithV)

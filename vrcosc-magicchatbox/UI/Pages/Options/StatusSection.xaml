@@ -2,20 +2,13 @@
     x:Class="vrcosc_magicchatbox.UI.Pages.Options.StatusSection"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:controls="clr-namespace:vrcosc_magicchatbox.UI.Controls"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:sections="clr-namespace:vrcosc_magicchatbox.ViewModels.Sections"
     d:DataContext="{d:DesignInstance Type=sections:StatusSectionViewModel,
                                      IsDesignTimeCreatable=False}"
     mc:Ignorable="d">
-    <UserControl.Resources>
-        <ResourceDictionary>
-            <ResourceDictionary.MergedDictionaries>
-                <ResourceDictionary Source="/UI/Resources/SharedConverters.xaml" />
-            </ResourceDictionary.MergedDictionaries>
-        </ResourceDictionary>
-    </UserControl.Resources>
-
     <Grid Margin="0,5,0,0">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
@@ -36,9 +29,7 @@
                 Style="{StaticResource ExpandCollapseToggleButtonStyle}"
                 Tag="Status options"
                 TextOptions.TextRenderingMode="ClearType" />
-
         </Grid>
-
 
         <Grid
             x:Name="Settings_Status_Grid"
@@ -49,35 +40,30 @@
             <StackPanel Margin="5">
 
                 <Border Style="{StaticResource OptionCardStyle}">
-
-                    <CheckBox
-                        x:Name="StatusIconPrefix_checkbox"
-                        Margin="5"
-                        IsChecked="{Binding AppSettings.PrefixIconStatus, Mode=TwoWay}"
-                        Style="{DynamicResource SettingsCheckbox}">
-                        Add 💬 as prefix for the personal status
-                    </CheckBox>
-                </Border>
-                <Border Style="{StaticResource OptionCardStyle}">
-
                     <StackPanel>
+                        <TextBlock Style="{StaticResource OptionSubsectionHeaderStyle}" Text="The icon in front of your status" />
+
+                        <!--  Sample words, so the icon settings can be judged before anyone joins a world.  -->
+                        <controls:SegmentPreview Caption="Your status will look like this" Line="{Binding StatusPreview}" />
+
+                        <CheckBox
+                            x:Name="StatusIconPrefix_checkbox"
+                            Margin="0,10,0,0"
+                            IsChecked="{Binding AppSettings.PrefixIconStatus, Mode=TwoWay}">
+                            Put an icon in front of my status
+                        </CheckBox>
+
                         <CheckBox
                             x:Name="EnableEmojiShuffle_checkbox"
-                            Margin="5"
-                            IsChecked="{Binding AppSettings.EnableEmojiShuffle, Mode=TwoWay}"
-                            Style="{DynamicResource SettingsCheckbox}">
-                            Enable custom prefix icon shuffle
+                            Margin="0,6,0,0"
+                            IsChecked="{Binding AppSettings.EnableEmojiShuffle, Mode=TwoWay}">
+                            Use my own icons, a different one each time
                         </CheckBox>
+
                         <StackPanel Visibility="{Binding AppSettings.EnableEmojiShuffle, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
                             <TextBlock
-                                Width="auto"
-                                Padding="4,0,0,0"
-                                VerticalAlignment="Center"
-                                FontFamily="/Fonts/#Albert Sans"
-                                FontSize="13"
-                                Foreground="{StaticResource TextLabelBrush}"
                                 Style="{StaticResource OptionHelpTextStyle}"
-                                Text="Make sure to add the emojis you want to cycle through in the text box below, separated by a space or comma." />
+                                Text="Every icon in this list gets a turn before any of them comes round again. Separate them with a space or a comma. This same list can be used in front of the messages you type - there is a switch for that in Chatting options." />
                             <TextBox
                                 MinWidth="50"
                                 MaxWidth="630"
@@ -85,19 +71,12 @@
                                 Padding="5,0,5,0"
                                 HorizontalAlignment="Left"
                                 VerticalContentAlignment="Center"
-                                FontSize="15"
+                                FontSize="{StaticResource FontSizeBody}"
                                 Text="{Binding Emojis.EmojiListString, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                             <TextBlock
-                                Width="auto"
-                                Padding="4,5,0,0"
-                                VerticalAlignment="Center"
-                                FontFamily="/Fonts/#Albert Sans"
-                                FontSize="13"
-                                Foreground="{StaticResource TextLabelBrush}"
                                 Style="{StaticResource OptionHelpTextStyle}"
-                                Text="Here you can add your custom emojis to cycle through." />
+                                Text="Or add one at a time here." />
                             <StackPanel Orientation="Horizontal">
-
                                 <TextBox
                                     x:Name="EmojiNew"
                                     Width="auto"
@@ -107,7 +86,7 @@
                                     Padding="5,0,5,0"
                                     HorizontalAlignment="Left"
                                     VerticalContentAlignment="Center"
-                                    FontSize="15"
+                                    FontSize="{StaticResource FontSizeBody}"
                                     PreviewKeyUp="EmojiNew_PreviewKeyUp"
                                     Text="" />
                                 <Button
@@ -129,157 +108,112 @@
                                                 <TextBlock
                                                     Margin="0,-2,5,0"
                                                     VerticalAlignment="Center"
-                                                    FontSize="14"
-                                                    Text="Add emoji to cycle" />
+                                                    FontSize="{StaticResource FontSizeCompact}"
+                                                    Text="Add to the list" />
                                             </StackPanel>
                                         </DataTemplate>
                                     </Button.ContentTemplate>
                                 </Button>
                             </StackPanel>
                         </StackPanel>
-
-
-
-
-
-
-
                     </StackPanel>
                 </Border>
 
                 <Border Style="{StaticResource OptionCardStyle}">
-                    <CheckBox
-                        x:Name="CycleStatus_checkbox"
-                        Margin="5"
-                        IsChecked="{Binding AppSettings.CycleStatus, Mode=TwoWay}"
-                        Style="{DynamicResource SettingsCheckbox}">
-                        Cycle status items that are marked with 💛
-                    </CheckBox>
-                </Border>
-                <Border Style="{StaticResource OptionCardStyle}" Visibility="{Binding AppSettings.CycleStatus, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
-
-                    <CheckBox
-                        x:Name="IsRandomCycling_checkbox"
-                        Margin="5"
-                        IsChecked="{Binding AppSettings.IsRandomCycling, Mode=TwoWay}"
-                        Style="{DynamicResource SettingsCheckbox}">
-                        Cycle status items in random order
-                    </CheckBox>
-
-
-                </Border>
-
-                <Border Style="{StaticResource OptionCardStyle}" Visibility="{Binding AppSettings.CycleStatus, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
-                    <StackPanel Margin="5" Orientation="Horizontal">
+                    <StackPanel>
+                        <TextBlock Style="{StaticResource OptionSubsectionHeaderStyle}" Text="Showing more than one status" />
+                        <CheckBox x:Name="CycleStatus_checkbox" IsChecked="{Binding AppSettings.CycleStatus, Mode=TwoWay}">
+                            Take turns showing every status marked 💛
+                        </CheckBox>
                         <TextBlock
-                            Margin="0"
-                            Padding="0,0,9,0"
-                            VerticalAlignment="Center"
-                            Style="{StaticResource OptionFieldLabelStyle}"
-                            Text="Cycle to the next every" />
-                        <TextBox
-                            x:Name="SwitchStatusInterval"
-                            Width="auto"
-                            Height="auto"
-                            Margin="0,0,0,0"
-                            Padding="5,0"
-                            HorizontalAlignment="Left"
-                            VerticalContentAlignment="Center"
-                            FontSize="15"
-                            Text="{Binding AppSettings.SwitchStatusInterval, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                            TextAlignment="Center" />
-                        <TextBlock
-                            Margin="0"
-                            Padding="5,0,5,0"
-                            VerticalAlignment="Center"
-                            Style="{StaticResource OptionFieldLabelStyle}"
-                            Text="seconds" />
+                            Style="{StaticResource OptionHelpTextStyle}"
+                            Text="Without this, only the one status you picked is shown." />
 
+                        <StackPanel Visibility="{Binding AppSettings.CycleStatus, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
+                            <CheckBox
+                                x:Name="IsRandomCycling_checkbox"
+                                Margin="0,6,0,0"
+                                IsChecked="{Binding AppSettings.IsRandomCycling, Mode=TwoWay}">
+                                Pick them in a random order rather than top to bottom
+                            </CheckBox>
+
+                            <StackPanel Margin="0,8,0,0" Orientation="Horizontal">
+                                <TextBlock
+                                    Margin="0,0,9,0"
+                                    VerticalAlignment="Center"
+                                    Style="{StaticResource OptionFieldLabelStyle}"
+                                    Text="Move to the next one every" />
+                                <TextBox
+                                    x:Name="SwitchStatusInterval"
+                                    Width="auto"
+                                    Height="auto"
+                                    Padding="5,0"
+                                    HorizontalAlignment="Left"
+                                    VerticalContentAlignment="Center"
+                                    FontSize="{StaticResource FontSizeBody}"
+                                    Text="{Binding AppSettings.SwitchStatusInterval, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                    TextAlignment="Center" />
+                                <TextBlock
+                                    Margin="5,0,0,0"
+                                    VerticalAlignment="Center"
+                                    Style="{StaticResource OptionFieldLabelStyle}"
+                                    Text="seconds" />
+                            </StackPanel>
+                        </StackPanel>
                     </StackPanel>
-
                 </Border>
 
                 <Border Style="{StaticResource OptionCardStyle}">
                     <StackPanel Margin="5">
-                        <TextBlock
-                            Padding="2,0,0,0"
-                            VerticalAlignment="Center"
-                            FontFamily="/Fonts/#Albert Sans"
-                            FontSize="20"
-                            Foreground="{StaticResource TextLabelBrush}"
-                            Style="{StaticResource OptionSubsectionHeaderStyle}"
-                            Text="AFK Detection" />
+                        <TextBlock Style="{StaticResource OptionSubsectionHeaderStyle}" Text="When you go quiet" />
 
                         <TextBlock
-                            Width="auto"
-                            Padding="2,3,0,0"
-                            VerticalAlignment="Center"
-                            FontFamily="/Fonts/#Albert Sans"
-                            FontSize="13"
-                            FontStyle="Italic"
-                            Foreground="{StaticResource TextLabelBrush}"
-                            Opacity="0.5"
                             Style="{StaticResource OptionHelpTextStyle}"
-                            Text="You can show a custom message when you are AFK" />
+                            Text="Stop moving for long enough and MagicChatbox swaps your status for an away message, so nobody has to guess whether you are there." />
 
                         <CheckBox
                             x:Name="EnableAFKDetectCheck"
                             Margin="4,5,4,4"
-                            IsChecked="{Binding Afk.Settings.EnableAfkDetection, Mode=TwoWay}"
-                            Style="{DynamicResource SettingsCheckbox}">
-                            Enable AFK detection
+                            IsChecked="{Binding Afk.Settings.EnableAfkDetection, Mode=TwoWay}">
+                            Show an away message when I stop moving
                         </CheckBox>
 
-                        <CheckBox
-                            Margin="4,5,4,4"
-                            IsChecked="{Binding Afk.Settings.ActivateInVR, Mode=TwoWay}"
-                            Style="{DynamicResource SettingsCheckbox}">
-                            Enable When in VR
+                        <CheckBox Margin="4,5,4,4" IsChecked="{Binding Afk.Settings.ActivateInVR, Mode=TwoWay}">
+                            Do this while I am in VR too
                         </CheckBox>
-
 
                         <StackPanel Margin="5" Orientation="Horizontal">
                             <TextBlock
-                                Margin="0"
-                                Padding="0,0,4,0"
+                                Margin="0,0,4,0"
                                 VerticalAlignment="Center"
                                 Style="{StaticResource OptionFieldLabelStyle}"
-                                Text="Timeout time in" />
+                                Text="Count me as away after" />
                             <TextBox
                                 x:Name="TimeoutTime"
                                 Width="auto"
                                 Height="auto"
-                                Margin="0,0,0,0"
                                 Padding="5,0"
                                 HorizontalAlignment="Left"
                                 VerticalContentAlignment="Center"
-                                FontSize="15"
+                                FontSize="{StaticResource FontSizeBody}"
                                 Text="{Binding Afk.Settings.AfkTimeout, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                 TextAlignment="Center" />
 
                             <TextBlock
-                                Margin="0"
-                                Padding="4,0,2,0"
+                                Margin="4,0,2,0"
                                 VerticalAlignment="Center"
                                 Style="{StaticResource OptionFieldLabelStyle}"
                                 Text="seconds" />
 
                             <TextBlock
-                                Margin="0,-5,0,0"
+                                Margin="0"
                                 VerticalAlignment="Center"
-                                FontFamily="/Fonts/#Albert Sans"
-                                FontSize="12"
-                                FontStyle="Italic"
-                                Foreground="{StaticResource TextLabelBrush}"
+                                Style="{StaticResource OptionHelpTextStyle}"
                                 Text="{Binding Afk.FriendlyTimeoutTime, UpdateSourceTrigger=PropertyChanged}" />
-
                         </StackPanel>
 
-                        <CheckBox
-                            Margin="4,5,4,4"
-                            IsChecked="{Binding Afk.Settings.UseSmallLettersForDuration, Mode=TwoWay}"
-                            Style="{DynamicResource SettingsCheckbox}">
-                            Use small letters for duration suffix
+                        <CheckBox Margin="4,5,4,4" IsChecked="{Binding Afk.Settings.UseSmallLettersForDuration, Mode=TwoWay}">
+                            Write the h, m and s small, like 12ᵐ
                         </CheckBox>
 
                         <!--  ====================================================================
@@ -289,23 +223,13 @@
                               one of these, so nothing was lost, it just got a name.
                               ====================================================================  -->
                         <TextBlock
-                            Padding="4,15,9,0"
-                            FontFamily="/Fonts/#Albert Sans"
-                            FontSize="19"
-                            Foreground="{StaticResource TextLabelBrush}"
+                            Margin="2,18,0,5"
                             Style="{StaticResource OptionSubsectionHeaderStyle}"
-                            Text="AFK styles" />
+                            Text="Ways of saying you are away" />
 
                         <TextBlock
-                            Padding="4,0,9,8"
-                            FontFamily="/Fonts/#Albert Sans"
-                            FontSize="13"
-                            FontStyle="Italic"
-                            Foreground="{StaticResource TextLabelBrush}"
-                            Opacity="0.5"
                             Style="{StaticResource OptionHelpTextStyle}"
-                            Text="Build as many as you like and switch between them from the side panel. Use \n for a new line."
-                            TextWrapping="Wrap" />
+                            Text="Build as many as you like and switch between them from the side panel. Type \n where you want a new line." />
 
                         <StackPanel Margin="4,0,4,6" Orientation="Horizontal">
                             <ComboBox
@@ -325,7 +249,7 @@
                                 Command="{Binding AfkStyles.AddStyleCommand}"
                                 Content="Duplicate"
                                 Style="{DynamicResource Status_Button_style}"
-                                ToolTip="Start a new style from the one you have selected" />
+                                ToolTip="Start a new one from the one you have selected" />
 
                             <Button
                                 Height="26"
@@ -334,35 +258,31 @@
                                 Command="{Binding AfkStyles.DeleteStyleCommand}"
                                 Content="Delete"
                                 Style="{DynamicResource Status_Button_style}"
-                                ToolTip="Delete this style. The ones that ship with MagicChatbox cannot be deleted." />
+                                ToolTip="Delete this one. The ones that ship with MagicChatbox cannot be deleted." />
 
                             <Button
                                 Height="26"
                                 Margin="16,0,0,0"
                                 Padding="10,0"
                                 Command="{Binding AfkStyles.ExportStylesCommand}"
-                                Content="Export"
+                                Content="Save to a file"
                                 Style="{DynamicResource Status_Button_style}"
-                                ToolTip="Save the styles you made to a file. The ones that ship with the app are not included - they are already in it." />
+                                ToolTip="Save the ones you made. The ones that ship with the app are not included - they are already in it." />
 
                             <Button
                                 Height="26"
                                 Margin="6,0,0,0"
                                 Padding="10,0"
                                 Command="{Binding AfkStyles.ImportStylesCommand}"
-                                Content="Import"
+                                Content="Load from a file"
                                 Style="{DynamicResource Status_Button_style}"
-                                ToolTip="Load styles from a file. They are added to yours, never on top of them." />
+                                ToolTip="Load ones from a file. They are added to yours, never on top of them." />
                         </StackPanel>
 
                         <TextBlock
                             Margin="4,0,4,6"
-                            FontFamily="/Fonts/#Albert Sans"
-                            FontSize="11"
-                            FontStyle="Italic"
-                            Foreground="#FFFFD79A"
-                            Text="{Binding AfkStyles.EditHint}"
-                            TextWrapping="Wrap">
+                            Foreground="{StaticResource StatusWarningBrush}"
+                            Text="{Binding AfkStyles.EditHint}">
                             <TextBlock.Style>
                                 <Style BasedOn="{StaticResource OptionHelpTextStyle}" TargetType="TextBlock">
                                     <Style.Triggers>
@@ -391,17 +311,15 @@
                                 Grid.Column="0"
                                 Margin="0,0,10,6"
                                 VerticalAlignment="Center"
-                                FontFamily="/Fonts/#Albert Sans"
-                                FontSize="14"
-                                Foreground="{StaticResource TextLabelBrush}"
-                                Text="Name" />
+                                Style="{StaticResource OptionFieldLabelStyle}"
+                                Text="Call it" />
                             <TextBox
                                 Grid.Row="0"
                                 Grid.Column="1"
                                 Margin="0,0,0,6"
                                 Padding="5,3"
                                 VerticalContentAlignment="Center"
-                                FontSize="14"
+                                FontSize="{StaticResource FontSizeCompact}"
                                 IsReadOnly="{Binding AfkStyles.CanEditSelected, Converter={StaticResource InvertBooleanConverter}}"
                                 Text="{Binding AfkStyles.SelectedStyle.Name, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
 
@@ -411,9 +329,8 @@
                                 Margin="0,0,10,6"
                                 VerticalAlignment="Center"
                                 IsChecked="{Binding AfkStyles.SelectedStyle.ShowPrefix, Mode=TwoWay}"
-                                IsEnabled="{Binding AfkStyles.CanEditSelected}"
-                                Style="{DynamicResource SettingsCheckbox}">
-                                Prefix
+                                IsEnabled="{Binding AfkStyles.CanEditSelected}">
+                                Starts with
                             </CheckBox>
                             <TextBox
                                 Grid.Row="1"
@@ -421,7 +338,7 @@
                                 Margin="0,0,0,6"
                                 Padding="5,3"
                                 VerticalContentAlignment="Center"
-                                FontSize="14"
+                                FontSize="{StaticResource FontSizeCompact}"
                                 IsEnabled="{Binding AfkStyles.SelectedStyle.ShowPrefix}"
                                 IsReadOnly="{Binding AfkStyles.CanEditSelected, Converter={StaticResource InvertBooleanConverter}}"
                                 Text="{Binding AfkStyles.SelectedStyle.Prefix, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
@@ -433,9 +350,8 @@
                                 VerticalAlignment="Center"
                                 IsChecked="{Binding AfkStyles.SelectedStyle.ShowTime, Mode=TwoWay}"
                                 IsEnabled="{Binding AfkStyles.CanEditSelected}"
-                                Style="{DynamicResource SettingsCheckbox}"
                                 ToolTip="Show how long you have been away">
-                                With clock
+                                With the time
                             </CheckBox>
                             <TextBox
                                 Grid.Row="2"
@@ -443,54 +359,33 @@
                                 Margin="0,0,0,6"
                                 Padding="5,3"
                                 VerticalContentAlignment="Center"
-                                FontSize="14"
+                                FontSize="{StaticResource FontSizeCompact}"
                                 IsEnabled="{Binding AfkStyles.SelectedStyle.ShowTime}"
                                 IsReadOnly="{Binding AfkStyles.CanEditSelected, Converter={StaticResource InvertBooleanConverter}}"
                                 Text="{Binding AfkStyles.SelectedStyle.MessageWithTime, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                ToolTip="The duration is added straight after this text, so end it with a space." />
+                                ToolTip="The time is added straight after this text, so end it with a space." />
 
                             <TextBlock
                                 Grid.Row="3"
                                 Grid.Column="0"
                                 Margin="0,0,10,6"
                                 VerticalAlignment="Center"
-                                FontFamily="/Fonts/#Albert Sans"
-                                FontSize="14"
-                                Foreground="{StaticResource TextLabelBrush}"
-                                Text="No clock" />
+                                Style="{StaticResource OptionFieldLabelStyle}"
+                                Text="Without the time" />
                             <TextBox
                                 Grid.Row="3"
                                 Grid.Column="1"
                                 Margin="0,0,0,6"
                                 Padding="5,3"
                                 VerticalContentAlignment="Center"
-                                FontSize="14"
+                                FontSize="{StaticResource FontSizeCompact}"
                                 IsReadOnly="{Binding AfkStyles.CanEditSelected, Converter={StaticResource InvertBooleanConverter}}"
                                 Text="{Binding AfkStyles.SelectedStyle.MessageWithoutTime, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                ToolTip="Used when the clock is off, and whenever there is no duration to show yet." />
+                                ToolTip="Used when the time is off, and for the first moments before there is a time to show." />
                         </Grid>
 
                         <!--  Same Render() the chatbox line comes from, so this cannot drift from reality.  -->
-                        <Border
-                            Margin="4,6,4,0"
-                            Padding="10,8"
-                            Background="{StaticResource AccentDeepPurpleBrush}"
-                            CornerRadius="6">
-                            <StackPanel>
-                                <TextBlock
-                                    FontFamily="/Fonts/#Comfortaa"
-                                    FontSize="15"
-                                    Foreground="White"
-                                    Text="{Binding AfkStyles.PreviewLine}"
-                                    TextWrapping="Wrap" />
-                                <TextBlock
-                                    Margin="0,4,0,0"
-                                    FontFamily="/Fonts/#Albert Sans"
-                                    FontSize="11"
-                                    Foreground="{StaticResource TextMutedBrush}"
-                                    Text="{Binding AfkStyles.PreviewCost}" />
-                            </StackPanel>
-                        </Border>
+                        <controls:SegmentPreview Caption="What people will see" Line="{Binding AfkStyles.PreviewLine}" />
 
                         <!--  ====================================================================
                               THE COMPOSER. Fancy text is the whole appeal of an AFK line and there
@@ -499,26 +394,19 @@
                               and back through the clipboard.
                               ====================================================================  -->
                         <TextBlock
-                            Padding="4,16,9,0"
+                            Margin="2,16,0,3"
                             Style="{StaticResource OptionFieldLabelStyle}"
                             Text="Make fancy text" />
                         <TextBlock
-                            Padding="4,0,9,6"
-                            FontFamily="/Fonts/#Albert Sans"
-                            FontSize="12"
-                            FontStyle="Italic"
-                            Foreground="{StaticResource TextLabelBrush}"
-                            Opacity="0.5"
                             Style="{StaticResource OptionHelpTextStyle}"
-                            Text="Type normally, pick a look, then drop it into one of the fields above. Letters with no fancy version are left alone."
-                            TextWrapping="Wrap" />
+                            Text="Type normally, pick a look, then drop it into one of the boxes above. Letters with no fancy version are left as they are." />
 
                         <StackPanel Margin="4,0,4,0" Orientation="Horizontal">
                             <TextBox
                                 Width="220"
                                 Padding="5,3"
                                 VerticalContentAlignment="Center"
-                                FontSize="14"
+                                FontSize="{StaticResource FontSizeCompact}"
                                 Text="{Binding AfkStyles.ComposerInput, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                             <ComboBox
                                 Width="130"
@@ -536,6 +424,8 @@
                             </ComboBox>
                         </StackPanel>
 
+                        <!--  Not a chatbox line of its own, so this keeps its own cost line: what it
+                              has to say - that fancy letters cost two each - the n/144 chip cannot.  -->
                         <Border
                             Margin="4,6,4,0"
                             Padding="10,8"
@@ -543,16 +433,14 @@
                             CornerRadius="6">
                             <StackPanel>
                                 <TextBlock
-                                    FontFamily="/Fonts/#Comfortaa"
-                                    FontSize="15"
-                                    Foreground="White"
+                                    FontFamily="{StaticResource FontSecondary}"
+                                    FontSize="{StaticResource FontSizeBody}"
+                                    Foreground="{StaticResource TextPrimaryBrush}"
                                     Text="{Binding AfkStyles.ComposerOutput}"
                                     TextWrapping="Wrap" />
                                 <TextBlock
                                     Margin="0,4,0,0"
-                                    FontFamily="/Fonts/#Albert Sans"
-                                    FontSize="11"
-                                    Foreground="{StaticResource TextMutedBrush}"
+                                    Style="{StaticResource OptionHelpTextStyle}"
                                     Text="{Binding AfkStyles.ComposerCost}" />
                             </StackPanel>
                         </Border>
@@ -563,51 +451,42 @@
                                 Margin="0,0,6,0"
                                 Padding="10,0"
                                 Command="{Binding AfkStyles.ApplyComposerToCommand}"
-                                IsEnabled="{Binding AfkStyles.CanEditSelected}"
                                 CommandParameter="WithTime"
-                                Content="Use for with clock"
+                                Content="Use it with the time"
+                                IsEnabled="{Binding AfkStyles.CanEditSelected}"
                                 Style="{DynamicResource Status_Button_style}" />
                             <Button
                                 Height="26"
                                 Margin="0,0,6,0"
                                 Padding="10,0"
                                 Command="{Binding AfkStyles.ApplyComposerToCommand}"
-                                IsEnabled="{Binding AfkStyles.CanEditSelected}"
                                 CommandParameter="WithoutTime"
-                                Content="Use for no clock"
+                                Content="Use it without the time"
+                                IsEnabled="{Binding AfkStyles.CanEditSelected}"
                                 Style="{DynamicResource Status_Button_style}" />
                             <Button
                                 Height="26"
                                 Padding="10,0"
                                 Command="{Binding AfkStyles.ApplyComposerToCommand}"
-                                IsEnabled="{Binding AfkStyles.CanEditSelected}"
                                 CommandParameter="Prefix"
-                                Content="Use as prefix"
+                                Content="Use it at the start"
+                                IsEnabled="{Binding AfkStyles.CanEditSelected}"
                                 Style="{DynamicResource Status_Button_style}" />
                         </StackPanel>
+
                         <StackPanel Visibility="{Binding AppState.BussyBoysMode, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
 
                             <TextBlock
-                                Padding="4,15,9,0"
-                                VerticalAlignment="Center"
-                                FontFamily="/Fonts/#Albert Sans"
-                                FontSize="19"
-                                Foreground="{StaticResource TextLabelBrush}"
+                                Margin="2,18,0,5"
                                 Style="{StaticResource OptionSubsectionHeaderStyle}"
-                                Text="Bussy Boys (custom counting from date and more)" />
+                                Text="Bussy Boys" />
 
-                            <CheckBox
-                                Margin="4,5,4,4"
-                                IsChecked="{Binding TimeSettings.BussyBoysMultiMODE, Mode=TwoWay}"
-                                Style="{DynamicResource SettingsCheckbox}">
-                                Allow personal AFK + Status
+                            <CheckBox Margin="4,5,4,4" IsChecked="{Binding TimeSettings.BussyBoysMultiMODE, Mode=TwoWay}">
+                                Show my status and my away message at the same time
                             </CheckBox>
 
-                            <CheckBox
-                                Margin="4,5,4,4"
-                                IsChecked="{Binding TimeSettings.BussyBoysDateEnable, Mode=TwoWay}"
-                                Style="{DynamicResource SettingsCheckbox}">
-                                Start custom counting ↴
+                            <CheckBox Margin="4,5,4,4" IsChecked="{Binding TimeSettings.BussyBoysDateEnable, Mode=TwoWay}">
+                                Count up from a date of my choosing ↴
                             </CheckBox>
 
                             <DatePicker

@@ -58,7 +58,9 @@ public static class ServiceRegistration
         services.AddSingleton<Services.Vr.IOpenVrSessionService>(sp => new Services.Vr.OpenVrSessionService(
             sp.GetRequiredService<Services.Vr.IOpenVrRuntime>(),
             sp.GetRequiredService<IAppState>(),
-            sp.GetRequiredService<IPrivacyConsentService>()));
+            sp.GetRequiredService<IPrivacyConsentService>(),
+            utcNow: null,
+            isUiThread: () => System.Windows.Application.Current?.Dispatcher?.CheckAccess() == true));
 
         services.AddSingleton<IPrivacyConsentService, PrivacyConsentService>();
         services.AddSingleton<PrivacySectionViewModel>();
@@ -74,6 +76,7 @@ public static class ServiceRegistration
             sp.GetRequiredService<IToastService>()));
 
         services.AddSingleton<ITimeFormattingService, TimeFormattingService>();
+        services.AddSingleton<IProcessPresenceService, ProcessPresenceService>();
 
         services.AddSingleton<IUiDispatcher, WpfUiDispatcher>();
 
@@ -167,6 +170,7 @@ public static class ServiceRegistration
             new Lazy<IAudioService>(() => sp.GetRequiredService<IAudioService>()),
             new Lazy<IOscSender>(() => sp.GetRequiredService<IOscSender>()),
             new Lazy<ITtsPlaybackService>(() => sp.GetRequiredService<ITtsPlaybackService>()),
+            new Lazy<ILiveTypingService>(() => sp.GetRequiredService<ILiveTypingService>()),
             sp.GetRequiredService<IOpenAiChatService>(),
             sp.GetRequiredService<IUiDispatcher>()));
         services.AddSingleton<IntegrationsPageViewModel>(sp => new IntegrationsPageViewModel(
@@ -416,9 +420,15 @@ public static class ServiceRegistration
             sp.GetRequiredService<ISettingsProvider<ChatSettings>>(),
             sp.GetRequiredService<ISettingsProvider<AppSettings>>(),
             new Lazy<OSCController>(() => sp.GetRequiredService<OSCController>()),
-            new Lazy<IOscSender>(() => sp.GetRequiredService<IOscSender>())));
+            new Lazy<IOscSender>(() => sp.GetRequiredService<IOscSender>()),
+            new Lazy<ILiveTypingService>(() => sp.GetRequiredService<ILiveTypingService>())));
 
         services.AddSingleton<IOscSender, OscSenderService>();
+        services.AddSingleton<ILiveTypingService>(sp => new LiveTypingService(
+            sp.GetRequiredService<ISettingsProvider<ChatSettings>>(),
+            sp.GetRequiredService<IAppState>(),
+            new Lazy<IOscSender>(() => sp.GetRequiredService<IOscSender>()),
+            sp.GetRequiredService<OscDisplayState>()));
         services.AddSingleton<Classes.DataAndSecurity.HotkeyManagement>(sp => new Classes.DataAndSecurity.HotkeyManagement(
             sp.GetRequiredService<IEnvironmentService>(),
             sp.GetRequiredService<IOscSender>(),
@@ -620,7 +630,10 @@ public static class ServiceRegistration
             sp.GetRequiredService<ISettingsProvider<IntegrationSettings>>(),
             sp.GetRequiredService<ISettingsProvider<Classes.Modules.Lyrics.LyricsSettings>>(),
             sp.GetRequiredService<LyricsDisplayState>()));
-        services.AddSingleton<IOscProvider, ComponentStatsOscProvider>();
+        services.AddSingleton<IOscProvider>(sp => new ComponentStatsOscProvider(
+            new Lazy<IModuleHost>(() => sp.GetRequiredService<IModuleHost>()),
+            sp.GetRequiredService<ISettingsProvider<IntegrationSettings>>(),
+            sp.GetRequiredService<IntegrationDisplayState>()));
         services.AddSingleton<IOscProvider>(sp => new NetworkStatsOscProvider(
             new Lazy<NetworkStatisticsModule>(() => sp.GetRequiredService<NetworkStatisticsModule>()),
             sp.GetRequiredService<ISettingsProvider<IntegrationSettings>>()));
@@ -663,8 +676,6 @@ public static class ServiceRegistration
             sp.GetRequiredService<IntegrationDisplayState>(),
             sp.GetRequiredService<ISettingsProvider<AppSettings>>(),
             sp.GetRequiredService<ModuleFaultTracker>()));
-        // IAppState resolves to the root view model, which is built from most of the container, so it
-        // is taken lazily to keep the presenter out of that construction order.
         services.AddSingleton<OscBuildResultPresenter>(sp => new OscBuildResultPresenter(
             sp.GetRequiredService<OscDisplayState>(),
             sp.GetRequiredService<IntegrationDisplayState>(),

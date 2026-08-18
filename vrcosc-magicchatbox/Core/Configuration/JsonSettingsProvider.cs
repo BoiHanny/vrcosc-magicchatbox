@@ -14,8 +14,6 @@ namespace vrcosc_magicchatbox.Core.Configuration;
 
 public static class JsonSettingsSerialization
 {
-    // Collections pre-populated with defaults (e.g. IntegrationSettings.SavedSortOrder) must be
-    // replaced by the saved values on load, not appended to - Json.NET's default is to append.
     public static readonly JsonSerializerSettings DeserializerSettings = new()
     {
         ObjectCreationHandling = ObjectCreationHandling.Replace
@@ -27,8 +25,11 @@ public sealed class JsonSettingsProvider<T> : ISettingsProvider<T>, IDisposable 
     private T _settings;
     private readonly string _filePath;
     private readonly object _lock = new();
+    private readonly object _timerLock = new();
     private Timer _debounceTimer;
+    private DateTime? _firstDirtyChangeUtc;
     private const int DebounceDelayMs = 2000;
+    private const int MaxSaveDelayMs = 30000;
     private volatile bool _loaded;
     private bool _disposed;
     private bool _loadFailed;
@@ -261,12 +262,13 @@ public sealed class JsonSettingsProvider<T> : ISettingsProvider<T>, IDisposable 
 
     public void FlushPendingSave()
     {
-        lock (_lock)
+        lock (_timerLock)
         {
             if (_disposed) return;
 
             _debounceTimer?.Dispose();
             _debounceTimer = null;
+            _firstDirtyChangeUtc = null;
         }
 
         Save();
@@ -286,19 +288,36 @@ public sealed class JsonSettingsProvider<T> : ISettingsProvider<T>, IDisposable 
 
     private void OnSettingsPropertyChanged(object sender, PropertyChangedEventArgs e)
     {
-        lock (_lock)
+        lock (_timerLock)
         {
             if (_disposed) return;
 
+            var now = DateTime.UtcNow;
+            _firstDirtyChangeUtc ??= now;
+
+            var dueTime = now - _firstDirtyChangeUtc.Value >= TimeSpan.FromMilliseconds(MaxSaveDelayMs)
+                ? 0
+                : DebounceDelayMs;
+
             if (_debounceTimer != null)
             {
-                _debounceTimer.Change(DebounceDelayMs, Timeout.Infinite);
+                _debounceTimer.Change(dueTime, Timeout.Infinite);
             }
             else
             {
-                _debounceTimer = new Timer(_ => Save(), null, DebounceDelayMs, Timeout.Infinite);
+                _debounceTimer = new Timer(_ => OnDebounceTimerElapsed(), null, dueTime, Timeout.Infinite);
             }
         }
+    }
+
+    private void OnDebounceTimerElapsed()
+    {
+        lock (_timerLock)
+        {
+            _firstDirtyChangeUtc = null;
+        }
+
+        Save();
     }
 
     private void StampVersion()
@@ -310,13 +329,14 @@ public sealed class JsonSettingsProvider<T> : ISettingsProvider<T>, IDisposable 
 
     public void Dispose()
     {
-        lock (_lock)
+        lock (_timerLock)
         {
             if (_disposed) return;
             _disposed = true;
 
             _debounceTimer?.Dispose();
             _debounceTimer = null;
+            _firstDirtyChangeUtc = null;
         }
 
         UnsubscribeAutoSave();

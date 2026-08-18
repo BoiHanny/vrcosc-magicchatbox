@@ -30,20 +30,8 @@ public enum AfkTextStyle
     Wide = 6,
 }
 
-/// <summary>
-/// Turns ordinary typing into the decorated text people actually want in a chatbox, so nobody has to
-/// go hunting for characters to build their own "ᶜᵘʳʳᵉⁿᵗˡʸ AFK ᶠᵒʳ".
-///
-/// Anything without a real equivalent is left exactly as it was. That is not a shortcut: half of the
-/// Unicode blocks these draw from have holes in them, and a question mark or a dropped letter in the
-/// middle of someone's status is worse than a letter that stayed plain.
-/// </summary>
 public static class UnicodeTextStyler
 {
-    // Superscript deliberately leaves capitals alone. The block is missing C, F, Q, S, X, Y and Z, so
-    // styling capitals would render "AFK" as "ᴬFᴷ". Leaving them upright is also exactly how the
-    // long-standing default "ᶜᵘʳʳᵉⁿᵗˡʸ AFK ᶠᵒʳ" reads, so typing it out reproduces it character for
-    // character.
     private static readonly Dictionary<char, string> Superscript = new()
     {
         ['a'] = "ᵃ", ['b'] = "ᵇ", ['c'] = "ᶜ", ['d'] = "ᵈ", ['e'] = "ᵉ", ['f'] = "ᶠ", ['g'] = "ᵍ",
@@ -53,7 +41,6 @@ public static class UnicodeTextStyler
         ['0'] = "⁰", ['1'] = "¹", ['2'] = "²", ['3'] = "³", ['4'] = "⁴",
         ['5'] = "⁵", ['6'] = "⁶", ['7'] = "⁷", ['8'] = "⁸", ['9'] = "⁹",
         ['+'] = "⁺", ['-'] = "⁻", ['='] = "⁼", ['('] = "⁽", [')'] = "⁾",
-        // 'q' has no superscript form anywhere in Unicode.
     };
 
     private static readonly Dictionary<char, string> SmallCaps = new()
@@ -63,13 +50,7 @@ public static class UnicodeTextStyler
         ['o'] = "ᴏ", ['p'] = "ᴘ", ['r'] = "ʀ", ['s'] = "ꜱ", ['t'] = "ᴛ", ['u'] = "ᴜ", ['v'] = "ᴠ",
         ['w'] = "ᴡ", ['y'] = "ʏ", ['z'] = "ᴢ",
 
-        // Unicode's actual small capital Q (U+A7AF) is recent enough that plenty of fonts have no
-        // glyph for it, and a missing glyph in VRChat is a blank box. The o-with-ogonek stand-in is
-        // what every small caps generator uses for exactly this reason: it reads as a small q and
-        // it is in essentially every font already.
         ['q'] = "ǫ",
-
-        // 'x' is left alone. It has no small capital, and it already looks the part at this size.
     };
 
     public static string Apply(string? text, AfkTextStyle style)
@@ -88,7 +69,6 @@ public static class UnicodeTextStyler
                     break;
 
                 case AfkTextStyle.SmallCaps:
-                    // Capitals are already the shape small caps imitate, so they pass through.
                     builder.Append(Lookup(SmallCaps, char.ToLowerInvariant(c), c));
                     break;
 
@@ -97,7 +77,6 @@ public static class UnicodeTextStyler
                     break;
 
                 case AfkTextStyle.Italic:
-                    // The sans-serif italic block has no digits, so they stay upright.
                     builder.Append(MathAlphabet(c, upper: 0x1D608, lower: 0x1D622, digit: null));
                     break;
 
@@ -118,11 +97,6 @@ public static class UnicodeTextStyler
         return builder.ToString();
     }
 
-    /// <summary>
-    /// What this text costs against the 144 character line. Bold, italic and monospace live outside
-    /// the basic plane, so every letter spends two of the budget rather than one - which is the sort
-    /// of thing you want to find out before your integrations start getting trimmed, not after.
-    /// </summary>
     public static int CostInChatbox(string? text, AfkTextStyle style)
         => Apply(text, style).Length;
 
@@ -148,7 +122,6 @@ public static class UnicodeTextStyler
         if (c == ' ')
             return "　";
 
-        // The fullwidth block mirrors printable ASCII from '!' to '~' in order.
         if (c is >= '!' and <= '~')
             return char.ConvertFromUtf32(0xFF01 + (c - '!'));
 

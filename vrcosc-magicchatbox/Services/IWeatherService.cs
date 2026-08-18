@@ -11,6 +11,8 @@ public interface IWeatherService
     void TriggerManualRefresh();
     string BuildTimeWeatherText(string timeText);
     string BuildWeatherOnlyText();
+
+    string BuildSampleWeatherText();
     IReadOnlyDictionary<int, string> GetDefaultConditionMap();
     IReadOnlyDictionary<int, string> GetDefaultConditionIconMap();
 }

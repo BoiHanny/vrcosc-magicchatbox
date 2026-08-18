@@ -28,7 +28,11 @@ public partial class WeatherSectionViewModel : ObservableObject
         WeatherSettings = weatherSettingsProvider.Value;
         IntegrationDisplay = integrationDisplay;
         WeatherOverride = weatherOverride;
+
+        WeatherSettings.PropertyChanged += (_, _) => OnPropertyChanged(nameof(OutputPreview));
     }
+
+    public string OutputPreview => _weatherService.BuildSampleWeatherText();
 
     [RelayCommand]
     private void WeatherSync() => _weatherService.TriggerManualRefresh();

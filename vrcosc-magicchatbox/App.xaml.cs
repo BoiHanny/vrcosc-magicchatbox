@@ -283,11 +283,6 @@ namespace vrcosc_magicchatbox
                 loadingWindow.UpdateProgress("Rolling out the red carpet... Here comes the UI!", 99, "Wiring up the final UI bits... Almost there!");
                 loadingWindow.SetTopmostFromAnyThread(true);
 
-                // Shown, but not yet visible. The window has to be on screen for WPF to lay it out at
-                // all, and that first layout is the slowest part of starting up - several seconds
-                // during which it would otherwise sit there assembling itself in front of the user
-                // while the splash is still up saying it is loading. At zero opacity it does all of
-                // that work unseen and is faded in below, once there is something worth looking at.
                 Logging.WriteInfo("[Startup] Showing MainWindow (empty shell)...");
                 mainWindow.PrepareHiddenStart();
                 mainWindow.Show();
@@ -314,27 +309,33 @@ namespace vrcosc_magicchatbox
 
                 mainWindow.UpdateOverlayProgress("Registering hotkeys...", 85, "Rendering interface...");
 
-                Logging.WriteInfo("[Startup] Waiting for initial render...");
-                await Task.Delay(150);
-                Logging.WriteInfo("[Startup] Initial render completed.");
-
                 mainWindow.UpdateOverlayProgress("Rendering interface...", 95, "Restoring open page...");
 
                 if (mainWindow.WindowState == WindowState.Minimized)
                     mainWindow.WindowState = WindowState.Normal;
 
-                // The overlay goes first so the fade reveals the finished interface rather than a
-                // loading screen dissolving into another one.
-                mainWindow.HideStartupOverlay();
-                mainWindow.FadeInAfterStartup();
+                Services.GetRequiredService<ITrayIconService>().Initialize(mainWindow);
 
-                loadingWindow.CloseFromAnyThread();
-                Logging.WriteInfo("[Startup] Splash closed.");
-
-                mainWindow.Activate();
-                mainWindow.Focus();
                 if (vm.AppSettingsInstance.StartInBackground)
+                {
+                    mainWindow.AbandonHiddenStart();
+                    mainWindow.HideStartupOverlay(animate: false);
                     mainWindow.Hide();
+                    loadingWindow.CloseFromAnyThread();
+                    Logging.WriteInfo("[Startup] Splash closed; started in the background.");
+                }
+                else
+                {
+                    mainWindow.FadeInAfterStartup(() =>
+                    {
+                        loadingWindow.CloseFromAnyThread();
+                        Logging.WriteInfo("[Startup] Splash closed.");
+                        mainWindow.HideStartupOverlay();
+
+                        mainWindow.Activate();
+                        mainWindow.Focus();
+                    });
+                }
 
                 Services.GetRequiredService<ModuleBootstrapper>().SignalStartupComplete();
                 Logging.WriteInfo("[Startup] Startup-complete signal fired.");
@@ -365,19 +366,25 @@ namespace vrcosc_magicchatbox
                         durationMs: 7000);
 
                 Logging.WriteInfo("[Startup] Initializing user monitoring...");
-                InitializeUserMonitoring();
+                if (consentSvc.IsApproved(PrivacyHook.InternetAccess))
+                {
+                    InitializeUserMonitoring();
+                }
+                consentSvc.ConsentChanged += (_, args) =>
+                {
+                    if (args.Hook == PrivacyHook.InternetAccess && args.NewState == ConsentState.Approved)
+                        InitializeUserMonitoring();
+                };
                 Logging.WriteInfo("[Startup] User monitoring initialized.");
 
                 Logging.WriteInfo("[Startup] Starting background scan loop...");
                 mainWindow.StartBackgroundProcessing();
                 Logging.WriteInfo("[Startup] Background processing started.");
 
-                if (vm.AppSettingsInstance.CheckUpdateOnStartup)
+                if (vm.AppSettingsInstance.CheckUpdateOnStartup && consentSvc.IsApproved(PrivacyHook.InternetAccess))
                 {
                     _ = RunDeferredStartupUpdateCheckAsync();
                 }
-
-                Services.GetRequiredService<ITrayIconService>().Initialize(mainWindow);
             }
             catch (OperationCanceledException) when (startupCancellation.IsCancellationRequested)
             {
@@ -680,8 +687,6 @@ namespace vrcosc_magicchatbox
             return true;
         }
 
-
-
         private void CurrentDomain_FirstChanceException(object? sender, FirstChanceExceptionEventArgs e)
         {
             if (!ShouldLogFirstChanceException(e.Exception))
@@ -791,8 +796,6 @@ namespace vrcosc_magicchatbox
             Logging.WriteException(ex: e.ExceptionObject as Exception, MSGBox: true, exitapp: true, log: false);
         }
 
-
-
         private void InitializeUserMonitoring()
         {
             var allowedService = Services.GetRequiredService<IAllowedForUsingService>();
@@ -803,9 +806,10 @@ namespace vrcosc_magicchatbox
                     Services.GetRequiredService<IBanEnforcementService>().ProcessBan(args.UserId, args.Reason);
                 });
             };
-            allowedService.StartUserMonitoring(Core.Constants.AutoUpdateCheckInterval);
+            _ = Task.Delay(TimeSpan.FromSeconds(5)).ContinueWith(
+                _ => allowedService.StartUserMonitoring(Core.Constants.AutoUpdateCheckInterval),
+                TaskScheduler.Default);
         }
-
 
         private async Task RunOptionalStartupTaskAsync(
             string taskName,
@@ -928,7 +932,11 @@ namespace vrcosc_magicchatbox
                     var componentStats = Services.GetRequiredService<ComponentStatsModule>();
                     Services.GetRequiredService<ComponentStatsViewModel>();
                     await bootMods.RegisterComponentStatsAsync(componentStats).ConfigureAwait(false);
-                    componentStats.StartModule();
+                    if (_integrationSettings.IntgrComponentStats
+                        && Services.GetRequiredService<IPrivacyConsentService>().IsApproved(PrivacyHook.HardwareMonitor))
+                    {
+                        componentStats.StartModule();
+                    }
                     LogStep("ComponentStats");
                 }, cancellationToken),
                 RunOptionalStartupTaskAsync("NetworkStats", () =>
@@ -967,7 +975,7 @@ namespace vrcosc_magicchatbox
 
             loadingWindow.UpdateProgress("Finishing the last startup modules...", 85, "Starting runtime modules...");
             ApplicationMediaController = new MediaLinkModule(
-                _integrationSettings.IntgrScanMediaLink,
+                shouldStart: false,
                 Services.GetRequiredService<IPrivacyConsentService>(),
                 Services.GetRequiredService<IAppState>(),
                 Services.GetRequiredService<MediaLinkDisplayState>(),
@@ -976,6 +984,20 @@ namespace vrcosc_magicchatbox
                 Services.GetRequiredService<IUiDispatcher>(),
                 Services.GetRequiredService<IToastService>());
             LogStep("MediaLinkModule");
+
+            await RunOptionalStartupTaskAsync(
+                "MediaLink session listener",
+                () => ApplicationMediaController.StartIfEnabled(),
+                cancellationToken);
+
+            if (_integrationSettings.IntgrScanMediaLink
+                && Services.GetRequiredService<IPrivacyConsentService>().IsApproved(PrivacyHook.MediaSession)
+                && !ApplicationMediaController.IsRunning)
+            {
+                Logging.WriteInfo(
+                    "[Startup] MediaLink is enabled but the Windows media session did not attach. " +
+                    "Music Display will stay empty this session; the media session service usually needs a reboot to recover.");
+            }
 
             loadingWindow.UpdateProgress("Starting runtime modules...", 90, "Building the main window shell...");
             await Task.WhenAll(

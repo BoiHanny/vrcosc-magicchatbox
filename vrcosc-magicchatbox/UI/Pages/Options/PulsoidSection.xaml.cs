@@ -10,6 +10,8 @@ public partial class PulsoidSection : UserControl
     public PulsoidSection()
     {
         InitializeComponent();
+
+        Loaded += (_, _) => (DataContext as PulsoidSectionViewModel)?.AttachPreview();
     }
 
     private void ManualPulsoidAuthBtn_MouseUp(object sender, System.Windows.Input.MouseButtonEventArgs e)

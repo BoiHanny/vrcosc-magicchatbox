@@ -1,6 +1,6 @@
-﻿using System.Text;
-using vrcosc_magicchatbox.Classes.Modules;
+﻿using vrcosc_magicchatbox.Classes.Modules;
 using vrcosc_magicchatbox.Core.Configuration;
+using vrcosc_magicchatbox.Core.Osc.Text;
 using vrcosc_magicchatbox.ViewModels.State;
 
 namespace vrcosc_magicchatbox.Core.Osc.Providers;
@@ -33,21 +33,27 @@ public sealed class WindowOscProvider : IOscProvider
         if (!_intgr.IntgrScanWindowActivity || _chatStatus.FocusedWindow.Length == 0)
             return null;
 
-        var sb = new StringBuilder();
-        if (context.IsVRRunning)
-        {
-            sb.Append(_waSettings.VrTitle);
-            if (_intgr.IntgrScanForce)
-                sb.Append($" {_waSettings.VrFocusTitle} {_chatStatus.FocusedWindow}");
-        }
-        else
-        {
-            sb.Append(_waSettings.DesktopTitle);
-            if (_waSettings.ShowFocusedApp)
-                sb.Append($" {_waSettings.DesktopFocusTitle} {_chatStatus.FocusedWindow}");
-        }
+        string heading = context.IsVRRunning ? _waSettings.VrTitle : _waSettings.DesktopTitle;
+        string focusWord = context.IsVRRunning ? _waSettings.VrFocusTitle : _waSettings.DesktopFocusTitle;
+        bool showFocus = context.IsVRRunning ? _intgr.IntgrScanForce : _waSettings.ShowFocusedApp;
 
-        string text = sb.ToString();
-        return string.IsNullOrWhiteSpace(text) ? null : new OscSegment { Text = text };
+        string Compose(string? word, string? app)
+            => new SegmentWriter()
+                .Field(OscText.Raw(heading), OscText.Raw(word), OscText.Value(app))
+                .Text;
+
+        int budget = context.RemainingCharsIf(string.Empty);
+        string app = _chatStatus.FocusedWindow;
+
+        string text = showFocus
+            ? SegmentWriter.Fit(
+                budget,
+                () => Compose(focusWord, app),
+                () => Compose(null, app),
+                () => Compose(null, SegmentWriter.Truncate(app, budget - (Compose(null, "x").Length - 1))),
+                () => Compose(null, null))
+            : SegmentWriter.Fit(budget, () => Compose(null, null));
+
+        return text.Length == 0 ? null : new OscSegment { Text = text };
     }
 }

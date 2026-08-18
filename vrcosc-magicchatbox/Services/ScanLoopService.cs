@@ -17,14 +17,12 @@ public sealed class ScanLoopService : IDisposable
     private Timer? _backgroundCheck;
     private TimeSpan _currentInterval;
     private static readonly TimeSpan ComponentStatsMinInterval = TimeSpan.FromSeconds(2);
-    private static readonly TimeSpan VrCheckMinInterval = TimeSpan.FromSeconds(2);
+    private static readonly TimeSpan VrCheckMinInterval = TimeSpan.FromSeconds(5);
     private static readonly TimeSpan WindowActivityMinInterval = TimeSpan.FromSeconds(1);
     private static readonly TimeSpan VrCheckTimeout = TimeSpan.FromSeconds(2);
+    private static readonly TimeSpan WindowActivityTimeout = TimeSpan.FromSeconds(4);
     private static readonly TimeSpan HardwareStatsTimeout = TimeSpan.FromSeconds(5);
 
-    // Opening the sensor library is a one-off that measured ~14.6s on a two-GPU machine. Holding the
-    // first tick to the steady-state watchdog tripped it three times and disabled the integration
-    // before it had ever produced a reading.
     private static readonly TimeSpan HardwareStatsFirstRunTimeout = TimeSpan.FromSeconds(45);
     private readonly IAppState _appState;
     private readonly ChatStatusDisplayState _chatStatus;
@@ -61,6 +59,9 @@ public sealed class ScanLoopService : IDisposable
     private readonly Lazy<IOscSender> _oscSender;
     private IOscSender OscSend => _oscSender.Value;
 
+    private readonly Lazy<ILiveTypingService> _liveTyping;
+    private ILiveTypingService LiveTyping => _liveTyping.Value;
+
     private bool _started;
 
     private static TimeSpan ToOscTickInterval(double seconds)
@@ -88,7 +89,8 @@ public sealed class ScanLoopService : IDisposable
         ISettingsProvider<ChatSettings> chatSettingsProvider,
         ISettingsProvider<AppSettings> appSettingsProvider,
         Lazy<OSCController> osc,
-        Lazy<IOscSender> oscSender)
+        Lazy<IOscSender> oscSender,
+        Lazy<ILiveTypingService> liveTyping)
     {
         _appState = appState;
         _chatStatus = chatStatus;
@@ -106,6 +108,7 @@ public sealed class ScanLoopService : IDisposable
 
         _osc = osc;
         _oscSender = oscSender;
+        _liveTyping = liveTyping;
     }
 
     public void Start()
@@ -136,6 +139,13 @@ public sealed class ScanLoopService : IDisposable
         if (!_started || _disposed)
             return;
 
+        if (LiveTyping.IsHolding)
+        {
+            StopPauseTimer();
+            StopChatUpdateTimer();
+            return;
+        }
+
         if (IsChatOverrideActive())
         {
             StartPauseTimerIfNeeded();
@@ -151,13 +161,17 @@ public sealed class ScanLoopService : IDisposable
 
     private bool IsChatOverrideActive()
     {
-        return IsChatOverrideActive(_chatStatus.ScanPause, _chatStatus.LastMessages);
+        return LiveTyping.IsHolding
+            || IsChatOverrideActive(_chatStatus.ScanPause, _chatStatus.LastMessagesSnapshot);
     }
 
     public static bool IsChatOverrideActive(bool scanPause, IEnumerable<ChatItem>? lastMessages)
     {
         return scanPause && lastMessages != null && lastMessages.Any(x => x.IsRunning);
     }
+
+    public static bool ShouldPresent(bool started, bool disposed, bool chatOverrideActive, bool liveTypingHolding)
+        => started && !disposed && !chatOverrideActive && !liveTypingHolding;
 
     public async Task Scantick(bool firstRun = false)
     {
@@ -187,7 +201,13 @@ public sealed class ScanLoopService : IDisposable
                 if (!_started || _disposed) return;
                 if (IsChatOverrideActive()) return;
 
-                Osc.BuildOSC();
+                var osc = Osc;
+                var built = await Task.Run(() => osc.Build()).ConfigureAwait(true);
+
+                if (!ShouldPresent(_started, _disposed, IsChatOverrideActive(), LiveTyping.IsHolding))
+                    return;
+
+                osc.Present(built);
 
                 long nowMs = nowUtc.Ticks / TimeSpan.TicksPerMillisecond;
                 long lastMs = _lastOSCMessageTime.Ticks / TimeSpan.TicksPerMillisecond;
@@ -236,15 +256,11 @@ public sealed class ScanLoopService : IDisposable
                 && Interlocked.CompareExchange(ref _windowActivityInFlight, 1, 0) == 0)
             {
                 _lastWindowActivityUtc = DateTime.UtcNow;
-                tasks.Add(_faultTracker.RunGuardedAsync("WindowActivity", UpdateFocusedWindowAsync));
+                tasks.Add(RunWindowActivityAsync());
             }
 
             if (_integrationSettings.IntgrComponentStats)
             {
-                // The in-flight guard is the point. A hardware read that outruns the tick interval used
-                // to start a second one on top of it, and the sensor service is not built for concurrent
-                // reads: the reads pile up, each one slower than the last, until every one of them blows
-                // the 5s timeout and the guard disables the integration for two minutes.
                 if (IsComponentStatsDue()
                     && Interlocked.CompareExchange(ref _componentStatsInFlight, 1, 0) == 0)
                 {
@@ -253,8 +269,6 @@ public sealed class ScanLoopService : IDisposable
             }
             else if (_statsModule.IsValueCreated && _integrationDisplay.ComponentStatsRunning)
             {
-                // Turning the integration off stops the tick, so nothing was left to run the module's own
-                // stop path: it kept reporting itself as running and held the sensor service open.
                 tasks.Add(_faultTracker.RunGuardedAsync(
                     "HardwareStatsStop",
                     () => Task.Run(() => _statsModule.Value.StopAndClear()),
@@ -274,17 +288,25 @@ public sealed class ScanLoopService : IDisposable
 
     #region Module update helpers
 
-    private async Task UpdateFocusedWindowAsync()
+    private async Task RunWindowActivityAsync()
     {
         try
         {
-            _chatStatus.FocusedWindow = await Task.Run(
-                () => _windowActivity.GetForegroundProcessName()).ConfigureAwait(false);
+            await _faultTracker.RunGuardedAsync(
+                "WindowActivity",
+                UpdateFocusedWindowAsync,
+                WindowActivityTimeout).ConfigureAwait(false);
         }
         finally
         {
             Interlocked.Exchange(ref _windowActivityInFlight, 0);
         }
+    }
+
+    private async Task UpdateFocusedWindowAsync()
+    {
+        _chatStatus.FocusedWindow = await Task.Run(
+            () => _windowActivity.GetForegroundProcessName()).ConfigureAwait(false);
     }
 
     private async Task UpdateCurrentTimeAsync()
@@ -313,7 +335,6 @@ public sealed class ScanLoopService : IDisposable
         }
         finally
         {
-            // Stamped on completion, not on dispatch, so a slow read cannot be immediately re-queued.
             _lastComponentStatsUpdateUtc = DateTime.UtcNow;
             Interlocked.Exchange(ref _componentStatsInFlight, 0);
         }
@@ -356,10 +377,6 @@ public sealed class ScanLoopService : IDisposable
         if (_chatUpdateTimer != null) return;
         if (_chatStatus.LastMessages == null) return;
 
-        var lastSend = _chatStatus.LastMessages.FirstOrDefault(x => x.IsRunning);
-        if (lastSend != null)
-            lastSend.LiveEditButtonTxt = "Sending...";
-
         _chatUpdateTimer = new System.Timers.Timer((int)(CS.ChattingUpdateRate * 1000));
         _chatUpdateTimer.Elapsed += OnChatUpdateTimerTick;
         _chatUpdateTimer.Start();
@@ -393,12 +410,7 @@ public sealed class ScanLoopService : IDisposable
                 _chatStatus.ScanPauseCountDown--;
 
                 if (lastSendChat != null)
-                {
                     lastSendChat.CanLiveEdit = CS.ChatLiveEdit;
-                    lastSendChat.LiveEditButtonTxt = CS.RealTimeChatEdit
-                        ? $"Live Edit ({_chatStatus.ScanPauseCountDown})"
-                        : $"Edit ({_chatStatus.ScanPauseCountDown})";
-                }
 
                 if (_chatStatus.ScanPauseCountDown <= 0 || !_chatStatus.ScanPause)
                 {

@@ -21,7 +21,14 @@ public partial class PulsoidModuleSettings : VersionedSettings
     [ObservableProperty]
     private int throttleHRMax = 105;
 
+    partial void OnThrottleHRMaxChanged(int value)
+    {
+        if (value < 40) ThrottleHRMax = 40;
+        else if (value > 199) ThrottleHRMax = 199;
+    }
+
     [ObservableProperty]
+    [property: JsonIgnore]
     private int currentHeartIconIndex = 0;
 
     [ObservableProperty]
@@ -41,6 +48,7 @@ public partial class PulsoidModuleSettings : VersionedSettings
     private int heartRateAdjustment = -5;
 
     [ObservableProperty]
+    [property: JsonIgnore]
     private string heartRateIcon = "❤️";
 
     [ObservableProperty]
@@ -50,6 +58,7 @@ public partial class PulsoidModuleSettings : VersionedSettings
     private bool heartRateTitle = false;
 
     [ObservableProperty]
+    [property: JsonIgnore]
     private string heartRateTrendIndicator = string.Empty;
 
     [ObservableProperty]
@@ -153,13 +162,6 @@ public partial class PulsoidModuleSettings : VersionedSettings
     private bool _tokenEncryptionFailed;
     private bool _storedTokenUnreadable;
 
-    /// <summary>
-    /// True when DPAPI refused to <em>protect</em> a token we are holding in memory. The credential
-    /// itself is fine and heart rate works for the rest of this session; it simply will not survive
-    /// a restart. Never serialized: it describes this session, not the credential.
-    /// This is deliberately separate from <see cref="StoredTokenUnreadable"/> — conflating the two
-    /// meant an encrypt failure silently disabled heart rate and blamed decryption for it.
-    /// </summary>
     [JsonIgnore]
     public bool TokenEncryptionFailed
     {
@@ -174,12 +176,6 @@ public partial class PulsoidModuleSettings : VersionedSettings
         }
     }
 
-    /// <summary>
-    /// True when a ciphertext exists on disk but DPAPI could not <em>unprotect</em> it on this
-    /// Windows account, so there is nothing usable in memory at all. Never serialized. While it is
-    /// set the stored ciphertext has deliberately been left alone rather than overwritten with
-    /// nothing — it may well decrypt on the account it came from.
-    /// </summary>
     [JsonIgnore]
     public bool StoredTokenUnreadable
     {
@@ -204,9 +200,6 @@ public partial class PulsoidModuleSettings : VersionedSettings
 
             if (incoming.Length == 0)
             {
-                // An explicit clear is the user disconnecting: both halves go, unconditionally.
-                // Guarding on the plaintext alone made this a silent no-op after a failed decrypt,
-                // where the plaintext is already empty but the ciphertext on disk is not.
                 ClearStoredToken();
                 return;
             }
@@ -226,10 +219,6 @@ public partial class PulsoidModuleSettings : VersionedSettings
             }
             else
             {
-                // Encryption failed. Keep the working plaintext for this session — heart rate is
-                // perfectly usable — but do not leave a *different* credential sitting in the
-                // ciphertext: the flag is not persisted, so the next launch would decrypt the old
-                // blob cleanly and silently sign the user back in as the superseded token.
                 TokenEncryptionFailed = true;
                 if (_accessTokenOAuthEncrypted.Length > 0 && !StoredCipherDecryptsTo(incoming))
                     _accessTokenOAuthEncrypted = string.Empty;
@@ -274,9 +263,6 @@ public partial class PulsoidModuleSettings : VersionedSettings
                 }
                 else
                 {
-                    // Decryption failed (different Windows account, restored profile, corrupt blob).
-                    // The ciphertext stays exactly as it is on disk — it may well decrypt elsewhere —
-                    // but the failure is made visible instead of presenting a silently empty token.
                     _accessTokenOAuth = string.Empty;
                     TokenEncryptionFailed = false;
                     StoredTokenUnreadable = true;
@@ -292,12 +278,6 @@ public partial class PulsoidModuleSettings : VersionedSettings
         }
     }
 
-    /// <summary>
-    /// Forgets the Pulsoid credential completely: plaintext, ciphertext and both protection flags.
-    /// This is what Disconnect must call. Assigning <see cref="string.Empty"/> to
-    /// <see cref="AccessTokenOAuth"/> routes here for the same reason, but going through an
-    /// explicit method makes it obvious that clearing is unconditional and never value-guarded.
-    /// </summary>
     public void ClearStoredToken()
     {
         _accessTokenOAuth = string.Empty;
@@ -305,22 +285,14 @@ public partial class PulsoidModuleSettings : VersionedSettings
         TokenEncryptionFailed = false;
         StoredTokenUnreadable = false;
 
-        // Raised unconditionally: the settings provider only writes to disk when it hears a
-        // change, and a clear that stays in memory is exactly the bug this method exists to fix.
         OnPropertyChanged(nameof(AccessTokenOAuth));
         OnPropertyChanged(nameof(AccessTokenOAuthEncrypted));
     }
 
-    /// <summary>True when the ciphertext currently on disk decrypts to exactly this plaintext.</summary>
     private bool StoredCipherDecryptsTo(string plaintext)
         => TryUnprotectToken(_accessTokenOAuthEncrypted, out string plain)
            && string.Equals(plain, plaintext, StringComparison.Ordinal);
 
-    /// <summary>
-    /// DPAPI protect, isolated behind a seam because it cannot be made to fail on demand on a
-    /// healthy machine, and the behaviour on failure is the whole point of the encrypt/unreadable
-    /// split. Tests override it; nothing else should.
-    /// </summary>
     protected virtual bool TryProtectToken(string plaintext, out string ciphertext)
     {
         string source = plaintext;
@@ -330,7 +302,6 @@ public partial class PulsoidModuleSettings : VersionedSettings
         return ok;
     }
 
-    /// <summary>DPAPI unprotect. See <see cref="TryProtectToken"/> for why this is virtual.</summary>
     protected virtual bool TryUnprotectToken(string ciphertext, out string plaintext)
     {
         string source = ciphertext;

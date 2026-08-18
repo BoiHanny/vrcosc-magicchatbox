@@ -9,7 +9,12 @@ namespace vrcosc_magicchatbox.Services;
 public interface IMediaLinkService
 {
     DateTime LastMediaChangeTime { get; }
+
+    bool IsRunning { get; }
+
     void Start();
+
+    void StartIfEnabled();
     void Dispose();
     void SelectMediaSession(MediaSessionInfo sessionInfo);
     Task MediaManager_NextAsync(MediaSessionInfo sessionInfo);

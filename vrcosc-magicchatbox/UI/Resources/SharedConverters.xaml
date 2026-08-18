@@ -6,6 +6,7 @@
     <conv:CountToVisibilityConverter x:Key="CountToVisibilityConverter" />
     <conv:CharacterCountToBoolConverter x:Key="CharacterCountToBoolConverter" />
     <conv:BoolToBlurEffectConverter x:Key="BoolToBlurEffectConverter" />
+    <conv:BlurRadiusToEffectConverter x:Key="BlurRadiusToEffectConverter" />
     <conv:InverseBoolToVisibilityConverter x:Key="InverseBoolToVisibilityConverter" />
     <conv:InverseBoolToHiddenConverter x:Key="InverseBoolToHiddenConverter" />
     <conv:InvertBooleanConverter x:Key="InvertBooleanConverter" />
@@ -14,6 +15,7 @@
     <conv:EnumDescriptionConverter x:Key="EnumDescriptionConverter" />
     <conv:TwitchAnnouncementColorToBrushConverter x:Key="TwitchAnnouncementColorToBrushConverter" />
     <conv:IndexToVisibilityConverter x:Key="IndexToVisibilityConverter" />
+    <conv:IndexToBoolConverter x:Key="IndexToBoolConverter" />
     <conv:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" />
     <conv:ColumnWidthConverter x:Key="ColumnWidthConverter" />
     <conv:MaskedWeatherCityConverter x:Key="MaskedWeatherCityConverter" />

@@ -17,11 +17,11 @@ namespace vrcosc_magicchatbox.UI.Pages
 {
     public partial class IntegrationsPage : UserControl
     {
-        private ObservableCollection<string> _integrationSortOrder;
+        private ObservableCollection<string>? _integrationSortOrder;
 
-        // One entry per realised lyrics ribbon (there are two - the Spotify card and Media link), holding
-        // the ScrollViewer it subscribed to and the exact delegate, so Unloaded can detach it again.
         private readonly Dictionary<FrameworkElement, (ScrollViewer Scroller, ScrollChangedEventHandler Handler)> _ribbonScrollHooks = new();
+
+        private IntegrationsPageViewModel? _attachedVm;
 
         private IntegrationsPageViewModel? VM => DataContext as IntegrationsPageViewModel;
 
@@ -31,21 +31,62 @@ namespace vrcosc_magicchatbox.UI.Pages
             DataContextChanged += (_, e) =>
             {
                 if (e.OldValue is IntegrationsPageViewModel oldVm)
-                    oldVm.IntegrationDisplay.PropertyChanged -= IntegrationDisplay_PropertyChanged;
+                    Detach(oldVm);
 
-                if (e.NewValue is IntegrationsPageViewModel vm)
-                {
-                    vm.IntegrationDisplay.PropertyChanged += IntegrationDisplay_PropertyChanged;
-                    HookIntegrationSortOrder();
-
-                    vm.TileLayoutChanged -= OnTileLayoutChanged;
-                    vm.TileLayoutChanged += OnTileLayoutChanged;
-                    vm.TileShown -= OnTileShown;
-                    vm.TileShown += OnTileShown;
-
-                    ApplyIntegrationOrder();
-                }
+                if (e.NewValue is IntegrationsPageViewModel)
+                    Attach();
             };
+
+            Loaded += OnLoaded;
+            Unloaded += OnUnloaded;
+        }
+
+        private void Attach()
+        {
+            var vm = VM;
+            if (vm == null || _attachedVm != null) return;
+
+            vm.IntegrationDisplay.PropertyChanged += IntegrationDisplay_PropertyChanged;
+            HookIntegrationSortOrder();
+
+            vm.TileLayoutChanged += OnTileLayoutChanged;
+            vm.TileShown += OnTileShown;
+            _attachedVm = vm;
+
+            ApplyIntegrationOrder();
+        }
+
+        private void Detach(IntegrationsPageViewModel? vm)
+        {
+            if (_attachedVm == null) return;
+
+            vm ??= _attachedVm;
+            _attachedVm = null;
+
+            if (vm != null)
+            {
+                vm.IntegrationDisplay.PropertyChanged -= IntegrationDisplay_PropertyChanged;
+                vm.TileLayoutChanged -= OnTileLayoutChanged;
+                vm.TileShown -= OnTileShown;
+            }
+
+            if (_integrationSortOrder != null)
+            {
+                _integrationSortOrder.CollectionChanged -= IntegrationSortOrder_CollectionChanged;
+                _integrationSortOrder = null;
+            }
+        }
+
+        private void OnLoaded(object sender, RoutedEventArgs e) => Attach();
+
+        private void OnUnloaded(object sender, RoutedEventArgs e)
+        {
+            Detach(_attachedVm);
+
+            foreach (var hook in _ribbonScrollHooks.Values)
+                hook.Scroller.ScrollChanged -= hook.Handler;
+
+            _ribbonScrollHooks.Clear();
         }
 
         public void ApplyIntegrationOrder()
@@ -89,8 +130,6 @@ namespace vrcosc_magicchatbox.UI.Pages
             IntegrationsList.BeginInit();
             IntegrationsList.Items.Clear();
 
-            // The hidden strip is the first item rather than a pinned row above the list, so it scrolls
-            // away with the content instead of permanently taking space at the top of the page.
             if (HiddenStripItem != null && hidden.Count > 0)
                 IntegrationsList.Items.Add(HiddenStripItem);
 
@@ -98,8 +137,6 @@ namespace vrcosc_magicchatbox.UI.Pages
             {
                 if (itemMap.TryGetValue(key, out var item))
                 {
-                    // Recorded as used before the hidden check. If a hidden key were left unrecorded, the
-                    // safety-net pass below would add it straight back at the bottom of the list.
                     usedKeys.Add(key);
 
                     if (!hidden.Contains(key))
@@ -123,8 +160,6 @@ namespace vrcosc_magicchatbox.UI.Pages
         {
             if (!IntegrationTileCatalog.TryGet(key, out var tile)) return;
 
-            // The item is only added to Items during the relayout above, so wait for that pass to finish
-            // before trying to scroll to it.
             Dispatcher.BeginInvoke(new Action(() =>
             {
                 var container = IntegrationsList.Items
@@ -138,8 +173,6 @@ namespace vrcosc_magicchatbox.UI.Pages
 
         private void HideTile_Click(object sender, RoutedEventArgs e)
         {
-            // No CommandParameter anywhere in the XAML: the key is recovered from the tile the button sits in,
-            // so 16 hand-typed strings cannot drift out of sync with itemMap.
             if (sender is not DependencyObject source) return;
 
             var container = ItemsControl.ContainerFromElement(IntegrationsList, source) as ListBoxItem;
@@ -243,15 +276,6 @@ namespace vrcosc_magicchatbox.UI.Pages
         private void SoundPadRandon_Click(object sender, RoutedEventArgs e)
             => VM?.SoundpadRandomCommand.Execute(null);
 
-        /// <summary>
-        /// The lyrics ribbon hops between the Spotify and Media link cards, and the losing card's copy
-        /// of the template just collapses. WPF hides the popup along with it, but the toggle would stay
-        /// latched, so the next click on it would only untick and open nothing.
-        /// </summary>
-        /// <remarks>
-        /// A style trigger on IsVisible cannot do this: a user click sets IsChecked as a local value,
-        /// which outranks any style setter.
-        /// </remarks>
         private void LyricsRibbonRoot_IsVisibleChanged(object sender, DependencyPropertyChangedEventArgs e)
         {
             if (e.NewValue is true) return;
@@ -259,19 +283,6 @@ namespace vrcosc_magicchatbox.UI.Pages
             CloseLyricsFlyout(sender as FrameworkElement);
         }
 
-        /// <summary>
-        /// The sync flyout is a <see cref="System.Windows.Controls.Primitives.Popup"/>, so it is pinned in
-        /// screen space and does not travel with the ribbon when the integrations list scrolls. Closing it
-        /// on scroll is cheaper than trying to keep it glued.
-        /// </summary>
-        /// <remarks>
-        /// ScrollChanged cannot be handled on the ribbon itself, despite being a bubbling routed event: the
-        /// ScrollViewer that raises it is an ANCESTOR of the ribbon, inside the ListBox template, so the
-        /// event travels away from the ribbon rather than through it. The subscription therefore goes on
-        /// that ScrollViewer, and the handler closes only the ribbon instance it was created for - the
-        /// template is realised twice, once on the Spotify card and once on Media link, and scrolling must
-        /// not reach across into the other card's popup.
-        /// </remarks>
         private void LyricsRibbonRoot_Loaded(object sender, RoutedEventArgs e)
         {
             if (sender is not FrameworkElement root || _ribbonScrollHooks.ContainsKey(root)) return;
@@ -281,7 +292,6 @@ namespace vrcosc_magicchatbox.UI.Pages
 
             void OnScrollChanged(object s, ScrollChangedEventArgs args)
             {
-                // Extent/viewport changes raise this too - a relayout must not slam the flyout shut.
                 if (args.VerticalChange == 0 && args.HorizontalChange == 0) return;
 
                 CloseLyricsFlyout(root);

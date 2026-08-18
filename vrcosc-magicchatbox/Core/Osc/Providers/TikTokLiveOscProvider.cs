@@ -32,7 +32,7 @@ public sealed class TikTokLiveOscProvider : IOscProvider
         if (tikTokLive == null)
             return null;
 
-        string text = tikTokLive.GetOutputString();
+        string text = tikTokLive.GetOutputString(context.RemainingCharsIf(string.Empty));
         if (string.IsNullOrWhiteSpace(text))
             return null;
 

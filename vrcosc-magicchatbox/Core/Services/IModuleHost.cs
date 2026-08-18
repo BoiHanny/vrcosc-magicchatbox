@@ -24,4 +24,6 @@ public interface IModuleHost : INotifyPropertyChanged
     IReadOnlyList<vrcosc_magicchatbox.Services.IModule> AllModules { get; }
 
     void RegisterModule(vrcosc_magicchatbox.Services.IModule module);
+
+    System.Threading.Tasks.Task StopAllAsync(System.TimeSpan perModuleTimeout);
 }

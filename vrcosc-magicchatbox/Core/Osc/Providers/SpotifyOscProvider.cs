@@ -1,6 +1,7 @@
 ﻿using System;
 using vrcosc_magicchatbox.Classes.Modules;
 using vrcosc_magicchatbox.Core.Configuration;
+using vrcosc_magicchatbox.Core.Osc.Text;
 using vrcosc_magicchatbox.Core.Services;
 using vrcosc_magicchatbox.ViewModels.State;
 
@@ -49,10 +50,16 @@ public sealed class SpotifyOscProvider : IOscProvider
                 _settings.TransientDuration))
             return null;
 
-        string text = spotify.BuildOutputString(context);
+        string text = ToSegmentText(
+            spotify.BuildOutputString(context),
+            context.RemainingCharsIf(string.Empty));
+
         if (string.IsNullOrWhiteSpace(text))
             return null;
 
         return new OscSegment { Text = text };
     }
+
+    public static string ToSegmentText(string? text, int budget)
+        => SegmentWriter.Truncate(TemplateLine.DropStrandedJoiners(text), budget);
 }

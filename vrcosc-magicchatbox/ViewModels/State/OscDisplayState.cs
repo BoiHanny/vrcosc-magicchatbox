@@ -16,10 +16,8 @@ public partial class OscDisplayState : ObservableObject
 
     [ObservableProperty] private string _oscMsgCountUI = string.Empty;
 
-    /// <summary>Drives the counter chip beside the preview. See <see cref="OscPreviewFillLevel"/>.</summary>
     public OscPreviewFill Fill => OscPreviewFillLevel.Classify(OscMsgCount);
 
-    /// <summary>False when there is nothing composed, so the preview can say so instead of sitting blank.</summary>
     public bool HasPreview => !string.IsNullOrWhiteSpace(OscToSent);
 
     private DateTime _lastSwitchCycle = DateTime.Now;

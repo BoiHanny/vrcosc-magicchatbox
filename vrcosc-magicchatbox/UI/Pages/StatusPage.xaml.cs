@@ -27,6 +27,12 @@ namespace vrcosc_magicchatbox.UI.Pages
                 if (args.NewValue is true)
                     FocusStatusInput();
             };
+
+            Unloaded += (_, _) =>
+            {
+                if (DataContext is StatusPageViewModel vm)
+                    vm.IsGroupDropdownOpen = false;
+            };
         }
 
         public void FocusStatusInput()

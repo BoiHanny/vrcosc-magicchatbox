@@ -36,7 +36,6 @@ public partial class TimeSettings : VersionedSettings
     [ObservableProperty] private bool _timeShowTimeZone = false;
     [ObservableProperty] private Timezone _selectedTimeZone = Timezone.UTC;
     [ObservableProperty] private bool _useDaylightSavingTime = true;
-    [ObservableProperty] private bool _autoSetDaylight = true;
     [ObservableProperty] private bool _useSystemCulture = false;
     [ObservableProperty] private DateTime _bussyBoysDate = DateTime.Now;
     [ObservableProperty] private bool _bussyBoysDateEnable = false;

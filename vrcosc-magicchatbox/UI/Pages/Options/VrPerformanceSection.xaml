@@ -2,6 +2,7 @@
     x:Class="vrcosc_magicchatbox.UI.Pages.Options.VrPerformanceSection"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:controls="clr-namespace:vrcosc_magicchatbox.UI.Controls"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:sections="clr-namespace:vrcosc_magicchatbox.ViewModels.Sections"
@@ -11,7 +12,7 @@
     <UserControl.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
-                <ResourceDictionary Source="/UI/Resources/SharedConverters.xaml" />
+                <ResourceDictionary Source="/MagicChatbox;component/UI/Resources/SharedConverters.xaml" />
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
     </UserControl.Resources>
@@ -47,93 +48,17 @@
 
             <Border Style="{StaticResource OptionCardStyle}">
                 <StackPanel>
-                    <TextBlock
-                        Margin="0,0,0,8"
-                        FontFamily="/Fonts/#Comfortaa"
-                        FontSize="13"
-                        Foreground="{StaticResource TextSectionHeaderBrush}"
-                        Text="Preview" />
+                    <TextBlock Style="{StaticResource OptionSubsectionHeaderStyle}" Text="What goes in your chatbox" />
 
-                    <Grid Margin="0,0,0,6">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="70" />
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="Auto" />
-                        </Grid.ColumnDefinitions>
-                        <TextBlock
-                            Grid.Column="0"
-                            VerticalAlignment="Center"
-                            FontFamily="/Fonts/#Albert Sans"
-                            FontSize="11"
-                            Foreground="{StaticResource TextMutedBrush}"
-                            Text="Healthy" />
-                        <Border
-                            Grid.Column="1"
-                            Padding="8,4"
-                            Background="{StaticResource AccentDeepPurpleBrush}"
-                            CornerRadius="4">
-                            <TextBlock
-                                FontFamily="/Fonts/#Comfortaa"
-                                FontSize="15"
-                                Foreground="White"
-                                Text="{Binding HealthyPreview}"
-                                TextWrapping="Wrap" />
-                        </Border>
-                        <TextBlock
-                            Grid.Column="2"
-                            Margin="8,0,0,0"
-                            VerticalAlignment="Center"
-                            FontFamily="/Fonts/#Albert Sans"
-                            FontSize="11"
-                            Foreground="{StaticResource TextMutedBrush}"
-                            Text="{Binding HealthyPreviewLength}" />
-                    </Grid>
-
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="70" />
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="Auto" />
-                        </Grid.ColumnDefinitions>
-                        <TextBlock
-                            Grid.Column="0"
-                            VerticalAlignment="Center"
-                            FontFamily="/Fonts/#Albert Sans"
-                            FontSize="11"
-                            Foreground="{StaticResource TextMutedBrush}"
-                            Text="Struggling" />
-                        <Border
-                            Grid.Column="1"
-                            Padding="8,4"
-                            Background="{StaticResource AccentDeepPurpleBrush}"
-                            CornerRadius="4">
-                            <TextBlock
-                                FontFamily="/Fonts/#Comfortaa"
-                                FontSize="15"
-                                Foreground="White"
-                                Text="{Binding DegradedPreview}"
-                                TextWrapping="Wrap" />
-                        </Border>
-                        <TextBlock
-                            Grid.Column="2"
-                            Margin="8,0,0,0"
-                            VerticalAlignment="Center"
-                            FontFamily="/Fonts/#Albert Sans"
-                            FontSize="11"
-                            Foreground="{StaticResource TextMutedBrush}"
-                            Text="{Binding DegradedPreviewLength}" />
-                    </Grid>
+                    <!--  Both states, because "only when frames drop" is otherwise invisible until it happens.  -->
+                    <controls:SegmentPreview Caption="While everything is running smoothly" Line="{Binding HealthyPreview}" />
+                    <controls:SegmentPreview Caption="While your headset is struggling" Line="{Binding DegradedPreview}" />
                 </StackPanel>
             </Border>
 
             <Border Style="{StaticResource OptionCardStyle}">
                 <StackPanel>
-                    <TextBlock
-                        Margin="0,0,0,6"
-                        FontFamily="/Fonts/#Comfortaa"
-                        FontSize="13"
-                        Foreground="{StaticResource TextSectionHeaderBrush}"
-                        Text="What to show" />
+                    <TextBlock Style="{StaticResource OptionSubsectionHeaderStyle}" Text="What to show" />
 
                     <WrapPanel Orientation="Horizontal">
                         <CheckBox
@@ -142,11 +67,11 @@
                             IsChecked="{Binding Settings.ShowFps, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                         <CheckBox
                             Margin="0,0,12,4"
-                            Content="Target Hz"
+                            Content="Headset refresh rate"
                             IsChecked="{Binding Settings.ShowTargetHz, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                         <CheckBox
                             Margin="0,0,12,4"
-                            Content="Reprojection %"
+                            Content="Frames faked to keep up %"
                             IsChecked="{Binding Settings.ShowReprojection, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                         <CheckBox
                             Margin="0,0,12,4"
@@ -158,40 +83,31 @@
                             IsChecked="{Binding Settings.ShowMotionSmoothing, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                         <CheckBox
                             Margin="0,0,12,4"
-                            Content="GPU frame time"
+                            Content="Time the game takes to draw a frame"
                             IsChecked="{Binding Settings.ShowAppGpuMs, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                         <CheckBox
                             Margin="0,0,12,4"
-                            Content="Compositor time"
+                            Content="Time SteamVR takes on top"
                             IsChecked="{Binding Settings.ShowCompositorGpuMs, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                         <CheckBox
                             Margin="0,0,12,4"
-                            Content="Frame budget %"
+                            Content="How full each frame is %"
                             IsChecked="{Binding Settings.ShowHeadroom, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                         <CheckBox
                             Margin="0,0,12,4"
-                            Content="CPU frame time"
+                            Content="Time your PC takes to prepare a frame"
                             IsChecked="{Binding Settings.ShowCpuTiming, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                     </WrapPanel>
 
-                    <TextBlock
-                        Margin="0,6,0,0"
-                        FontFamily="/Fonts/#Albert Sans"
-                        FontSize="11"
-                        Foreground="{StaticResource TextMutedBrush}"
-                        Text="The chatbox is limited to 144 characters and shared with every other integration. Turning all of these on costs roughly 55–70 of them, which pushes lower-priority integrations out."
-                        TextWrapping="Wrap" />
+                    <TextBlock Style="{StaticResource OptionHelpTextStyle}" Text="&quot;How full each frame is&quot; counts up, not down: it is the share of the frame budget already spent, so a higher number means less room left. Around 65% is comfortable and anything near 100% is about to drop frames." />
+
+                    <TextBlock Style="{StaticResource OptionHelpTextStyle}" Text="The chatbox holds 144 characters and every integration shares them. Turning all of these on costs roughly 55-70 of them, which pushes lower-priority integrations off the line." />
                 </StackPanel>
             </Border>
 
             <Border Style="{StaticResource OptionCardStyle}">
                 <StackPanel>
-                    <TextBlock
-                        Margin="0,0,0,6"
-                        FontFamily="/Fonts/#Comfortaa"
-                        FontSize="13"
-                        Foreground="{StaticResource TextSectionHeaderBrush}"
-                        Text="When to show it" />
+                    <TextBlock Style="{StaticResource OptionSubsectionHeaderStyle}" Text="When to show it" />
 
                     <ComboBox
                         Width="220"
@@ -206,33 +122,20 @@
                         </ComboBox.ItemTemplate>
                     </ComboBox>
 
-                    <TextBlock
-                        Margin="0,6,0,0"
-                        FontFamily="/Fonts/#Albert Sans"
-                        FontSize="11"
-                        Foreground="{StaticResource TextMutedBrush}"
-                        Text="'Only when frames drop' costs no characters while performance is healthy, so it never pushes another integration out unless something is actually wrong."
-                        TextWrapping="Wrap" />
+                    <TextBlock Style="{StaticResource OptionHelpTextStyle}" Text="'Only when frames drop' costs no characters while everything is running smoothly, so it never pushes another integration off the line unless something is actually wrong." />
                 </StackPanel>
             </Border>
 
             <Border Style="{StaticResource OptionCardStyle}">
                 <StackPanel>
-                    <TextBlock
-                        Margin="0,0,0,6"
-                        FontFamily="/Fonts/#Comfortaa"
-                        FontSize="13"
-                        Foreground="{StaticResource TextSectionHeaderBrush}"
-                        Text="What counts as a problem" />
+                    <TextBlock Style="{StaticResource OptionSubsectionHeaderStyle}" Text="What counts as struggling" />
 
                     <StackPanel Margin="0,2" Orientation="Horizontal">
                         <TextBlock
-                            Width="200"
+                            Width="240"
                             VerticalAlignment="Center"
-                            FontFamily="/Fonts/#Albert Sans"
-                            FontSize="12"
-                            Foreground="{StaticResource TextMutedBrush}"
-                            Text="Reprojection at or above (%)" />
+                            Style="{StaticResource OptionFieldLabelStyle}"
+                            Text="Frames faked to keep up, at or above (%)" />
                         <TextBox
                             Width="60"
                             Text="{Binding Settings.DegradedReprojectionPercent, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
@@ -240,11 +143,9 @@
 
                     <StackPanel Margin="0,2" Orientation="Horizontal">
                         <TextBlock
-                            Width="200"
+                            Width="240"
                             VerticalAlignment="Center"
-                            FontFamily="/Fonts/#Albert Sans"
-                            FontSize="12"
-                            Foreground="{StaticResource TextMutedBrush}"
+                            Style="{StaticResource OptionFieldLabelStyle}"
                             Text="Dropped frames per minute" />
                         <TextBox
                             Width="60"
@@ -253,12 +154,10 @@
 
                     <StackPanel Margin="0,2" Orientation="Horizontal">
                         <TextBlock
-                            Width="200"
+                            Width="240"
                             VerticalAlignment="Center"
-                            FontFamily="/Fonts/#Albert Sans"
-                            FontSize="12"
-                            Foreground="{StaticResource TextMutedBrush}"
-                            Text="Frame rate below (% of target)" />
+                            Style="{StaticResource OptionFieldLabelStyle}"
+                            Text="Frame rate below (% of the headset's)" />
                         <TextBox
                             Width="60"
                             Text="{Binding Settings.DegradedFpsPercentOfTarget, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
@@ -266,57 +165,42 @@
 
                     <StackPanel Margin="0,2" Orientation="Horizontal">
                         <TextBlock
-                            Width="200"
+                            Width="240"
                             VerticalAlignment="Center"
-                            FontFamily="/Fonts/#Albert Sans"
-                            FontSize="12"
-                            Foreground="{StaticResource TextMutedBrush}"
-                            Text="Seconds healthy before clearing" />
+                            Style="{StaticResource OptionFieldLabelStyle}"
+                            Text="Seconds running smoothly before it clears" />
                         <TextBox
                             Width="60"
                             Text="{Binding Settings.DegradedHysteresisSeconds, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                     </StackPanel>
 
-                    <TextBlock
-                        Margin="0,6,0,0"
-                        FontFamily="/Fonts/#Albert Sans"
-                        FontSize="11"
-                        Foreground="{StaticResource TextMutedBrush}"
-                        Text="The last one stops the warning flickering on and off when a value sits right on a threshold."
-                        TextWrapping="Wrap" />
+                    <TextBlock Style="{StaticResource OptionHelpTextStyle}" Text="The last one stops the warning flickering on and off when a value sits right on the line." />
                 </StackPanel>
             </Border>
 
             <Border Style="{StaticResource OptionCardStyle}">
                 <StackPanel>
-                    <TextBlock
-                        Margin="0,0,0,6"
-                        FontFamily="/Fonts/#Comfortaa"
-                        FontSize="13"
-                        Foreground="{StaticResource TextSectionHeaderBrush}"
-                        Text="Formatting" />
+                    <TextBlock Style="{StaticResource OptionSubsectionHeaderStyle}" Text="How it is written" />
 
                     <CheckBox
                         Margin="0,2"
-                        Content="Use emoji instead of text labels"
+                        Content="Use icons instead of words"
                         IsChecked="{Binding Settings.UseEmojisForVrPerf, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                     <CheckBox
                         Margin="0,2"
-                        Content="Small units and labels (ᶠᵖˢ  ʳᵉᵖʳᵒʲ  ᵐˢ)"
+                        Content="Small raised labels - ᶠᵖˢ instead of FPS"
                         IsChecked="{Binding Settings.UseSuperscriptUnits, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                     <CheckBox
                         Margin="0,2"
-                        Content="Round numbers (drop decimals)"
+                        Content="Round the numbers off (no decimals)"
                         IsChecked="{Binding Settings.RemoveNumberTrailing, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
 
                     <StackPanel Margin="0,4" Orientation="Horizontal">
                         <TextBlock
-                            Width="200"
+                            Width="240"
                             VerticalAlignment="Center"
-                            FontFamily="/Fonts/#Albert Sans"
-                            FontSize="12"
-                            Foreground="{StaticResource TextMutedBrush}"
-                            Text="Separator between values" />
+                            Style="{StaticResource OptionFieldLabelStyle}"
+                            Text="What goes between the values" />
                         <TextBox
                             Width="60"
                             Text="{Binding Settings.StatsSeparator, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
@@ -326,16 +210,11 @@
 
             <Border Style="{StaticResource OptionCardStyle}">
                 <StackPanel>
-                    <TextBlock
-                        Margin="0,0,0,6"
-                        FontFamily="/Fonts/#Comfortaa"
-                        FontSize="13"
-                        Foreground="{StaticResource TextSectionHeaderBrush}"
-                        Text="Status" />
+                    <TextBlock Style="{StaticResource OptionSubsectionHeaderStyle}" Text="Status" />
 
                     <TextBlock
-                        FontFamily="/Fonts/#Albert Sans"
-                        FontSize="12"
+                        FontFamily="{StaticResource FontPrimary}"
+                        FontSize="{StaticResource FontSizeCaption}"
                         Foreground="{StaticResource TextMutedBrush}"
                         Text="{Binding StatusText}"
                         TextWrapping="Wrap" />

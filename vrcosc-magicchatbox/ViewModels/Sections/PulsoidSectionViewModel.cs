@@ -1,6 +1,7 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using System;
+using System.ComponentModel;
 using System.Threading.Tasks;
 using vrcosc_magicchatbox.Classes.DataAndSecurity;
 using vrcosc_magicchatbox.Classes.Modules;
@@ -12,6 +13,61 @@ using vrcosc_magicchatbox.Services;
 using vrcosc_magicchatbox.ViewModels.State;
 
 namespace vrcosc_magicchatbox.ViewModels.Sections;
+
+public static class PulsoidPreview
+{
+    public const int SampleHeartRate = 88;
+
+    private static readonly PulsoidStatisticsResponse SampleStats = new()
+    {
+        average_beats_per_minute = 82,
+        calories_burned_in_kcal = 417,
+        maximum_beats_per_minute = 143,
+        minimum_beats_per_minute = 54,
+        streamed_duration_in_seconds = 8_130,
+    };
+
+    public static string Render(PulsoidModuleSettings live)
+        => live is null
+            ? string.Empty
+            : PulsoidModule.BuildHeartRateString(Project(live), SampleHeartRate, deviceOnline: true, SampleStats);
+
+    private static PulsoidModuleSettings Project(PulsoidModuleSettings live)
+    {
+        var symbols = live.SelectedPulsoidTrendSymbol ?? new PulsoidTrendSymbolSet();
+
+        return new PulsoidModuleSettings
+        {
+            MagicHeartIconPrefix = live.MagicHeartIconPrefix,
+            HeartRateIcon = live.HeartRateIcon,
+            ShowTemperatureText = live.ShowTemperatureText,
+            LowTemperatureThreshold = live.LowTemperatureThreshold,
+            LowHeartRateText = live.LowHeartRateText,
+            HighTemperatureThreshold = live.HighTemperatureThreshold,
+            HighHeartRateText = live.HighHeartRateText,
+            ShowBPMSuffix = live.ShowBPMSuffix,
+            HeartRateTitle = live.HeartRateTitle,
+            CurrentHeartRateTitle = live.CurrentHeartRateTitle,
+            SeparateTitleWithEnter = live.SeparateTitleWithEnter,
+            PulsoidStatsEnabled = live.PulsoidStatsEnabled,
+            HideCurrentHeartRate = live.HideCurrentHeartRate,
+            ShowCalories = live.ShowCalories,
+            ShowAverageHeartRate = live.ShowAverageHeartRate,
+            ShowMaximumHeartRate = live.ShowMaximumHeartRate,
+            ShowMinimumHeartRate = live.ShowMinimumHeartRate,
+            ShowDuration = live.ShowDuration,
+            ShowStatsTimeRange = live.ShowStatsTimeRange,
+            SelectedStatisticsTimeRange = live.SelectedStatisticsTimeRange,
+            ShowHeartRateTrendIndicator = live.ShowHeartRateTrendIndicator,
+            TrendIndicatorBehindStats = live.TrendIndicatorBehindStats,
+            SelectedPulsoidTrendSymbol = symbols,
+
+            HeartRateTrendIndicator = symbols.UpwardTrendSymbol,
+
+            EnableHeartRateOfflineCheck = false,
+        };
+    }
+}
 
 public partial class PulsoidSectionViewModel : ObservableObject
 {
@@ -28,6 +84,10 @@ public partial class PulsoidSectionViewModel : ObservableObject
 
     public PulsoidOAuthHandler PulsoidOAuth => _pulsoidOAuth.Value;
     public INavigationService Navigation => _nav;
+
+    [ObservableProperty] private string _previewLine = string.Empty;
+
+    private PulsoidModuleSettings? _watchedSettings;
 
     public PulsoidSectionViewModel(
         Lazy<IModuleHost> moduleHost,
@@ -48,6 +108,29 @@ public partial class PulsoidSectionViewModel : ObservableObject
         _nav = nav;
         _toast = toast;
     }
+
+    public void AttachPreview()
+    {
+        var settings = _moduleHost.Value.Pulsoid?.Settings;
+        if (settings == null || ReferenceEquals(settings, _watchedSettings))
+            return;
+
+        if (_watchedSettings != null)
+            _watchedSettings.PropertyChanged -= OnPulsoidSettingsChanged;
+
+        _watchedSettings = settings;
+        settings.PropertyChanged += OnPulsoidSettingsChanged;
+        RefreshPreview(settings);
+    }
+
+    private void OnPulsoidSettingsChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (sender is PulsoidModuleSettings settings)
+            RefreshPreview(settings);
+    }
+
+    private void RefreshPreview(PulsoidModuleSettings settings)
+        => PreviewLine = PulsoidPreview.Render(settings);
 
     public bool PulsoidAuthConnected
     {
@@ -106,8 +189,6 @@ public partial class PulsoidSectionViewModel : ObservableObject
                     return;
                 }
 
-                // Valid, or unverifiable because Pulsoid is unreachable — either way the user just
-                // completed a live sign-in, so keep the token rather than throwing it away.
                 pulsoid.Settings.AccessTokenOAuth = accessToken;
                 pulsoid.SaveSettings();
 
@@ -121,8 +202,6 @@ public partial class PulsoidSectionViewModel : ObservableObject
                     PulsoidAuthState = PulsoidAuthState.Authenticated;
                 }
 
-                // A failed encrypt is a storage problem, not a sign-in problem: the token works
-                // for this session. Reporting it as "unreadable" threw away a live sign-in.
                 if (pulsoid.Settings.TokenEncryptionFailed)
                 {
                     _toast.Show("Pulsoid", "Signed in, but Windows could not encrypt the token for storage — heart rate works now, and you will need to reconnect after a restart.", ToastType.Warning, key: "pulsoid-token-protect-failed");
@@ -149,8 +228,6 @@ public partial class PulsoidSectionViewModel : ObservableObject
     {
         var pulsoid = _moduleHost.Value.Pulsoid;
         if (pulsoid == null) return;
-        // Unconditional: after a failed decrypt the plaintext is already empty while the ciphertext
-        // is not, so assigning string.Empty here matched the old value-guard and cleared nothing.
         pulsoid.Settings.ClearStoredToken();
         pulsoid.SaveSettings();
         PulsoidAuthState = PulsoidAuthState.NoToken;

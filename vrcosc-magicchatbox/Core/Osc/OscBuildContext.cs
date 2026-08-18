@@ -20,11 +20,15 @@ public sealed class OscBuildContext
 
     public int RemainingCharsIf(string candidate)
     {
-        var segments = new List<string>(CurrentSegments) { candidate };
-        string joined = string.Join(Separator, segments);
-        if (!string.IsNullOrEmpty(joined))
-            joined = $"{Prefix}{joined}{Suffix}";
-        return MaxOscLength - joined.Length;
+        var segments = CurrentSegments;
+        int used = Prefix.Length + Suffix.Length + (candidate?.Length ?? 0);
+
+        for (int i = 0; i < segments.Count; i++)
+            used += segments[i]?.Length ?? 0;
+
+        used += Separator.Length * segments.Count;
+
+        return MaxOscLength - used;
     }
 
     public int LengthIf(string candidate)

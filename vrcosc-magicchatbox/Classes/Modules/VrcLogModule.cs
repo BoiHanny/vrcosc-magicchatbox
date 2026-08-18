@@ -10,13 +10,53 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using vrcosc_magicchatbox.Classes.DataAndSecurity;
+using vrcosc_magicchatbox.Core;
 using vrcosc_magicchatbox.Core.Configuration;
+using vrcosc_magicchatbox.Core.Osc.Text;
 using vrcosc_magicchatbox.Core.Privacy;
 using vrcosc_magicchatbox.Core.State;
 using vrcosc_magicchatbox.Core.Toast;
 using vrcosc_magicchatbox.Services;
 
 namespace vrcosc_magicchatbox.Classes.Modules;
+
+public static class VrcLogText
+{
+    public const int MaxNameChars = 32;
+
+    public static string Name(string? name) => SegmentWriter.Truncate(SegmentWriter.Tidy(name), MaxNameChars);
+
+    public static string Duration(TimeSpan ts)
+    {
+        if (ts.TotalSeconds < 60)
+            return Measure((int)ts.TotalSeconds, "s");
+        if (ts.TotalHours >= 1)
+            return Measure((int)ts.TotalHours, "h") + Measure(ts.Minutes, "m", "D2");
+
+        return Measure((int)ts.TotalMinutes, "m");
+    }
+
+    private static string Measure(int amount, string unit, string? format = null)
+        => new SegmentWriter()
+            .Field(OscText.Value(amount.ToString(format, CultureInfo.InvariantCulture)), OscText.Unit(unit))
+            .Text;
+
+    public static string FitToBudget(Func<string, string> render, string worldName, int budget)
+    {
+        if (budget <= 0)
+            return string.Empty;
+
+        string text = render(worldName);
+        if (text.Length <= budget)
+            return text;
+
+        string shorter = SegmentWriter.Truncate(worldName, worldName.Length - (text.Length - budget));
+        if (shorter.Length < worldName.Length)
+            text = render(shorter);
+
+        return SegmentWriter.Truncate(text, budget);
+    }
+}
 
 public partial class VrcLogModule : ObservableObject, IModule
 {
@@ -28,6 +68,20 @@ public partial class VrcLogModule : ObservableObject, IModule
         @"Joining (wrld_[a-f0-9\-]+:\d+(?:~\w+\([^)]*\))*)",
         RegexOptions.Compiled);
 
+    private static readonly Regex EmptySeparatorRegex = new(@"\s*\|\s*\|\s*", RegexOptions.Compiled);
+    private static readonly Regex TrailingSeparatorRegex = new(@"(\s*\|\s*)+$", RegexOptions.Compiled);
+    private static readonly Regex LeadingSeparatorRegex = new(@"^\s*\|\s*", RegexOptions.Compiled);
+    private static readonly Regex RepeatedSpaceRegex = new(@"\s{2,}", RegexOptions.Compiled);
+    private static readonly Regex DownloadSizeRegex = new(@"@ (\d+) MB", RegexOptions.Compiled);
+    private static readonly Regex DownloadSpeedRegex = new(@"speed: (\d+) bytes per second", RegexOptions.Compiled);
+    private static readonly Regex InstanceRegionRegex = new(@"~region\((\w+)\)", RegexOptions.Compiled);
+
+    private const int ActivePollIntervalMs = 500;
+    private const int IdlePollIntervalMs = 5000;
+    private const int MaxLogReadChunkBytes = 4 * 1024 * 1024;
+    private static readonly TimeSpan LogFileRecheckInterval = TimeSpan.FromSeconds(20);
+    private static readonly TimeSpan ProcessCheckInterval = TimeSpan.FromSeconds(2.5);
+
     private readonly ISettingsProvider<VrcLogSettings> _settingsProvider;
     private readonly IntegrationSettings _integrationSettings;
     private readonly IAppState _appState;
@@ -35,6 +89,7 @@ public partial class VrcLogModule : ObservableObject, IModule
     private readonly IUiDispatcher _dispatcher;
     private readonly IPrivacyConsentService _consentService;
     private readonly IToastService? _toast;
+    private readonly IProcessPresenceService? _processPresence;
 
     private CancellationTokenSource? _cts;
     private bool _isRunning;
@@ -57,6 +112,10 @@ public partial class VrcLogModule : ObservableObject, IModule
     private readonly HashSet<string> _currentRoomPlayers = new();
     private string _currentLogFile = string.Empty;
     private long _lastPosition;
+    private FileStream? _logStream;
+    private DateTime _lastLogFileCheck = DateTime.MinValue;
+    private DateTime _lastProcessCheck = DateTime.MinValue;
+    private bool _vrchatProcessDetected;
 
     private bool _inBootstrapMode;
     private DateTime _lastBootstrapJoin = DateTime.MinValue;
@@ -133,8 +192,6 @@ public partial class VrcLogModule : ObservableObject, IModule
 
     [ObservableProperty] private int _peakPlayerCountThisSession;
 
-    private int _loopCounter;
-
     public event Action? OnVrcWorldStateChanged;
 
     public VrcLogSettings Settings => _settingsProvider.Value;
@@ -160,7 +217,8 @@ public partial class VrcLogModule : ObservableObject, IModule
         IOscSender oscSender,
         IUiDispatcher dispatcher,
         IPrivacyConsentService consentService,
-        IToastService? toast = null)
+        IToastService? toast = null,
+        IProcessPresenceService? processPresence = null)
     {
         _settingsProvider = settingsProvider;
         _integrationSettings = integrationSettings;
@@ -169,6 +227,7 @@ public partial class VrcLogModule : ObservableObject, IModule
         _dispatcher = dispatcher;
         _consentService = consentService;
         _toast = toast;
+        _processPresence = processPresence;
 
         Settings.PropertyChanged += (_, e) =>
         {
@@ -246,7 +305,6 @@ public partial class VrcLogModule : ObservableObject, IModule
         _cts = null;
     }
 
-
     public void PropertyChangedHandler(object? sender, PropertyChangedEventArgs e)
     {
         if (e.PropertyName is "IntgrVrcRadar" or "IntgrVrcRadar_VR" or "IntgrVrcRadar_DESKTOP" or "IsVRRunning")
@@ -274,66 +332,72 @@ public partial class VrcLogModule : ObservableObject, IModule
                (isVR ? _integrationSettings.IntgrVrcRadar_VR : _integrationSettings.IntgrVrcRadar_DESKTOP);
     }
 
-
-    public string? GetOutputString()
+    public string? GetOutputString(int budget = Constants.OscMaxMessageLength)
     {
         lock (_stateLock)
         {
             bool hasTransient = DateTime.Now < _transientExpiry && !string.IsNullOrEmpty(_transientMessage);
 
+            string? Transient() => SegmentWriter.Truncate(_transientMessage, budget) is { Length: > 0 } t ? t : null;
+
             switch (Settings.DisplayMode)
             {
                 case RadarDisplayMode.TransientOnly:
-                    return hasTransient ? _transientMessage : null;
+                    return hasTransient ? Transient() : null;
 
                 case RadarDisplayMode.JoinLeaveOnly:
-                    return hasTransient ? _transientMessage : null;
+                    return hasTransient ? Transient() : null;
 
                 case RadarDisplayMode.CompactInfo:
                     if (hasTransient)
-                        return _transientMessage;
+                        return Transient();
                     if (CurrentWorldName == "Not in a world")
                         return null;
-                    return $"🌎 {CurrentWorldName} 👥{PlayerCount}";
+                    return VrcLogText.FitToBudget(
+                        world => $"🌎 {world} 👥{PlayerCount}", VrcLogText.Name(CurrentWorldName), budget);
 
                 case RadarDisplayMode.AlwaysShow:
                 case RadarDisplayMode.EventOverlay:
                 default:
                     if (hasTransient)
-                        return _transientMessage;
+                        return Transient();
                     if (CurrentWorldName == "Not in a world")
                         return null;
-                    return BuildWorldTemplate();
+                    return VrcLogText.FitToBudget(
+                        BuildWorldTemplate, VrcLogText.Name(CurrentWorldName), budget);
             }
         }
     }
 
-    private string BuildWorldTemplate()
+    private string BuildWorldTemplate(string worldName)
     {
         string master = IsInstanceMaster ? Settings.MasterIcon : string.Empty;
         string text = Settings.TemplateWorld
             .Replace("{master}", master)
-            .Replace("{world}", CurrentWorldName)
+            .Replace("{world}", worldName)
             .Replace("{count}", PlayerCount.ToString())
-            .Replace("{peak}", _peakPlayerCount.ToString());
+            .Replace("{peak}", _peakPlayerCount.ToString())
+            .Replace("{peak_session}", PeakPlayerCountThisSession.ToString())
+            .Replace("{worlds}", _sessionWorldsVisited.ToString())
+            .Replace("{players}", _allPlayersSeen.Count.ToString());
 
         if (text.Contains("{session_time}"))
         {
             string sessionTime = _worldJoinedAt > DateTime.MinValue
-                ? FormatDuration(DateTime.Now - _worldJoinedAt) : string.Empty;
+                ? VrcLogText.Duration(DateTime.Now - _worldJoinedAt) : string.Empty;
             text = text.Replace("{session_time}", sessionTime);
         }
 
         if (text.Contains("{app_session}"))
         {
             var elapsed = DateTimeOffset.UtcNow - _appStartedAt;
-            text = text.Replace("{app_session}", FormatDuration(elapsed));
+            text = text.Replace("{app_session}", VrcLogText.Duration(elapsed));
         }
 
         if (text.Contains("{offline}"))
         {
             string offline = _totalOfflineSeconds >= 60
-                ? FormatDuration(TimeSpan.FromSeconds(_totalOfflineSeconds))
+                ? VrcLogText.Duration(TimeSpan.FromSeconds(_totalOfflineSeconds))
                 : string.Empty;
             text = text.Replace("{offline}", offline);
         }
@@ -348,156 +412,241 @@ public partial class VrcLogModule : ObservableObject, IModule
         else
             text = text.Replace("{region}", string.Empty);
 
-        if (!string.IsNullOrEmpty(InstanceOwnerName))
-            text = text.Replace("{owner}", InstanceOwnerName);
-        else
-            text = text.Replace("{owner}", string.Empty);
+        text = text.Replace("{owner}", VrcLogText.Name(InstanceOwnerName));
 
-        text = Regex.Replace(text, @"\s*\|\s*\|\s*", " | ");        text = Regex.Replace(text, @"(\s*\|\s*)+$", "");        text = Regex.Replace(text, @"^\s*\|\s*", "");        text = Regex.Replace(text, @"\s{2,}", " ");        text = text.Trim();
+        text = EmptySeparatorRegex.Replace(text, " | ");
+        text = TrailingSeparatorRegex.Replace(text, "");
+        text = LeadingSeparatorRegex.Replace(text, "");
+        text = RepeatedSpaceRegex.Replace(text, " ");
+        text = text.Trim();
 
         text = text.Replace("\\n", "\n").Replace("/n", "\n");
 
         return text;
     }
 
-
     private async Task TailLogLoop(CancellationToken ct)
     {
-        while (!ct.IsCancellationRequested)
+        try
         {
-            try
-            {
-                if (!Directory.Exists(VrcLogDir))
-                {
-                    await Task.Delay(5000, ct);
-                    continue;
-                }
-
-                var latestFile = FindLatestLogFile();
-                if (latestFile == null)
-                {
-                    await Task.Delay(2000, ct);
-                    continue;
-                }
-
-                if (latestFile != _currentLogFile)
-                {
-                    bool isFirstAttach = string.IsNullOrEmpty(_currentLogFile);
-                    _currentLogFile = latestFile;
-                    ResetState();
-                    _lastPosition = BackfillState(latestFile);
-                    Logging.WriteInfo($"VrcRadar: Attached to {Path.GetFileName(latestFile)}, backfilled to pos {_lastPosition}");
-
-                    if (CurrentWorldName != "Not in a world")
-                    {
-                        var fileAge = DateTime.UtcNow - new FileInfo(latestFile).LastWriteTimeUtc;
-                        var timeout = TimeSpan.FromMinutes(Math.Clamp(Settings.SessionTimeoutMinutes, 5, 90));
-                        bool isStale = fileAge > timeout;
-
-                        if (!isStale && Settings.UseWindowDetection)
-                        {
-                            try
-                            {
-                                var procs = System.Diagnostics.Process.GetProcessesByName("VRChat");
-                                bool running = procs.Length > 0;
-                                foreach (var p in procs) p.Dispose();
-                                if (!running)
-                                {
-                                    isStale = true;
-                                    Logging.WriteInfo("VrcRadar: VRChat process not running — treating backfilled session as stale.");
-                                }
-                                else
-                                {
-                                    _lastVrchatProcessSeen = DateTime.UtcNow;
-                                }
-                            }
-                            catch { }
-                        }
-
-                        if (isStale)
-                        {
-                            Logging.WriteInfo($"VrcRadar: Log file is {fileAge.TotalMinutes:F0}m old (timeout {timeout.TotalMinutes}m) — discarding stale session.");
-                            EndSessionDueToTimeout();
-                        }
-                    }
-
-                    if (isFirstAttach && !string.IsNullOrEmpty(_currentInstanceKey))
-                        TryResumeSession();
-                }
-
-                using var fs = new FileStream(_currentLogFile, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
-
-                if (fs.Length < _lastPosition) _lastPosition = 0;
-
-                fs.Seek(_lastPosition, SeekOrigin.Begin);
-                using var reader = new StreamReader(fs);
-
-                string? line;
-                bool hadNewLines = false;
-                while ((line = await reader.ReadLineAsync(ct)) != null)
-                {
-                    hadNewLines = true;
-                    lock (_stateLock)
-                    {
-                        ParseLogLine(line, isBackfill: false);
-                    }
-                }
-                _lastPosition = fs.Position;
-
-                if (hadNewLines)
-                    _lastLogActivity = DateTime.UtcNow;
-
-                lock (_stateLock)
-                {
-                    if (_inBootstrapMode && (DateTime.Now - _lastBootstrapJoin).TotalSeconds > 3)
-                    {
-                        _inBootstrapMode = false;
-
-                        if (Settings.ShowSessionStatsInChatbox && _sessionWorldsVisited > 0)
-                        {
-                            string stats = Settings.TemplateSessionStats
-                                .Replace("{worlds}", _sessionWorldsVisited.ToString())
-                                .Replace("{players}", _allPlayersSeen.Count.ToString())
-                                .Replace("{peak_session}", _peakPlayerCountThisSession.ToString());
-                            SetTransient(stats, Settings.SessionStatsDuration, TransientPriority.SessionStats);
-                        }
-                    }
-                }
-            }
-            catch (OperationCanceledException) { break; }
-            catch (Exception ex)
-            {
-                Logging.WriteInfo($"VrcRadar: Log read error: {ex.Message}");
-            }
-
-            if ((DateTime.Now - _lastSessionSave).TotalSeconds >= 30)
-            {
-                _lastSessionSave = DateTime.Now;
-                SaveSessionState();
-            }
-
-            if (Settings.UseWindowDetection && _loopCounter % 5 == 0)
+            while (!ct.IsCancellationRequested)
             {
                 try
                 {
-                    var procs = System.Diagnostics.Process.GetProcessesByName("VRChat");
-                    var running = procs.Length > 0;
-                    foreach (var p in procs) p.Dispose();
+                    if (!Directory.Exists(VrcLogDir))
+                    {
+                        CloseLogStream();
+                        await Task.Delay(5000, ct);
+                        continue;
+                    }
 
-                    if (running)
-                        _lastVrchatProcessSeen = DateTime.UtcNow;
+                    if (_logStream == null || (DateTime.UtcNow - _lastLogFileCheck) >= LogFileRecheckInterval)
+                    {
+                        _lastLogFileCheck = DateTime.UtcNow;
 
-                    if (running != IsVrchatProcessRunning)
-                        _dispatcher.BeginInvoke(() => IsVrchatProcessRunning = running);
+                        var latestFile = FindLatestLogFile();
+                        if (latestFile == null)
+                        {
+                            CloseLogStream();
+                            await Task.Delay(2000, ct);
+                            continue;
+                        }
+
+                        if (latestFile != _currentLogFile)
+                        {
+                            CloseLogStream();
+
+                            bool isFirstAttach = string.IsNullOrEmpty(_currentLogFile);
+                            _currentLogFile = latestFile;
+                            ResetState();
+                            _lastPosition = BackfillState(latestFile);
+                            Logging.WriteInfo($"VrcRadar: Attached to {Path.GetFileName(latestFile)}, backfilled to pos {_lastPosition}");
+
+                            if (CurrentWorldName != "Not in a world")
+                            {
+                                var fileAge = DateTime.UtcNow - new FileInfo(latestFile).LastWriteTimeUtc;
+                                var timeout = TimeSpan.FromMinutes(Math.Clamp(Settings.SessionTimeoutMinutes, 5, 90));
+                                bool isStale = fileAge > timeout;
+
+                                if (!isStale && Settings.UseWindowDetection)
+                                {
+                                    try
+                                    {
+                                        bool running = IsVrchatProcessPresent();
+                                        if (!running)
+                                        {
+                                            isStale = true;
+                                            Logging.WriteInfo("VrcRadar: VRChat process not running — treating backfilled session as stale.");
+                                        }
+                                        else
+                                        {
+                                            _lastVrchatProcessSeen = DateTime.UtcNow;
+                                        }
+                                    }
+                                    catch { }
+                                }
+
+                                if (isStale)
+                                {
+                                    Logging.WriteInfo($"VrcRadar: Log file is {fileAge.TotalMinutes:F0}m old (timeout {timeout.TotalMinutes}m) — discarding stale session.");
+                                    EndSessionDueToTimeout();
+                                }
+                            }
+
+                            if (isFirstAttach && !string.IsNullOrEmpty(_currentInstanceKey))
+                                TryResumeSession();
+                        }
+
+                        _logStream ??= new FileStream(_currentLogFile, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+                    }
+
+                    if (_logStream != null && await ReadNewLogLinesAsync(_logStream, ct))
+                        _lastLogActivity = DateTime.UtcNow;
+
+                    lock (_stateLock)
+                    {
+                        if (_inBootstrapMode && (DateTime.Now - _lastBootstrapJoin).TotalSeconds > 3)
+                        {
+                            _inBootstrapMode = false;
+
+                            if (Settings.ShowSessionStatsInChatbox && _sessionWorldsVisited > 0)
+                            {
+                                string stats = Settings.TemplateSessionStats
+                                    .Replace("{worlds}", _sessionWorldsVisited.ToString())
+                                    .Replace("{players}", _allPlayersSeen.Count.ToString())
+                                    .Replace("{peak_session}", _peakPlayerCountThisSession.ToString());
+                                SetTransient(stats, Settings.SessionStatsDuration, TransientPriority.SessionStats);
+                            }
+                        }
+                    }
                 }
-                catch { }
+                catch (OperationCanceledException) { break; }
+                catch (Exception ex)
+                {
+                    CloseLogStream();
+                    Logging.WriteInfo($"VrcRadar: Log read error: {ex.Message}");
+                }
+
+                if ((DateTime.Now - _lastSessionSave).TotalSeconds >= 30)
+                {
+                    _lastSessionSave = DateTime.Now;
+                    SaveSessionState();
+                }
+
+                if (Settings.UseWindowDetection && (DateTime.UtcNow - _lastProcessCheck) >= ProcessCheckInterval)
+                {
+                    _lastProcessCheck = DateTime.UtcNow;
+                    try
+                    {
+                        var running = IsVrchatProcessPresent();
+
+                        _vrchatProcessDetected = running;
+
+                        if (running)
+                            _lastVrchatProcessSeen = DateTime.UtcNow;
+
+                        if (running != IsVrchatProcessRunning)
+                            _dispatcher.BeginInvoke(() => IsVrchatProcessRunning = running);
+                    }
+                    catch { }
+                }
+
+                CheckSessionTimeout();
+
+                await Task.Delay(
+                    Settings.UseWindowDetection && !_vrchatProcessDetected
+                        ? IdlePollIntervalMs
+                        : ActivePollIntervalMs,
+                    ct);
+            }
+        }
+        finally
+        {
+            CloseLogStream();
+        }
+    }
+
+    private bool IsVrchatProcessPresent()
+    {
+        if (_processPresence != null)
+            return _processPresence.IsRunning("VRChat");
+
+        var procs = System.Diagnostics.Process.GetProcessesByName("VRChat");
+        try
+        {
+            return procs.Length > 0;
+        }
+        finally
+        {
+            foreach (var p in procs) p.Dispose();
+        }
+    }
+
+    private async Task<bool> ReadNewLogLinesAsync(FileStream fs, CancellationToken ct)
+    {
+        long length = fs.Length;
+        if (length < _lastPosition)
+            _lastPosition = 0;
+
+        long available = length - _lastPosition;
+        if (available <= 0)
+            return false;
+
+        int wanted = (int)Math.Min(available, MaxLogReadChunkBytes);
+        var buffer = new byte[wanted];
+
+        fs.Seek(_lastPosition, SeekOrigin.Begin);
+
+        int read = 0;
+        while (read < wanted)
+        {
+            int got = await fs.ReadAsync(buffer.AsMemory(read, wanted - read), ct);
+            if (got <= 0) break;
+            read += got;
+        }
+
+        if (read <= 0)
+            return false;
+
+        int lastNewline = Array.LastIndexOf(buffer, (byte)'\n', read - 1, read);
+        if (lastNewline < 0)
+            return false;
+
+        int completeBytes = lastNewline + 1;
+        string text = System.Text.Encoding.UTF8.GetString(buffer, 0, completeBytes);
+        _lastPosition += completeBytes;
+
+        if (text.Length > 0 && text[0] == '\uFEFF')
+            text = text[1..];
+
+        bool parsedAny = false;
+        int lineStart = 0;
+        while (lineStart < text.Length)
+        {
+            int newline = text.IndexOf('\n', lineStart);
+            if (newline < 0) break;
+
+            int lineEnd = newline;
+            if (lineEnd > lineStart && text[lineEnd - 1] == '\r') lineEnd--;
+
+            string logLine = text[lineStart..lineEnd];
+            parsedAny = true;
+
+            lock (_stateLock)
+            {
+                ParseLogLine(logLine, isBackfill: false);
             }
 
-            CheckSessionTimeout();
-            _loopCounter++;
-
-            await Task.Delay(500, ct);
+            lineStart = newline + 1;
         }
+
+        return parsedAny;
+    }
+
+    private void CloseLogStream()
+    {
+        _logStream?.Dispose();
+        _logStream = null;
     }
 
     private long BackfillState(string filePath)
@@ -584,7 +733,6 @@ public partial class VrcLogModule : ObservableObject, IModule
             return 0;
         }
     }
-
 
     private void ParseLogLine(string line, bool isBackfill)
     {
@@ -711,7 +859,7 @@ public partial class VrcLogModule : ObservableObject, IModule
                     if (Settings.ShowSeenAgainNotification)
                     {
                         SetTransient(
-                            Settings.TemplateSeenAgain.Replace("{user}", name),
+                            Settings.TemplateSeenAgain.Replace("{user}", VrcLogText.Name(name)),
                             Settings.SeenAgainDuration,
                             TransientPriority.SeenAgain);
                     }
@@ -722,7 +870,7 @@ public partial class VrcLogModule : ObservableObject, IModule
             if (!isBackfill && Settings.AnnounceJoins)
             {
                 SetTransient(
-                    Settings.TemplateJoin.Replace("{user}", name),
+                    Settings.TemplateJoin.Replace("{user}", VrcLogText.Name(name)),
                     Settings.JoinLeaveDuration,
                     TransientPriority.JoinLeave);
             }
@@ -753,7 +901,7 @@ public partial class VrcLogModule : ObservableObject, IModule
             if (!isBackfill && !_inBootstrapMode && Settings.AnnounceLeaves)
             {
                 SetTransient(
-                    Settings.TemplateLeave.Replace("{user}", name),
+                    Settings.TemplateLeave.Replace("{user}", VrcLogText.Name(name)),
                     Settings.JoinLeaveDuration,
                     TransientPriority.JoinLeave);
             }
@@ -762,7 +910,7 @@ public partial class VrcLogModule : ObservableObject, IModule
 
         if (line.Contains("[AssetBundleDownloadManager] Starting download of World"))
         {
-            var sizeMatch = Regex.Match(line, @"@ (\d+) MB");
+            var sizeMatch = DownloadSizeRegex.Match(line);
             if (sizeMatch.Success)
             {
                 _downloadSizeMB = int.Parse(sizeMatch.Groups[1].Value, CultureInfo.InvariantCulture);
@@ -781,7 +929,7 @@ public partial class VrcLogModule : ObservableObject, IModule
 
         if (line.Contains("[AssetBundleDownloadManager] Average download speed:"))
         {
-            var speedMatch = Regex.Match(line, @"speed: (\d+) bytes per second");
+            var speedMatch = DownloadSpeedRegex.Match(line);
             if (speedMatch.Success && _downloadSizeMB > 0)
             {
                 _downloadSpeedMBps = Math.Round(
@@ -855,7 +1003,7 @@ public partial class VrcLogModule : ObservableObject, IModule
         }
 
         string region = string.Empty;
-        var regionMatch = Regex.Match(line, @"~region\((\w+)\)");
+        var regionMatch = InstanceRegionRegex.Match(line);
         if (regionMatch.Success)
             region = regionMatch.Groups[1].Value;
 
@@ -889,7 +1037,7 @@ public partial class VrcLogModule : ObservableObject, IModule
     {
         int start = line.IndexOf(keyword) + keyword.Length;
         int parenOpen = line.IndexOf(" (usr_", start);
-        int parenClose = line.IndexOf(')', parenOpen > 0 ? parenOpen : start);
+        int parenClose = parenOpen > start ? line.IndexOf(')', parenOpen) : -1;
 
         string name = "Someone";
         string userId = string.Empty;
@@ -897,7 +1045,8 @@ public partial class VrcLogModule : ObservableObject, IModule
         if (parenOpen > start)
         {
             name = line[start..parenOpen].Trim();
-            userId = line[(parenOpen + 2)..parenClose].Trim();
+            if (parenClose > parenOpen)
+                userId = line[(parenOpen + 2)..parenClose].Trim();
         }
         else if (start < line.Length)
         {
@@ -906,7 +1055,6 @@ public partial class VrcLogModule : ObservableObject, IModule
 
         return (name, userId);
     }
-
 
     private static class TransientPriority
     {
@@ -928,7 +1076,6 @@ public partial class VrcLogModule : ObservableObject, IModule
         _transientExpiry = DateTime.Now.AddSeconds(seconds);
         _transientPriority = priority;
     }
-
 
     private void TriggerOscPulse(string address)
     {
@@ -980,7 +1127,6 @@ public partial class VrcLogModule : ObservableObject, IModule
         }
         catch { return null; }
     }
-
 
     private void CheckSessionTimeout()
     {
@@ -1041,7 +1187,6 @@ public partial class VrcLogModule : ObservableObject, IModule
             InstanceOwnerName = string.Empty;
         });
     }
-
 
     private void RecordEncounter(string userId, string displayName, string worldName)
     {
@@ -1154,7 +1299,7 @@ public partial class VrcLogModule : ObservableObject, IModule
             _encounterRecords.Clear();
             _lastLogActivity = DateTime.UtcNow;
             _lastVrchatProcessSeen = DateTime.UtcNow;
-            _loopCounter = 0;
+            _lastProcessCheck = DateTime.MinValue;
         }
 
         _dispatcher.BeginInvoke(() =>
@@ -1173,7 +1318,6 @@ public partial class VrcLogModule : ObservableObject, IModule
         });
     }
 
-
     private static DateTime ParseLogTimestamp(string line)
     {
         if (line.Length < 19) return DateTime.MinValue;
@@ -1182,7 +1326,6 @@ public partial class VrcLogModule : ObservableObject, IModule
             CultureInfo.InvariantCulture, DateTimeStyles.None, out var ts)
             ? ts : DateTime.MinValue;
     }
-
 
     private sealed class PersistedSession
     {
@@ -1272,12 +1415,5 @@ public partial class VrcLogModule : ObservableObject, IModule
         {
             Logging.WriteInfo($"VrcRadar: Failed to save session: {ex.Message}");
         }
-    }
-
-    private static string FormatDuration(TimeSpan ts)
-    {
-        if (ts.TotalSeconds < 60) return $"{(int)ts.TotalSeconds}s";
-        if (ts.TotalHours >= 1) return $"{(int)ts.TotalHours}h{ts.Minutes:D2}m";
-        return $"{(int)ts.TotalMinutes}m";
     }
 }

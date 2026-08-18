@@ -17,9 +17,14 @@ namespace vrcosc_magicchatbox.Services;
 
 public sealed class AudioService : IAudioService
 {
+    private static readonly TimeSpan DeviceRefreshInterval = TimeSpan.FromSeconds(5);
+
     private readonly TtsAudioDisplayState _ttsAudio;
     private readonly ISettingsProvider<TtsSettings> _ttsSettingsProvider;
     private readonly IUiDispatcher _dispatcher;
+    private readonly object _deviceRefreshLock = new();
+    private DateTime _lastDeviceRefreshUtc;
+    private bool _lastDeviceRefreshSucceeded;
 
     public AudioService(
         TtsAudioDisplayState ttsAudio,
@@ -32,6 +37,32 @@ public sealed class AudioService : IAudioService
     }
 
     public bool PopulateOutputDevices()
+    {
+        lock (_deviceRefreshLock)
+        {
+            if (_lastDeviceRefreshUtc != default
+                && DateTime.UtcNow - _lastDeviceRefreshUtc < DeviceRefreshInterval)
+                return _lastDeviceRefreshSucceeded;
+        }
+
+        bool result = PopulateOutputDevicesCore();
+
+        lock (_deviceRefreshLock)
+        {
+            _lastDeviceRefreshUtc = DateTime.UtcNow;
+            _lastDeviceRefreshSucceeded = result;
+        }
+
+        return result;
+    }
+
+    public void InvalidateOutputDeviceCache()
+    {
+        lock (_deviceRefreshLock)
+            _lastDeviceRefreshUtc = default;
+    }
+
+    private bool PopulateOutputDevicesCore()
     {
         try
         {

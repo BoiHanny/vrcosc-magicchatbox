@@ -12,7 +12,7 @@
     <UserControl.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
-                <ResourceDictionary Source="/UI/Resources/SharedConverters.xaml" />
+                <ResourceDictionary Source="/MagicChatbox;component/UI/Resources/SharedConverters.xaml" />
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
     </UserControl.Resources>
@@ -49,10 +49,7 @@
             Visibility="{Binding AppSettings.SettingsDev, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
             <Border>
                 <StackPanel>
-                    <CheckBox
-                        x:Name="BlankEgg_checkbox"
-                        IsChecked="{Binding AppSettings.BlankEgg, Mode=TwoWay}"
-                        Style="{DynamicResource SettingsCheckbox}">
+                    <CheckBox x:Name="BlankEgg_checkbox" IsChecked="{Binding AppSettings.BlankEgg, Mode=TwoWay}">
                         ItsByMe MODE
                     </CheckBox>
                 </StackPanel>

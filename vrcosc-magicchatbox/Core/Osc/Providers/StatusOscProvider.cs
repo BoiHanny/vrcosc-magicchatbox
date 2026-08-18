@@ -2,7 +2,9 @@
 using System.Linq;
 using vrcosc_magicchatbox.Classes.DataAndSecurity;
 using vrcosc_magicchatbox.Classes.Modules;
+using vrcosc_magicchatbox.Classes.Modules.Status;
 using vrcosc_magicchatbox.Core.Configuration;
+using vrcosc_magicchatbox.Core.Osc.Text;
 using vrcosc_magicchatbox.Core.Services;
 using vrcosc_magicchatbox.Core.State;
 using vrcosc_magicchatbox.Services;
@@ -58,40 +60,56 @@ public sealed class StatusOscProvider : IOscProvider
     public OscSegment? TryBuild(OscBuildContext context)
     {
         var afk = _modules.Value.Afk;
+        int budget = ResolveBudget(context);
 
         if (afk != null && afk.IsAfk && afk.Settings.EnableAfkDetection)
         {
-            string afkText = afk.GenerateAFKString();
+            string afkText = SegmentWriter.Truncate(afk.GenerateAFKString(), budget);
             if (!string.IsNullOrEmpty(afkText))
                 return new OscSegment { Text = afkText };
         }
 
-        if (!_intgr.IntgrStatus || _chatStatus.StatusList == null || !_chatStatus.StatusList.Any())
+        if (!_intgr.IntgrStatus || _chatStatus.StatusListSnapshot.Count == 0)
             return null;
 
         if (_app.CycleStatus)
             CycleStatus();
 
-        StatusItem? active = _chatStatus.StatusList.FirstOrDefault(item => item.IsActive);
+        var statusList = _chatStatus.StatusListSnapshot;
+        StatusItem? active = statusList.FirstOrDefault(item => item.IsActive);
         if (active == null) return null;
 
-        string icon = _emojis.GetNextEmoji();
-        string text = _app.PrefixIconStatus ? $"{icon} {active.msg}" : active.msg;
+        bool prefixIcon = _app.PrefixIconStatus;
+        string? icon = prefixIcon ? _emojis.GetNextEmoji() : null;
+        string text = StatusLine.Compose(active.msg, icon, prefixIcon, budget);
 
         return string.IsNullOrEmpty(text) ? null : new OscSegment { Text = text };
+    }
+
+    private static int ResolveBudget(OscBuildContext context)
+    {
+        int room = context.RemainingCharsIf(string.Empty);
+
+        return room > 0
+            ? room
+            : OscBuildContext.MaxOscLength - context.Prefix.Length - context.Suffix.Length;
     }
 
     #region Status Cycling (moved from OSCController)
 
     private void CycleStatus()
     {
-        if (_chatStatus.StatusList == null || !_chatStatus.StatusList.Any())
+        var statusList = _chatStatus.StatusListSnapshot;
+        if (statusList.Count == 0)
+            return;
+
+        if (DateTime.Now - _oscDisplay.LastSwitchCycle < TimeSpan.FromSeconds(_app.SwitchStatusInterval))
             return;
 
         if (_app.CycleOverrideCurrentGroup && !string.IsNullOrEmpty(_app.CycleOverrideGroupId))
         {
             var overrideGroupId = _app.CycleOverrideGroupId;
-            var overrideItems = _chatStatus.StatusList
+            var overrideItems = statusList
                 .Where(item => item.UseInCycle && item.GroupId == overrideGroupId)
                 .ToList();
 
@@ -100,15 +118,14 @@ public sealed class StatusOscProvider : IOscProvider
                 CycleItems(overrideItems);
                 return;
             }
-
         }
 
-        var activeGroupIds = _chatStatus.GroupList
+        var activeGroupIds = _chatStatus.GroupListSnapshot
             .Where(g => g.IsActiveForCycle)
             .Select(g => g.GroupId)
             .ToHashSet();
 
-        var cycleItems = _chatStatus.StatusList
+        var cycleItems = statusList
             .Where(item => item.UseInCycle
                            && (item.GroupId == null || activeGroupIds.Contains(item.GroupId)))
             .ToList();
@@ -120,13 +137,9 @@ public sealed class StatusOscProvider : IOscProvider
 
     private void CycleItems(System.Collections.Generic.List<StatusItem> cycleItems)
     {
-        if (DateTime.Now - _oscDisplay.LastSwitchCycle < TimeSpan.FromSeconds(_app.SwitchStatusInterval))
-            return;
-
         if (_app.IsRandomCycling)
         {
-            foreach (var item in _chatStatus.StatusList)
-                item.IsActive = false;
+            ClearActiveItem();
 
             try
             {
@@ -160,10 +173,24 @@ public sealed class StatusOscProvider : IOscProvider
             }
             else
             {
-                foreach (var item in _chatStatus.StatusList) item.IsActive = false;
+                ClearActiveItem();
                 cycleItems[0].IsActive = true;
                 cycleItems[0].LastUsed = DateTime.Now;
                 _oscDisplay.LastSwitchCycle = DateTime.Now;
+            }
+        }
+    }
+
+    private void ClearActiveItem()
+    {
+        var statusList = _chatStatus.StatusListSnapshot;
+
+        for (int i = 0; i < statusList.Count; i++)
+        {
+            if (statusList[i].IsActive)
+            {
+                statusList[i].IsActive = false;
+                return;
             }
         }
     }

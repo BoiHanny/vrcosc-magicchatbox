@@ -1,14 +1,13 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
-using System.Collections.ObjectModel;
+using System.Collections.Generic;
 using vrcosc_magicchatbox.Classes.Modules;
-using vrcosc_magicchatbox.ViewModels.Models;
 
 namespace vrcosc_magicchatbox.ViewModels;
 
 public partial class ComponentStatsViewModel : ObservableObject
 {
     private readonly ComponentStatsModule _module;
-    private readonly ObservableCollection<ComponentStatsItem> _statsList = new();
+    private readonly Dictionary<string, object?> _lastRefreshedValues = new();
 
     public ComponentStatsViewModel(ComponentStatsModule module)
     {
@@ -17,23 +16,8 @@ public partial class ComponentStatsViewModel : ObservableObject
 
     public ComponentStatsModule Module => _module;
 
-    public ReadOnlyObservableCollection<ComponentStatsItem> ComponentStatsList =>
-        new ReadOnlyObservableCollection<ComponentStatsItem>(_statsList);
-
-    public void UpdateComponentStatsList(ObservableCollection<ComponentStatsItem> newList)
-    {
-        _statsList.Clear();
-        foreach (var item in newList)
-            _statsList.Add(item);
-    }
-
     public void SyncComponentStatsList()
-    {
-        _statsList.Clear();
-        foreach (var stat in _module.GetAllStats())
-            _statsList.Add(stat);
-        RefreshAllProperties();
-    }
+        => RefreshAllProperties();
 
     public void UpdateComponentStat(StatsComponentType type, string newValue)
         => _module.UpdateStatValue(type, newValue);
@@ -137,6 +121,8 @@ public partial class ComponentStatsViewModel : ObservableObject
         get => _module.IsStatAvailable(StatsComponentType.CPU);
         set
         {
+            if (_module.IsStatAvailable(StatsComponentType.CPU) == value)
+                return;
             _module.SetStatAvailable(StatsComponentType.CPU, value);
             OnPropertyChanged();
             OnPropertyChanged(nameof(IsThereAComponentThatIsNotAvailable));
@@ -162,6 +148,8 @@ public partial class ComponentStatsViewModel : ObservableObject
         get => _module.IsStatAvailable(StatsComponentType.GPU);
         set
         {
+            if (_module.IsStatAvailable(StatsComponentType.GPU) == value)
+                return;
             _module.SetStatAvailable(StatsComponentType.GPU, value);
             OnPropertyChanged();
             OnPropertyChanged(nameof(IsThereAComponentThatIsNotAvailable));
@@ -194,6 +182,8 @@ public partial class ComponentStatsViewModel : ObservableObject
         get => _module.IsStatAvailable(StatsComponentType.RAM);
         set
         {
+            if (_module.IsStatAvailable(StatsComponentType.RAM) == value)
+                return;
             _module.SetStatAvailable(StatsComponentType.RAM, value);
             OnPropertyChanged();
             OnPropertyChanged(nameof(IsThereAComponentThatIsNotAvailable));
@@ -270,6 +260,8 @@ public partial class ComponentStatsViewModel : ObservableObject
         get => _module.IsStatAvailable(StatsComponentType.VRAM);
         set
         {
+            if (_module.IsStatAvailable(StatsComponentType.VRAM) == value)
+                return;
             _module.SetStatAvailable(StatsComponentType.VRAM, value);
             OnPropertyChanged();
             OnPropertyChanged(nameof(IsThereAComponentThatIsNotAvailable));
@@ -337,40 +329,49 @@ public partial class ComponentStatsViewModel : ObservableObject
 
     public void RefreshAllProperties()
     {
-        OnPropertyChanged(nameof(CPUHardwareName));
-        OnPropertyChanged(nameof(GPUHardwareName));
-        OnPropertyChanged(nameof(RAMHardwareName));
-        OnPropertyChanged(nameof(VRAMHardwareName));
-        OnPropertyChanged(nameof(IsCPUEnabled));
-        OnPropertyChanged(nameof(IsGPUEnabled));
-        OnPropertyChanged(nameof(IsRAMEnabled));
-        OnPropertyChanged(nameof(IsVRAMEnabled));
-        OnPropertyChanged(nameof(isCPUAvailable));
-        OnPropertyChanged(nameof(IsGPUAvailable));
-        OnPropertyChanged(nameof(isRAMAvailable));
-        OnPropertyChanged(nameof(isVRAMAvailable));
-        OnPropertyChanged(nameof(CPUCustomHardwareName));
-        OnPropertyChanged(nameof(GPUCustomHardwareName));
-        OnPropertyChanged(nameof(RAMCustomHardwareName));
-        OnPropertyChanged(nameof(VRAMCustomHardwareName));
-        OnPropertyChanged(nameof(CPU_EnableHardwareTitle));
-        OnPropertyChanged(nameof(GPU_EnableHardwareTitle));
-        OnPropertyChanged(nameof(RAM_EnableHardwareTitle));
-        OnPropertyChanged(nameof(VRAM_EnableHardwareTitle));
-        OnPropertyChanged(nameof(CPU_PrefixHardwareTitle));
-        OnPropertyChanged(nameof(GPU_PrefixHardwareTitle));
-        OnPropertyChanged(nameof(RAM_PrefixHardwareTitle));
-        OnPropertyChanged(nameof(VRAM_PrefixHardwareTitle));
-        OnPropertyChanged(nameof(CPU_NumberTrailingZeros));
-        OnPropertyChanged(nameof(GPU_NumberTrailingZeros));
-        OnPropertyChanged(nameof(RAM_NumberTrailingZeros));
-        OnPropertyChanged(nameof(VRAM_NumberTrailingZeros));
-        OnPropertyChanged(nameof(CPU_SmallName));
-        OnPropertyChanged(nameof(GPU_SmallName));
-        OnPropertyChanged(nameof(RAM_SmallName));
-        OnPropertyChanged(nameof(VRAM_SmallName));
-        OnPropertyChanged(nameof(ComponentStatsError));
-        OnPropertyChanged(nameof(IsThereAComponentThatIsNotAvailable));
-        OnPropertyChanged(nameof(IsThereAComponentThatIsNotGettingTempOrWattage));
+        RaiseIfChanged(nameof(CPUHardwareName), CPUHardwareName);
+        RaiseIfChanged(nameof(GPUHardwareName), GPUHardwareName);
+        RaiseIfChanged(nameof(RAMHardwareName), RAMHardwareName);
+        RaiseIfChanged(nameof(VRAMHardwareName), VRAMHardwareName);
+        RaiseIfChanged(nameof(IsCPUEnabled), IsCPUEnabled);
+        RaiseIfChanged(nameof(IsGPUEnabled), IsGPUEnabled);
+        RaiseIfChanged(nameof(IsRAMEnabled), IsRAMEnabled);
+        RaiseIfChanged(nameof(IsVRAMEnabled), IsVRAMEnabled);
+        RaiseIfChanged(nameof(isCPUAvailable), isCPUAvailable);
+        RaiseIfChanged(nameof(IsGPUAvailable), IsGPUAvailable);
+        RaiseIfChanged(nameof(isRAMAvailable), isRAMAvailable);
+        RaiseIfChanged(nameof(isVRAMAvailable), isVRAMAvailable);
+        RaiseIfChanged(nameof(CPUCustomHardwareName), CPUCustomHardwareName);
+        RaiseIfChanged(nameof(GPUCustomHardwareName), GPUCustomHardwareName);
+        RaiseIfChanged(nameof(RAMCustomHardwareName), RAMCustomHardwareName);
+        RaiseIfChanged(nameof(VRAMCustomHardwareName), VRAMCustomHardwareName);
+        RaiseIfChanged(nameof(CPU_EnableHardwareTitle), CPU_EnableHardwareTitle);
+        RaiseIfChanged(nameof(GPU_EnableHardwareTitle), GPU_EnableHardwareTitle);
+        RaiseIfChanged(nameof(RAM_EnableHardwareTitle), RAM_EnableHardwareTitle);
+        RaiseIfChanged(nameof(VRAM_EnableHardwareTitle), VRAM_EnableHardwareTitle);
+        RaiseIfChanged(nameof(CPU_PrefixHardwareTitle), CPU_PrefixHardwareTitle);
+        RaiseIfChanged(nameof(GPU_PrefixHardwareTitle), GPU_PrefixHardwareTitle);
+        RaiseIfChanged(nameof(RAM_PrefixHardwareTitle), RAM_PrefixHardwareTitle);
+        RaiseIfChanged(nameof(VRAM_PrefixHardwareTitle), VRAM_PrefixHardwareTitle);
+        RaiseIfChanged(nameof(CPU_NumberTrailingZeros), CPU_NumberTrailingZeros);
+        RaiseIfChanged(nameof(GPU_NumberTrailingZeros), GPU_NumberTrailingZeros);
+        RaiseIfChanged(nameof(RAM_NumberTrailingZeros), RAM_NumberTrailingZeros);
+        RaiseIfChanged(nameof(VRAM_NumberTrailingZeros), VRAM_NumberTrailingZeros);
+        RaiseIfChanged(nameof(CPU_SmallName), CPU_SmallName);
+        RaiseIfChanged(nameof(GPU_SmallName), GPU_SmallName);
+        RaiseIfChanged(nameof(RAM_SmallName), RAM_SmallName);
+        RaiseIfChanged(nameof(VRAM_SmallName), VRAM_SmallName);
+        RaiseIfChanged(nameof(ComponentStatsError), ComponentStatsError);
+        RaiseIfChanged(nameof(IsThereAComponentThatIsNotAvailable), IsThereAComponentThatIsNotAvailable);
+        RaiseIfChanged(nameof(IsThereAComponentThatIsNotGettingTempOrWattage), IsThereAComponentThatIsNotGettingTempOrWattage);
+    }
+
+    private void RaiseIfChanged(string propertyName, object? value)
+    {
+        if (_lastRefreshedValues.TryGetValue(propertyName, out var existing) && Equals(existing, value))
+            return;
+
+        _lastRefreshedValues[propertyName] = value;
+        OnPropertyChanged(propertyName);
     }
 }

@@ -12,7 +12,6 @@ using vrcosc_magicchatbox.Classes.Modules.Lyrics;
 
 namespace vrcosc_magicchatbox.Services.Lyrics;
 
-/// <summary>One attempt in the lookup ladder, and how much slack its results have earned.</summary>
 public readonly record struct LyricsLookupStep(string Url, bool RequiresCloseDuration);
 
 public sealed class LrcLibLyricsProvider : ILyricsProvider
@@ -93,12 +92,6 @@ public sealed class LrcLibLyricsProvider : ILyricsProvider
         }
     }
 
-    /// <summary>
-    /// Every lookup worth trying, most specific first, stopping as soon as one answers. The later
-    /// rungs give up detail - the version, then all but the lead artist - because the plain and the
-    /// versioned spelling of one recording can be separate entries with only one carrying synced
-    /// lyrics. Once detail is gone the running time has to agree closely.
-    /// </summary>
     public static IReadOnlyList<LyricsLookupStep> BuildLookupSteps(LyricsQuery query, bool allowBroadening = true)
     {
         var steps = new List<LyricsLookupStep>();
@@ -114,7 +107,6 @@ public sealed class LrcLibLyricsProvider : ILyricsProvider
         string baseTitle = TitleQualifier.BaseTitle(title);
         string primaryArtist = TitleQualifier.PrimaryArtist(artist);
 
-        // Full title: it still identifies the recording, so the usual tolerance holds.
         Add(Direct(title, artist, query.Album, query.Duration), false);
         if (query.Duration > TimeSpan.Zero)
             Add(Direct(title, artist, query.Album, TimeSpan.Zero), false);
@@ -125,7 +117,6 @@ public sealed class LrcLibLyricsProvider : ILyricsProvider
         if (!allowBroadening)
             return steps;
 
-        // Detail dropped from here on, so the length has to carry the proof.
         if (baseTitle.Length > 0 && !string.Equals(baseTitle, title, StringComparison.OrdinalIgnoreCase))
         {
             Add(Structured(baseTitle, artist), true);
@@ -161,10 +152,6 @@ public sealed class LrcLibLyricsProvider : ILyricsProvider
     private static string Keyword(string q)
         => $"{BaseUrl}/api/search?q={Uri.EscapeDataString(q)}";
 
-    /// <summary>
-    /// Handles both shapes the API returns. A single record is scored rather than trusted: asking
-    /// without a duration lets the server pick the version, and the wrong one is worse than none.
-    /// </summary>
     public static LyricTrack? ParseResponse(string body, LyricsQuery query, LyricsMatchOptions options = default)
     {
         JToken token = JToken.Parse(body);

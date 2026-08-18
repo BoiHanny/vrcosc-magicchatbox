@@ -129,6 +129,9 @@ public static class SettingsMigrationService
             }
         }
 
+        if (settings is ILegacySettingsMigration legacy && legacy.AdoptLegacySettings())
+            anyMigrated = true;
+
         bool stampChanged = StampMigratedSettings(settings);
 
         if (anyMigrated || stampChanged || !File.Exists(jsonPath))
@@ -353,6 +356,7 @@ public static class SettingsMigrationService
         new("ComponentStats", "AutoSelectGPU",                "AutoSelectGPU"),
         new("ComponentStats", "UseEmojisForTempAndPower",     "UseEmojisForTempAndPower"),
         new("ComponentStats", "IsTemperatureSwitchEnabled",   "IsTemperatureSwitchEnabled"),
+        new("ComponentStats", "IsFahrenheit",                 "IsFahrenheit"),
     ];
 
     private static List<MigrationEntry> TimeMigrationMap() =>

@@ -10,6 +10,9 @@ namespace vrcosc_magicchatbox.Services;
 
 public sealed class StatePersistenceCoordinator : IStatePersistenceCoordinator
 {
+    private static readonly TimeSpan ModuleStopTimeout = TimeSpan.FromSeconds(2);
+    private static readonly TimeSpan ModuleShutdownBudget = TimeSpan.FromSeconds(8);
+
     private readonly Lazy<IOscSender> _oscSender;
     private readonly ISettingsProvider<IntegrationSettings> _intSettingsProvider;
     private readonly ISettingsProvider<TrackerBatterySettings> _trkSettingsProvider;
@@ -155,6 +158,20 @@ public sealed class StatePersistenceCoordinator : IStatePersistenceCoordinator
         catch (Exception ex)
         {
             Logging.WriteException(ex, MSGBox: true, exitapp: true);
+        }
+
+        try
+        {
+            IModuleHost moduleHost = _modules.Value;
+            Task stopAll = moduleHost.StopAllAsync(ModuleStopTimeout);
+
+            if (await Task.WhenAny(stopAll, Task.Delay(ModuleShutdownBudget)).ConfigureAwait(false) != stopAll)
+                Logging.WriteInfo(
+                    $"StatePersistenceCoordinator: modules did not all stop within {ModuleShutdownBudget.TotalSeconds:0.#}s; closing anyway.");
+        }
+        catch (Exception ex)
+        {
+            Logging.WriteInfo($"StatePersistenceCoordinator: stopping modules failed: {ex.Message}");
         }
     }
 }

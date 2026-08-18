@@ -12,7 +12,7 @@
     <UserControl.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
-                <ResourceDictionary Source="/UI/Resources/SharedConverters.xaml" />
+                <ResourceDictionary Source="/MagicChatbox;component/UI/Resources/SharedConverters.xaml" />
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
     </UserControl.Resources>
@@ -44,8 +44,8 @@
                 HorizontalAlignment="Left"
                 VerticalAlignment="Center"
                 Cursor="Hand"
-                FontFamily="/Fonts/#Albert Sans"
-                FontSize="12"
+                FontFamily="{StaticResource FontPrimary}"
+                FontSize="{StaticResource FontSizeCaption}"
                 Foreground="{StaticResource AccentTealBrush}"
                 MouseUp="LearnMoreAboutOpenAIbtn_MouseUp"
                 Text="Terms of use"
@@ -57,8 +57,8 @@
                 HorizontalAlignment="Left"
                 VerticalAlignment="Center"
                 Cursor="Hand"
-                FontFamily="/Fonts/#Albert Sans"
-                FontSize="12"
+                FontFamily="{StaticResource FontPrimary}"
+                FontSize="{StaticResource FontSizeCaption}"
                 Foreground="{StaticResource AccentTealBrush}"
                 MouseUp="MyUsageBtn_MouseUp"
                 Text="My usage"
@@ -94,7 +94,7 @@
                                         <TextBlock
                                             Margin="0,-2,5,0"
                                             VerticalAlignment="Center"
-                                            FontSize="14"
+                                            FontSize="{StaticResource FontSizeCompact}"
                                             Text="Connect with OpenAI" />
                                     </StackPanel>
                                 </DataTemplate>
@@ -121,7 +121,7 @@
                                         <TextBlock
                                             Margin="0,-2,5,0"
                                             VerticalAlignment="Center"
-                                            FontSize="14"
+                                            FontSize="{StaticResource FontSizeCompact}"
                                             Text="Connected with OpenAI" />
                                     </StackPanel>
                                 </DataTemplate>
@@ -155,8 +155,8 @@
                             Width="400"
                             Padding="10,0,0,0"
                             VerticalAlignment="Center"
-                            FontFamily="/Fonts/#Albert Sans"
-                            FontSize="15"
+                            FontFamily="{StaticResource FontPrimary}"
+                            FontSize="{StaticResource FontSizeBody}"
                             Foreground="{StaticResource TextDangerRedBrush}"
                             Text="{Binding OpenAI.AccessErrorTxt, UpdateSourceTrigger=PropertyChanged}"
                             TextWrapping="Wrap"
@@ -167,9 +167,8 @@
                     <StackPanel>
                         <CheckBox
                             x:Name="PerformModerationCheck"
-                            IsChecked="{Binding Modules.IntelliChat.Settings.IntelliChatPerformModeration, Mode=TwoWay}"
-                            Style="{DynamicResource SettingsCheckbox}">
-                            Enable free moderation checks to safeguard your content and OpenAI account
+                            IsChecked="{Binding Modules.IntelliChat.Settings.IntelliChatPerformModeration, Mode=TwoWay}">
+                            Check messages with OpenAI's free content filter before they are used
                         </CheckBox>
 
                     </StackPanel>
@@ -182,22 +181,20 @@
                             Padding="2,0,0,0"
                             VerticalAlignment="Center"
                             Style="{StaticResource OptionSubsectionHeaderStyle}"
-                            Text="Magic improve" />
+                            Text="Rewrite what you typed" />
 
                         <TextBlock
                             Width="auto"
                             Padding="2,3,0,0"
                             VerticalAlignment="Center"
                             Style="{StaticResource OptionHelpTextStyle}"
-                            Text="With Magic improve, you can transform your chat message in anything you can think of" />
+                            Text="The wand button in the chat box rewrites your message in the style you pick here. Your text is sent to OpenAI to do it." />
                         <TextBlock
                             Width="auto"
                             Padding="2,14,0,0"
                             VerticalAlignment="Center"
-                            FontFamily="/Fonts/#Albert Sans"
-                            FontSize="13"
-                            Foreground="{StaticResource TextLabelBrush}"
-                            Text="Select your preferred writing style for the quick-access button in the chat window below" />
+                            Style="{StaticResource OptionFieldLabelStyle}"
+                            Text="Style" />
                         <StackPanel VerticalAlignment="Center" Orientation="Horizontal">
                             <ComboBox
                                 x:Name="WritingStylesComboBox"
@@ -212,8 +209,8 @@
                                 Width="auto"
                                 Padding="2,2,0,0"
                                 VerticalAlignment="Center"
-                                FontFamily="/Fonts/#Albert Sans"
-                                FontSize="12"
+                                FontFamily="{StaticResource FontPrimary}"
+                                FontSize="{StaticResource FontSizeCaption}"
                                 FontWeight="SemiBold"
                                 Foreground="{StaticResource TextLabelBrush}"
                                 Text="{Binding Modules.IntelliChat.Settings.SelectedWritingStyle.StyleDescription}" />
@@ -223,10 +220,8 @@
                             Width="auto"
                             Padding="2,7,0,0"
                             VerticalAlignment="Center"
-                            FontFamily="/Fonts/#Albert Sans"
-                            FontSize="13"
-                            Foreground="{StaticResource TextLabelBrush}"
-                            Text="OpenAI Model:" />
+                            Style="{StaticResource OptionFieldLabelStyle}"
+                            Text="Model" />
                         <ComboBox
                             Width="200"
                             Margin="2,4"
@@ -250,32 +245,29 @@
                             Padding="2,0,0,0"
                             VerticalAlignment="Center"
                             Style="{StaticResource OptionSubsectionHeaderStyle}"
-                            Text="Magic translate" />
+                            Text="Translate what you typed" />
 
                         <TextBlock
                             Width="auto"
                             Padding="2,3,0,0"
                             VerticalAlignment="Center"
                             Style="{StaticResource OptionHelpTextStyle}"
-                            Text="With translation, you can pick every language you can think of or that is known by the AI (that a lot!)" />
+                            Text="The translate button in the chat box turns your message into the language you pick here." />
 
                         <CheckBox
                             x:Name="AutoDetectLang"
                             Margin="2,14,0,0"
                             IsChecked="{Binding Modules.IntelliChat.Settings.AutolanguageSelection, Mode=TwoWay}"
-                            Style="{DynamicResource SettingsCheckbox}"
                             Visibility="Collapsed">
-                            Automatically detect language (less tokens)
+                            Work out the language on its own (costs less)
                         </CheckBox>
 
                         <TextBlock
                             Width="auto"
                             Padding="2,14,0,0"
                             VerticalAlignment="Center"
-                            FontFamily="/Fonts/#Albert Sans"
-                            FontSize="13"
-                            Foreground="{StaticResource TextLabelBrush}"
-                            Text="Select your preferred language for the quick-access button in the chat window below" />
+                            Style="{StaticResource OptionFieldLabelStyle}"
+                            Text="Translate into" />
 
                         <ComboBox
                             x:Name="SelectedTranslateLanguageComboBox"
@@ -291,10 +283,8 @@
                             Width="auto"
                             Padding="2,7,0,0"
                             VerticalAlignment="Center"
-                            FontFamily="/Fonts/#Albert Sans"
-                            FontSize="13"
-                            Foreground="{StaticResource TextLabelBrush}"
-                            Text="OpenAI Model:" />
+                            Style="{StaticResource OptionFieldLabelStyle}"
+                            Text="Model" />
                         <ComboBox
                             Width="200"
                             Margin="2,4"
@@ -317,22 +307,20 @@
                             Padding="2,0,0,0"
                             VerticalAlignment="Center"
                             Style="{StaticResource OptionSubsectionHeaderStyle}"
-                            Text="Speech to text" />
+                            Text="Talk instead of typing" />
 
                         <TextBlock
                             Width="auto"
                             Padding="2,3,0,0"
                             VerticalAlignment="Center"
                             Style="{StaticResource OptionHelpTextStyle}"
-                            Text="With speech to text, you can transform your voice into text" />
+                            Text="Records from your microphone and drops what you said into the chat box as text." />
                         <TextBlock
                             Width="auto"
                             Padding="2,14,0,0"
                             VerticalAlignment="Center"
-                            FontFamily="/Fonts/#Albert Sans"
-                            FontSize="13"
-                            Foreground="{StaticResource TextLabelBrush}"
-                            Text="Select your preferred recording device to use for text to speech" />
+                            Style="{StaticResource OptionFieldLabelStyle}"
+                            Text="Microphone" />
                         <StackPanel VerticalAlignment="Center" Orientation="Horizontal">
                             <ComboBox
                                 x:Name="SelectedDeviceComboBox"
@@ -350,10 +338,8 @@
                             Width="auto"
                             Padding="2,7,0,0"
                             VerticalAlignment="Center"
-                            FontFamily="/Fonts/#Albert Sans"
-                            FontSize="13"
-                            Foreground="{StaticResource TextLabelBrush}"
-                            Text="OpenAI STT Model:" />
+                            Style="{StaticResource OptionFieldLabelStyle}"
+                            Text="Model" />
                         <ComboBox
                             Width="200"
                             Margin="2,4"
@@ -371,10 +357,8 @@
                             Padding="2,14,0,0"
                             HorizontalAlignment="Left"
                             VerticalAlignment="Center"
-                            FontFamily="/Fonts/#Albert Sans"
-                            FontSize="13"
-                            Foreground="{StaticResource TextLabelBrush}"
-                            Text="You can speak any language you want, the AI will try to understand it. If you want to translate it."
+                            Style="{StaticResource OptionFieldLabelStyle}"
+                            Text="Speak whichever language you like - the model works it out. Switch translation on below to have it come out in one particular language instead."
                             TextWrapping="Wrap" />
                         <TextBlock
                             Width="600"
@@ -383,23 +367,20 @@
                             HorizontalAlignment="Left"
                             VerticalAlignment="Center"
                             Style="{StaticResource OptionFieldLabelStyle}"
-                            Text="Only works in Whisper"
+                            Text="Only the Whisper model can translate"
                             TextWrapping="Wrap" />
                         <CheckBox
                             x:Name="TranslateToCustomLanguage"
                             Margin="4,0,4,4"
-                            IsChecked="{Binding Modules.Whisper.Settings.TranslateToCustomLanguage, Mode=TwoWay}"
-                            Style="{DynamicResource SettingsCheckbox}">
-                            Enable translation
+                            IsChecked="{Binding Modules.Whisper.Settings.TranslateToCustomLanguage, Mode=TwoWay}">
+                            Translate what I say into another language
                         </CheckBox>
                         <TextBlock
                             Width="auto"
                             Padding="2,8,0,0"
                             VerticalAlignment="Center"
-                            FontFamily="/Fonts/#Albert Sans"
-                            FontSize="13"
-                            Foreground="{StaticResource TextLabelBrush}"
-                            Text="Select your preferred speech to text language"
+                            Style="{StaticResource OptionFieldLabelStyle}"
+                            Text="Into"
                             Visibility="{Binding Modules.Whisper.Settings.TranslateToCustomLanguage, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}" />
                         <StackPanel
                             VerticalAlignment="Center"
@@ -422,7 +403,7 @@
                                 Width="auto"
                                 Padding="3,10,0,0"
                                 Style="{StaticResource OptionFieldLabelStyle}"
-                                Text="Disable after" />
+                                Text="Stop listening after" />
                             <TextBox
                                 x:Name="SilenceAutoTurnOffDurationINT"
                                 Width="auto"
@@ -430,13 +411,13 @@
                                 Padding="3,0,3,0"
                                 HorizontalAlignment="Left"
                                 VerticalContentAlignment="Center"
-                                FontSize="15"
+                                FontSize="{StaticResource FontSizeBody}"
                                 Text="{Binding Modules.Whisper.Settings.SilenceAutoTurnOffDuration, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                             <TextBlock
                                 Width="auto"
                                 Padding="0,10,0,0"
                                 Style="{StaticResource OptionFieldLabelStyle}"
-                                Text="milliseconds of silence" />
+                                Text="milliseconds of quiet" />
 
 
                         </StackPanel>
@@ -444,9 +425,8 @@
                         <CheckBox
                             x:Name="SendAftersilence"
                             Margin="4,10,4,4"
-                            IsChecked="{Binding Modules.Whisper.Settings.SendAftersilence, Mode=TwoWay}"
-                            Style="{DynamicResource SettingsCheckbox}">
-                            Sent Speech to text after silence
+                            IsChecked="{Binding Modules.Whisper.Settings.SendAftersilence, Mode=TwoWay}">
+                            Send it as soon as I stop talking
                         </CheckBox>
 
                         <TextBlock
@@ -455,7 +435,7 @@
                             Padding="4,16,0,5"
                             VerticalAlignment="Center"
                             Style="{StaticResource OptionFieldLabelStyle}"
-                            Text="Adjust the noise gate threshold" />
+                            Text="How loud you have to be before it starts listening" />
 
                         <StackPanel Margin="4,0,0,7" Orientation="Horizontal">
                             <Slider
@@ -474,8 +454,8 @@
                                 Width="auto"
                                 Padding="5,0"
                                 VerticalAlignment="Center"
-                                FontFamily="/Fonts/#Albert Sans"
-                                FontSize="15"
+                                FontFamily="{StaticResource FontPrimary}"
+                                FontSize="{StaticResource FontSizeBody}"
                                 Foreground="{StaticResource TextMutedBrush}"
                                 Text="{Binding Modules.Whisper.Settings.NoiseGateThreshold, UpdateSourceTrigger=PropertyChanged}" />
 
@@ -490,24 +470,22 @@
                             Padding="2,0,0,0"
                             VerticalAlignment="Center"
                             Style="{StaticResource OptionSubsectionHeaderStyle}"
-                            Text="Other AI functions" />
+                            Text="Which model does what" />
 
                         <TextBlock
                             Width="auto"
                             Padding="2,3,0,0"
                             VerticalAlignment="Center"
                             Style="{StaticResource OptionHelpTextStyle}"
-                            Text="Here u can change the model of the IntelliChat AI function" />
+                            Text="Every helper can use a different model. Smaller ones answer faster and cost less; larger ones write better." />
 
 
                         <TextBlock
                             Width="auto"
                             Padding="2,7,0,0"
                             VerticalAlignment="Center"
-                            FontFamily="/Fonts/#Albert Sans"
-                            FontSize="13"
-                            Foreground="{StaticResource TextLabelBrush}"
-                            Text="Conversation starter OpenAI Model:" />
+                            Style="{StaticResource OptionFieldLabelStyle}"
+                            Text="Suggest something to say" />
                         <ComboBox
                             Width="200"
                             Margin="2,4"
@@ -525,10 +503,8 @@
                             Width="auto"
                             Padding="2,7,0,0"
                             VerticalAlignment="Center"
-                            FontFamily="/Fonts/#Albert Sans"
-                            FontSize="13"
-                            Foreground="{StaticResource TextLabelBrush}"
-                            Text="Shorten text OpenAI Model:" />
+                            Style="{StaticResource OptionFieldLabelStyle}"
+                            Text="Make it fit the chatbox" />
                         <ComboBox
                             Width="200"
                             Margin="2,4"
@@ -546,10 +522,8 @@
                             Width="auto"
                             Padding="2,7,0,0"
                             VerticalAlignment="Center"
-                            FontFamily="/Fonts/#Albert Sans"
-                            FontSize="13"
-                            Foreground="{StaticResource TextLabelBrush}"
-                            Text="Spelling / grammar correction OpenAI Model" />
+                            Style="{StaticResource OptionFieldLabelStyle}"
+                            Text="Fix spelling and grammar" />
                         <ComboBox
                             Width="200"
                             Margin="2,4"
@@ -567,10 +541,8 @@
                             Width="auto"
                             Padding="2,7,0,0"
                             VerticalAlignment="Center"
-                            FontFamily="/Fonts/#Albert Sans"
-                            FontSize="13"
-                            Foreground="{StaticResource TextLabelBrush}"
-                            Text="Next word prediction OpenAI Model" />
+                            Style="{StaticResource OptionFieldLabelStyle}"
+                            Text="Finish my sentence" />
                         <ComboBox
                             Width="200"
                             Margin="2,4"
@@ -593,9 +565,8 @@
                     <StackPanel>
                         <CheckBox
                             x:Name="HideOpenAITools"
-                            IsChecked="{Binding ChatSettings.HideOpenAITools, Mode=TwoWay}"
-                            Style="{DynamicResource SettingsCheckbox}">
-                            Hide OpenAI toolbar in chatting tab
+                            IsChecked="{Binding ChatSettings.HideOpenAITools, Mode=TwoWay}">
+                            Hide the AI buttons above the chat box
                         </CheckBox>
 
                     </StackPanel>

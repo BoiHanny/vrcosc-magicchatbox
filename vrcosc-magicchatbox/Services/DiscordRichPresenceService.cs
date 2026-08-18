@@ -1,4 +1,4 @@
-using DiscordRPC;
+﻿using DiscordRPC;
 using System;
 using System.Threading.Tasks;
 using vrcosc_magicchatbox.Classes.DataAndSecurity;
@@ -22,6 +22,8 @@ public sealed class DiscordRichPresenceService : IDisposable
     private readonly Lazy<NetworkStatisticsModule> _networkStats;
     private readonly OscDisplayState _oscDisplay;
     private readonly object _sync = new();
+
+    private readonly object _initGate = new();
 
     private DiscordRpcClient? _client;
     private string? _clientId;
@@ -195,43 +197,71 @@ public sealed class DiscordRichPresenceService : IDisposable
 
     private bool EnsureClient()
     {
-        lock (_sync)
+        lock (_initGate)
         {
             string clientId = ResolveClientId();
-            if (_client?.IsInitialized == true && string.Equals(_clientId, clientId, StringComparison.Ordinal))
-                return true;
+            DiscordRpcClient? existing;
+
+            lock (_sync)
+            {
+                if (_client?.IsInitialized == true && string.Equals(_clientId, clientId, StringComparison.Ordinal))
+                    return true;
+
+                existing = _client;
+                _client = null;
+                _clientId = null;
+            }
+
+            if (existing != null)
+            {
+                try
+                {
+                    if (existing.IsInitialized)
+                        existing.ClearPresence();
+                }
+                catch (Exception ex)
+                {
+                    Logging.WriteException(ex, MSGBox: false);
+                }
+
+                try
+                {
+                    existing.Dispose();
+                }
+                catch (Exception ex)
+                {
+                    Logging.WriteException(ex, MSGBox: false);
+                }
+            }
+
+            DiscordRpcClient? created = null;
+            bool initialized = false;
 
             try
             {
-                if (_client != null)
-                {
-                    try
-                    {
-                        if (_client.IsInitialized)
-                            _client.ClearPresence();
-                    }
-                    catch (Exception ex)
-                    {
-                        Logging.WriteException(ex, MSGBox: false);
-                    }
-
-                    _client.Dispose();
-                }
-
-                _client = new DiscordRpcClient(clientId, autoEvents: true);
-                AttachEventLogging(_client, clientId);
-                _clientId = clientId;
-                bool initialized = _client.Initialize();
+                created = new DiscordRpcClient(clientId, autoEvents: true);
+                AttachEventLogging(created, clientId);
+                initialized = created.Initialize();
                 Logging.WriteInfo($"Discord Rich Presence: DiscordRichPresence client initialize result={initialized} (clientId={MaskClientId(clientId)}, autoEvents=true).");
-                return initialized;
             }
             catch (Exception ex)
             {
                 Logging.WriteException(ex, MSGBox: false);
-                _client = null;
-                _clientId = null;
-                return false;
+
+                try { created?.Dispose(); }
+                catch { }
+
+                created = null;
+                initialized = false;
             }
+
+            lock (_sync)
+            {
+                _client = created;
+                _clientId = created != null ? clientId : null;
+            }
+
+            return initialized;
         }
     }
 

@@ -112,9 +112,21 @@ public class ThemeVisualsTests
 
     private static string BrushColor(string key)
     {
-        var m = Regex.Match(ThemeXaml(), $@"x:Key=""{key}"" Color=""#(?:FF)?([0-9A-Fa-f]{{6}})""");
-        Assert.True(m.Success, $"{key} not found in Theme.xaml");
-        return m.Groups[1].Value;
+        // Matched as "the element that carries this x:Key" rather than "x:Key immediately
+        // followed by Color" - an XAML formatter is free to reorder attributes and wrap each
+        // onto its own line, and neither changes what the brush resolves to at runtime.
+        foreach (Match element in Regex.Matches(ThemeXaml(), @"<SolidColorBrush\b.*?/>", RegexOptions.Singleline))
+        {
+            if (!Regex.IsMatch(element.Value, $@"x:Key=""{key}""(?=[\s""]|$)"))
+                continue;
+
+            var color = Regex.Match(element.Value, @"Color=""#(?:FF)?([0-9A-Fa-f]{6})""");
+            Assert.True(color.Success, $"{key} has no Color attribute");
+            return color.Groups[1].Value;
+        }
+
+        Assert.Fail($"{key} not found in Theme.xaml");
+        return null!;
     }
 
     private static double ContrastRatio(string hexA, string hexB)

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.ComponentModel;
 using vrcosc_magicchatbox.Classes.Modules;
 using vrcosc_magicchatbox.Core.Configuration;
 using vrcosc_magicchatbox.Core.Services;
@@ -16,6 +17,7 @@ public sealed class TrackerBatteryOscProvider : IOscProvider
     {
         _modules = modules;
         _intgr = intgrProvider.Value;
+        _intgr.PropertyChanged += OnIntegrationSettingsChanged;
     }
 
     public string SortKey => "TrackerBattery";
@@ -30,9 +32,22 @@ public sealed class TrackerBatteryOscProvider : IOscProvider
         var tracker = _modules.Value.TrackerBattery;
         if (tracker == null) return null;
 
+        _ = tracker.StartAsync();
+
         string text = tracker.BuildChatboxString();
         if (string.IsNullOrWhiteSpace(text)) return null;
 
         return new OscSegment { Text = text };
+    }
+
+    private void OnIntegrationSettingsChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (!string.Equals(e.PropertyName, nameof(IntegrationSettings.IntgrTrackerBattery), StringComparison.Ordinal))
+            return;
+
+        if (_intgr.IntgrTrackerBattery)
+            return;
+
+        _ = _modules.Value.TrackerBattery?.StopAsync();
     }
 }

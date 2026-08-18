@@ -112,6 +112,10 @@ namespace vrcosc_magicchatbox.ViewModels
             _statusSets = statusSets;
             _afkStyles = afkStyles;
 
+            _selectedMenuIndex = AppSettingsInstance.CurrentMenuItem is >= 0 and <= 3
+                ? AppSettingsInstance.CurrentMenuItem
+                : 3;
+
             UpdateState.AppVersion = new Models.Version(appInfoService.GetApplicationVersion());
 
             Emojis.ShuffleEmojis();
@@ -260,6 +264,14 @@ namespace vrcosc_magicchatbox.ViewModels
         private bool _IsVRRunning = false;
         [ObservableProperty]
         private bool _MasterSwitch = true;
+        [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(IsUiObservable))]
+        private bool _IsWindowOnScreen = true;
+        [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(IsUiObservable))]
+        private bool _IsTrayMenuOpen = false;
+
+        public bool IsUiObservable => IsWindowOnScreen || IsTrayMenuOpen;
 
         private int _selectedMenuIndex = 3;
 

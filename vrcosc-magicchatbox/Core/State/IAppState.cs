@@ -10,11 +10,23 @@ public interface IAppState : INotifyPropertyChanged
     bool BussyBoysMode { get; set; }
     bool Egg_Dev { get; set; }
 
-    /// <summary>Derived from <see cref="PulsoidAuthState"/>; kept for existing bindings and callers.</summary>
     bool PulsoidAuthConnected { get; set; }
 
-    /// <summary>The single source of truth for the Pulsoid sign-in.</summary>
     PulsoidAuthState PulsoidAuthState { get; set; }
 
     int MainWindowBlurEffect { get; set; }
+
+    bool IsWindowOnScreen
+    {
+        get => true;
+        set { }
+    }
+
+    bool IsTrayMenuOpen
+    {
+        get => false;
+        set { }
+    }
+
+    bool IsUiObservable => IsWindowOnScreen || IsTrayMenuOpen;
 }

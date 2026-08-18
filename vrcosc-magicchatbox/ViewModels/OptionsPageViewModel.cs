@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using vrcosc_magicchatbox.Classes.DataAndSecurity;
 using vrcosc_magicchatbox.Classes.Modules;
 using vrcosc_magicchatbox.Core.Configuration;
+using vrcosc_magicchatbox.Core.Messaging;
 using vrcosc_magicchatbox.Core.Toast;
 using vrcosc_magicchatbox.Services;
 using vrcosc_magicchatbox.UI.Dialogs;
@@ -114,10 +115,20 @@ namespace vrcosc_magicchatbox.ViewModels
             _integrationSettingsProvider.Save();
         }
 
-        public event Action<string>? ScrollToSectionRequested;
+        private readonly ReplayableRequest<string> _scrollToSection = new();
 
-        public void RequestScrollToSection(string settingName)
-            => ScrollToSectionRequested?.Invoke(settingName);
+        // A deep link (the tray menu, a "Customize" button on an integration tile) can reach a page
+        // that has never been built: setting the selected index realizes it synchronously, but the
+        // page does not subscribe until its own Loaded fires, which is a later, lower-priority pass.
+        // Firing into that gap used to drop the request silently; replaying it the moment something
+        // does subscribe makes the request outlive the gap instead of racing it.
+        public event Action<string>? ScrollToSectionRequested
+        {
+            add => _scrollToSection.Requested += value;
+            remove => _scrollToSection.Requested -= value;
+        }
+
+        public void RequestScrollToSection(string settingName) => _scrollToSection.Raise(settingName);
 
         [RelayCommand]
         private async Task ResetSectionAsync(string? sectionKey)

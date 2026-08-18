@@ -37,9 +37,12 @@ public class MediaLinkModule : vrcosc_magicchatbox.Services.IMediaLinkService
     private TimeSpan GracePeriod => TimeSpan.FromSeconds(_mediaLinkSettings.SessionTimeout);
     private MediaManager? mediaManager = null;
     private static readonly TimeSpan MediaSnapshotResyncInterval = TimeSpan.FromSeconds(2);
+    private static readonly TimeSpan MediaTimeTickInterval = TimeSpan.FromSeconds(1);
     private static readonly TimeSpan TimelineRefreshAfterMediaChangeDelay = TimeSpan.FromMilliseconds(750);
     private Timer? mediaSnapshotResyncTimer;
+    private Timer? mediaTimeTickTimer;
     private int mediaSnapshotResyncInProgress;
+    private int startInProgress;
     private ConcurrentDictionary<string, (MediaSessionInfo, DateTime)> recentlyClosedSessions = new ConcurrentDictionary<string, (MediaSessionInfo, DateTime)>(
         );
 
@@ -47,7 +50,6 @@ public class MediaLinkModule : vrcosc_magicchatbox.Services.IMediaLinkService
         );
 
     public DateTime LastMediaChangeTime { get; private set; } = DateTime.UtcNow;
-
 
     public MediaLinkModule(
         bool shouldStart,
@@ -76,7 +78,7 @@ public class MediaLinkModule : vrcosc_magicchatbox.Services.IMediaLinkService
                 if (e.NewState == ConsentState.Approved)
                 {
                     if (ShouldRunForCurrentMode() && mediaManager == null)
-                        Start();
+                        BeginStart();
                 }
                 else if (e.NewState == ConsentState.Denied)
                 {
@@ -88,6 +90,14 @@ public class MediaLinkModule : vrcosc_magicchatbox.Services.IMediaLinkService
         _consentService.ConsentChanged += _consentChangedHandler;
 
         if (shouldStart && _consentService.IsApproved(PrivacyHook.MediaSession))
+            Start();
+    }
+
+    public bool IsRunning => mediaManager != null;
+
+    public void StartIfEnabled()
+    {
+        if (ShouldRunForCurrentMode() && _consentService.IsApproved(PrivacyHook.MediaSession))
             Start();
     }
 
@@ -224,8 +234,6 @@ public class MediaLinkModule : vrcosc_magicchatbox.Services.IMediaLinkService
     {
         try
         {
-            // A session that is being torn down can answer GetPlaybackInfo with null
-            // rather than throwing, so this is a routine race, not an error worth logging.
             var playbackInfo = session.ControlSession?.GetPlaybackInfo();
             if (playbackInfo == null)
                 return;
@@ -358,7 +366,7 @@ public class MediaLinkModule : vrcosc_magicchatbox.Services.IMediaLinkService
 
         double requestedPositionSeconds = FullMediaTime.TotalSeconds * progressbarValue / 100;
 
-        return TimeSpan.FromSeconds(requestedPositionSeconds);
+        return timeline.StartTime + TimeSpan.FromSeconds(requestedPositionSeconds);
     }
 
     private void MediaManager_OnAnyMediaPropertyChanged(
@@ -410,8 +418,6 @@ public class MediaLinkModule : vrcosc_magicchatbox.Services.IMediaLinkService
             Logging.WriteException(ex, MSGBox: false);
         }
     }
-
-
 
     private async void MediaManager_OnAnySessionClosed(MediaSession session)
     {
@@ -550,7 +556,7 @@ public class MediaLinkModule : vrcosc_magicchatbox.Services.IMediaLinkService
             if (ShouldRunForCurrentMode())
             {
                 if (mediaManager == null)
-                    Start();
+                    BeginStart();
             }
             else
             {
@@ -558,6 +564,35 @@ public class MediaLinkModule : vrcosc_magicchatbox.Services.IMediaLinkService
                     Stop();
             }
         }
+    }
+
+    private void BeginStart()
+    {
+        if (Interlocked.CompareExchange(ref startInProgress, 1, 0) == 1)
+            return;
+
+        _ = Task.Run(() =>
+        {
+            try
+            {
+                Start();
+
+                if (!ShouldRunForCurrentMode())
+                    _dispatcher.BeginInvoke(() =>
+                    {
+                        if (mediaManager != null)
+                            Stop();
+                    });
+            }
+            catch (Exception ex)
+            {
+                Logging.WriteException(ex, MSGBox: false);
+            }
+            finally
+            {
+                Interlocked.Exchange(ref startInProgress, 0);
+            }
+        });
     }
 
     private bool ShouldRunForCurrentMode()
@@ -585,6 +620,39 @@ public class MediaLinkModule : vrcosc_magicchatbox.Services.IMediaLinkService
         Interlocked.Exchange(ref mediaSnapshotResyncInProgress, 0);
     }
 
+    private void StartMediaTimeTickTimer()
+    {
+        if (mediaTimeTickTimer != null)
+            return;
+
+        mediaTimeTickTimer = new Timer(
+            _ => TickMediaTimes(),
+            null,
+            MediaTimeTickInterval,
+            MediaTimeTickInterval);
+    }
+
+    private void StopMediaTimeTickTimer()
+    {
+        mediaTimeTickTimer?.Dispose();
+        mediaTimeTickTimer = null;
+    }
+
+    private void TickMediaTimes()
+    {
+        if (mediaManager == null)
+            return;
+
+        _dispatcher.BeginInvoke(() =>
+        {
+            foreach (var sessionInfo in _mediaLink.MediaSessions)
+            {
+                if (sessionInfo.PlaybackStatus == GlobalSystemMediaTransportControlsSessionPlaybackStatus.Playing)
+                    sessionInfo.RaiseTimeTick();
+            }
+        });
+    }
+
     private void QueueMediaSnapshotResync()
     {
         if (mediaManager == null)
@@ -600,7 +668,9 @@ public class MediaLinkModule : vrcosc_magicchatbox.Services.IMediaLinkService
     {
         try
         {
-            var sessions = _dispatcher.Invoke(() => _mediaLink.MediaSessions
+            CleanupExpiredSessions();
+
+            var sessions = await _dispatcher.InvokeAsync(() => _mediaLink.MediaSessions
                     .Where(session => (session.IsTimelineStale || !session.TimePeekEnabled) &&
                                       !session.HasNoTimeline &&
                                       (session.IsActive ||
@@ -633,19 +703,21 @@ public class MediaLinkModule : vrcosc_magicchatbox.Services.IMediaLinkService
 
     private void Stop()
     {
-        StopMediaSnapshotResyncTimer();
+        var managerToStop = Interlocked.Exchange(ref mediaManager, null);
 
-        if (mediaManager != null)
+        if (managerToStop != null)
         {
-            mediaManager.OnAnySessionOpened -= MediaManager_OnAnySessionOpened;
-            mediaManager.OnAnySessionClosed -= MediaManager_OnAnySessionClosed;
-            mediaManager.OnFocusedSessionChanged -= MediaManager_OnFocusedSessionChanged;
-            mediaManager.OnAnyPlaybackStateChanged -= MediaManager_OnAnyPlaybackStateChanged;
-            mediaManager.OnAnyMediaPropertyChanged -= MediaManager_OnAnyMediaPropertyChanged;
-            mediaManager.OnAnyTimelinePropertyChanged -= MediaManager_OnAnyTimelinePropertyChanged;
+            StopMediaSnapshotResyncTimer();
+            StopMediaTimeTickTimer();
 
-            mediaManager.Dispose();
-            mediaManager = null;
+            managerToStop.OnAnySessionOpened -= MediaManager_OnAnySessionOpened;
+            managerToStop.OnAnySessionClosed -= MediaManager_OnAnySessionClosed;
+            managerToStop.OnFocusedSessionChanged -= MediaManager_OnFocusedSessionChanged;
+            managerToStop.OnAnyPlaybackStateChanged -= MediaManager_OnAnyPlaybackStateChanged;
+            managerToStop.OnAnyMediaPropertyChanged -= MediaManager_OnAnyMediaPropertyChanged;
+            managerToStop.OnAnyTimelinePropertyChanged -= MediaManager_OnAnyTimelinePropertyChanged;
+
+            managerToStop.Dispose();
         }
 
         currentSession = null;
@@ -654,18 +726,30 @@ public class MediaLinkModule : vrcosc_magicchatbox.Services.IMediaLinkService
 
     private void DisposeTrackedSessions()
     {
-        var trackedSessions = new HashSet<MediaSessionInfo>(_mediaLink.MediaSessions);
-        foreach (var info in sessionInfoLookup.Values)
-            trackedSessions.Add(info);
-        foreach (var (info, _) in recentlyClosedSessions.Values)
-            trackedSessions.Add(info);
+        var trackedSessions = new HashSet<MediaSessionInfo>();
 
-        _mediaLink.MediaSessions.Clear();
-        sessionInfoLookup.Clear();
-        recentlyClosedSessions.Clear();
+        try
+        {
+            _dispatcher.Invoke(() =>
+            {
+                foreach (var info in _mediaLink.MediaSessions)
+                    trackedSessions.Add(info);
+                _mediaLink.MediaSessions.Clear();
+            });
 
-        foreach (var info in trackedSessions)
-            info.Dispose();
+            foreach (var info in sessionInfoLookup.Values)
+                trackedSessions.Add(info);
+            foreach (var (info, _) in recentlyClosedSessions.Values)
+                trackedSessions.Add(info);
+
+            sessionInfoLookup.Clear();
+            recentlyClosedSessions.Clear();
+        }
+        finally
+        {
+            foreach (var info in trackedSessions)
+                info.Dispose();
+        }
     }
 
     public void Dispose()
@@ -717,11 +801,7 @@ public class MediaLinkModule : vrcosc_magicchatbox.Services.IMediaLinkService
         {
             await S.ControlSession.TrySkipPreviousAsync();
         }
-
     }
-
-
-
 
     public async Task MediaManager_SeekTo(MediaSessionInfo sessionInfo, double position)
     {
@@ -743,13 +823,6 @@ public class MediaLinkModule : vrcosc_magicchatbox.Services.IMediaLinkService
             Logging.WriteInfo($"Unable to seek media session {S.Id}: {ex.Message}");
         }
     }
-
-
-
-
-
-
-
 
     public void SessionRestore(MediaSessionInfo session)
     {
@@ -797,14 +870,13 @@ public class MediaLinkModule : vrcosc_magicchatbox.Services.IMediaLinkService
             mediaManager.OnAnyTimelinePropertyChanged += MediaManager_OnAnyTimelinePropertyChanged;
             mediaManager.Start();
             StartMediaSnapshotResyncTimer();
+            StartMediaTimeTickTimer();
         }
         catch (Exception ex)
         {
             Logging.WriteException(ex, MSGBox: false);
         }
     }
-
-
 
     public class MediaLinkStyle : INotifyPropertyChanged
     {
@@ -886,7 +958,6 @@ public class MediaLinkModule : vrcosc_magicchatbox.Services.IMediaLinkService
             get => showTimeInSuperscript;
             set => SetProperty(ref showTimeInSuperscript, value);
         }
-
 
         public bool SpaceAgainObjects
         {
@@ -974,5 +1045,4 @@ public class MediaLinkModule : vrcosc_magicchatbox.Services.IMediaLinkService
             set => SetProperty(ref timeSuffix, value);
         }
     }
-
 }

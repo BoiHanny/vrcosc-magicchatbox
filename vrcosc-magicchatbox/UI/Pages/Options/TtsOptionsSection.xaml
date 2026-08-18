@@ -12,7 +12,7 @@
     <UserControl.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
-                <ResourceDictionary Source="/UI/Resources/SharedConverters.xaml" />
+                <ResourceDictionary Source="/MagicChatbox;component/UI/Resources/SharedConverters.xaml" />
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
     </UserControl.Resources>
@@ -51,8 +51,8 @@
                 HorizontalAlignment="Left"
                 VerticalAlignment="Center"
                 Cursor="Hand"
-                FontFamily="/Fonts/#Albert Sans"
-                FontSize="12"
+                FontFamily="{StaticResource FontPrimary}"
+                FontSize="{StaticResource FontSizeCaption}"
                 Foreground="{StaticResource AccentTealBrush}"
                 MouseUp="LearnMoreAboutTTSbtn_MouseUp"
                 Text="Learn more"
@@ -70,51 +70,43 @@
                     BorderThickness="1"
                     Style="{StaticResource OptionCardStyle}">
                     <TextBlock
-                        FontFamily="/Fonts/#Albert Sans"
-                        FontSize="13"
+                        FontFamily="{StaticResource FontPrimary}"
+                        FontSize="{StaticResource FontSizeSecondary}"
                         Foreground="{StaticResource StatusWarningBrush}"
-                        Text="Heads up: The TikTok TTS endpoint this feature uses may be unavailable, so playback could fail."
+                        Text="Heads up: the voices come from a TikTok service that is not always up. When it is down, nothing is spoken."
                         TextWrapping="Wrap" />
                 </Border>
 
                 <Border Style="{StaticResource OptionCardStyle}">
                     <StackPanel>
-                        <TextBlock Style="{StaticResource OptionSubsectionHeaderStyle}" Text="Playback behavior" />
-                        <CheckBox
-                            x:Name="TTSCutOff"
-                            IsChecked="{Binding TtsSettings.TtsCutOff, Mode=TwoWay}"
-                            Style="{DynamicResource SettingsCheckbox}">
-                            Stop current playing TTS on new chat
+                        <TextBlock Style="{StaticResource OptionSubsectionHeaderStyle}" Text="When it speaks" />
+                        <TextBlock Style="{StaticResource OptionHelpTextStyle}" Text="Text to speech reads your chat messages out loud on this PC. It does not change what the chatbox shows." />
+                        <CheckBox x:Name="TTSCutOff" IsChecked="{Binding TtsSettings.TtsCutOff, Mode=TwoWay}">
+                            Cut off the current message when a new one arrives
                         </CheckBox>
-                        <TextBlock Style="{StaticResource OptionHelpTextStyle}" Text="Interrupts speech that is already playing when a new chat message arrives." />
-                        <CheckBox
-                            x:Name="TTSOnResendChat"
-                            IsChecked="{Binding TtsSettings.TtsOnResendChat, Mode=TwoWay}"
-                            Style="{DynamicResource SettingsCheckbox}">
-                            Replay TTS on resend
+                        <TextBlock Style="{StaticResource OptionHelpTextStyle}" Text="Leave it off and messages wait their turn, read out one after another." />
+                        <CheckBox x:Name="TTSOnResendChat" IsChecked="{Binding TtsSettings.TtsOnResendChat, Mode=TwoWay}">
+                            Speak it again when you resend a message
                         </CheckBox>
-                        <TextBlock Style="{StaticResource OptionHelpTextStyle}" Text="Also speaks messages when you resend them from chat history." />
-                        <CheckBox
-                            x:Name="TTSAutoUnmute"
-                            IsChecked="{Binding TtsSettings.AutoUnmuteTTS, Mode=TwoWay}"
-                            Style="{DynamicResource SettingsCheckbox}">
-                            Autotoggle VRChat voice on TTS
+                        <TextBlock Style="{StaticResource OptionHelpTextStyle}" Text="Applies to messages you send again from your chat history." />
+                        <CheckBox x:Name="TTSAutoUnmute" IsChecked="{Binding TtsSettings.AutoUnmuteTTS, Mode=TwoWay}">
+                            Switch your VRChat microphone on while it speaks
                         </CheckBox>
-                        <TextBlock Style="{StaticResource OptionHelpTextStyle}" Text="Temporarily toggles VRChat voice input while TTS audio plays." />
+                        <TextBlock Style="{StaticResource OptionHelpTextStyle}" Text="Unmutes you in VRChat for as long as the audio lasts, then mutes you again. Others only hear the speech if your microphone picks it up." />
                     </StackPanel>
                 </Border>
 
                 <Border Style="{StaticResource OptionCardStyle}">
                     <StackPanel>
-                        <TextBlock Style="{StaticResource OptionSubsectionHeaderStyle}" Text="Voice and output" />
-                        <TextBlock Style="{StaticResource OptionHelpTextStyle}" Text="Choose the TikTok voice and Windows playback device used for generated speech." />
+                        <TextBlock Style="{StaticResource OptionSubsectionHeaderStyle}" Text="Voice and speakers" />
+                        <TextBlock Style="{StaticResource OptionHelpTextStyle}" Text="Which voice reads the message, and which speakers or headset it comes out of. Pick a virtual audio cable here if you want the speech to reach your microphone." />
                         <StackPanel Style="{StaticResource OptionActionRowStyle}">
                             <TextBlock
                                 Width="85"
                                 Margin="0"
                                 VerticalAlignment="Center"
                                 Style="{StaticResource OptionFieldLabelStyle}"
-                                Text="TTS voice" />
+                                Text="Voice" />
                             <ComboBox
                                 x:Name="TikTokTTSVoicesComboBox"
                                 Width="186"
@@ -130,7 +122,7 @@
                                 Margin="0"
                                 VerticalAlignment="Center"
                                 Style="{StaticResource OptionFieldLabelStyle}"
-                                Text="TTS output" />
+                                Text="Play through" />
                             <ComboBox
                                 x:Name="PlaybackOutputDeviceComboBox"
                                 Width="186"

@@ -31,7 +31,10 @@ public sealed class DiscordOscProvider : IOscProvider
         var discord = _modules.Value.Discord;
         if (discord == null || !discord.IsRunning || !discord.IsAuthenticated) return null;
 
-        string text = discord.GetOutputString();
+        int budget = context.RemainingCharsIf(string.Empty);
+        if (budget <= 0) return null;
+
+        string text = discord.GetOutputString(budget);
         if (string.IsNullOrWhiteSpace(text)) return null;
 
         return new OscSegment { Text = text };

@@ -16,8 +16,6 @@ namespace vrcosc_magicchatbox.Services;
 
 public sealed class PulsoidApiClient : IPulsoidClient
 {
-    // The docs specify no ping/pong and no idle timeout, so the old 5s keepalive was six times
-    // the .NET default for no documented reason. Liveness is tracked at the application layer.
     private static readonly TimeSpan KeepAliveInterval = TimeSpan.FromSeconds(30);
     private const int MinRetryDelayMs = 2_000;
     private const int MaxRetryDelayMs = 10_000;
@@ -44,13 +42,6 @@ public sealed class PulsoidApiClient : IPulsoidClient
         _tokenValidator = tokenValidator;
     }
 
-    /// <summary>
-    /// Owns the whole connection lifetime: one flat loop that handles handshake failures and
-    /// mid-stream drops alike. It used to re-enter itself from the receive loop's finally, which
-    /// nested an async frame per reconnect and reset the backoff counter every time.
-    /// It only ever returns on cancellation or on a definitive auth rejection; a transient
-    /// outage keeps retrying forever rather than latching into a dead session.
-    /// </summary>
     public async Task ConnectAsync(string accessToken, CancellationToken ct)
     {
         int attempt = 0;
@@ -65,8 +56,6 @@ public sealed class PulsoidApiClient : IPulsoidClient
             {
                 _webSocket = new ClientWebSocket();
                 _webSocket.Options.KeepAliveInterval = KeepAliveInterval;
-                // Without this the handshake's HTTP status is thrown away, leaving a 401 rejection
-                // indistinguishable from the router being unplugged.
                 _webSocket.Options.CollectHttpResponseDetails = true;
 
                 var wsUri = new Uri(
@@ -141,11 +130,6 @@ public sealed class PulsoidApiClient : IPulsoidClient
         }
     }
 
-    /// <summary>
-    /// Returns true only when the handshake was refused for a reason that re-authentication fixes.
-    /// 403/429/5xx are request-shaping or availability problems per
-    /// https://docs.pulsoid.net/error-code-format and must not sign the user out.
-    /// </summary>
     private async Task<bool> ReportIfAuthRejectionAsync(HttpStatusCode status, string accessToken)
     {
         switch ((int)status)
@@ -156,14 +140,11 @@ public sealed class PulsoidApiClient : IPulsoidClient
                 return true;
 
             case 402:
-                // Terminal: the loop below stops for good, so the text must not promise a retry.
                 ConnectionFailed?.Invoke(PulsoidConnectionError.SubscriptionRequired,
                     "Pulsoid reports that this feature needs a paid plan, so reconnecting has stopped.");
                 return true;
 
             case 0:
-                // No HTTP answer at all: offline, DNS, TLS. Ask the validate endpoint, and stop
-                // only if it says the token is definitively dead.
                 var validation = await _tokenValidator.ValidateTokenAsync(accessToken).ConfigureAwait(false);
                 if (validation == PulsoidTokenValidation.Invalid)
                 {
@@ -215,11 +196,6 @@ public sealed class PulsoidApiClient : IPulsoidClient
                 string errorContent = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
                 Logging.WriteInfo($"Error fetching Pulsoid statistics: {response.StatusCode}, Content: {errorContent}");
 
-                // A failure here disables statistics and nothing else. Statistics are documented as
-                // optional and ValidateTokenAsync deliberately accepts a token without
-                // data:statistics:read, so raising TokenInvalid from this endpoint signed the user
-                // out of heart rate — while the socket was still streaming beats — and re-latched
-                // it every 30 seconds. The socket is the authoritative liveness signal.
                 switch (response.StatusCode)
                 {
                     case HttpStatusCode.Unauthorized:
@@ -258,10 +234,6 @@ public sealed class PulsoidApiClient : IPulsoidClient
         DisposeWebSocket();
     }
 
-    /// <summary>
-    /// Pumps messages until the socket closes or drops. Reconnection and connection-state
-    /// notification are the caller's job, so this can simply return.
-    /// </summary>
     private async Task ReceiveLoopAsync(CancellationToken ct)
     {
         var buffer = new byte[1024];

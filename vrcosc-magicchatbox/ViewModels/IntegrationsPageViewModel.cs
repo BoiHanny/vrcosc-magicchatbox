@@ -54,9 +54,6 @@ public partial class IntegrationsPageViewModel : ObservableObject
     private readonly Lazy<ComponentStatsViewModel> _componentStats;
     public ComponentStatsViewModel ComponentStats => _componentStats.Value;
 
-    // The two LYRICS chips used to bind to the same master flag, so switching lyrics off on the
-    // Media link card switched it off on Spotify too. Each card now owns its own source, and the
-    // master follows along as "either of them".
     public bool LyricsFromSpotify
     {
         get => IntegrationSettings.IntgrLyrics_Spotify;
@@ -78,9 +75,6 @@ public partial class IntegrationsPageViewModel : ObservableObject
         RaiseLyricSourceChanged();
     }
 
-    // Anything that turns the master off - the privacy guard revoking Internet Access, the Lyrics
-    // row in Options - has to take the sources with it, or the chips claim to be on while nothing
-    // is running.
     private void SyncLyricSourcesWithMaster()
     {
         LyricsSourceCoordinator.SyncWithMaster(IntegrationSettings);
@@ -202,8 +196,6 @@ public partial class IntegrationsPageViewModel : ObservableObject
 
         IntegrationSettings.PropertyChanged += OnIntegrationSettingChanged;
 
-        // Weather is the one tile whose master switch lives on a different settings object, so its chip
-        // dot and the tidy count would go stale without watching it too.
         WeatherSettings.PropertyChanged += OnWeatherSettingsChangedForTiles;
 
         RebuildHiddenChips();
@@ -226,11 +218,6 @@ public partial class IntegrationsPageViewModel : ObservableObject
 
     private readonly Lazy<Sections.LyricsSectionViewModel> _lyricsTuning;
 
-    /// <summary>
-    /// The very same singleton the Options &gt; Lyrics section edits, so the ribbon's timing controls
-    /// and the Options page can never disagree about the offset - a nudge on either surface shows up
-    /// on the other immediately, with no syncing code.
-    /// </summary>
     public Sections.LyricsSectionViewModel LyricsTuning => _lyricsTuning.Value;
 
     public IReadOnlyList<Classes.Modules.Vr.VrPerformanceDisplayMode> VrPerformanceDisplayModes { get; } =
@@ -292,10 +279,6 @@ public partial class IntegrationsPageViewModel : ObservableObject
         HandleMasterChangedWhileHidden(e.PropertyName);
     }
 
-    /// <summary>
-    /// An integration can be switched on from its Options section rather than its tile. Without this, the
-    /// user gets a success message and no tile, with no clue that they hid it months ago.
-    /// </summary>
     private void HandleMasterChangedWhileHidden(string propertyName)
     {
         if (!IntegrationTileCatalog.TryKeyForMasterProperty(propertyName, out var key)) return;
@@ -314,7 +297,6 @@ public partial class IntegrationsPageViewModel : ObservableObject
             return;
         }
 
-        // Chips carry an on/off dot and the tidy pill carries a live count; both go stale without this.
         RebuildHiddenChips();
     }
 
@@ -358,10 +340,6 @@ public partial class IntegrationsPageViewModel : ObservableObject
 
     public bool HasModeVisibilityWarning => ModeVisibilityWarning != null;
 
-    /// <summary>
-    /// Names what got dropped for space. Fading the tile said something was wrong without saying what
-    /// or why, and the old banner for this lived on the main window and said neither.
-    /// </summary>
     public string? TrimmedWarning
     {
         get
@@ -628,11 +606,6 @@ public partial class IntegrationsPageViewModel : ObservableObject
         return string.IsNullOrWhiteSpace(value) ? fallback : value;
     }
 
-    // ---------------------------------------------------------------------------------------------
-    // Hiding tiles. Purely visual: every path here writes HiddenTiles and nothing else, so a hidden
-    // integration keeps running and keeps writing to the chatbox exactly as before.
-    // ---------------------------------------------------------------------------------------------
-
     public ObservableCollection<HiddenTileChip> HiddenChips { get; } = new();
 
     public bool HasHiddenTiles => HiddenChips.Count > 0;
@@ -669,10 +642,6 @@ public partial class IntegrationsPageViewModel : ObservableObject
 
     public string TidySwitchedOffLabel => $"Hide the {SwitchedOffVisibleCount} that are off";
 
-    /// <summary>
-    /// Tiles that cannot run in the current mode no matter what the user does. Deliberately excludes
-    /// anything the mode banner is asking them to fix, because those have a working switch.
-    /// </summary>
     public List<string> ModeUnavailableVisibleKeys()
     {
         var result = new List<string>();
@@ -682,11 +651,8 @@ public partial class IntegrationsPageViewModel : ObservableObject
         {
             if (!IntegrationTileCatalog.TryGet(key, out var tile)) continue;
 
-            // No gate at all means the tile is fine in both modes.
             if (!IntegrationModeVisibility.TryGetGate(tile.MasterProperty, out var gate)) continue;
 
-            // A gate the user can switch on is one the mode banner is already asking them to fix.
-            // Hiding those would take away the fix, so only genuinely impossible tiles qualify.
             if (gate.CanEnableIn(isVR)) continue;
 
             result.Add(tile.Key);
@@ -781,15 +747,12 @@ public partial class IntegrationsPageViewModel : ObservableObject
             ToastType.Info, durationMs: 5000, key: "tiles-tidied");
     }
 
-    /// <summary>Raised when a tile becomes visible again so the page can scroll it into view.</summary>
     public event EventHandler<string>? TileShown;
 
-    /// <summary>Raised when the set of visible tiles changes so the page can rebuild its item list.</summary>
     public event EventHandler? TileLayoutChanged;
 
     private void CommitHidden(HashSet<string> hidden)
     {
-        // Assigning a new collection is what raises PropertyChanged for the generated property.
         IntegrationSettings.HiddenTiles = new ObservableCollection<string>(
             IntegrationTileCatalog.Keys.Where(hidden.Contains));
 
@@ -827,7 +790,6 @@ public partial class IntegrationsPageViewModel : ObservableObject
                     : $"{tile.DisplayName} is hidden by you, and switched off. Click to show it again."));
         }
 
-        // A follower has no tile of its own, so if every host is hidden its controls are unreachable.
         AddOrphanedFollowerChips(hidden);
 
         RaiseHiddenStateChanged();
@@ -864,5 +826,4 @@ public partial class IntegrationsPageViewModel : ObservableObject
     }
 }
 
-/// <summary>A chip in the "hidden" strip. Projected from settings, never bound to them directly.</summary>
 public sealed record HiddenTileChip(string Key, string DisplayName, bool IsRunning, string ToolTip);

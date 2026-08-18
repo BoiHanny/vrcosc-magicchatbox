@@ -11,6 +11,8 @@ public interface IHardwareMonitorService : IDisposable
 
     bool VendorGpuSensorsEnabled { get; set; }
 
+    TimeSpan StatsTickInterval { get; set; }
+
     string GetHardwareMonitorStatusMessage();
 
     void UpdateAll();

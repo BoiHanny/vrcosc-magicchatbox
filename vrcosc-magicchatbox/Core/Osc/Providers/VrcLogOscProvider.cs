@@ -32,7 +32,7 @@ public sealed class VrcLogOscProvider : IOscProvider
         var radar = _modules.Value.VrcRadar;
         if (radar == null || !((IModule)radar).IsRunning) return null;
 
-        string? text = radar.GetOutputString();
+        string? text = radar.GetOutputString(context.RemainingCharsIf(string.Empty));
         if (string.IsNullOrWhiteSpace(text)) return null;
 
         return new OscSegment { Text = text };

@@ -14,3 +14,8 @@ public abstract class VersionedSettings : ObservableObject
     [JsonProperty("_migratedAt")]
     public System.DateTime? MigratedAt { get; set; }
 }
+
+public interface ILegacySettingsMigration
+{
+    bool AdoptLegacySettings();
+}

@@ -3,7 +3,6 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Threading;
 using vrcosc_magicchatbox.Classes.DataAndSecurity;
 using vrcosc_magicchatbox.Classes.Modules;
 using vrcosc_magicchatbox.Classes.Modules.Media;
@@ -22,7 +21,6 @@ namespace vrcosc_magicchatbox.ViewModels.Models
 
         private bool _AutoSwitch;
 
-        private Timer _updateTimer;
         private bool _disposed;
 
         public bool IsDisposed => _disposed;
@@ -37,16 +35,16 @@ namespace vrcosc_magicchatbox.ViewModels.Models
 
         private bool _ShowTitle = true;
 
-        private void UpdateCurrentTime(object state)
+        public void RaiseTimeTick()
         {
-            if (PlaybackStatus == GlobalSystemMediaTransportControlsSessionPlaybackStatus.Playing)
+            if (_disposed)
+                return;
+
+            var handler = PropertyChanged;
+            if (handler != null)
             {
-                var handler = PropertyChanged;
-                if (handler != null)
-                {
-                    handler(this, new PropertyChangedEventArgs(nameof(CurrentTime)));
-                    handler(this, new PropertyChangedEventArgs(nameof(TimePosition)));
-                }
+                handler(this, new PropertyChangedEventArgs(nameof(CurrentTime)));
+                handler(this, new PropertyChangedEventArgs(nameof(TimePosition)));
             }
         }
 
@@ -386,7 +384,6 @@ namespace vrcosc_magicchatbox.ViewModels.Models
             _mediaLink = mediaLink;
             _AutoSwitch = _mediaLinkSettings.AutoSwitchSpawn;
             _lastUpdateTime = DateTime.UtcNow;
-            _updateTimer = new Timer(UpdateCurrentTime, null, 0, 1000);
         }
 
         private TimeSpan _FullTime = new TimeSpan(0, 0, 0);
@@ -462,9 +459,6 @@ namespace vrcosc_magicchatbox.ViewModels.Models
         {
             if (_disposed) return;
             _disposed = true;
-
-            _updateTimer?.Dispose();
-            _updateTimer = null;
         }
 
 

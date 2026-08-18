@@ -1,14 +1,24 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
+using System.ComponentModel;
 using vrcosc_magicchatbox.Core.Configuration;
 
 namespace vrcosc_magicchatbox.Classes.Modules;
 
 public enum RadarDisplayMode
 {
+    [Description("Always show where I am")]
     AlwaysShow,
+
+    [Description("Only speak up when something happens")]
     TransientOnly,
+
+    [Description("Show where I am, and interrupt for events")]
     EventOverlay,
+
+    [Description("Only speak up when people come and go")]
     JoinLeaveOnly,
+
+    [Description("Just the world name and how many people")]
     CompactInfo
 }
 
@@ -54,7 +64,6 @@ public partial class VrcLogSettings : VersionedSettings
     [ObservableProperty] private bool _sendCameraFlashOsc = false;
     [ObservableProperty] private string _oscCameraFlashParam = "/avatar/parameters/CameraFlash";
 
-    [ObservableProperty] private int _maxLogEntries = 50000;
     [ObservableProperty] private int _maxBackfillSizeMb = 10;
 
     public static readonly (string Name, string Value)[] WorldTemplatePresets =

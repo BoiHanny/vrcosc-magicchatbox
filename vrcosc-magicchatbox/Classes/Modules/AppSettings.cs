@@ -83,7 +83,8 @@ public partial class AppSettings : VersionedSettings
     [ObservableProperty] private bool _settings_VrPerformance = false;
     [ObservableProperty] private bool _settings_Lyrics = false;
 
-    // Remembered main-window placement. NaN means "never saved", so a fresh install still centres.
+    [ObservableProperty] private bool _settings_Privacy = false;
+
     [ObservableProperty] private double _windowLeft = double.NaN;
     [ObservableProperty] private double _windowTop = double.NaN;
     [ObservableProperty] private double _windowWidth = double.NaN;

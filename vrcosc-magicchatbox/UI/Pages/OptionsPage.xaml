@@ -4,6 +4,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:controls="clr-namespace:vrcosc_magicchatbox.UI.Controls"
     xmlns:options="clr-namespace:vrcosc_magicchatbox.UI.Pages.Options"
     xmlns:vm="clr-namespace:vrcosc_magicchatbox.ViewModels"
     d:DataContext="{d:DesignInstance Type=vm:OptionsPageViewModel,
@@ -13,96 +14,33 @@
     FontFamily="{DynamicResource FontPrimary}"
     mc:Ignorable="d">
 
+    <UserControl.Resources>
+        <Style x:Key="OptionSectionPlaceholderTitle" TargetType="TextBlock">
+            <Setter Property="Margin" Value="15,8,10,0" />
+            <Setter Property="FontFamily" Value="{StaticResource FontPrimary}" />
+            <Setter Property="FontSize" Value="{StaticResource FontSizeHeading}" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Foreground" Value="{StaticResource TextSectionHeaderBrush}" />
+        </Style>
+        <Style
+            x:Key="OptionSectionPlaceholderStatus"
+            BasedOn="{StaticResource OptionSectionPlaceholderTitle}"
+            TargetType="TextBlock">
+            <Setter Property="Margin" Value="15,2,10,10" />
+            <Setter Property="FontSize" Value="{StaticResource FontSizeCaption}" />
+            <Setter Property="FontWeight" Value="Normal" />
+            <Setter Property="Foreground" Value="{StaticResource TextMutedBrush}" />
+        </Style>
+    </UserControl.Resources>
+
     <ScrollViewer
         x:Name="MainScroll"
         Padding="0,0,0,12"
         CanContentScroll="False"
         HorizontalScrollBarVisibility="Disabled"
         VerticalScrollBarVisibility="Auto">
-        <StackPanel>
-            <ContentControl
-                x:Name="OptionsWrapper_Status"
-                Style="{StaticResource OptionSectionWithResetStyle}"
-                Tag="status">
-                <options:StatusSection x:Name="Section_Status" DataContext="{Binding StatusSection}" />
-            </ContentControl>
-
-            <ContentControl
-                x:Name="OptionsWrapper_VrcRadar"
-                Style="{StaticResource OptionSectionWithResetStyle}"
-                Tag="vrc-radar">
-                <options:VrcRadarSection x:Name="Section_VRCRadar" DataContext="{Binding VrcRadarSection}" />
-            </ContentControl>
-
-            <ContentControl
-                x:Name="OptionsWrapper_Pulsoid"
-                Style="{StaticResource OptionSectionWithResetStyle}"
-                Tag="pulsoid">
-                <options:PulsoidSection x:Name="Section_Pulsoid" DataContext="{Binding PulsoidSection}" />
-            </ContentControl>
-
-            <ContentControl
-                x:Name="OptionsWrapper_Time"
-                Style="{StaticResource OptionSectionWithResetStyle}"
-                Tag="time">
-                <options:TimeOptionsSection x:Name="Section_Time" DataContext="{Binding TimeOptionsSection}" />
-            </ContentControl>
-
-            <ContentControl
-                x:Name="OptionsWrapper_Weather"
-                Style="{StaticResource OptionSectionWithResetStyle}"
-                Tag="weather">
-                <options:WeatherSection x:Name="Section_Weather" DataContext="{Binding WeatherSection}" />
-            </ContentControl>
-
-            <ContentControl
-                x:Name="OptionsWrapper_Twitch"
-                Style="{StaticResource OptionSectionWithResetStyle}"
-                Tag="twitch">
-                <options:TwitchSection x:Name="Section_Twitch" DataContext="{Binding TwitchSection}" />
-            </ContentControl>
-
-            <ContentControl
-                x:Name="OptionsWrapper_TikTokLive"
-                Style="{StaticResource OptionSectionWithResetStyle}"
-                Tag="tiktok-live">
-                <options:TikTokLiveSection x:Name="Section_TikTokLive" DataContext="{Binding TikTokLiveSection}" />
-            </ContentControl>
-
-            <ContentControl
-                x:Name="OptionsWrapper_Discord"
-                Style="{StaticResource OptionSectionWithResetStyle}"
-                Tag="discord">
-                <options:DiscordSection x:Name="Section_Discord" DataContext="{Binding DiscordSection}" />
-            </ContentControl>
-
-            <ContentControl
-                x:Name="OptionsWrapper_Spotify"
-                Style="{StaticResource OptionSectionWithResetStyle}"
-                Tag="spotify">
-                <options:SpotifySection x:Name="Section_Spotify" DataContext="{Binding SpotifySection}" />
-            </ContentControl>
-
-            <ContentControl
-                x:Name="OptionsWrapper_OpenAI"
-                Style="{StaticResource OptionSectionWithResetStyle}"
-                Tag="openai">
-                <options:OpenAISection x:Name="Section_OpenAI" DataContext="{Binding OpenAISection}" />
-            </ContentControl>
-
-            <ContentControl
-                x:Name="OptionsWrapper_ComponentStats"
-                Style="{StaticResource OptionSectionWithResetStyle}"
-                Tag="component-stats">
-                <options:ComponentStatsSection x:Name="Section_ComponentStats" DataContext="{Binding ComponentStatsSection}" />
-            </ContentControl>
-
-            <ContentControl
-                x:Name="OptionsWrapper_NetworkStatistics"
-                Style="{StaticResource OptionSectionWithResetStyle}"
-                Tag="network-statistics">
-                <options:NetworkStatisticsSection x:Name="Section_NetworkStatistics" DataContext="{Binding NetworkStatisticsSection}" />
-            </ContentControl>
+        <StackPanel x:Name="SectionsPanel">
+            <controls:OptionGroupHeader Title="Your message" />
 
             <ContentControl
                 x:Name="OptionsWrapper_Chatting"
@@ -112,11 +50,13 @@
             </ContentControl>
 
             <ContentControl
-                x:Name="OptionsWrapper_Tts"
+                x:Name="OptionsWrapper_Status"
                 Style="{StaticResource OptionSectionWithResetStyle}"
-                Tag="tts">
-                <options:TtsOptionsSection x:Name="TtsOptionsSectionControl" DataContext="{Binding TtsSection}" />
+                Tag="status">
+                <options:StatusSection x:Name="Section_Status" DataContext="{Binding StatusSection}" />
             </ContentControl>
+
+            <controls:OptionGroupHeader Title="Music" />
 
             <ContentControl
                 x:Name="OptionsWrapper_MediaLink"
@@ -126,10 +66,195 @@
             </ContentControl>
 
             <ContentControl
+                x:Name="OptionsWrapper_Spotify"
+                Style="{StaticResource OptionSectionWithResetStyle}"
+                Tag="spotify">
+                <StackPanel>
+                    <TextBlock Style="{StaticResource OptionSectionPlaceholderTitle}" Text="Spotify options" />
+                    <TextBlock Style="{StaticResource OptionSectionPlaceholderStatus}" Text="Loading…" />
+                </StackPanel>
+            </ContentControl>
+
+            <ContentControl
+                x:Name="OptionsWrapper_Lyrics"
+                Style="{StaticResource OptionSectionWithResetStyle}"
+                Tag="lyrics">
+                <StackPanel>
+                    <TextBlock Style="{StaticResource OptionSectionPlaceholderTitle}" Text="Lyrics (MediaLink &amp; Spotify)" />
+                    <TextBlock Style="{StaticResource OptionSectionPlaceholderStatus}" Text="Loading…" />
+                </StackPanel>
+            </ContentControl>
+
+            <controls:OptionGroupHeader Title="Streaming and chat" />
+
+            <ContentControl
+                x:Name="OptionsWrapper_Twitch"
+                Style="{StaticResource OptionSectionWithResetStyle}"
+                Tag="twitch">
+                <StackPanel>
+                    <TextBlock Style="{StaticResource OptionSectionPlaceholderTitle}" Text="Twitch options" />
+                    <TextBlock Style="{StaticResource OptionSectionPlaceholderStatus}" Text="Loading…" />
+                </StackPanel>
+            </ContentControl>
+
+            <ContentControl
+                x:Name="OptionsWrapper_TikTokLive"
+                Style="{StaticResource OptionSectionWithResetStyle}"
+                Tag="tiktok-live">
+                <StackPanel>
+                    <TextBlock Style="{StaticResource OptionSectionPlaceholderTitle}" Text="TikTok options" />
+                    <TextBlock Style="{StaticResource OptionSectionPlaceholderStatus}" Text="Loading…" />
+                </StackPanel>
+            </ContentControl>
+
+            <ContentControl
+                x:Name="OptionsWrapper_Discord"
+                Style="{StaticResource OptionSectionWithResetStyle}"
+                Tag="discord">
+                <StackPanel>
+                    <TextBlock Style="{StaticResource OptionSectionPlaceholderTitle}" Text="Discord voice options" />
+                    <TextBlock Style="{StaticResource OptionSectionPlaceholderStatus}" Text="Loading…" />
+                </StackPanel>
+            </ContentControl>
+
+            <ContentControl
+                x:Name="OptionsWrapper_VrcRadar"
+                Style="{StaticResource OptionSectionWithResetStyle}"
+                Tag="vrc-radar">
+                <StackPanel>
+                    <TextBlock Style="{StaticResource OptionSectionPlaceholderTitle}" Text="VRChat radar options" />
+                    <TextBlock Style="{StaticResource OptionSectionPlaceholderStatus}" Text="Loading…" />
+                </StackPanel>
+            </ContentControl>
+
+            <controls:OptionGroupHeader Title="On screen" />
+
+            <ContentControl
+                x:Name="OptionsWrapper_Time"
+                Style="{StaticResource OptionSectionWithResetStyle}"
+                Tag="time">
+                <StackPanel>
+                    <TextBlock Style="{StaticResource OptionSectionPlaceholderTitle}" Text="Time options" />
+                    <TextBlock Style="{StaticResource OptionSectionPlaceholderStatus}" Text="Loading…" />
+                </StackPanel>
+            </ContentControl>
+
+            <ContentControl
+                x:Name="OptionsWrapper_Weather"
+                Style="{StaticResource OptionSectionWithResetStyle}"
+                Tag="weather">
+                <StackPanel>
+                    <TextBlock Style="{StaticResource OptionSectionPlaceholderTitle}" Text="Weather options" />
+                    <TextBlock Style="{StaticResource OptionSectionPlaceholderStatus}" Text="Loading…" />
+                </StackPanel>
+            </ContentControl>
+
+            <controls:OptionGroupHeader Title="Your PC and body" />
+
+            <ContentControl
+                x:Name="OptionsWrapper_Pulsoid"
+                Style="{StaticResource OptionSectionWithResetStyle}"
+                Tag="pulsoid">
+                <StackPanel>
+                    <TextBlock Style="{StaticResource OptionSectionPlaceholderTitle}" Text="Pulsoid heart rate options" />
+                    <TextBlock Style="{StaticResource OptionSectionPlaceholderStatus}" Text="Loading…" />
+                </StackPanel>
+            </ContentControl>
+
+            <ContentControl
+                x:Name="OptionsWrapper_ComponentStats"
+                Style="{StaticResource OptionSectionWithResetStyle}"
+                Tag="component-stats">
+                <StackPanel>
+                    <TextBlock Style="{StaticResource OptionSectionPlaceholderTitle}" Text="Component stats options" />
+                    <TextBlock Style="{StaticResource OptionSectionPlaceholderStatus}" Text="Loading…" />
+                </StackPanel>
+            </ContentControl>
+
+            <ContentControl
+                x:Name="OptionsWrapper_NetworkStatistics"
+                Style="{StaticResource OptionSectionWithResetStyle}"
+                Tag="network-statistics">
+                <StackPanel>
+                    <TextBlock Style="{StaticResource OptionSectionPlaceholderTitle}" Text="Network statistics options" />
+                    <TextBlock Style="{StaticResource OptionSectionPlaceholderStatus}" Text="Loading…" />
+                </StackPanel>
+            </ContentControl>
+
+            <ContentControl
+                x:Name="OptionsWrapper_WindowActivity"
+                Style="{StaticResource OptionSectionWithResetStyle}"
+                Tag="window-activity">
+                <StackPanel>
+                    <TextBlock Style="{StaticResource OptionSectionPlaceholderTitle}" Text="Window activity options" />
+                    <TextBlock Style="{StaticResource OptionSectionPlaceholderStatus}" Text="Loading…" />
+                </StackPanel>
+            </ContentControl>
+
+            <controls:OptionGroupHeader Title="VR" />
+
+            <ContentControl
+                x:Name="OptionsWrapper_VrPerformance"
+                Style="{StaticResource OptionSectionWithResetStyle}"
+                Tag="vr-performance">
+                <StackPanel>
+                    <TextBlock Style="{StaticResource OptionSectionPlaceholderTitle}" Text="VR performance options" />
+                    <TextBlock Style="{StaticResource OptionSectionPlaceholderStatus}" Text="Loading…" />
+                </StackPanel>
+            </ContentControl>
+
+            <ContentControl
+                x:Name="OptionsWrapper_TrackerBattery"
+                Style="{StaticResource OptionSectionWithResetStyle}"
+                Tag="tracker-battery">
+                <StackPanel>
+                    <TextBlock Style="{StaticResource OptionSectionPlaceholderTitle}" Text="Tracker battery manager" />
+                    <TextBlock Style="{StaticResource OptionSectionPlaceholderStatus}" Text="Loading…" />
+                </StackPanel>
+            </ContentControl>
+
+            <controls:OptionGroupHeader Title="AI and voice" />
+
+            <ContentControl
+                x:Name="OptionsWrapper_OpenAI"
+                Style="{StaticResource OptionSectionWithResetStyle}"
+                Tag="openai">
+                <StackPanel>
+                    <TextBlock Style="{StaticResource OptionSectionPlaceholderTitle}" Text="OpenAI options" />
+                    <TextBlock Style="{StaticResource OptionSectionPlaceholderStatus}" Text="Loading…" />
+                </StackPanel>
+            </ContentControl>
+
+            <ContentControl
+                x:Name="OptionsWrapper_Tts"
+                Style="{StaticResource OptionSectionWithResetStyle}"
+                Tag="tts">
+                <StackPanel>
+                    <TextBlock Style="{StaticResource OptionSectionPlaceholderTitle}" Text="Text to speech options" />
+                    <TextBlock Style="{StaticResource OptionSectionPlaceholderStatus}" Text="Loading…" />
+                </StackPanel>
+            </ContentControl>
+
+            <controls:OptionGroupHeader Title="App and privacy" />
+
+            <ContentControl
                 x:Name="OptionsWrapper_AppOptions"
                 Style="{StaticResource OptionSectionWithResetStyle}"
                 Tag="app-options">
-                <options:AppOptionsSection x:Name="AppOptionsSectionControl" DataContext="{Binding AppOptionsSection}" />
+                <StackPanel>
+                    <TextBlock Style="{StaticResource OptionSectionPlaceholderTitle}" Text="App options" />
+                    <TextBlock Style="{StaticResource OptionSectionPlaceholderStatus}" Text="Loading…" />
+                </StackPanel>
+            </ContentControl>
+
+            <ContentControl
+                x:Name="OptionsWrapper_Privacy"
+                Style="{StaticResource OptionSectionWithResetStyle}"
+                Tag="privacy">
+                <StackPanel>
+                    <TextBlock Style="{StaticResource OptionSectionPlaceholderTitle}" Text="Privacy &amp; permissions" />
+                    <TextBlock Style="{StaticResource OptionSectionPlaceholderStatus}" Text="Loading…" />
+                </StackPanel>
             </ContentControl>
 
             <ContentControl
@@ -137,42 +262,10 @@
                 Style="{StaticResource OptionSectionWithResetStyle}"
                 Tag="egg-dev"
                 Visibility="{Binding EggDevSection.AppState.Egg_Dev, Converter={StaticResource BoolToVisibilityConverter}, UpdateSourceTrigger=PropertyChanged}">
-                <options:EggDevSection x:Name="EggDevSectionControl" DataContext="{Binding EggDevSection}" />
-            </ContentControl>
-
-            <ContentControl
-                x:Name="OptionsWrapper_TrackerBattery"
-                Style="{StaticResource OptionSectionWithResetStyle}"
-                Tag="tracker-battery">
-                <options:TrackerBatterySection x:Name="TrackerBatterySectionControl" DataContext="{Binding TrackerBatterySection}" />
-            </ContentControl>
-
-            <ContentControl
-                x:Name="OptionsWrapper_VrPerformance"
-                Style="{StaticResource OptionSectionWithResetStyle}"
-                Tag="vr-performance">
-                <options:VrPerformanceSection x:Name="VrPerformanceSectionControl" DataContext="{Binding VrPerformanceSection}" />
-            </ContentControl>
-
-            <ContentControl
-                x:Name="OptionsWrapper_Lyrics"
-                Style="{StaticResource OptionSectionWithResetStyle}"
-                Tag="lyrics">
-                <options:LyricsSection x:Name="LyricsSectionControl" DataContext="{Binding LyricsSection}" />
-            </ContentControl>
-
-            <ContentControl
-                x:Name="OptionsWrapper_Privacy"
-                Style="{StaticResource OptionSectionWithResetStyle}"
-                Tag="privacy">
-                <options:PrivacySection x:Name="PrivacySectionControl" DataContext="{Binding PrivacySection}" />
-            </ContentControl>
-
-            <ContentControl
-                x:Name="OptionsWrapper_WindowActivity"
-                Style="{StaticResource OptionSectionWithResetStyle}"
-                Tag="window-activity">
-                <options:WindowActivitySection x:Name="WindowActivitySectionControl" DataContext="{Binding WindowActivitySection}" />
+                <StackPanel>
+                    <TextBlock Style="{StaticResource OptionSectionPlaceholderTitle}" Text="EGG options" />
+                    <TextBlock Style="{StaticResource OptionSectionPlaceholderStatus}" Text="Loading…" />
+                </StackPanel>
             </ContentControl>
 
             <TextBlock

@@ -40,7 +40,6 @@ public static class IntegrationTileCatalog
         new("Time", "TimeItem", "Time",
             nameof(IntegrationSettings.IntgrScanWindowTime), false, (i, _) => i.IntgrScanWindowTime),
 
-        // The only tile whose master switch lives on a different settings object.
         new("Weather", "WeatherItem", "Weather",
             nameof(WeatherSettings.ShowWeatherInTime), true, (_, w) => w?.ShowWeatherInTime == true),
 
@@ -83,10 +82,6 @@ public static class IntegrationTileCatalog
     public static string DisplayNameFor(string key)
         => TryGet(key, out var tile) ? tile.DisplayName : key;
 
-    /// <summary>
-    /// Maps a changed settings property name back to its tile key. Used to refresh chip state and to
-    /// un-hide a tile when its integration is switched on from somewhere other than the tile itself.
-    /// </summary>
     public static bool TryKeyForMasterProperty(string propertyName, out string key)
     {
         key = null;
@@ -96,10 +91,6 @@ public static class IntegrationTileCatalog
         return true;
     }
 
-    /// <summary>
-    /// Hidden keys are persisted verbatim so an unknown key from a newer or downgraded build survives a
-    /// round trip. Filtering happens here, at the point of use, rather than by rewriting stored state.
-    /// </summary>
     public static HashSet<string> ResolveHidden(IEnumerable<string> stored)
     {
         var resolved = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
@@ -115,11 +106,6 @@ public static class IntegrationTileCatalog
         return resolved;
     }
 
-    /// <summary>
-    /// The order the page should render, honouring the saved sort order and dropping hidden tiles.
-    /// Mirrors ApplyIntegrationLayout exactly, including its safety-net pass for keys the sort order
-    /// never mentioned, so the two cannot drift apart.
-    /// </summary>
     public static List<string> VisibleKeysInOrder(IEnumerable<string> orderedKeys, IEnumerable<string> hidden)
     {
         var hiddenSet = ResolveHidden(hidden);
@@ -130,7 +116,6 @@ public static class IntegrationTileCatalog
         {
             if (!TryGet(key, out var tile)) continue;
 
-            // Marked as used before the hidden check, otherwise the safety-net pass below re-adds it.
             if (!used.Add(tile.Key)) continue;
 
             if (!hiddenSet.Contains(tile.Key))
@@ -150,9 +135,6 @@ public static class IntegrationTileCatalog
     public static bool IsMasterOn(string key, IntegrationSettings integrations, WeatherSettings weather)
         => TryGet(key, out var tile) && tile.IsMasterOn(integrations, weather);
 
-    /// <summary>
-    /// Keys whose master switch is off. Backs the "hide the ones that are off" one-shot and its live count.
-    /// </summary>
     public static List<string> KeysWithMasterOff(
         IEnumerable<string> candidates, IntegrationSettings integrations, WeatherSettings weather)
     {

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Globalization;
 using System.Windows;
 using System.Windows.Data;
@@ -11,9 +11,9 @@ namespace vrcosc_magicchatbox.Classes
         {
             if (value is int selectedIndex && parameter is string paramStr && int.TryParse(paramStr, out int targetIndex))
             {
-                return selectedIndex == targetIndex ? Visibility.Visible : Visibility.Hidden;
+                return selectedIndex == targetIndex ? Visibility.Visible : Visibility.Collapsed;
             }
-            return Visibility.Hidden;
+            return Visibility.Collapsed;
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)

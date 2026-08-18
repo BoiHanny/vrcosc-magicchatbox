@@ -165,10 +165,6 @@ namespace vrcosc_magicchatbox.UI.Dialogs
         }
     }
 
-    /// <summary>
-    /// One row in the reorder list. Carries the friendly name and whether the tile is currently hidden
-    /// on the Integrations page, so the dialog stops silently disagreeing with what the user sees there.
-    /// </summary>
     public sealed class ReorderRow
     {
         public ReorderRow(string key, string displayName, bool isHidden)

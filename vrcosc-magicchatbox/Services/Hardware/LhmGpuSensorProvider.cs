@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using LibreHardwareMonitor.Hardware;
 using vrcosc_magicchatbox.Classes.DataAndSecurity;
 
@@ -19,6 +20,7 @@ public sealed class LhmGpuSensorProvider : IDisposable
     private int _openFailures;
     private bool _loggedUnavailable;
     private bool _disposed;
+    private int _openInProgress;
 
     public bool IsPermanentlyUnavailable
     {
@@ -42,54 +44,70 @@ public sealed class LhmGpuSensorProvider : IDisposable
                 return false;
         }
 
+        if (Interlocked.CompareExchange(ref _openInProgress, 1, 0) == 1)
+            return false;
+
         Computer? computer = null;
         try
         {
-            computer = new Computer
+            try
             {
-                IsGpuEnabled = true,
-                IsCpuEnabled = false,
-                IsMemoryEnabled = false,
-                IsMotherboardEnabled = false,
-                IsControllerEnabled = false,
-                IsNetworkEnabled = false,
-                IsStorageEnabled = false,
-                IsBatteryEnabled = false,
-                IsPsuEnabled = false,
-                IsPowerMonitorEnabled = false,
-            };
+                computer = new Computer
+                {
+                    IsGpuEnabled = true,
+                    IsCpuEnabled = false,
+                    IsMemoryEnabled = false,
+                    IsMotherboardEnabled = false,
+                    IsControllerEnabled = false,
+                    IsNetworkEnabled = false,
+                    IsStorageEnabled = false,
+                    IsBatteryEnabled = false,
+                    IsPsuEnabled = false,
+                    IsPowerMonitorEnabled = false,
+                };
 
-            computer.Open();
-        }
-        catch (Exception ex)
-        {
-            TryCloseQuietly(computer);
-            lock (_lock)
-            {
-                _openFailures++;
-                bool giveUp = _openFailures >= MaxOpenFailures;
-                Logging.WriteInfo(
-                    $"GPU sensor provider failed to open ({_openFailures}/{MaxOpenFailures}): {ex.Message}"
-                    + (giveUp ? " Falling back to performance counters for the rest of this session." : string.Empty));
+                computer.Open();
             }
-
-            return false;
-        }
-
-        lock (_lock)
-        {
-            if (_disposed)
+            catch (Exception ex)
             {
                 TryCloseQuietly(computer);
+                lock (_lock)
+                {
+                    _openFailures++;
+                    bool giveUp = _openFailures >= MaxOpenFailures;
+                    Logging.WriteInfo(
+                        $"GPU sensor provider failed to open ({_openFailures}/{MaxOpenFailures}): {ex.Message}"
+                        + (giveUp ? " Falling back to performance counters for the rest of this session." : string.Empty));
+                }
+
                 return false;
             }
 
-            _computer = computer;
-            _readings = new Dictionary<string, GpuSensorReadings>(StringComparer.OrdinalIgnoreCase);
-            _capturedAtUtc = default;
-        }
+            lock (_lock)
+            {
+                if (_disposed)
+                {
+                    TryCloseQuietly(computer);
+                    return false;
+                }
 
-        return true;
+                if (_computer != null)
+                {
+                    TryCloseQuietly(computer);
+                    return true;
+                }
+
+                _computer = computer;
+                _readings = new Dictionary<string, GpuSensorReadings>(StringComparer.OrdinalIgnoreCase);
+                _capturedAtUtc = default;
+            }
+
+            return true;
+        }
+        finally
+        {
+            Interlocked.Exchange(ref _openInProgress, 0);
+        }
     }
 
     public void Close()

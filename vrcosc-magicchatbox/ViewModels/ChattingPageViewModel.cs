@@ -1,4 +1,4 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using OpenAI.Chat;
 using System;
@@ -47,6 +47,9 @@ namespace vrcosc_magicchatbox.ViewModels
         private readonly Lazy<ITtsPlaybackService> _ttsPlayback;
         private ITtsPlaybackService TtsPlayback => _ttsPlayback.Value;
 
+        private readonly Lazy<ILiveTypingService> _liveTyping;
+        private ILiveTypingService LiveTyping => _liveTyping.Value;
+
         private readonly ChatSettings CS;
         private readonly TtsSettings TTS;
 
@@ -70,6 +73,7 @@ namespace vrcosc_magicchatbox.ViewModels
             Lazy<IAudioService> audioSvc,
             Lazy<IOscSender> oscSender,
             Lazy<ITtsPlaybackService> ttsPlayback,
+            Lazy<ILiveTypingService> liveTyping,
             IOpenAiChatService openAiChatService,
             IUiDispatcher uiDispatcher)
         {
@@ -88,11 +92,17 @@ namespace vrcosc_magicchatbox.ViewModels
             _audioSvc = audioSvc;
             _oscSender = oscSender;
             _ttsPlayback = ttsPlayback;
+            _liveTyping = liveTyping;
             CS.PropertyChanged += (_, e) =>
             {
                 if (e.PropertyName == nameof(ChatSettings.ChatAutocompleteEnabled) && !CS.ChatAutocompleteEnabled)
                     ClearAutocompleteSuggestion();
+
+                if (e.PropertyName == nameof(ChatSettings.ChatLiveTyping) && CS.ChatLiveTyping)
+                    LiveTyping.Show(_chatStatus.NewChattingTxt);
             };
+
+            liveTyping.Value.FinalizeRequested += OnLiveTypingFinished;
 
             if (_appState is INotifyPropertyChanged notifier)
                 notifier.PropertyChanged += (_, e) =>
@@ -100,6 +110,19 @@ namespace vrcosc_magicchatbox.ViewModels
                     if (e.PropertyName == nameof(IAppState.IsVRRunning))
                         OnPropertyChanged(nameof(IsVRRunning));
                 };
+        }
+
+        private void OnLiveTypingFinished() => _uiDispatcher.BeginInvoke(FinishLiveLine);
+
+        public void FinishLiveLine()
+        {
+            if (!CS.ChatLiveTyping || !CS.ChatLiveTypingAutoFinalize)
+                return;
+
+            if (!LiveTyping.IsHolding || string.IsNullOrWhiteSpace(_chatStatus.NewChattingTxt))
+                return;
+
+            SendChat();
         }
 
         [RelayCommand]
@@ -176,6 +199,13 @@ namespace vrcosc_magicchatbox.ViewModels
                 return;
             }
 
+            if (_chatStatus.NewChattingTxt.Length > Core.Constants.MaxChatMessageLength)
+            {
+                int overmax = _chatStatus.NewChattingTxt.Length - Core.Constants.MaxChatMessageLength;
+                _chatStatus.ChatFeedbackTxt = $"Too long to send - {overmax} over.";
+                return;
+            }
+
             _ = TrySendChatText(_chatStatus.NewChattingTxt, preserveCurrentInput: false);
         }
 
@@ -192,7 +222,11 @@ namespace vrcosc_magicchatbox.ViewModels
                 item.IsRunning = false;
             }
 
-            Osc.CreateChat(true, preserveCurrentInput ? chat : null);
+            LiveTyping.Release(clearChatbox: false);
+
+            if (!Osc.CreateChat(true, preserveCurrentInput ? chat : null))
+                return false;
+
             int smalldelay = CS.ChatAddSmallDelay ? (int)(CS.ChatAddSmallDelayTIME * 1000) : 0;
             _ = SendOscMessageWithFeedbackAsync(CS.ChatFX, smalldelay);
             _chatHistorySvc.Value.SaveChatHistory();
@@ -233,6 +267,7 @@ namespace vrcosc_magicchatbox.ViewModels
         [RelayCommand]
         public void StopChat()
         {
+            LiveTyping.Release(clearChatbox: false);
             ChatItem? running = _chatStatus.LastMessages.FirstOrDefault(x => x.IsRunning);
             Osc.ClearChat(running);
             int smalldelay = CS.ChatAddSmallDelay ? (int)(CS.ChatAddSmallDelayTIME * 1000) : 0;
@@ -271,10 +306,16 @@ namespace vrcosc_magicchatbox.ViewModels
 
                 item.CanLiveEdit = CS.ChatLiveEdit;
                 item.MainMsg = item.Msg;
-                item.LiveEditButtonTxt = "Sending...";
+                item.LiveEditButtonTxt = ChatStateManager.EditLabel(CS);
                 item.IsRunning = true;
 
-                Osc.CreateChat(false, item.Msg);
+                if (!Osc.CreateChat(false, item.Msg))
+                {
+                    item.IsRunning = false;
+                    _chatStatus.ChatFeedbackTxt = "Message too long to send";
+                    return;
+                }
+
                 int smalldelay = CS.ChatAddSmallDelay ? (int)(CS.ChatAddSmallDelayTIME * 1000) : 0;
                 _ = SendOscMessageWithFeedbackAsync(CS.ChatFX && CS.ChatSendAgainFX, smalldelay);
 
@@ -307,12 +348,7 @@ namespace vrcosc_magicchatbox.ViewModels
         {
             try
             {
-                ChatItem? running = _chatStatus.LastMessages.FirstOrDefault(x => x.IsRunning);
-                if (running != null && !string.IsNullOrEmpty(running.MainMsg))
-                {
-                    running.CancelLiveEdit = true;
-                    running.CanLiveEditRun = false;
-                }
+                HandleEditEscape(item);
             }
             catch (Exception ex)
             {
@@ -323,12 +359,14 @@ namespace vrcosc_magicchatbox.ViewModels
         public void UpdateChatBoxCount(string text)
         {
             int count = text.Length;
-            _chatStatus.ChatBoxCount = $"{count}/140";
-            if (count > 140)
+            int limit = Core.Constants.MaxChatMessageLength;
+
+            _chatStatus.ChatBoxCount = $"{count}/{limit}";
+            if (count > limit)
             {
-                int overmax = count - 140;
+                int overmax = count - limit;
                 _chatStatus.ChatBoxColor = BoxColorWarning;
-                _chatStatus.ChatTopBarTxt = $"You're soaring past the 140 char limit by {overmax}.";
+                _chatStatus.ChatTopBarTxt = $"That is {overmax} over what the chatbox will take.";
             }
             else if (count == 0)
             {
@@ -341,10 +379,18 @@ namespace vrcosc_magicchatbox.ViewModels
                 _chatStatus.ChatTopBarTxt = string.Empty;
             }
 
-            if (count > 0)
+            if (CS.ChatLiveTyping)
+            {
+                LiveTyping.Show(text);
+            }
+            else if (count > 0)
+            {
                 _oscSender.Value.SendTypingIndicatorAsync();
+            }
             else
+            {
                 _oscSender.Value.StopTypingIndicator();
+            }
 
             UpdateAutocompleteSuggestion(text);
         }
@@ -355,7 +401,7 @@ namespace vrcosc_magicchatbox.ViewModels
             if (string.IsNullOrWhiteSpace(suggestion))
                 return false;
 
-            _chatStatus.NewChattingTxt = TrimToLastMaxCharacters(_chatStatus.NewChattingTxt + suggestion, 140);
+            _chatStatus.NewChattingTxt = TrimToLastMaxCharacters(_chatStatus.NewChattingTxt + suggestion, Core.Constants.MaxChatMessageLength);
             ClearAutocompleteSuggestion();
             return true;
         }
@@ -372,7 +418,7 @@ namespace vrcosc_magicchatbox.ViewModels
             if (!CS.ChatAutocompleteEnabled
                 || string.IsNullOrWhiteSpace(input)
                 || input.Length < CS.ChatAutocompleteMinCharacters
-                || input.Length >= 140)
+                || input.Length >= Core.Constants.MaxChatMessageLength)
             {
                 ClearAutocompleteSuggestion();
                 return;
@@ -501,7 +547,7 @@ namespace vrcosc_magicchatbox.ViewModels
                 && (!preserveContinuation || sourceStartsWithSeparator)
                 && !char.IsPunctuation(limited[0]);
             string result = needsSeparator ? " " + limited : limited;
-            int remaining = Math.Max(0, 140 - input.Length);
+            int remaining = Math.Max(0, Core.Constants.MaxChatMessageLength - input.Length);
             return result.Length <= remaining
                 ? result
                 : result[..remaining].TrimEnd();
@@ -518,7 +564,7 @@ namespace vrcosc_magicchatbox.ViewModels
         public void OnTranscriptionReceived(string newTranscription)
         {
             string current = _chatStatus.NewChattingTxt + " " + newTranscription;
-            _chatStatus.NewChattingTxt = TrimToLastMaxCharacters(current, 140);
+            _chatStatus.NewChattingTxt = TrimToLastMaxCharacters(current, Core.Constants.MaxChatMessageLength);
         }
 
         public void OnWhisperSentChat() => SendChat();
@@ -540,65 +586,80 @@ namespace vrcosc_magicchatbox.ViewModels
 
         public void BeginChatEdit(ChatItem item)
         {
+            item.CanLiveEditRun = true;
+
             item.MsgReplace = item.Msg.EndsWith(" ") ? item.Msg : item.Msg + " ";
             item.Opacity_backup = item.Opacity;
             item.Opacity = "1";
         }
 
-        public bool ConfirmChatEdit(ChatItem item)
+        public bool ConfirmChatEdit(ChatItem? item)
         {
-            ChatItem? running = _chatStatus.LastMessages.FirstOrDefault(x => x.IsRunning);
-            if (item != null && running != null)
+            if (item is null)
+                return true;
+
+            if (item.IsRunning)
             {
-                if (running.Msg != item.MsgReplace && !running.CancelLiveEdit)
-                {
-                    running.MainMsg = item.MsgReplace;
-                    running.Msg = item.MsgReplace;
-                    running.CanLiveEditRun = false;
-                }
-                else if (running.CancelLiveEdit)
+                if (item.CancelLiveEdit)
                 {
                     if (CS.RealTimeChatEdit)
-                        running.Msg = running.MainMsg;
-                    running.CancelLiveEdit = false;
+                        item.Msg = item.MainMsg;
+                    item.CancelLiveEdit = false;
+                }
+                else
+                {
+                    CommitEdit(item, item.MsgReplace);
                 }
             }
-            if (item != null)
-                item.Opacity = item.Opacity_backup;
+
+            item.Opacity = item.Opacity_backup;
             return true;
         }
 
-        public bool HandleEditEnter(string editText)
+        public bool HandleEditEnter(ChatItem? item, string editText)
         {
-            ChatItem? running = _chatStatus.LastMessages.FirstOrDefault(x => x.IsRunning);
-            if (running == null) return false;
+            if (item is null || !item.IsRunning)
+                return false;
 
-            if (CS.RealTimeChatEdit || running.Msg != editText)
-            {
-                running.MainMsg = editText;
-                if (!CS.RealTimeChatEdit) running.Msg = editText;
-                running.CanLiveEditRun = false;
-            }
+            CommitEdit(item, editText);
             return true;
         }
 
-        public void HandleEditEscape()
+        public void HandleEditEscape(ChatItem? item)
         {
-            ChatItem? running = _chatStatus.LastMessages.FirstOrDefault(x => x.IsRunning);
-            if (running != null && !string.IsNullOrEmpty(running.MainMsg))
-            {
-                running.CancelLiveEdit = true;
-                running.CanLiveEditRun = false;
-            }
+            if (item is null || !item.IsRunning || string.IsNullOrEmpty(item.MainMsg))
+                return;
+
+            item.CancelLiveEdit = true;
+            item.CanLiveEditRun = false;
         }
 
-        public void HandleEditTextChanged(string newText)
+        public void HandleEditTextChanged(ChatItem? item, string newText)
         {
-            if (!CS.RealTimeChatEdit) return;
-            ChatItem? running = _chatStatus.LastMessages.FirstOrDefault(x => x.IsRunning);
-            if (running != null && running.Msg != newText)
-                running.Msg = newText;
+            if (!CS.RealTimeChatEdit || item is null || !item.IsRunning || !item.CanLiveEditRun)
+                return;
+
+            string edited = TrimEdit(newText);
+            if (item.Msg != edited)
+                item.Msg = edited;
         }
+
+        private static void CommitEdit(ChatItem item, string text)
+        {
+            string edited = TrimEdit(text);
+
+            if (edited.Length == 0)
+            {
+                item.CanLiveEditRun = false;
+                return;
+            }
+
+            item.MainMsg = edited;
+            item.Msg = edited;
+            item.CanLiveEditRun = false;
+        }
+
+        private static string TrimEdit(string? text) => (text ?? string.Empty).TrimEnd();
 
         #endregion
     }

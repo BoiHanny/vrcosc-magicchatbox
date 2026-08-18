@@ -7,6 +7,7 @@ using vrcosc_magicchatbox.Classes.Modules;
 using vrcosc_magicchatbox.Classes.Modules.Media;
 using vrcosc_magicchatbox.Classes.Utilities;
 using vrcosc_magicchatbox.Core.Configuration;
+using vrcosc_magicchatbox.Core.Osc.Text;
 using vrcosc_magicchatbox.Services;
 using vrcosc_magicchatbox.ViewModels;
 using vrcosc_magicchatbox.ViewModels.Models;
@@ -80,9 +81,11 @@ public sealed class MediaLinkOscProvider : IOscProvider
 
     #region Core MediaLink logic (moved from OSCController.AddMediaLink)
 
+    private IReadOnlyList<MediaSessionInfo> SnapshotSessions() => _mediaLink.MediaSessionsSnapshot;
+
     private string BuildMediaText(OscBuildContext context)
     {
-        var sessions = _mediaLink.MediaSessions?.Where(s => s.IsActive) ?? Enumerable.Empty<MediaSessionInfo>();
+        IEnumerable<MediaSessionInfo> sessions = SnapshotSessions().Where(s => s.IsActive);
         if (ShouldSuppressSpotifySessions(context.IsVRRunning))
             sessions = sessions.Where(s => !IsSpotifySession(s));
 
@@ -163,8 +166,6 @@ public sealed class MediaLinkOscProvider : IOscProvider
 
         IReadOnlyList<string> bodies = BuildBodyLadder(session);
 
-        // Text is the inner loop, so every way of shortening it is tried before the seekbar is
-        // downgraded. A downgrade then restarts the text at full length with the space it freed.
         foreach (MediaLinkTimeSeekbar style in BuildSeekbarLadder(wantsSeekbar))
         {
             foreach (string body in bodies)
@@ -178,20 +179,13 @@ public sealed class MediaLinkOscProvider : IOscProvider
             }
         }
 
-        // Nothing fits. Dropping the seekbar is as far as the old behaviour ever went, so that is
-        // where it stops; only the opt-in shortener cuts into the text to keep the song on screen.
         if (!_mls.ShortenToFit)
             return Line(bodies[0]);
 
         string bare = Line(bodies[^1]);
-        return context.WouldFit(bare) ? bare : HardTrim(bare, context);
+        return SegmentWriter.Truncate(bare, context.RemainingCharsIf(string.Empty));
     }
 
-    /// <summary>
-    /// Every rendering of "title by artist" worth trying, longest first: upload noise, then the
-    /// featured guest, then spare credits, then the title alone. Switched off it is a single rung,
-    /// which keeps the old all-or-nothing behaviour.
-    /// </summary>
     private IReadOnlyList<string> BuildBodyLadder(MediaSessionInfo session)
     {
         string title = ResolveTitle(session);
@@ -216,20 +210,14 @@ public sealed class MediaLinkOscProvider : IOscProvider
         foreach (string rung in ArtistNameShortener.Ladder(artist))
             Add(Join(plainTitle, rung));
 
-        // Last rung before cutting mid-word: the title on its own still names the song.
         Add(plainTitle);
 
-        // Nothing to say about the track - both switched off, or a session with no metadata. Add()
-        // rejects empty strings, so the list has to be given its one empty rung directly; Line()
-        // turns that into the action text on its own. The ladder must never come back empty,
-        // because the callers index into it.
         if (bodies.Count == 0)
             bodies.Add(string.Empty);
 
         return bodies;
     }
 
-    /// <summary>The title as it should read, with the upload's decoration taken off.</summary>
     private string ResolveTitle(MediaSessionInfo session)
     {
         if (!session.ShowTitle || string.IsNullOrEmpty(session.Title))
@@ -240,7 +228,6 @@ public sealed class MediaLinkOscProvider : IOscProvider
 
         string cleaned = MediaTitleCleaner.Clean(session.Title, session.ShowArtist ? session.Artist : null);
 
-        // A title that is nothing but decoration is better left alone than blanked.
         return cleaned.Length > 0 ? cleaned : session.Title;
     }
 
@@ -272,36 +259,10 @@ public sealed class MediaLinkOscProvider : IOscProvider
         return ladder;
     }
 
-    /// <summary>Cuts a line down to the space left, marking the cut so it does not read as the title.</summary>
-    private static string HardTrim(string text, OscBuildContext context)
-    {
-        int over = -context.RemainingCharsIf(text);
-        if (over <= 0)
-            return text;
-
-        int keep = text.Length - over - 1;
-        if (keep <= 0)
-            return string.Empty;
-
-        // Prefer the last whole word, but not at the cost of half the line - a cut mid-word still
-        // beats throwing away everything that was left.
-        int space = text.LastIndexOf(' ', Math.Min(keep, text.Length - 1));
-        if (space > keep / 2)
-            keep = space;
-        else if (char.IsHighSurrogate(text[keep - 1]))
-            keep--;
-
-        return text[..keep].TrimEnd() + "…";
-    }
-
     #endregion
 
     #region Timestamp / Progress Bar (budget-aware, moved from OSCController)
 
-    /// <summary>
-    /// Renders the line at one seekbar style. Choosing between the styles is the caller's job, so
-    /// that artist shortening gets its turn before a style is given up.
-    /// </summary>
     private string ApplySeekbar(string text, MediaSessionInfo session, OscBuildContext context, MediaLinkTimeSeekbar style)
     {
         TimeSpan current = session.CurrentTime;

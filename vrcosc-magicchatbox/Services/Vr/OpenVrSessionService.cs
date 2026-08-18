@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using Valve.VR;
 using vrcosc_magicchatbox.Classes.DataAndSecurity;
 using vrcosc_magicchatbox.Core.Privacy;
@@ -29,6 +31,7 @@ public sealed class OpenVrSessionService : IOpenVrSessionService
     private readonly IAppState _appState;
     private readonly IPrivacyConsentService _consent;
     private readonly Func<DateTime> _utcNow;
+    private readonly Func<bool> _isUiThread;
     private readonly object _lock = new();
     private readonly List<Lease> _leases = new();
 
@@ -36,6 +39,7 @@ public sealed class OpenVrSessionService : IOpenVrSessionService
     private EVRInitError _lastInitError = EVRInitError.None;
     private OpenXrRuntimeInfo? _runtimeInfo;
     private DateTime _nextAttachAttemptUtc = DateTime.MinValue;
+    private int _attachInProgress;
     private bool _loggedAttachFailure;
     private bool _disposed;
 
@@ -43,12 +47,14 @@ public sealed class OpenVrSessionService : IOpenVrSessionService
         IOpenVrRuntime runtime,
         IAppState appState,
         IPrivacyConsentService consent,
-        Func<DateTime>? utcNow = null)
+        Func<DateTime>? utcNow = null,
+        Func<bool>? isUiThread = null)
     {
         _runtime = runtime;
         _appState = appState;
         _consent = consent;
         _utcNow = utcNow ?? (() => DateTime.UtcNow);
+        _isUiThread = isUiThread ?? (() => false);
 
         if (_appState != null)
             _appState.PropertyChanged += OnAppStatePropertyChanged;
@@ -123,7 +129,37 @@ public sealed class OpenVrSessionService : IOpenVrSessionService
         }
 
         if (shouldAttempt)
+            StartAttach();
+    }
+
+    private void StartAttach()
+    {
+        if (Interlocked.CompareExchange(ref _attachInProgress, 1, 0) == 1)
+            return;
+
+        if (_isUiThread())
+        {
+            _ = Task.Run(AttachAndRelease);
+            return;
+        }
+
+        AttachAndRelease();
+    }
+
+    private void AttachAndRelease()
+    {
+        try
+        {
             Attach();
+        }
+        catch (Exception ex)
+        {
+            Logging.WriteInfo($"OpenVR attach threw: {ex.Message}");
+        }
+        finally
+        {
+            Interlocked.Exchange(ref _attachInProgress, 0);
+        }
     }
 
     private void Attach()

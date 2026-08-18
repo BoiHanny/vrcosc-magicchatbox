@@ -1,5 +1,6 @@
 ﻿using vrcosc_magicchatbox.Classes.Modules;
 using vrcosc_magicchatbox.Core.Configuration;
+using vrcosc_magicchatbox.Services;
 using vrcosc_magicchatbox.ViewModels.State;
 
 namespace vrcosc_magicchatbox.Core.Osc.Providers;
@@ -29,13 +30,9 @@ public sealed class TimeOscProvider : IOscProvider
 
     public OscSegment? TryBuild(OscBuildContext context)
     {
-        if (!_intgr.IntgrScanWindowTime || _display.CurrentTime == null)
+        if (!_intgr.IntgrScanWindowTime || string.IsNullOrEmpty(_display.CurrentTime))
             return null;
 
-        string text = _time.PrefixTime
-            ? "My time: " + _display.CurrentTime
-            : _display.CurrentTime;
-
-        return new OscSegment { Text = text };
+        return new OscSegment { Text = TimeSegmentFormatter.Compose(_display.CurrentTime, _time.PrefixTime) };
     }
 }

@@ -1,15 +1,18 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Automation;
 using vrcosc_magicchatbox.Classes.DataAndSecurity;
+using vrcosc_magicchatbox.Core;
 using vrcosc_magicchatbox.Core.Configuration;
+using vrcosc_magicchatbox.Core.Osc.Text;
 using vrcosc_magicchatbox.Core.Privacy;
 using vrcosc_magicchatbox.Core.State;
 using vrcosc_magicchatbox.Core.Toast;
@@ -19,14 +22,48 @@ using vrcosc_magicchatbox.ViewModels.State;
 
 namespace vrcosc_magicchatbox.Classes.Modules;
 
+public static class WindowActivityText
+{
+    public const int MaxAppNameChars = 48;
+
+    public static int TitleCap(bool limitOn, int configured)
+        => limitOn
+            ? Math.Clamp(configured, 0, Constants.OscMaxMessageLength)
+            : Constants.OscMaxMessageLength;
+
+    public static string Compose(string? appName, string? windowTitle)
+    {
+        string name = SegmentWriter.Truncate(SegmentWriter.Tidy(appName), MaxAppNameChars);
+        string title = SegmentWriter.Tidy(windowTitle);
+
+        return new SegmentWriter()
+            .Field(
+                OscText.Value($"'{name}'"),
+                OscText.Value(title.Length == 0 ? null : $"({title})"))
+            .Text;
+    }
+}
+
 public class WindowActivityModule : vrcosc_magicchatbox.Services.IWindowActivityService
 {
     private const uint FILE_ATTRIBUTE_NORMAL = 0x00000080;
     private const uint SHGFI_DISPLAYNAME = 0x00000200;
+    private static readonly uint SHFileInfoSize = (uint)System.Runtime.InteropServices.Marshal.SizeOf<SHFILEINFO>();
+
+    private const int MaxProcessDisplayCacheEntries = 64;
 
     private bool _usedNewMethod = false;
     private readonly string _vrChatDirectory;
     private readonly string _vrChatExecutable = "vrchat.exe";
+
+    private readonly object _foregroundStateLock = new();
+    private IntPtr _lastForegroundHwnd = IntPtr.Zero;
+    private uint _lastForegroundPid;
+    private string? _lastForegroundProcessName;
+
+    private readonly ConcurrentDictionary<(int Pid, string ShortName), ProcessDisplayCacheEntry> _processDisplayCache = new();
+    private readonly ConcurrentDictionary<string, ProcessInfo> _scannedAppsLookup = new(StringComparer.Ordinal);
+    private INotifyCollectionChanged? _trackedScannedApps;
 
     private readonly ISettingsProvider<WindowActivitySettings> _settingsProvider;
     public WindowActivitySettings Settings => _settingsProvider.Value;
@@ -69,6 +106,72 @@ public class WindowActivityModule : vrcosc_magicchatbox.Services.IWindowActivity
                 });
             }
         };
+
+        AttachScannedAppsTracking();
+    }
+
+    private void AttachScannedAppsTracking()
+    {
+        HookScannedAppsCollection();
+        RebuildScannedAppsLookup();
+        WA.PropertyChanged += (_, e) =>
+        {
+            if (e.PropertyName == nameof(WindowActivityDisplayState.ScannedApps))
+            {
+                HookScannedAppsCollection();
+                RebuildScannedAppsLookup();
+            }
+        };
+    }
+
+    private void HookScannedAppsCollection()
+    {
+        if (_trackedScannedApps != null)
+            _trackedScannedApps.CollectionChanged -= ScannedApps_CollectionChanged;
+
+        _trackedScannedApps = WA.ScannedApps;
+
+        if (_trackedScannedApps != null)
+            _trackedScannedApps.CollectionChanged += ScannedApps_CollectionChanged;
+    }
+
+    private void RebuildScannedAppsLookup()
+    {
+        _scannedAppsLookup.Clear();
+        var apps = WA.ScannedApps;
+        if (apps == null)
+            return;
+
+        foreach (ProcessInfo app in apps)
+            _scannedAppsLookup[app.ProcessName] = app;
+    }
+
+    private void ScannedApps_CollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
+    {
+        switch (e.Action)
+        {
+            case NotifyCollectionChangedAction.Add:
+                if (e.NewItems != null)
+                    foreach (ProcessInfo item in e.NewItems)
+                        _scannedAppsLookup[item.ProcessName] = item;
+                break;
+            case NotifyCollectionChangedAction.Remove:
+                if (e.OldItems != null)
+                    foreach (ProcessInfo item in e.OldItems)
+                        _scannedAppsLookup.TryRemove(item.ProcessName, out _);
+                break;
+            case NotifyCollectionChangedAction.Replace:
+                if (e.OldItems != null)
+                    foreach (ProcessInfo item in e.OldItems)
+                        _scannedAppsLookup.TryRemove(item.ProcessName, out _);
+                if (e.NewItems != null)
+                    foreach (ProcessInfo item in e.NewItems)
+                        _scannedAppsLookup[item.ProcessName] = item;
+                break;
+            default:
+                RebuildScannedAppsLookup();
+                break;
+        }
     }
 
     private void AddNewProcessToViewModel(string processName, string windowTitle)
@@ -123,7 +226,7 @@ public class WindowActivityModule : vrcosc_magicchatbox.Services.IWindowActivity
             if (existingProcessInfo == null)
             {
                 AddNewProcessToViewModel(processName, windowTitle);
-                return $"'{processName}'";
+                return WindowActivityText.Compose(processName, null);
             }
             else
             {
@@ -149,12 +252,11 @@ public class WindowActivityModule : vrcosc_magicchatbox.Services.IWindowActivity
 
                 bool titleCheck = CheckTitleCondition(existingProcessInfo, windowTitle);
 
-                if (existingProcessInfo.ApplyCustomAppName && !string.IsNullOrEmpty(existingProcessInfo.CustomAppName))
-                {
-                    return "'" + existingProcessInfo.CustomAppName + "'" + (titleCheck && Settings.TitleScan ? " (" + windowTitle + ")" : string.Empty);
-                }
+                string title = titleCheck && Settings.TitleScan ? windowTitle : string.Empty;
 
-                return "'" + processName + "'" + (titleCheck && Settings.TitleScan ? " ( " + windowTitle + ")" : string.Empty);
+                return existingProcessInfo.ApplyCustomAppName && !string.IsNullOrEmpty(existingProcessInfo.CustomAppName)
+                    ? WindowActivityText.Compose(existingProcessInfo.CustomAppName, title)
+                    : WindowActivityText.Compose(processName, title);
             }
         }
         catch (Exception ex)
@@ -166,7 +268,6 @@ public class WindowActivityModule : vrcosc_magicchatbox.Services.IWindowActivity
             FireWaErrorToast();
             return processName;
         }
-
     }
 
     private string ApplyGlobalRegex(string windowTitle)
@@ -208,12 +309,9 @@ public class WindowActivityModule : vrcosc_magicchatbox.Services.IWindowActivity
                 return string.Empty;
         }
 
-        if (Settings.LimitTitleOnApp && fullTitle.Length > Settings.MaxShowTitleCount)
-        {
-            fullTitle = fullTitle.Substring(0, Settings.MaxShowTitleCount) + "...";
-        }
-
-        return fullTitle;
+        return SegmentWriter.Truncate(
+            fullTitle,
+            WindowActivityText.TitleCap(Settings.LimitTitleOnApp, Settings.MaxShowTitleCount));
     }
 
     private static string ApplyPerAppFilter(string text, ProcessInfo process)
@@ -327,7 +425,7 @@ public class WindowActivityModule : vrcosc_magicchatbox.Services.IWindowActivity
                 processPath,
                 FILE_ATTRIBUTE_NORMAL,
                 ref shinfo,
-                (uint)System.Runtime.InteropServices.Marshal.SizeOf(shinfo),
+                SHFileInfoSize,
                 SHGFI_DISPLAYNAME);
 
             if (result != IntPtr.Zero)
@@ -340,8 +438,6 @@ public class WindowActivityModule : vrcosc_magicchatbox.Services.IWindowActivity
 
     private string GetProcessName(IntPtr hwnd, Process process, int attempts)
     {
-
-
         string processName = "Unknown";
         try
         {
@@ -352,8 +448,7 @@ public class WindowActivityModule : vrcosc_magicchatbox.Services.IWindowActivity
             }
             else
             {
-                processName = TryGetFileDescriptionOrProcessName(process);
-                processName = GetNameFromSHGetFileInfo(process, processName);
+                processName = ResolveCachedProcessDisplayName(process);
             }
 
             processName = RemoveExeExtension(processName);
@@ -368,7 +463,6 @@ public class WindowActivityModule : vrcosc_magicchatbox.Services.IWindowActivity
             FireWaErrorToast();
             return processName;
         }
-
     }
 
     [System.Runtime.InteropServices.DllImport("user32.dll", CharSet = System.Runtime.InteropServices.CharSet.Auto, SetLastError = true)]
@@ -403,7 +497,6 @@ public class WindowActivityModule : vrcosc_magicchatbox.Services.IWindowActivity
             FireWaErrorToast();
             return "";
         }
-
     }
 
     private string RemoveExeExtension(string processName)
@@ -435,6 +528,27 @@ public class WindowActivityModule : vrcosc_magicchatbox.Services.IWindowActivity
 
     [System.Runtime.InteropServices.DllImport("shell32.dll")]
     private static extern IntPtr SHGetFileInfo(string pszPath, uint dwFileAttributes, ref SHFILEINFO psfi, uint cbSizeFileInfo, uint uFlags);
+
+    private string ResolveCachedProcessDisplayName(Process process)
+    {
+        var cacheKey = (process.Id, process.ProcessName);
+
+        if (_processDisplayCache.TryGetValue(cacheKey, out ProcessDisplayCacheEntry cached))
+        {
+            _usedNewMethod = cached.UsedNewMethod;
+            return cached.ProcessName;
+        }
+
+        string processName = TryGetFileDescriptionOrProcessName(process);
+        processName = GetNameFromSHGetFileInfo(process, processName);
+
+        if (_processDisplayCache.Count >= MaxProcessDisplayCacheEntries)
+            _processDisplayCache.Clear();
+
+        _processDisplayCache[cacheKey] = new ProcessDisplayCacheEntry(processName, _usedNewMethod);
+
+        return processName;
+    }
 
     private string TryGetFileDescriptionOrProcessName(Process process)
     {
@@ -487,8 +601,6 @@ public class WindowActivityModule : vrcosc_magicchatbox.Services.IWindowActivity
         return removed;
     }
 
-
-
     public string GetForegroundProcessName()
     {
         if (!_consentService.IsApproved(PrivacyHook.WindowActivity))
@@ -513,20 +625,51 @@ public class WindowActivityModule : vrcosc_magicchatbox.Services.IWindowActivity
                 }
 
                 GetWindowThreadProcessId(hwnd, out uint pid);
-                try { process = Process.GetProcessById((int)pid); }
-                catch (ArgumentException) { process = null; }
 
-                if (process == null)
+                string processName;
+                string cachedProcessName = null;
+
+                lock (_foregroundStateLock)
                 {
-                    errorInProcess = true;
-                    continue;
+                    if (_lastForegroundHwnd == hwnd && _lastForegroundPid == pid)
+                        cachedProcessName = _lastForegroundProcessName;
                 }
 
-                string processName = GetProcessName(hwnd, process, attempt);
+                if (cachedProcessName != null)
+                {
+                    processName = cachedProcessName;
+                }
+                else
+                {
+                    try { process = Process.GetProcessById((int)pid); }
+                    catch (ArgumentException) { process = null; }
+
+                    if (process == null)
+                    {
+                        errorInProcess = true;
+                        continue;
+                    }
+
+                    using (process)
+                    {
+                        processName = GetProcessName(hwnd, process, attempt);
+                    }
+
+                    process = null;
+
+                    lock (_foregroundStateLock)
+                    {
+                        _lastForegroundHwnd = hwnd;
+                        _lastForegroundPid = pid;
+                        _lastForegroundProcessName = processName;
+                    }
+                }
+
                 string windowTitle = "";
 
-                ProcessInfo existingProcessInfo = null;
-                existingProcessInfo = WA.ScannedApps?.FirstOrDefault(info => info.ProcessName == processName);
+                ProcessInfo existingProcessInfo = _scannedAppsLookup.TryGetValue(processName, out ProcessInfo found)
+                    ? found
+                    : null;
 
                 if (existingProcessInfo == null)
                 {
@@ -541,7 +684,6 @@ public class WindowActivityModule : vrcosc_magicchatbox.Services.IWindowActivity
                 }
                 WA.ErrorInWindowActivity = false;
                 return ConstructReturnString(existingProcessInfo, processName, windowTitle);
-
             }
 
             WA.ErrorInWindowActivity = true;
@@ -565,12 +707,10 @@ public class WindowActivityModule : vrcosc_magicchatbox.Services.IWindowActivity
 
             string errormsg = errorMsgBuilder.ToString();
 
-
             Logging.WriteException(new Exception(errormsg), MSGBox: false);
             WA.ErrorInWindowActivityMsg = errormsg;
             FireWaErrorToast();
             return "'An app'";
-
         }
         catch (Exception ex)
         {
@@ -629,7 +769,6 @@ public class WindowActivityModule : vrcosc_magicchatbox.Services.IWindowActivity
         _toast.Show("🪟 Window Activity", WA.ErrorInWindowActivityMsg, ToastType.Warning, key: "window-activity-error");
     }
 
-
     public int ResetWindowActivity()
     {
         int removed = 0;
@@ -646,8 +785,6 @@ public class WindowActivityModule : vrcosc_magicchatbox.Services.IWindowActivity
         }
         return removed;
     }
-
-
 
     public int SmartCleanup()
     {
@@ -667,6 +804,8 @@ public class WindowActivityModule : vrcosc_magicchatbox.Services.IWindowActivity
         return removed;
     }
 
+    private readonly record struct ProcessDisplayCacheEntry(string ProcessName, bool UsedNewMethod);
+
     [System.Runtime.InteropServices.StructLayout(System.Runtime.InteropServices.LayoutKind.Sequential)]
     private struct SHFILEINFO
     {
@@ -678,5 +817,4 @@ public class WindowActivityModule : vrcosc_magicchatbox.Services.IWindowActivity
         [System.Runtime.InteropServices.MarshalAs(System.Runtime.InteropServices.UnmanagedType.ByValTStr, SizeConst = 80)]
         public string szTypeName;
     }
-
 }

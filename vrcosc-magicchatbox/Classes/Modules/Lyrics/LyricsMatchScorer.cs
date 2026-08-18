@@ -19,7 +19,6 @@ public static class LyricsMatchScorer
 {
     public const double BalancedThreshold = 0.62;
 
-    /// <summary>Kept for callers that do not care about strictness.</summary>
     public const double AcceptThreshold = BalancedThreshold;
 
     private const double TitleWeight = 0.45;
@@ -29,9 +28,6 @@ public static class LyricsMatchScorer
     private const double MinimumTitleSimilarity = 0.5;
     private const double MinimumArtistSimilarity = 0.34;
 
-    // A record naming no version is barely penalised, since databases often file a version under the
-    // plain song name. A record naming a different version is penalised hard: two versions of one
-    // song share their title, artist and often their length.
     private const double QualifierAbsentFactor = 0.92;
     private const double QualifierUnwantedFactor = 0.85;
     private const double QualifierMismatchFactor = 0.55;
@@ -84,7 +80,6 @@ public static class LyricsMatchScorer
 
     public static double DurationScore(double candidateSeconds, TimeSpan queried, bool requireClose = false)
     {
-        // A guess is only tolerable while the title is still doing its share of the work.
         if (queried <= TimeSpan.Zero)
             return requireClose ? 0 : 0.55;
 
@@ -105,10 +100,6 @@ public static class LyricsMatchScorer
         return 0;
     }
 
-    /// <summary>
-    /// Judges the song and the version separately, so one version cannot pass as another on a token
-    /// count alone.
-    /// </summary>
     public static double TitleScore(string? candidateTitle, string? queryTitle)
     {
         var (candidateBase, candidateQualifier) = TitleQualifier.Split(candidateTitle);
@@ -116,7 +107,6 @@ public static class LyricsMatchScorer
 
         double baseSimilarity = Similarity(candidateBase, queryBase);
 
-        // Splitting made things worse - the qualifier was the song. Judge the whole strings instead.
         if (baseSimilarity <= 0)
             return Similarity(candidateTitle, queryTitle);
 

@@ -4,24 +4,31 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:local="clr-namespace:vrcosc_magicchatbox.Classes"
     xmlns:local1="clr-namespace:vrcosc_magicchatbox"
-    xmlns:theme="clr-namespace:Microsoft.Windows.Themes;assembly=PresentationFramework.Aero2">
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:po="http://schemas.microsoft.com/winfx/2006/xaml/presentation/options"
+    xmlns:theme="clr-namespace:Microsoft.Windows.Themes;assembly=PresentationFramework.Aero2"
+    mc:Ignorable="po">
     <Application.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
-                <ResourceDictionary Source="UI/Theme.xaml" />
+                <ResourceDictionary Source="/MagicChatbox;component/UI/Theme.xaml" />
+                <ResourceDictionary Source="/MagicChatbox;component/UI/Resources/SharedConverters.xaml" />
             </ResourceDictionary.MergedDictionaries>
 
             <DropShadowEffect
                 x:Key="TextBlockShadowEffect"
                 BlurRadius="10"
                 Opacity="1"
+                RenderingBias="Performance"
                 ShadowDepth="0"
                 Color="#251153" />
 
             <DropShadowEffect
                 x:Key="ImageShadowEffect"
+                po:Freeze="True"
                 BlurRadius="25"
                 Opacity="0.4"
+                RenderingBias="Performance"
                 ShadowDepth="0"
                 Color="#251153" />
             <Style x:Key="CircleButton" TargetType="Button">
@@ -55,18 +62,6 @@
                     </Setter.Value>
                 </Setter>
             </Style>
-            <!--
-                Options section header. Family, size and colour are template-bound to the setters
-                below so the style owns them. FontWeight is deliberately NOT template-bound and is
-                pinned to SemiBold inside the template: 600 is the specced weight for this role,
-                and pinning it means a call site cannot reintroduce Bold 700.
-
-                FontSize is the top rung of the Options ladder and must stay above the styles it
-                contains: section header 18 (FontSizeHeading) > subsection header 16
-                (OptionSubsectionHeaderStyle) > field label 15 (FontSizeBody). At 18 SemiBold,
-                Albert Sans measures a 21.6px line box (LineSpacing 1.2), which clears the
-                Height="30" the call sites hard-code with room to spare.
-            -->
             <Style x:Key="ExpandCollapseToggleButtonStyle" TargetType="ToggleButton">
                 <Setter Property="Background" Value="Transparent" />
                 <Setter Property="Foreground" Value="{StaticResource TextSectionHeaderBrush}" />
@@ -92,7 +87,7 @@
                                             Margin="10,0,0,0"
                                             HorizontalAlignment="Left"
                                             VerticalAlignment="Center"
-                                            Source="/Img/Icons/Plus_ico.png" />
+                                            Source="/MagicChatbox;component/Img/Icons/Plus_ico.png" />
                                         <TextBlock
                                             x:Name="CustomTextContentControl"
                                             Grid.Column="1"
@@ -131,10 +126,10 @@
                             </Grid>
                             <ControlTemplate.Triggers>
                                 <Trigger Property="IsChecked" Value="False">
-                                    <Setter TargetName="SymbolImage" Property="Source" Value="/Img/Icons/Plus_ico.png" />
+                                    <Setter TargetName="SymbolImage" Property="Source" Value="/MagicChatbox;component/Img/Icons/Plus_ico.png" />
                                 </Trigger>
                                 <Trigger Property="IsChecked" Value="True">
-                                    <Setter TargetName="SymbolImage" Property="Source" Value="/Img/Icons/Min_ico.png" />
+                                    <Setter TargetName="SymbolImage" Property="Source" Value="/MagicChatbox;component/Img/Icons/Min_ico.png" />
                                 </Trigger>
                             </ControlTemplate.Triggers>
                         </ControlTemplate>
@@ -149,11 +144,6 @@
                     </Trigger>
                 </Style.Triggers>
             </Style>
-            <!--
-                Same header role as ExpandCollapseToggleButtonStyle, dev-only accent colours.
-                Keep FontSize and the template's pinned SemiBold in step with that style: the
-                weight is not exposed as a setter so a call site cannot reintroduce Bold 700.
-            -->
             <Style x:Key="ExpandCollapseToggleButtonStyleDEV" TargetType="ToggleButton">
                 <Setter Property="Background" Value="Transparent" />
                 <Setter Property="Foreground" Value="{StaticResource TextSectionHeaderBrush}" />
@@ -179,7 +169,7 @@
                                             Margin="10,0,0,0"
                                             HorizontalAlignment="Left"
                                             VerticalAlignment="Center"
-                                            Source="/Img/Icons/Plus_ico.png" />
+                                            Source="/MagicChatbox;component/Img/Icons/Plus_ico.png" />
                                         <TextBlock
                                             x:Name="CustomTextContentControl"
                                             Grid.Column="1"
@@ -218,10 +208,10 @@
                             </Grid>
                             <ControlTemplate.Triggers>
                                 <Trigger Property="IsChecked" Value="False">
-                                    <Setter TargetName="SymbolImage" Property="Source" Value="/Img/Icons/Plus_ico.png" />
+                                    <Setter TargetName="SymbolImage" Property="Source" Value="/MagicChatbox;component/Img/Icons/Plus_ico.png" />
                                 </Trigger>
                                 <Trigger Property="IsChecked" Value="True">
-                                    <Setter TargetName="SymbolImage" Property="Source" Value="/Img/Icons/Min_ico.png" />
+                                    <Setter TargetName="SymbolImage" Property="Source" Value="/MagicChatbox;component/Img/Icons/Min_ico.png" />
                                 </Trigger>
                             </ControlTemplate.Triggers>
                         </ControlTemplate>
@@ -251,64 +241,42 @@
                     </Setter.Value>
                 </Setter>
             </Style>
-            <SolidColorBrush x:Key="Button.Static.Background" Color="#240E54" />
-            <SolidColorBrush x:Key="Button.Static.Border" Color="#240E54" />
-            <SolidColorBrush x:Key="Button.MouseOver.Background" Color="#191551" />
-            <SolidColorBrush x:Key="Button.MouseOver.Border" Color="#191551" />
-            <SolidColorBrush x:Key="Button.Pressed.Background" Color="#13103d" />
-            <SolidColorBrush x:Key="Button.Pressed.Border" Color="#13103d" />
-            <SolidColorBrush x:Key="Button.Disabled.Background" Color="#FF2F2F2F" />
-            <SolidColorBrush x:Key="Button.Disabled.Border" Color="#FF2F2F2F" />
-            <SolidColorBrush x:Key="Button.Disabled.Foreground" Color="Gray" />
-            <Style x:Key="MenuItemStyle" TargetType="{x:Type Button}">
-                <Setter Property="FocusVisualStyle" Value="{StaticResource FocusVisual}" />
-                <Setter Property="Background" Value="{StaticResource Button.Static.Background}" />
-                <Setter Property="BorderBrush" Value="{StaticResource Button.Static.Border}" />
-                <Setter Property="Foreground" Value="{DynamicResource {x:Static SystemColors.ControlTextBrushKey}}" />
-                <Setter Property="BorderThickness" Value="1" />
-                <Setter Property="HorizontalContentAlignment" Value="Center" />
-                <Setter Property="VerticalContentAlignment" Value="Center" />
-                <Setter Property="Padding" Value="1" />
-                <Setter Property="Template">
-                    <Setter.Value>
-                        <ControlTemplate TargetType="{x:Type Button}">
-                            <Border
-                                x:Name="border"
-                                Background="{TemplateBinding Background}"
-                                BorderBrush="{TemplateBinding BorderBrush}"
-                                BorderThickness="{TemplateBinding BorderThickness}"
-                                SnapsToDevicePixels="true">
-                                <ContentPresenter
-                                    x:Name="contentPresenter"
-                                    Margin="{TemplateBinding Padding}"
-                                    HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
-                                    VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
-                                    Focusable="False"
-                                    RecognizesAccessKey="True"
-                                    SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" />
-                            </Border>
-                            <ControlTemplate.Triggers>
-                                <Trigger Property="IsDefaulted" Value="true">
-                                    <Setter TargetName="border" Property="BorderBrush" Value="{DynamicResource {x:Static SystemColors.HighlightBrushKey}}" />
-                                </Trigger>
-                                <Trigger Property="IsMouseOver" Value="true">
-                                    <Setter TargetName="border" Property="Background" Value="{StaticResource Button.MouseOver.Background}" />
-                                    <Setter TargetName="border" Property="BorderBrush" Value="{StaticResource Button.MouseOver.Border}" />
-                                </Trigger>
-                                <Trigger Property="IsPressed" Value="true">
-                                    <Setter TargetName="border" Property="Background" Value="{StaticResource Button.Pressed.Background}" />
-                                    <Setter TargetName="border" Property="BorderBrush" Value="{StaticResource Button.Pressed.Border}" />
-                                </Trigger>
-                                <Trigger Property="IsEnabled" Value="false">
-                                    <Setter TargetName="border" Property="Background" Value="{StaticResource Button.Disabled.Background}" />
-                                    <Setter TargetName="border" Property="BorderBrush" Value="{StaticResource Button.Disabled.Border}" />
-                                    <Setter TargetName="contentPresenter" Property="TextElement.Foreground" Value="{StaticResource Button.Disabled.Foreground}" />
-                                </Trigger>
-                            </ControlTemplate.Triggers>
-                        </ControlTemplate>
-                    </Setter.Value>
-                </Setter>
-            </Style>
+            <SolidColorBrush
+                x:Key="Button.Static.Background"
+                po:Freeze="True"
+                Color="#240E54" />
+            <SolidColorBrush
+                x:Key="Button.Static.Border"
+                po:Freeze="True"
+                Color="#240E54" />
+            <SolidColorBrush
+                x:Key="Button.MouseOver.Background"
+                po:Freeze="True"
+                Color="#191551" />
+            <SolidColorBrush
+                x:Key="Button.MouseOver.Border"
+                po:Freeze="True"
+                Color="#191551" />
+            <SolidColorBrush
+                x:Key="Button.Pressed.Background"
+                po:Freeze="True"
+                Color="#13103d" />
+            <SolidColorBrush
+                x:Key="Button.Pressed.Border"
+                po:Freeze="True"
+                Color="#13103d" />
+            <SolidColorBrush
+                x:Key="Button.Disabled.Background"
+                po:Freeze="True"
+                Color="#FF2F2F2F" />
+            <SolidColorBrush
+                x:Key="Button.Disabled.Border"
+                po:Freeze="True"
+                Color="#FF2F2F2F" />
+            <SolidColorBrush
+                x:Key="Button.Disabled.Foreground"
+                po:Freeze="True"
+                Color="Gray" />
             <Style x:Key="FocusVisual1">
                 <Setter Property="Control.Template">
                     <Setter.Value>
@@ -323,12 +291,6 @@
                     </Setter.Value>
                 </Setter>
             </Style>
-            <SolidColorBrush x:Key="Button.Static.Background1" Color="#FFDDDDDD" />
-            <SolidColorBrush x:Key="Button.Static.Border1" Color="#FF707070" />
-            <SolidColorBrush x:Key="Button.MouseOver.Background1" Color="#C42B1C" />
-            <SolidColorBrush x:Key="Button.MouseOver.Border1" Color="#C42B1C" />
-            <SolidColorBrush x:Key="Button.Pressed.Background1" Color="#E1ABA5" />
-            <SolidColorBrush x:Key="Button.Pressed.Border1" Color="#E1ABA5" />
             <Style x:Key="FocusVisual2">
                 <Setter Property="Control.Template">
                     <Setter.Value>
@@ -343,11 +305,26 @@
                     </Setter.Value>
                 </Setter>
             </Style>
-            <SolidColorBrush x:Key="Button.Static.Background2" Color="#FFDDDDDD" />
-            <SolidColorBrush x:Key="Button.Static.Border2" Color="#FF707070" />
-            <SolidColorBrush x:Key="Button.Disabled.Background2" Color="#FFF4F4F4" />
-            <SolidColorBrush x:Key="Button.Disabled.Border2" Color="#FFADB2B5" />
-            <SolidColorBrush x:Key="Button.Disabled.Foreground2" Color="#FF838383" />
+            <SolidColorBrush
+                x:Key="Button.Static.Background2"
+                po:Freeze="True"
+                Color="#FFDDDDDD" />
+            <SolidColorBrush
+                x:Key="Button.Static.Border2"
+                po:Freeze="True"
+                Color="#FF707070" />
+            <SolidColorBrush
+                x:Key="Button.Disabled.Background2"
+                po:Freeze="True"
+                Color="#FFF4F4F4" />
+            <SolidColorBrush
+                x:Key="Button.Disabled.Border2"
+                po:Freeze="True"
+                Color="#FFADB2B5" />
+            <SolidColorBrush
+                x:Key="Button.Disabled.Foreground2"
+                po:Freeze="True"
+                Color="#FF838383" />
             <Style x:Key="FocusVisual3">
                 <Setter Property="Control.Template">
                     <Setter.Value>
@@ -362,15 +339,42 @@
                     </Setter.Value>
                 </Setter>
             </Style>
-            <SolidColorBrush x:Key="Button.Static.Background3" Color="#FF240E54" />
-            <SolidColorBrush x:Key="Button.Static.Border3" Color="#FF240E54" />
-            <SolidColorBrush x:Key="Button.MouseOver.Background2" Color="#191551" />
-            <SolidColorBrush x:Key="Button.MouseOver.Border2" Color="#191551" />
-            <SolidColorBrush x:Key="Button.Pressed.Background2" Color="#13103d" />
-            <SolidColorBrush x:Key="Button.Pressed.Border2" Color="#13103d" />
-            <SolidColorBrush x:Key="Button.Disabled.Background3" Color="#FF2F2F2F" />
-            <SolidColorBrush x:Key="Button.Disabled.Border3" Color="#FF2F2F2F" />
-            <SolidColorBrush x:Key="Button.Disabled.Foreground3" Color="#FF838383" />
+            <SolidColorBrush
+                x:Key="Button.Static.Background3"
+                po:Freeze="True"
+                Color="#FF240E54" />
+            <SolidColorBrush
+                x:Key="Button.Static.Border3"
+                po:Freeze="True"
+                Color="#FF240E54" />
+            <SolidColorBrush
+                x:Key="Button.MouseOver.Background2"
+                po:Freeze="True"
+                Color="#191551" />
+            <SolidColorBrush
+                x:Key="Button.MouseOver.Border2"
+                po:Freeze="True"
+                Color="#191551" />
+            <SolidColorBrush
+                x:Key="Button.Pressed.Background2"
+                po:Freeze="True"
+                Color="#13103d" />
+            <SolidColorBrush
+                x:Key="Button.Pressed.Border2"
+                po:Freeze="True"
+                Color="#13103d" />
+            <SolidColorBrush
+                x:Key="Button.Disabled.Background3"
+                po:Freeze="True"
+                Color="#FF2F2F2F" />
+            <SolidColorBrush
+                x:Key="Button.Disabled.Border3"
+                po:Freeze="True"
+                Color="#FF2F2F2F" />
+            <SolidColorBrush
+                x:Key="Button.Disabled.Foreground3"
+                po:Freeze="True"
+                Color="#FF838383" />
             <Style x:Key="Status_Button_style_Small" TargetType="{x:Type Button}">
                 <Setter Property="FocusVisualStyle" Value="{StaticResource FocusVisual3}" />
                 <Setter Property="Background" Value="{StaticResource Button.Static.Background3}" />
@@ -517,7 +521,7 @@
                                 CornerRadius="7,0,7,0"
                                 SnapsToDevicePixels="True">
                                 <Border.Background>
-                                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                                    <LinearGradientBrush po:Freeze="True" StartPoint="0,0" EndPoint="1,1">
                                         <GradientStop Color="#22240E54" />
                                         <GradientStop Offset="1" Color="#333B3054" />
                                     </LinearGradientBrush>
@@ -586,51 +590,6 @@
                                 <Trigger Property="IsPressed" Value="true">
                                     <Setter TargetName="border" Property="Background" Value="#371491" />
                                     <Setter TargetName="border" Property="BorderBrush" Value="#371491" />
-                                </Trigger>
-                            </ControlTemplate.Triggers>
-                        </ControlTemplate>
-                    </Setter.Value>
-                </Setter>
-            </Style>
-            <Style x:Key="Textblock_Button_style" TargetType="{x:Type Button}">
-                <Setter Property="FocusVisualStyle" Value="{StaticResource FocusVisual3}" />
-                <Setter Property="Background" Value="Transparent" />
-                <Setter Property="BorderBrush" Value="Transparent" />
-                <Setter Property="Foreground" Value="#655689" />
-                <Setter Property="HorizontalContentAlignment" Value="Center" />
-                <Setter Property="VerticalContentAlignment" Value="Center" />
-                <Setter Property="Padding" Value="3,1" />
-                <Setter Property="Cursor" Value="Hand" />
-                <Setter Property="Template">
-                    <Setter.Value>
-                        <ControlTemplate TargetType="{x:Type Button}">
-                            <Border
-                                x:Name="border"
-                                Background="{TemplateBinding Background}"
-                                BorderBrush="{TemplateBinding BorderBrush}"
-                                BorderThickness="{TemplateBinding BorderThickness}"
-                                CornerRadius="3"
-                                SnapsToDevicePixels="true">
-                                <ContentPresenter
-                                    x:Name="contentPresenter"
-                                    Margin="{TemplateBinding Padding}"
-                                    HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
-                                    VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
-                                    Focusable="False"
-                                    RecognizesAccessKey="True"
-                                    SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" />
-                            </Border>
-                            <ControlTemplate.Triggers>
-                                <Trigger Property="IsDefaulted" Value="true">
-                                    <Setter TargetName="border" Property="BorderBrush" Value="{DynamicResource {x:Static SystemColors.HighlightBrushKey}}" />
-                                </Trigger>
-                                <Trigger Property="IsMouseOver" Value="true">
-                                    <Setter TargetName="border" Property="Background" Value="#9287AF" />
-                                    <Setter TargetName="border" Property="BorderBrush" Value="#ADA1CE" />
-                                </Trigger>
-                                <Trigger Property="IsPressed" Value="true">
-                                    <Setter TargetName="border" Property="Background" Value="#9287AF" />
-                                    <Setter TargetName="border" Property="BorderBrush" Value="#ADA1CE" />
                                 </Trigger>
                             </ControlTemplate.Triggers>
                         </ControlTemplate>
@@ -837,9 +796,6 @@
                     </Setter.Value>
                 </Setter>
             </Style>
-            <SolidColorBrush x:Key="Button.Disabled.Background1" Color="#FFF4F4F4" />
-            <SolidColorBrush x:Key="Button.Disabled.Border1" Color="#3FADB2B5" />
-            <SolidColorBrush x:Key="Button.Disabled.Foreground1" Color="#3F838383" />
             <Style x:Key="CloseButtonStyle" TargetType="{x:Type Button}">
                 <Setter Property="FocusVisualStyle" Value="{StaticResource FocusVisual1}" />
                 <Setter Property="Background" Value="Transparent" />
@@ -890,168 +846,14 @@
                 </Setter>
             </Style>
 
-            <Style x:Key="GlowyToggleButtonDT" TargetType="{x:Type ToggleButton}">
-                <Setter Property="Background" Value="#3A3644" />
-                <Setter Property="Foreground" Value="#82829B" />
-                <Setter Property="RenderOptions.BitmapScalingMode" Value="NearestNeighbor" />
-                <Setter Property="FontSize" Value="{StaticResource FontSizeCaption}" />
-                <Setter Property="Cursor" Value="Hand" />
-                <Setter Property="FontFamily" Value="{StaticResource FontPrimary}" />
-
-                <Setter Property="Template">
-                    <Setter.Value>
-                        <ControlTemplate TargetType="{x:Type ToggleButton}">
-                            <Grid>
-                                <Border
-                                    x:Name="baseBorder"
-                                    Background="{TemplateBinding Background}"
-                                    CornerRadius="4"
-                                    SnapsToDevicePixels="True">
-                                    <Grid>
-                                        <TextBlock
-                                            x:Name="buttonText"
-                                            Padding="0,2,0,0"
-                                            HorizontalAlignment="Center"
-                                            VerticalAlignment="Center"
-                                            Foreground="{TemplateBinding Foreground}"
-                                            Text="{TemplateBinding Content}" />
-                                    </Grid>
-                                </Border>
-
-                                <Border
-                                    x:Name="gradientOverlay"
-                                    Background="Transparent"
-                                    BorderThickness="1.5"
-                                    CornerRadius="4"
-                                    IsHitTestVisible="False"
-                                    Opacity="0"
-                                    SnapsToDevicePixels="True">
-                                    <Border.BorderBrush>
-                                        <LinearGradientBrush StartPoint="1,0" EndPoint="0,1">
-                                            <GradientStop Offset="0" Color="#FF54B955" />
-                                            <GradientStop Offset="0.7" Color="Transparent" />
-                                            <GradientStop Offset="1" Color="Transparent" />
-                                        </LinearGradientBrush>
-                                    </Border.BorderBrush>
-                                </Border>
-                            </Grid>
-
-                            <ControlTemplate.Triggers>
-                                <Trigger Property="IsMouseOver" Value="True">
-                                    <Setter TargetName="baseBorder" Property="Background" Value="#322E3A" />
-                                </Trigger>
-
-                                <Trigger Property="IsChecked" Value="True">
-                                    <Setter TargetName="baseBorder" Property="Background" Value="#9E82DD" />
-                                    <Setter TargetName="buttonText" Property="Foreground" Value="#312844" />
-                                    <Setter TargetName="baseBorder" Property="Effect">
-                                        <Setter.Value>
-                                            <DropShadowEffect
-                                                BlurRadius="9"
-                                                ShadowDepth="0"
-                                                Color="#B4A4DB" />
-                                        </Setter.Value>
-                                    </Setter>
-                                </Trigger>
-
-                                <MultiTrigger>
-                                    <MultiTrigger.Conditions>
-                                        <Condition Property="IsMouseOver" Value="True" />
-                                        <Condition Property="IsChecked" Value="True" />
-                                    </MultiTrigger.Conditions>
-                                    <Setter TargetName="baseBorder" Property="Background" Value="#A78FE0" />
-                                </MultiTrigger>
-
-                                <DataTrigger Binding="{Binding IsVRRunning}" Value="false">
-                                    <Setter TargetName="gradientOverlay" Property="Opacity" Value="1" />
-                                </DataTrigger>
-                            </ControlTemplate.Triggers>
-                        </ControlTemplate>
-                    </Setter.Value>
-                </Setter>
-            </Style>
-            <Style x:Key="GlowyToggleButtonVR" TargetType="{x:Type ToggleButton}">
-                <Setter Property="Background" Value="#3A3644" />
-                <Setter Property="Foreground" Value="#82829B" />
-                <Setter Property="RenderOptions.BitmapScalingMode" Value="NearestNeighbor" />
-                <Setter Property="FontSize" Value="{StaticResource FontSizeCaption}" />
-                <Setter Property="Cursor" Value="Hand" />
-                <Setter Property="FontFamily" Value="{StaticResource FontPrimary}" />
-
-                <Setter Property="Template">
-                    <Setter.Value>
-                        <ControlTemplate TargetType="{x:Type ToggleButton}">
-                            <Grid>
-                                <Border
-                                    x:Name="baseBorder"
-                                    Background="{TemplateBinding Background}"
-                                    CornerRadius="4"
-                                    SnapsToDevicePixels="True">
-                                    <Grid>
-                                        <TextBlock
-                                            x:Name="buttonText"
-                                            Padding="0,2,0,0"
-                                            HorizontalAlignment="Center"
-                                            VerticalAlignment="Center"
-                                            Foreground="{TemplateBinding Foreground}"
-                                            Text="{TemplateBinding Content}" />
-                                    </Grid>
-                                </Border>
-
-                                <Border
-                                    x:Name="gradientOverlay"
-                                    Background="Transparent"
-                                    BorderThickness="1.5"
-                                    CornerRadius="4"
-                                    IsHitTestVisible="False"
-                                    Opacity="0"
-                                    SnapsToDevicePixels="True">
-                                    <Border.BorderBrush>
-                                        <LinearGradientBrush StartPoint="1,0" EndPoint="0,1">
-                                            <GradientStop Offset="0" Color="#FFCA577C" />
-
-                                            <GradientStop Offset="0.3" Color="#FFCA577C" />
-                                            <GradientStop Offset="0.7" Color="Transparent" />
-                                            <GradientStop Offset="1" Color="Transparent" />
-                                        </LinearGradientBrush>
-                                    </Border.BorderBrush>
-                                </Border>
-                            </Grid>
-
-                            <ControlTemplate.Triggers>
-                                <Trigger Property="IsMouseOver" Value="True">
-                                    <Setter TargetName="baseBorder" Property="Background" Value="#322E3A" />
-                                </Trigger>
-
-                                <Trigger Property="IsChecked" Value="True">
-                                    <Setter TargetName="baseBorder" Property="Background" Value="#9E82DD" />
-                                    <Setter TargetName="buttonText" Property="Foreground" Value="#312844" />
-                                    <Setter TargetName="baseBorder" Property="Effect">
-                                        <Setter.Value>
-                                            <DropShadowEffect
-                                                BlurRadius="9"
-                                                ShadowDepth="0"
-                                                Color="#B4A4DB" />
-                                        </Setter.Value>
-                                    </Setter>
-                                </Trigger>
-
-                                <MultiTrigger>
-                                    <MultiTrigger.Conditions>
-                                        <Condition Property="IsMouseOver" Value="True" />
-                                        <Condition Property="IsChecked" Value="True" />
-                                    </MultiTrigger.Conditions>
-                                    <Setter TargetName="baseBorder" Property="Background" Value="#A78FE0" />
-                                </MultiTrigger>
-
-                                <DataTrigger Binding="{Binding IsVRRunning}" Value="True">
-                                    <Setter TargetName="gradientOverlay" Property="Opacity" Value="1" />
-                                </DataTrigger>
-                            </ControlTemplate.Triggers>
-                        </ControlTemplate>
-                    </Setter.Value>
-                </Setter>
-            </Style>
+            <!--
+                GlowyToggleButtonDT and GlowyToggleButtonVR lived here. Both lit a gradient overlay
+                from a DataTrigger on a bare IsVRRunning path, which only resolves when the style
+                happens to land on a DataContext that has one. Their only call site was an Options
+                section whose DataContext does not, so the overlay never appeared and every template
+                application logged two binding failures instead. The route chips in Theme.xaml do the
+                same job without needing to know whose DataContext they are standing in.
+            -->
 
 
             <Style x:Key="GlowyToggleButton" TargetType="{x:Type ToggleButton}">
@@ -1088,7 +890,9 @@
                                     <Setter TargetName="buttonBorder" Property="Effect">
                                         <Setter.Value>
                                             <DropShadowEffect
+                                                po:Freeze="True"
                                                 BlurRadius="9"
+                                                RenderingBias="Performance"
                                                 ShadowDepth="0"
                                                 Color="#B4A4DB" />
                                         </Setter.Value>
@@ -1131,7 +935,7 @@
                                     Opacity="0"
                                     SnapsToDevicePixels="True">
                                     <Border.Background>
-                                        <LinearGradientBrush StartPoint="0,1" EndPoint="1,0">
+                                        <LinearGradientBrush po:Freeze="True" StartPoint="0,1" EndPoint="1,0">
                                             <GradientStop Offset="0" Color="#3FE0D2" />
                                             <GradientStop Offset="0.35" Color="#6E9BFF" />
                                             <GradientStop Offset="0.65" Color="#B96BFF" />
@@ -1151,7 +955,7 @@
                                         Width="16"
                                         HorizontalAlignment="Left">
                                         <Border.Background>
-                                            <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                                            <LinearGradientBrush po:Freeze="True" StartPoint="0,0" EndPoint="1,0">
                                                 <GradientStop Offset="0" Color="#00FFFFFF" />
                                                 <GradientStop Offset="0.5" Color="#A6FFFFFF" />
                                                 <GradientStop Offset="1" Color="#00FFFFFF" />
@@ -1174,7 +978,7 @@
                                     Opacity="0.55"
                                     SnapsToDevicePixels="True">
                                     <Border.BorderBrush>
-                                        <LinearGradientBrush StartPoint="0,1" EndPoint="1,0">
+                                        <LinearGradientBrush po:Freeze="True" StartPoint="0,1" EndPoint="1,0">
                                             <GradientStop Offset="0" Color="#5FE6D8" />
                                             <GradientStop Offset="0.5" Color="#A97BFF" />
                                             <GradientStop Offset="1" Color="#FF8AD2" />
@@ -1205,6 +1009,7 @@
                                     <Setter TargetName="buttonBorder" Property="Effect">
                                         <Setter.Value>
                                             <DropShadowEffect
+                                                po:Freeze="True"
                                                 BlurRadius="11"
                                                 RenderingBias="Performance"
                                                 ShadowDepth="0"
@@ -1275,7 +1080,9 @@
                                     <Setter TargetName="buttonBorder" Property="Effect">
                                         <Setter.Value>
                                             <DropShadowEffect
+                                                po:Freeze="True"
                                                 BlurRadius="5"
+                                                RenderingBias="Performance"
                                                 ShadowDepth="0"
                                                 Color="#B9CAF7" />
                                         </Setter.Value>
@@ -1313,7 +1120,7 @@
                                     HorizontalAlignment="Center"
                                     VerticalAlignment="Center"
                                     RenderOptions.BitmapScalingMode="NearestNeighbor"
-                                    Source="Img\Icons\SaveLight.png"
+                                    Source="/MagicChatbox;component/Img/Icons/SaveLight.png"
                                     Stretch="UniformToFill" />
                             </Grid>
                             <ControlTemplate.Triggers>
@@ -1323,11 +1130,13 @@
                                 <Trigger Property="IsChecked" Value="True">
                                     <Setter Property="Background" Value="#26A3FE" />
                                     <Setter Property="Foreground" Value="#240F53" />
-                                    <Setter TargetName="buttonImage" Property="Source" Value="Img\Icons\SaveDark.png" />
+                                    <Setter TargetName="buttonImage" Property="Source" Value="/MagicChatbox;component/Img/Icons/SaveDark.png" />
                                     <Setter TargetName="buttonBorder" Property="Effect">
                                         <Setter.Value>
                                             <DropShadowEffect
+                                                po:Freeze="True"
                                                 BlurRadius="5"
+                                                RenderingBias="Performance"
                                                 ShadowDepth="0"
                                                 Color="#B9CAF7" />
                                         </Setter.Value>
@@ -1483,7 +1292,7 @@
                                             RadiusX="5"
                                             RadiusY="5">
                                             <Rectangle.Fill>
-                                                <LinearGradientBrush StartPoint="0.5,0" EndPoint="1.5,1">
+                                                <LinearGradientBrush po:Freeze="True" StartPoint="0.5,0" EndPoint="1.5,1">
                                                     <GradientStop Color="#FF26A3FE" />
                                                     <GradientStop Offset="1" Color="#FFA326FE" />
                                                 </LinearGradientBrush>
@@ -1522,6 +1331,7 @@
                                         BlurRadius="11"
                                         Direction="0"
                                         Opacity="0"
+                                        RenderingBias="Performance"
                                         ShadowDepth="0"
                                         Color="#D596FF" />
                                 </Border.Effect>
@@ -1566,69 +1376,58 @@
                     </Setter.Value>
                 </Setter>
             </Style>
-            <Style x:Key="StyleButtonTransparent" TargetType="{x:Type Button}">
-                <Setter Property="FocusVisualStyle" Value="{x:Null}" />
-                <Setter Property="Template">
-                    <Setter.Value>
-                        <ControlTemplate TargetType="Button">
-                            <Border Background="{TemplateBinding Background}" CornerRadius="5" />
-                        </ControlTemplate>
-                    </Setter.Value>
-                </Setter>
-            </Style>
-            <Style x:Key="FocusVisual5">
-                <Setter Property="Control.Template">
-                    <Setter.Value>
-                        <ControlTemplate>
-                            <Rectangle
-                                Margin="2"
-                                SnapsToDevicePixels="true"
-                                Stroke="{DynamicResource {x:Static SystemColors.ControlTextBrushKey}}"
-                                StrokeDashArray="1 2"
-                                StrokeThickness="1" />
-                        </ControlTemplate>
-                    </Setter.Value>
-                </Setter>
-            </Style>
-            <Style x:Key="OptionMarkFocusVisual1">
-                <Setter Property="Control.Template">
-                    <Setter.Value>
-                        <ControlTemplate>
-                            <Rectangle
-                                Margin="14,0,0,0"
-                                SnapsToDevicePixels="true"
-                                Stroke="{DynamicResource {x:Static SystemColors.ControlTextBrushKey}}"
-                                StrokeDashArray="1 2"
-                                StrokeThickness="1" />
-                        </ControlTemplate>
-                    </Setter.Value>
-                </Setter>
-            </Style>
 
 
 
+            <!--
+                Control deck + scrollbar tokens. The accent ramp means exactly one thing across the app:
+                "this is on". Only the master switch wears it, so it never competes with the status rail.
+            -->
 
-            <!--  Control deck + scrollbar tokens. The accent ramp means exactly one thing across the app:
-                  "this is on". Only the master switch wears it, so it never competes with the status rail.  -->
-
-            <!--  Off track is LIGHTER than the tile, not darker. A dark track measured 1.37:1 against the
-                  tile surface, which made the app's primary control the least visible thing in its row.  -->
-            <SolidColorBrush x:Key="SwitchTrackOffBrush" Color="#FF584B8C" />
-            <SolidColorBrush x:Key="SwitchEdgeOffBrush" Color="#FF7A6BB5" />
-            <SolidColorBrush x:Key="SwitchThumbOffBrush" Color="#FFE3DCF5" />
-            <SolidColorBrush x:Key="SwitchThumbOnBrush" Color="#FFFDFBFF" />
-            <SolidColorBrush x:Key="SwitchEdgeOnBrush" Color="#FFCBB0FF" />
-            <LinearGradientBrush x:Key="AccentRampBrush" StartPoint="0,1" EndPoint="1,0">
+            <!--
+                Off track is LIGHTER than the tile, not darker. A dark track measured 1.37:1 against the
+                tile surface, which made the app's primary control the least visible thing in its row.
+            -->
+            <SolidColorBrush
+                x:Key="SwitchTrackOffBrush"
+                po:Freeze="True"
+                Color="#FF584B8C" />
+            <SolidColorBrush
+                x:Key="SwitchEdgeOffBrush"
+                po:Freeze="True"
+                Color="#FF7A6BB5" />
+            <SolidColorBrush
+                x:Key="SwitchThumbOffBrush"
+                po:Freeze="True"
+                Color="#FFE3DCF5" />
+            <SolidColorBrush
+                x:Key="SwitchThumbOnBrush"
+                po:Freeze="True"
+                Color="#FFFDFBFF" />
+            <SolidColorBrush
+                x:Key="SwitchEdgeOnBrush"
+                po:Freeze="True"
+                Color="#FFCBB0FF" />
+            <LinearGradientBrush x:Key="AccentRampBrush" po:Freeze="True" StartPoint="0,1" EndPoint="1,0">
                 <GradientStop Offset="0" Color="#FF3FE0D2" />
                 <GradientStop Offset="0.35" Color="#FF6E9BFF" />
                 <GradientStop Offset="0.65" Color="#FFB96BFF" />
                 <GradientStop Offset="1" Color="#FFFF6FC7" />
             </LinearGradientBrush>
 
-            <SolidColorBrush x:Key="ScrollThumbBrush" Color="#8FC0B2F0" />
-            <SolidColorBrush x:Key="ScrollThumbHoverBrush" Color="#E0D6CCFF" />
-            <SolidColorBrush x:Key="ScrollTrackHoverBrush" Color="#1AFFFFFF" />
-            <LinearGradientBrush x:Key="AccentRampVerticalBrush" StartPoint="0,1" EndPoint="0,0">
+            <SolidColorBrush
+                x:Key="ScrollThumbBrush"
+                po:Freeze="True"
+                Color="#8FC0B2F0" />
+            <SolidColorBrush
+                x:Key="ScrollThumbHoverBrush"
+                po:Freeze="True"
+                Color="#E0D6CCFF" />
+            <SolidColorBrush
+                x:Key="ScrollTrackHoverBrush"
+                po:Freeze="True"
+                Color="#1AFFFFFF" />
+            <LinearGradientBrush x:Key="AccentRampVerticalBrush" po:Freeze="True" StartPoint="0,1" EndPoint="0,0">
                 <GradientStop Offset="0" Color="#FF3FE0D2" />
                 <GradientStop Offset="0.5" Color="#FF6E9BFF" />
                 <GradientStop Offset="1" Color="#FFB96BFF" />
@@ -1665,8 +1464,10 @@
                                         BorderThickness="1"
                                         CornerRadius="11"
                                         SnapsToDevicePixels="True" />
-                                    <!--  The thumb rides inside the track. The old 25px ball overhung a 20px
-                                          rail by 2.5px top and bottom, which is most of what dated it.  -->
+                                    <!--
+                                        The thumb rides inside the track. The old 25px ball overhung a 20px
+                                        rail by 2.5px top and bottom, which is most of what dated it.
+                                    -->
                                     <Border
                                         x:Name="knob"
                                         Width="16"
@@ -1698,9 +1499,11 @@
                                 </Trigger>
 
                                 <Trigger Property="IsChecked" Value="True">
-                                    <!--  The explicit setter is the resting truth. Tiles are torn down and
-                                          re-added on every reorder and hide, and a position that exists only
-                                          as an animation clock parks the thumb on the wrong side.  -->
+                                    <!--
+                                        The explicit setter is the resting truth. Tiles are torn down and
+                                        re-added on every reorder and hide, and a position that exists only
+                                        as an animation clock parks the thumb on the wrong side.
+                                    -->
                                     <Setter TargetName="knob" Property="RenderTransform">
                                         <Setter.Value>
                                             <TranslateTransform X="20" />
@@ -1712,6 +1515,7 @@
                                     <Setter TargetName="track" Property="Effect">
                                         <Setter.Value>
                                             <DropShadowEffect
+                                                po:Freeze="True"
                                                 BlurRadius="12"
                                                 Opacity="0.55"
                                                 RenderingBias="Performance"
@@ -1801,30 +1605,6 @@
                     </Setter.Value>
                 </Setter>
             </Style>
-            <Style x:Key="FocusVisual6">
-                <Setter Property="Control.Template">
-                    <Setter.Value>
-                        <ControlTemplate>
-                            <Rectangle
-                                Margin="2"
-                                SnapsToDevicePixels="true"
-                                Stroke="{DynamicResource {x:Static SystemColors.ControlTextBrushKey}}"
-                                StrokeDashArray="1 2"
-                                StrokeThickness="1" />
-                        </ControlTemplate>
-                    </Setter.Value>
-                </Setter>
-            </Style>
-            <SolidColorBrush x:Key="Button.Static.Background4" Color="#FFDDDDDD" />
-            <SolidColorBrush x:Key="Button.Static.Border4" Color="#FF707070" />
-            <SolidColorBrush x:Key="Button.MouseOver.Background3" Color="#FFBEE6FD" />
-            <SolidColorBrush x:Key="Button.MouseOver.Border3" Color="#FF3C7FB1" />
-            <SolidColorBrush x:Key="Button.Pressed.Background3" Color="#FFC4E5F6" />
-            <SolidColorBrush x:Key="Button.Pressed.Border3" Color="#FF2C628B" />
-            <SolidColorBrush x:Key="Button.Disabled.Background4" Color="#FFF4F4F4" />
-            <SolidColorBrush x:Key="Button.Disabled.Border4" Color="#FFADB2B5" />
-            <SolidColorBrush x:Key="Button.Disabled.Foreground4" Color="#FF838383" />
-
             <Style x:Key="{x:Type ScrollBar}" TargetType="{x:Type ScrollBar}">
                 <Setter Property="Stylus.IsFlicksEnabled" Value="false" />
                 <Setter Property="Foreground" Value="{StaticResource ScrollThumbBrush}" />
@@ -1833,9 +1613,11 @@
                 <Setter Property="Template">
                     <Setter.Value>
                         <ControlTemplate TargetType="{x:Type ScrollBar}">
-                            <!--  Layout width stays 8 so nothing in the app reflows; the bar is thinner
-                                  visually, not structurally. Width lives on the setter only, so the
-                                  horizontal orientation trigger can actually override it.  -->
+                            <!--
+                                Layout width stays 8 so nothing in the app reflows; the bar is thinner
+                                visually, not structurally. Width lives on the setter only, so the
+                                horizontal orientation trigger can actually override it.
+                            -->
                             <Grid
                                 x:Name="GridRoot"
                                 Width="8"
@@ -1907,213 +1689,10 @@
                     </Setter.Value>
                 </Setter>
             </Style>
-            <LinearGradientBrush x:Key="ComboBox.Static.Background" StartPoint="0,0" EndPoint="0,1">
-                <GradientStop Offset="0.0" Color="#FFF0F0F0" />
-                <GradientStop Offset="1.0" Color="#FFE5E5E5" />
-            </LinearGradientBrush>
-            <SolidColorBrush x:Key="ComboBox.Static.Border" Color="#FFACACAC" />
-            <SolidColorBrush x:Key="ComboBox.Static.Glyph" Color="#FF606060" />
-            <SolidColorBrush x:Key="ComboBox.Static.Editable.Background" Color="#FFFFFFFF" />
-            <SolidColorBrush x:Key="ComboBox.Static.Editable.Border" Color="#FFABADB3" />
-            <SolidColorBrush x:Key="ComboBox.Static.Editable.Button.Background" Color="Transparent" />
-            <SolidColorBrush x:Key="ComboBox.Static.Editable.Button.Border" Color="Transparent" />
-            <LinearGradientBrush x:Key="ComboBox.MouseOver.Background" StartPoint="0,0" EndPoint="0,1">
-                <GradientStop Offset="0.0" Color="#FFECF4FC" />
-                <GradientStop Offset="1.0" Color="#FFDCECFC" />
-            </LinearGradientBrush>
-            <SolidColorBrush x:Key="ComboBox.MouseOver.Border" Color="#FF7EB4EA" />
-            <SolidColorBrush x:Key="ComboBox.MouseOver.Glyph" Color="#FF000000" />
-            <SolidColorBrush x:Key="ComboBox.MouseOver.Editable.Background" Color="#FFFFFFFF" />
-            <SolidColorBrush x:Key="ComboBox.MouseOver.Editable.Border" Color="#FF7EB4EA" />
-            <LinearGradientBrush x:Key="ComboBox.MouseOver.Editable.Button.Background" StartPoint="0,0" EndPoint="0,1">
-                <GradientStop Offset="0.0" Color="#FFEBF4FC" />
-                <GradientStop Offset="1.0" Color="#FFDCECFC" />
-            </LinearGradientBrush>
-            <SolidColorBrush x:Key="ComboBox.MouseOver.Editable.Button.Border" Color="#FF7EB4EA" />
-            <LinearGradientBrush x:Key="ComboBox.Pressed.Background" StartPoint="0,0" EndPoint="0,1">
-                <GradientStop Offset="0.0" Color="#FFDAECFC" />
-                <GradientStop Offset="1.0" Color="#FFC4E0FC" />
-            </LinearGradientBrush>
-            <SolidColorBrush x:Key="ComboBox.Pressed.Border" Color="#FF569DE5" />
-            <SolidColorBrush x:Key="ComboBox.Pressed.Glyph" Color="#FF000000" />
-            <SolidColorBrush x:Key="ComboBox.Pressed.Editable.Background" Color="#FFFFFFFF" />
-            <SolidColorBrush x:Key="ComboBox.Pressed.Editable.Border" Color="#FF569DE5" />
-            <LinearGradientBrush x:Key="ComboBox.Pressed.Editable.Button.Background" StartPoint="0,0" EndPoint="0,1">
-                <GradientStop Offset="0.0" Color="#FFDAEBFC" />
-                <GradientStop Offset="1.0" Color="#FFC4E0FC" />
-            </LinearGradientBrush>
-            <SolidColorBrush x:Key="ComboBox.Pressed.Editable.Button.Border" Color="#FF569DE5" />
-            <SolidColorBrush x:Key="ComboBox.Disabled.Background" Color="#FFF0F0F0" />
-            <SolidColorBrush x:Key="ComboBox.Disabled.Border" Color="#FFD9D9D9" />
-            <SolidColorBrush x:Key="ComboBox.Disabled.Glyph" Color="#FFBFBFBF" />
-            <SolidColorBrush x:Key="ComboBox.Disabled.Editable.Background" Color="#FFFFFFFF" />
-            <SolidColorBrush x:Key="ComboBox.Disabled.Editable.Border" Color="#FFBFBFBF" />
-            <SolidColorBrush x:Key="ComboBox.Disabled.Editable.Button.Background" Color="Transparent" />
-            <SolidColorBrush x:Key="ComboBox.Disabled.Editable.Button.Border" Color="Transparent" />
-            <Style x:Key="ComboBoxToggleButton" TargetType="{x:Type ToggleButton}">
-                <Setter Property="OverridesDefaultStyle" Value="true" />
-                <Setter Property="IsTabStop" Value="false" />
-                <Setter Property="Focusable" Value="false" />
-                <Setter Property="ClickMode" Value="Press" />
-                <Setter Property="Template">
-                    <Setter.Value>
-                        <ControlTemplate TargetType="{x:Type ToggleButton}">
-                            <Border
-                                x:Name="templateRoot"
-                                Background="{StaticResource ComboBox.Static.Background}"
-                                BorderBrush="{StaticResource ComboBox.Static.Border}"
-                                BorderThickness="{TemplateBinding BorderThickness}"
-                                SnapsToDevicePixels="true">
-                                <Border
-                                    x:Name="splitBorder"
-                                    Width="{DynamicResource {x:Static SystemParameters.VerticalScrollBarWidthKey}}"
-                                    Margin="0"
-                                    HorizontalAlignment="Right"
-                                    BorderBrush="Transparent"
-                                    BorderThickness="1"
-                                    SnapsToDevicePixels="true">
-                                    <Path
-                                        x:Name="arrow"
-                                        Margin="0"
-                                        HorizontalAlignment="Center"
-                                        VerticalAlignment="Center"
-                                        Data="F1 M 0,0 L 2.667,2.66665 L 5.3334,0 L 5.3334,-1.78168 L 2.6667,0.88501 L0,-1.78168 L0,0 Z"
-                                        Fill="{StaticResource ComboBox.Static.Glyph}" />
-                                </Border>
-                            </Border>
-                            <ControlTemplate.Triggers>
-                                <MultiDataTrigger>
-                                    <MultiDataTrigger.Conditions>
-                                        <Condition Binding="{Binding IsEditable, RelativeSource={RelativeSource AncestorType={x:Type ComboBox}}}" Value="true" />
-                                        <Condition Binding="{Binding IsMouseOver, RelativeSource={RelativeSource Self}}" Value="false" />
-                                        <Condition Binding="{Binding IsPressed, RelativeSource={RelativeSource Self}}" Value="false" />
-                                        <Condition Binding="{Binding IsEnabled, RelativeSource={RelativeSource Self}}" Value="true" />
-                                    </MultiDataTrigger.Conditions>
-                                    <Setter TargetName="templateRoot" Property="Background" Value="{StaticResource ComboBox.Static.Editable.Background}" />
-                                    <Setter TargetName="templateRoot" Property="BorderBrush" Value="{StaticResource ComboBox.Static.Editable.Border}" />
-                                    <Setter TargetName="splitBorder" Property="Background" Value="{StaticResource ComboBox.Static.Editable.Button.Background}" />
-                                    <Setter TargetName="splitBorder" Property="BorderBrush" Value="{StaticResource ComboBox.Static.Editable.Button.Border}" />
-                                </MultiDataTrigger>
-                                <Trigger Property="IsMouseOver" Value="true">
-                                    <Setter TargetName="arrow" Property="Fill" Value="{StaticResource ComboBox.MouseOver.Glyph}" />
-                                </Trigger>
-                                <MultiDataTrigger>
-                                    <MultiDataTrigger.Conditions>
-                                        <Condition Binding="{Binding IsMouseOver, RelativeSource={RelativeSource Self}}" Value="true" />
-                                        <Condition Binding="{Binding IsEditable, RelativeSource={RelativeSource AncestorType={x:Type ComboBox}}}" Value="false" />
-                                    </MultiDataTrigger.Conditions>
-                                    <Setter TargetName="templateRoot" Property="Background" Value="{StaticResource ComboBox.MouseOver.Background}" />
-                                    <Setter TargetName="templateRoot" Property="BorderBrush" Value="{StaticResource ComboBox.MouseOver.Border}" />
-                                </MultiDataTrigger>
-                                <MultiDataTrigger>
-                                    <MultiDataTrigger.Conditions>
-                                        <Condition Binding="{Binding IsMouseOver, RelativeSource={RelativeSource Self}}" Value="true" />
-                                        <Condition Binding="{Binding IsEditable, RelativeSource={RelativeSource AncestorType={x:Type ComboBox}}}" Value="true" />
-                                    </MultiDataTrigger.Conditions>
-                                    <Setter TargetName="templateRoot" Property="Background" Value="{StaticResource ComboBox.MouseOver.Editable.Background}" />
-                                    <Setter TargetName="templateRoot" Property="BorderBrush" Value="{StaticResource ComboBox.MouseOver.Editable.Border}" />
-                                    <Setter TargetName="splitBorder" Property="Background" Value="{StaticResource ComboBox.MouseOver.Editable.Button.Background}" />
-                                    <Setter TargetName="splitBorder" Property="BorderBrush" Value="{StaticResource ComboBox.MouseOver.Editable.Button.Border}" />
-                                </MultiDataTrigger>
-                                <Trigger Property="IsPressed" Value="true">
-                                    <Setter TargetName="arrow" Property="Fill" Value="{StaticResource ComboBox.Pressed.Glyph}" />
-                                </Trigger>
-                                <MultiDataTrigger>
-                                    <MultiDataTrigger.Conditions>
-                                        <Condition Binding="{Binding IsPressed, RelativeSource={RelativeSource Self}}" Value="true" />
-                                        <Condition Binding="{Binding IsEditable, RelativeSource={RelativeSource AncestorType={x:Type ComboBox}}}" Value="false" />
-                                    </MultiDataTrigger.Conditions>
-                                    <Setter TargetName="templateRoot" Property="Background" Value="{StaticResource ComboBox.Pressed.Background}" />
-                                    <Setter TargetName="templateRoot" Property="BorderBrush" Value="{StaticResource ComboBox.Pressed.Border}" />
-                                </MultiDataTrigger>
-                                <MultiDataTrigger>
-                                    <MultiDataTrigger.Conditions>
-                                        <Condition Binding="{Binding IsPressed, RelativeSource={RelativeSource Self}}" Value="true" />
-                                        <Condition Binding="{Binding IsEditable, RelativeSource={RelativeSource AncestorType={x:Type ComboBox}}}" Value="true" />
-                                    </MultiDataTrigger.Conditions>
-                                    <Setter TargetName="templateRoot" Property="Background" Value="{StaticResource ComboBox.Pressed.Editable.Background}" />
-                                    <Setter TargetName="templateRoot" Property="BorderBrush" Value="{StaticResource ComboBox.Pressed.Editable.Border}" />
-                                    <Setter TargetName="splitBorder" Property="Background" Value="{StaticResource ComboBox.Pressed.Editable.Button.Background}" />
-                                    <Setter TargetName="splitBorder" Property="BorderBrush" Value="{StaticResource ComboBox.Pressed.Editable.Button.Border}" />
-                                </MultiDataTrigger>
-                                <Trigger Property="IsEnabled" Value="false">
-                                    <Setter TargetName="arrow" Property="Fill" Value="{StaticResource ComboBox.Disabled.Glyph}" />
-                                </Trigger>
-                                <MultiDataTrigger>
-                                    <MultiDataTrigger.Conditions>
-                                        <Condition Binding="{Binding IsEnabled, RelativeSource={RelativeSource Self}}" Value="false" />
-                                        <Condition Binding="{Binding IsEditable, RelativeSource={RelativeSource AncestorType={x:Type ComboBox}}}" Value="false" />
-                                    </MultiDataTrigger.Conditions>
-                                    <Setter TargetName="templateRoot" Property="Background" Value="{StaticResource ComboBox.Disabled.Background}" />
-                                    <Setter TargetName="templateRoot" Property="BorderBrush" Value="{StaticResource ComboBox.Disabled.Border}" />
-                                </MultiDataTrigger>
-                                <MultiDataTrigger>
-                                    <MultiDataTrigger.Conditions>
-                                        <Condition Binding="{Binding IsEnabled, RelativeSource={RelativeSource Self}}" Value="false" />
-                                        <Condition Binding="{Binding IsEditable, RelativeSource={RelativeSource AncestorType={x:Type ComboBox}}}" Value="true" />
-                                    </MultiDataTrigger.Conditions>
-                                    <Setter TargetName="templateRoot" Property="Background" Value="{StaticResource ComboBox.Disabled.Editable.Background}" />
-                                    <Setter TargetName="templateRoot" Property="BorderBrush" Value="{StaticResource ComboBox.Disabled.Editable.Border}" />
-                                    <Setter TargetName="splitBorder" Property="Background" Value="{StaticResource ComboBox.Disabled.Editable.Button.Background}" />
-                                    <Setter TargetName="splitBorder" Property="BorderBrush" Value="{StaticResource ComboBox.Disabled.Editable.Button.Border}" />
-                                </MultiDataTrigger>
-                            </ControlTemplate.Triggers>
-                        </ControlTemplate>
-                    </Setter.Value>
-                </Setter>
-                <Setter Property="Focusable" Value="False" />
-                <Setter Property="Template">
-                    <Setter.Value>
-                        <ControlTemplate TargetType="ToggleButton">
-                            <Grid>
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition />
-                                    <ColumnDefinition Width="20" />
-                                </Grid.ColumnDefinitions>
-                                <Border
-                                    x:Name="Border"
-                                    Grid.ColumnSpan="2"
-                                    Background="#222"
-                                    BorderBrush="#222"
-                                    BorderThickness="1"
-                                    CornerRadius="0" />
-                                <Border
-                                    x:Name="Border2"
-                                    Grid.Column="0"
-                                    Margin="1"
-                                    Background="Transparent"
-                                    BorderBrush="#222"
-                                    BorderThickness="0,0,0,0"
-                                    CornerRadius="0" />
-                                <Path
-                                    x:Name="Arrow"
-                                    Grid.Column="1"
-                                    HorizontalAlignment="Center"
-                                    VerticalAlignment="Center"
-                                    Data="M 0 0 L 4 4 L 8 0 Z"
-                                    Fill="White" />
-                            </Grid>
-                            <ControlTemplate.Triggers>
-                                <Trigger Property="IsChecked" Value="True">
-                                    <Setter TargetName="Border" Property="Background" Value="#222" />
-                                    <Setter TargetName="Border" Property="BorderThickness" Value="1,1,1,1" />
-                                </Trigger>
-                                <Trigger Property="IsMouseOver" Value="true">
-                                    <Setter TargetName="Border" Property="Background" Value="#4F4F4F" />
-                                </Trigger>
-                                <Trigger Property="IsEnabled" Value="False">
-                                    <Setter TargetName="Arrow" Property="Fill" Value="#888" />
-                                </Trigger>
-                            </ControlTemplate.Triggers>
-                        </ControlTemplate>
-                    </Setter.Value>
-                </Setter>
-            </Style>
-
-
             <local:CountToVisibilityConverter x:Key="CountToVisibilityConverter" />
             <local:CharacterCountToBoolConverter x:Key="CharacterCountToBoolConverter" />
             <local:BoolToBlurEffectConverter x:Key="BoolToBlurEffectConverter" />
+            <local:BlurRadiusToEffectConverter x:Key="BlurRadiusToEffectConverter" />
             <local:InverseBoolToVisibilityConverter x:Key="InverseBoolToVisibilityConverter" />
             <local:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" />
             <local:InverseBoolToHiddenConverter x:Key="InverseBoolToHiddenConverter" />
@@ -2136,9 +1715,9 @@
                                     ContentTemplate="{TemplateBinding ContentTemplate}" />
                                 <Button
                                     Margin="0,4,8,0"
-                                    Panel.ZIndex="1"
                                     HorizontalAlignment="Right"
                                     VerticalAlignment="Top"
+                                    Panel.ZIndex="1"
                                     Command="{Binding DataContext.ResetSectionCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
                                     CommandParameter="{Binding Tag, RelativeSource={RelativeSource TemplatedParent}}"
                                     Content="Reset"
@@ -2162,19 +1741,6 @@
                 <Setter Property="BorderBrush" Value="Transparent" />
                 <Setter Property="Background" Value="Transparent" />
                 <Setter Property="Padding" Value="12" />
-            </Style>
-            <Style x:Key="TrackerInputFrame" TargetType="Border">
-                <Setter Property="CornerRadius" Value="8" />
-                <Setter Property="BorderThickness" Value="0" />
-                <Setter Property="BorderBrush" Value="Transparent" />
-                <Setter Property="Background" Value="#6E6489" />
-                <Setter Property="Padding" Value="8,4,8,0" />
-            </Style>
-            <Style x:Key="TrackerHeaderText" TargetType="TextBlock">
-                <Setter Property="FontFamily" Value="/Fonts/#Albert Sans" />
-                <Setter Property="FontSize" Value="14" />
-                <Setter Property="FontWeight" Value="SemiBold" />
-                <Setter Property="Foreground" Value="#E6DFF7" />
             </Style>
             <Style x:Key="TrackerLabelText" TargetType="TextBlock">
                 <Setter Property="FontFamily" Value="/Fonts/#Albert Sans" />
@@ -2239,7 +1805,7 @@
                                 Background="{TemplateBinding Background}"
                                 BorderBrush="{TemplateBinding BorderBrush}"
                                 BorderThickness="{TemplateBinding BorderThickness}"
-                                CornerRadius="5,0,0,5"
+                                CornerRadius="3,0,0,3"
                                 SnapsToDevicePixels="true">
                                 <ContentPresenter
                                     x:Name="contentPresenter"

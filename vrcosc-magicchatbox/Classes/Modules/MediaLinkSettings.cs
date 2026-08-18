@@ -24,12 +24,8 @@ public partial class MediaLinkSettings : VersionedSettings
     [ObservableProperty] private MediaLinkTimeSeekbar _timeSeekStyle = MediaLinkTimeSeekbar.SmallNumbers;
     [ObservableProperty] private bool _autoDowngradeSeekbar = true;
 
-    // An oversized line is dropped rather than clipped, so a long credit list used to take the whole
-    // song off screen. Shortening runs before the seekbar is downgraded.
     [ObservableProperty] private bool _shortenToFit = true;
 
-    // Browsers report the raw video title, carrying production credits and the channel name the
-    // artist field already holds.
     [ObservableProperty] private bool _tidyTitles = true;
 
     [ObservableProperty] private bool _autoSwitch = true;

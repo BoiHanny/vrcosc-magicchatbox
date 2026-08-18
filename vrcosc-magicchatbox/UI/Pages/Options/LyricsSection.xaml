@@ -4,19 +4,12 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:controls="clr-namespace:vrcosc_magicchatbox.UI.Controls"
     xmlns:lyrics="clr-namespace:vrcosc_magicchatbox.Classes.Modules.Lyrics"
     xmlns:sections="clr-namespace:vrcosc_magicchatbox.ViewModels.Sections"
     d:DataContext="{d:DesignInstance Type=sections:LyricsSectionViewModel,
                                      IsDesignTimeCreatable=False}"
     mc:Ignorable="d">
-    <UserControl.Resources>
-        <ResourceDictionary>
-            <ResourceDictionary.MergedDictionaries>
-                <ResourceDictionary Source="/UI/Resources/SharedConverters.xaml" />
-            </ResourceDictionary.MergedDictionaries>
-        </ResourceDictionary>
-    </UserControl.Resources>
-
     <Grid Margin="0,5,0,0">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
@@ -48,19 +41,11 @@
 
             <Border Style="{StaticResource OptionCardStyle}">
                 <StackPanel>
+                    <TextBlock Style="{StaticResource OptionSubsectionHeaderStyle}" Text="Which players to follow" />
                     <TextBlock
-                        Margin="0,0,0,4"
-                        FontFamily="/Fonts/#Comfortaa"
-                        FontSize="13"
-                        Foreground="{StaticResource TextSectionHeaderBrush}"
-                        Text="Which players to follow" />
-                    <TextBlock
-                        Margin="0,0,0,10"
-                        FontFamily="/Fonts/#Albert Sans"
-                        FontSize="11"
-                        Foreground="{StaticResource TextMutedBrush}"
-                        Text="Lyrics ride along with the music you are already showing, and each player has its own switch. The same two switches sit on the Spotify and Media link cards on the Integrations page."
-                        TextWrapping="Wrap" />
+                        Margin="2,3,0,10"
+                        Style="{StaticResource OptionHelpTextStyle}"
+                        Text="Lyrics ride along with the music you are already showing, and each player has its own switch. The same two switches sit on the Spotify and Media link cards on the Integrations page." />
 
                     <StackPanel Orientation="Horizontal">
                         <ToggleButton
@@ -84,99 +69,61 @@
 
                     <TextBlock
                         Margin="0,14,0,6"
-                        FontFamily="/Fonts/#Albert Sans"
-                        FontSize="11"
-                        Foreground="{StaticResource TextMutedBrush}"
-                        Text="Show the words while I am on"
-                        TextWrapping="Wrap" />
+                        Style="{StaticResource OptionFieldLabelStyle}"
+                        Text="Show the words while I am on" />
 
+                    <!--
+                        The same two chips the integration tiles use for the same two settings. They
+                        carry their own size, label and tooltip, so there is one place to change what
+                        a route chip looks like.
+                    -->
                     <StackPanel Orientation="Horizontal">
                         <ToggleButton
-                            Width="60"
-                            Height="22"
-                            Margin="0,0,5,0"
                             VerticalAlignment="Center"
-                            Content="DESKTOP"
                             IsChecked="{Binding IntegrationSettings.IntgrLyrics_DESKTOP, Mode=TwoWay}"
-                            Style="{StaticResource GlowyToggleButtonDT}" />
+                            Style="{StaticResource RouteChipDesktop}" />
                         <ToggleButton
-                            Width="30"
-                            Height="22"
                             VerticalAlignment="Center"
-                            Content="VR"
                             IsChecked="{Binding IntegrationSettings.IntgrLyrics_VR, Mode=TwoWay}"
-                            Style="{StaticResource GlowyToggleButtonVR}" />
+                            Style="{StaticResource RouteChipVr}" />
                     </StackPanel>
 
                     <TextBlock
-                        Margin="0,12,0,0"
-                        FontFamily="/Fonts/#Albert Sans"
-                        FontSize="11"
-                        Foreground="{StaticResource TextMutedBrush}"
-                        Text="{Binding HostSummary}"
-                        TextWrapping="Wrap" />
+                        Margin="2,12,0,0"
+                        Style="{StaticResource OptionHelpTextStyle}"
+                        Text="{Binding HostSummary}" />
                 </StackPanel>
             </Border>
 
             <Border Style="{StaticResource OptionCardStyle}">
                 <StackPanel>
-                    <TextBlock
-                        Margin="0,0,0,8"
-                        FontFamily="/Fonts/#Comfortaa"
-                        FontSize="13"
-                        Foreground="{StaticResource TextSectionHeaderBrush}"
-                        Text="Now playing" />
+                    <TextBlock Style="{StaticResource OptionSubsectionHeaderStyle}" Text="Now playing" />
 
                     <TextBlock
-                        FontFamily="/Fonts/#Albert Sans"
-                        FontSize="13"
-                        Foreground="{StaticResource TextMutedBrush}"
-                        Text="{Binding Display.NowPlaying}"
-                        TextWrapping="Wrap" />
+                        Margin="2,3,0,0"
+                        Style="{StaticResource OptionHelpTextStyle}"
+                        Text="{Binding Display.NowPlaying}" />
 
-                    <Border
-                        Margin="0,8,0,0"
-                        Padding="10,6"
-                        Background="{StaticResource AccentDeepPurpleBrush}"
-                        CornerRadius="4">
-                        <TextBlock
-                            FontFamily="/Fonts/#Comfortaa"
-                            FontSize="15"
-                            Foreground="White"
-                            Text="{Binding Display.CurrentLine}"
-                            TextWrapping="Wrap" />
-                    </Border>
+                    <controls:SegmentPreview Line="{Binding Display.CurrentLine}" />
 
                     <TextBlock
-                        Margin="0,8,0,0"
-                        FontFamily="/Fonts/#Albert Sans"
-                        FontSize="11"
-                        Foreground="{StaticResource TextMutedBrush}"
-                        Text="{Binding Display.StatusText}"
-                        TextWrapping="Wrap" />
+                        Margin="2,8,0,0"
+                        Style="{StaticResource OptionHelpTextStyle}"
+                        Text="{Binding Display.StatusText}" />
                     <TextBlock
-                        FontFamily="/Fonts/#Albert Sans"
-                        FontSize="11"
-                        Foreground="{StaticResource TextMutedBrush}"
+                        Margin="2,0,0,0"
+                        Style="{StaticResource OptionHelpTextStyle}"
                         Text="{Binding Display.PositionSource, StringFormat='Position from {0}'}" />
                 </StackPanel>
             </Border>
 
             <Border Style="{StaticResource OptionCardStyle}">
                 <StackPanel>
+                    <TextBlock Style="{StaticResource OptionSubsectionHeaderStyle}" Text="Timing" />
                     <TextBlock
-                        Margin="0,0,0,4"
-                        FontFamily="/Fonts/#Comfortaa"
-                        FontSize="13"
-                        Foreground="{StaticResource TextSectionHeaderBrush}"
-                        Text="Timing" />
-                    <TextBlock
-                        Margin="0,0,0,8"
-                        FontFamily="/Fonts/#Albert Sans"
-                        FontSize="11"
-                        Foreground="{StaticResource TextMutedBrush}"
-                        Text="Community timings vary between tracks. Nudge until the words land with the music."
-                        TextWrapping="Wrap" />
+                        Margin="2,3,0,8"
+                        Style="{StaticResource OptionHelpTextStyle}"
+                        Text="Community timings vary between tracks. Nudge until the words land with the music." />
 
                     <StackPanel Orientation="Horizontal">
                         <Button
@@ -220,102 +167,43 @@
                             Content="+500"
                             Style="{StaticResource Status_Button_style}" />
                         <TextBlock
+                            Margin="0"
                             VerticalAlignment="Center"
-                            FontFamily="/Fonts/#Albert Sans"
-                            FontSize="12"
-                            Foreground="{StaticResource TextMutedBrush}"
+                            Style="{StaticResource OptionHelpTextStyle}"
                             Text="{Binding OffsetSummary}" />
                     </StackPanel>
 
                     <!--  Break timing. Same two commands the Integrations ribbon drives, so the numbers
-                          here and there are one value, not two copies.  -->
+                          here and there are one value, not two copies. The two stepper labels read
+                          "Gap" and "Hold" because they come from a shared template - see the report.  -->
                     <TextBlock
-                        Margin="0,14,0,6"
+                        Margin="2,14,0,6"
                         Style="{StaticResource OptionHelpTextStyle}"
-                        Text="A silence longer than the gap counts as an instrumental break, and the last line stays up for the hold before the ♪ marker takes over." />
+                        Text="The first number is when a break starts: once the singing stops for longer than that, the song counts as being in an instrumental break. The second is how long the last line you heard stays up before the ♪ marker replaces it." />
 
                     <!--  Same stepper row as the Integrations ribbon - one template, so the two
                           copies cannot drift apart in type or spacing again.  -->
                     <ContentControl Content="{Binding}" ContentTemplate="{StaticResource LyricsTimingRowTemplate}" />
 
                     <TextBlock
-                        Margin="0,8,0,0"
-                        FontFamily="/Fonts/#Albert Sans"
-                        FontSize="11"
-                        Foreground="#FFFFC46B"
+                        Margin="2,8,0,0"
+                        Foreground="{StaticResource StatusWarningBrush}"
+                        Style="{StaticResource OptionHelpTextStyle}"
                         Text="{Binding TimingWarning}"
-                        TextWrapping="Wrap"
                         Visibility="{Binding HasTimingWarning, Converter={StaticResource BoolToVisibilityConverter}}" />
                 </StackPanel>
             </Border>
 
             <Border Style="{StaticResource OptionCardStyle}">
                 <StackPanel>
+                    <TextBlock Style="{StaticResource OptionSubsectionHeaderStyle}" Text="How it looks" />
                     <TextBlock
-                        Margin="0,0,0,4"
-                        FontFamily="/Fonts/#Comfortaa"
-                        FontSize="13"
-                        Foreground="{StaticResource TextSectionHeaderBrush}"
-                        Text="How it looks" />
-                    <TextBlock
-                        Margin="0,0,0,8"
-                        FontFamily="/Fonts/#Albert Sans"
-                        FontSize="11"
-                        Foreground="{StaticResource TextMutedBrush}"
-                        Text="Long lines scroll across the space that is left. These previews show a roomy line and a cramped one."
-                        TextWrapping="Wrap" />
+                        Margin="2,3,0,0"
+                        Style="{StaticResource OptionHelpTextStyle}"
+                        Text="Long lines scroll across the space that is left. These two show the same words with plenty of room and with almost none." />
 
-                    <Grid Margin="0,0,0,6">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="60" />
-                            <ColumnDefinition Width="*" />
-                        </Grid.ColumnDefinitions>
-                        <TextBlock
-                            Grid.Column="0"
-                            VerticalAlignment="Center"
-                            FontFamily="/Fonts/#Albert Sans"
-                            FontSize="11"
-                            Foreground="{StaticResource TextMutedBrush}"
-                            Text="Roomy" />
-                        <Border
-                            Grid.Column="1"
-                            Padding="8,4"
-                            Background="{StaticResource AccentDeepPurpleBrush}"
-                            CornerRadius="4">
-                            <TextBlock
-                                FontFamily="/Fonts/#Comfortaa"
-                                FontSize="14"
-                                Foreground="White"
-                                Text="{Binding RoomyPreview}"
-                                TextWrapping="Wrap" />
-                        </Border>
-                    </Grid>
-
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="60" />
-                            <ColumnDefinition Width="*" />
-                        </Grid.ColumnDefinitions>
-                        <TextBlock
-                            Grid.Column="0"
-                            VerticalAlignment="Center"
-                            FontFamily="/Fonts/#Albert Sans"
-                            FontSize="11"
-                            Foreground="{StaticResource TextMutedBrush}"
-                            Text="Cramped" />
-                        <Border
-                            Grid.Column="1"
-                            Padding="8,4"
-                            Background="{StaticResource AccentDeepPurpleBrush}"
-                            CornerRadius="4">
-                            <TextBlock
-                                FontFamily="/Fonts/#Comfortaa"
-                                FontSize="14"
-                                Foreground="White"
-                                Text="{Binding TightPreview}"
-                                TextWrapping="Wrap" />
-                        </Border>
-                    </Grid>
+                    <controls:SegmentPreview Caption="With plenty of room" Line="{Binding RoomyPreview}" />
+                    <controls:SegmentPreview Caption="With almost none" Line="{Binding TightPreview}" />
 
                     <CheckBox
                         Margin="0,10,0,2"
@@ -337,11 +225,10 @@
                         Visibility="{Binding Settings.ShowGapMarker, Converter={StaticResource BoolToVisibilityConverter}, UpdateSourceTrigger=PropertyChanged}">
                         <TextBlock
                             Width="210"
+                            Margin="0,0,6,0"
                             VerticalAlignment="Center"
-                            FontFamily="/Fonts/#Albert Sans"
-                            FontSize="12"
-                            Foreground="{StaticResource TextMutedBrush}"
-                            Text="Marker" />
+                            Style="{StaticResource OptionFieldLabelStyle}"
+                            Text="Which marker" />
                         <ComboBox
                             Width="260"
                             HorizontalAlignment="Left"
@@ -359,14 +246,18 @@
                     <StackPanel Margin="0,8,0,0" Orientation="Horizontal">
                         <TextBlock
                             Width="210"
+                            Margin="0,0,6,0"
                             VerticalAlignment="Center"
-                            FontFamily="/Fonts/#Albert Sans"
-                            FontSize="12"
-                            Foreground="{StaticResource TextMutedBrush}"
-                            Text="Hide the lyric below this many characters" />
+                            Style="{StaticResource OptionFieldLabelStyle}"
+                            Text="Skip lines shorter than" />
                         <TextBox
                             Width="60"
                             Text="{Binding Settings.MinimumCharacters, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                        <TextBlock
+                            Margin="6,0,0,0"
+                            VerticalAlignment="Center"
+                            Style="{StaticResource OptionFieldLabelStyle}"
+                            Text="characters" />
                     </StackPanel>
                 </StackPanel>
             </Border>
@@ -382,10 +273,9 @@
                     <StackPanel Margin="0,8,0,0" Orientation="Horizontal">
                         <TextBlock
                             Width="210"
+                            Margin="0,0,6,0"
                             VerticalAlignment="Center"
-                            FontFamily="/Fonts/#Albert Sans"
-                            FontSize="12"
-                            Foreground="{StaticResource TextMutedBrush}"
+                            Style="{StaticResource OptionFieldLabelStyle}"
                             Text="How sure the match must be" />
                         <ComboBox
                             Width="260"
@@ -414,19 +304,11 @@
 
             <Border Style="{StaticResource OptionCardStyle}">
                 <StackPanel>
+                    <TextBlock Style="{StaticResource OptionSubsectionHeaderStyle}" Text="Sharing space with the song title" />
                     <TextBlock
-                        Margin="0,0,0,4"
-                        FontFamily="/Fonts/#Comfortaa"
-                        FontSize="13"
-                        Foreground="{StaticResource TextSectionHeaderBrush}"
-                        Text="Sharing space with the song title" />
-                    <TextBlock
-                        Margin="0,0,0,8"
-                        FontFamily="/Fonts/#Albert Sans"
-                        FontSize="11"
-                        Foreground="{StaticResource TextMutedBrush}"
-                        Text="The chatbox holds 144 characters for every integration together. Hiding the title while a lyric shows roughly doubles the room the words get."
-                        TextWrapping="Wrap" />
+                        Margin="2,3,0,8"
+                        Style="{StaticResource OptionHelpTextStyle}"
+                        Text="The chatbox holds 144 characters for every integration together. Hiding the title while a lyric shows roughly doubles the room the words get." />
 
                     <ComboBox
                         Width="280"
@@ -445,19 +327,11 @@
 
             <Border Style="{StaticResource OptionCardStyle}">
                 <StackPanel>
+                    <TextBlock Style="{StaticResource OptionSubsectionHeaderStyle}" Text="Where lyrics come from" />
                     <TextBlock
-                        Margin="0,0,0,4"
-                        FontFamily="/Fonts/#Comfortaa"
-                        FontSize="13"
-                        Foreground="{StaticResource TextSectionHeaderBrush}"
-                        Text="Where lyrics come from" />
-                    <TextBlock
-                        Margin="0,0,0,8"
-                        FontFamily="/Fonts/#Albert Sans"
-                        FontSize="11"
-                        Foreground="{StaticResource TextMutedBrush}"
-                        Text="Your own .lrc files are used first when a folder is set. Anything not found there is looked up on LRCLIB, a free community lyrics database. Lyrics are contributed by its users and MagicChatBox does not own them."
-                        TextWrapping="Wrap" />
+                        Margin="2,3,0,8"
+                        Style="{StaticResource OptionHelpTextStyle}"
+                        Text="Your own .lrc files are used first when a folder is set. Anything not found there is looked up on LRCLIB, a free community lyrics database. Lyrics are contributed by its users and MagicChatBox does not own them." />
 
                     <CheckBox
                         Margin="0,2"

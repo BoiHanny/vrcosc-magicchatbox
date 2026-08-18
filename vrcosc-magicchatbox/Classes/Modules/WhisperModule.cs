@@ -62,17 +62,12 @@ namespace vrcosc_magicchatbox.Classes.Modules
         [ObservableProperty]
         private bool translateToCustomLanguage = false;
 
-        /// <summary>
-        /// Comes from code, not from the settings file, so updating the app updates the list. Ordered
-        /// deliberately rather than by enum value: new models take the next free number at the end to
-        /// keep saved selections stable, which would otherwise bury the recommended one at the bottom.
-        /// </summary>
         [JsonIgnore]
         public IEnumerable<IntelliGPTModel> AvailableSTTModels => SpeechToTextModels.Ordered;
 
         private WhisperModuleSettings()
         {
-            availableDevices = new List<RecordingDeviceInfo>();
+            AvailableDevices = new List<RecordingDeviceInfo>();
             RefreshSpeechToTextLanguages();
         }
 
@@ -181,8 +176,6 @@ namespace vrcosc_magicchatbox.Classes.Modules
                     {
                         settings.RefreshSpeechToTextLanguages();
 
-                        // A saved model that is no longer offered would fail every transcription with
-                        // an error from the API rather than anything the user could act on.
                         settings.SpeechToTextModel = SpeechToTextModels.Resolve(settings.SpeechToTextModel);
                         return settings;
                     }
@@ -239,13 +232,13 @@ namespace vrcosc_magicchatbox.Classes.Modules
 
         private void NormalizeSelectedDeviceIndex()
         {
-            if (!availableDevices.Any())
+            if (!AvailableDevices.Any())
             {
                 SelectedDeviceIndex = -1;
                 return;
             }
 
-            if (selectedDeviceIndex < 0 || selectedDeviceIndex >= availableDevices.Count)
+            if (SelectedDeviceIndex < 0 || SelectedDeviceIndex >= AvailableDevices.Count)
                 SelectedDeviceIndex = 0;
         }
 
@@ -320,9 +313,8 @@ namespace vrcosc_magicchatbox.Classes.Modules
             _dispatcher = dispatcher;
             _messenger = messenger;
             _toast = toast;
-            settings = WhisperModuleSettings.LoadSettings();
-            settings.PropertyChanged += Settings_PropertyChanged;
-            InitializeWaveIn();
+            Settings = WhisperModuleSettings.LoadSettings();
+            Settings.PropertyChanged += Settings_PropertyChanged;
             _ = WarmUpRecordingDevicesAsync();
         }
 
@@ -331,8 +323,7 @@ namespace vrcosc_magicchatbox.Classes.Modules
             var devices = await Task.Run(WhisperModuleSettings.GetAvailableDevicesSafe);
             await _dispatcher.InvokeAsync(() =>
             {
-                settings.ApplyAvailableDevices(devices);
-                InitializeWaveIn();
+                Settings.ApplyAvailableDevices(devices);
             });
         }
 
@@ -379,9 +370,15 @@ namespace vrcosc_magicchatbox.Classes.Modules
         {
             try
             {
-                waveIn?.Dispose();
+                if (waveIn != null)
+                {
+                    waveIn.DataAvailable -= OnDataAvailable;
+                    waveIn.RecordingStopped -= OnRecordingStopped;
+                    waveIn.Dispose();
+                    waveIn = null;
+                }
 
-                if (settings.SelectedDeviceIndex == -1)
+                if (Settings.SelectedDeviceIndex == -1)
                 {
                     _ = UpdateUI("No valid audio input device selected.", false);
                     return;
@@ -389,7 +386,7 @@ namespace vrcosc_magicchatbox.Classes.Modules
 
                 waveIn = new WaveInEvent
                 {
-                    DeviceNumber = settings.SelectedDeviceIndex,
+                    DeviceNumber = Settings.SelectedDeviceIndex,
                     WaveFormat = new WaveFormat(16000, 16, 1),                    BufferMilliseconds = 350                };
 
                 waveIn.DataAvailable += OnDataAvailable;
@@ -405,8 +402,8 @@ namespace vrcosc_magicchatbox.Classes.Modules
         private void OnDataAvailable(object sender, WaveInEventArgs e)
         {
             float maxAmplitude = CalculateMaxAmplitude(e.Buffer, e.BytesRecorded);
-            bool isLoudEnough = maxAmplitude > settings.NoiseGateThreshold;
-            settings.IsNoiseGateOpen = isLoudEnough;
+            bool isLoudEnough = maxAmplitude > Settings.NoiseGateThreshold;
+            Settings.IsNoiseGateOpen = isLoudEnough;
 
             if (isLoudEnough)
             {
@@ -473,7 +470,7 @@ namespace vrcosc_magicchatbox.Classes.Modules
             if (!isCurrentlySpeaking || silenceMs < 500)
                 return;
 
-            if (silenceMs <= settings.SilenceAutoTurnOffDuration)
+            if (silenceMs <= Settings.SilenceAutoTurnOffDuration)
             {
                 if (!isProcessingShortPause)
                 {
@@ -488,17 +485,18 @@ namespace vrcosc_magicchatbox.Classes.Modules
             else
             {
                 isCurrentlySpeaking = false;
-                StopRecording();                _ = UpdateUI($"Silence > {settings.SilenceAutoTurnOffDuration / 1000.0}s, stopping STT...", false);
+                StopRecording();                _ = UpdateUI($"Silence > {Settings.SilenceAutoTurnOffDuration / 1000.0}s, stopping STT...", false);
             }
         }
 
         private void Settings_PropertyChanged(object sender, PropertyChangedEventArgs e)
         {
-            if (e.PropertyName == nameof(settings.SelectedDeviceIndex))
+            if (e.PropertyName == nameof(Settings.SelectedDeviceIndex))
             {
                 StopRecording();
-                settings.IsRecording = false;
-                InitializeWaveIn();
+                Settings.IsRecording = false;
+                if (waveIn != null)
+                    InitializeWaveIn();
             }
         }
 
@@ -580,12 +578,15 @@ namespace vrcosc_magicchatbox.Classes.Modules
             }
 
             if (waveIn == null)
+                InitializeWaveIn();
+
+            if (waveIn == null)
             {
                 _ = UpdateUI("No audio device is ready.", false);
                 return;
             }
 
-            if (settings.IsRecording)
+            if (Settings.IsRecording)
             {
                 _ = UpdateUI("Already recording.", false);
                 return;
@@ -594,7 +595,7 @@ namespace vrcosc_magicchatbox.Classes.Modules
             try
             {
                 waveIn.StartRecording();
-                settings.IsRecording = true;
+                Settings.IsRecording = true;
                 _ = UpdateUI("Recording started. Speak now...", true);
             }
             catch (Exception ex)
@@ -613,7 +614,7 @@ namespace vrcosc_magicchatbox.Classes.Modules
                 return;
             }
 
-            if (!settings.IsRecording)
+            if (!Settings.IsRecording)
             {
                 _ = UpdateUI("Not currently recording.", false);
                 return;
@@ -631,7 +632,7 @@ namespace vrcosc_magicchatbox.Classes.Modules
             }
             finally
             {
-                settings.IsRecording = false;
+                Settings.IsRecording = false;
             }
 
             if (!_transcription.IsReady)
@@ -652,7 +653,7 @@ namespace vrcosc_magicchatbox.Classes.Modules
                 var finalTask = ProcessAudioStreamAsync(partial: false);
                 finalTask.ContinueWith(t =>
                 {
-                    if (!t.IsFaulted && !t.IsCanceled && settings.SendAftersilence)
+                    if (!t.IsFaulted && !t.IsCanceled && Settings.SendAftersilence)
                     {
                         SentChatMessage?.Invoke();
                     }
@@ -660,16 +661,39 @@ namespace vrcosc_magicchatbox.Classes.Modules
             }
             else
             {
-                if (settings.SendAftersilence)
+                if (Settings.SendAftersilence)
                 {
                     SentChatMessage?.Invoke();
                 }
             }
         }
 
+        private bool _disposed;
+
         public void Dispose()
         {
-            waveIn?.Dispose();
+            if (_disposed)
+                return;
+            _disposed = true;
+
+            if (waveIn != null)
+            {
+                waveIn.DataAvailable -= OnDataAvailable;
+                waveIn.RecordingStopped -= OnRecordingStopped;
+
+                try
+                {
+                    waveIn.StopRecording();
+                }
+                catch (Exception ex)
+                {
+                    Logging.WriteInfo($"Failed to stop whisper recording during dispose: {ex.Message}");
+                }
+
+                waveIn.Dispose();
+                waveIn = null;
+            }
+
             audioStream?.Dispose();
 
             _transcriptionCancellationTokenSource?.Cancel();
@@ -680,7 +704,7 @@ namespace vrcosc_magicchatbox.Classes.Modules
 
         public void OnApplicationClosing()
         {
-            settings.SaveSettings();
+            Settings.SaveSettings();
         }
 
         #region Helper Methods for Model Selection
