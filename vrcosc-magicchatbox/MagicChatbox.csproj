@@ -17,6 +17,14 @@
     <StartupObject>vrcosc_magicchatbox.App</StartupObject>
     <SupportedOSPlatformVersion>10.0.26100.0</SupportedOSPlatformVersion>
 	  <GenerateBootstrapperOnBuild>true</GenerateBootstrapperOnBuild>
+    <Product>MagicChatbox</Product>
+    <AssemblyTitle>MagicChatbox</AssemblyTitle>
+    <Description>Your VRChat chatbox, but alive. Show your music, lyrics, heart rate, world and PC stats in VRChat over OSC.</Description>
+    <Company>BoiHanny</Company>
+    <Authors>BoiHanny</Authors>
+    <Copyright>Copyright © BoiHanny</Copyright>
+    <RepositoryUrl>https://github.com/BoiHanny/vrcosc-magicchatbox</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
   </PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
