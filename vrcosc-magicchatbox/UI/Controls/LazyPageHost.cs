@@ -1,12 +1,18 @@
 using System;
+using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Data;
+using System.Windows.Input;
+using System.Windows.Media;
 using System.Windows.Threading;
 
 namespace vrcosc_magicchatbox.UI.Controls
 {
     public sealed class LazyPageHost : Decorator
     {
+        private readonly Dictionary<string, double> _scrollOffsets = new(StringComparer.Ordinal);
+
         private DispatcherTimer? _teardown;
 
         public static readonly DependencyProperty PageTemplateProperty = DependencyProperty.Register(
@@ -27,7 +33,7 @@ namespace vrcosc_magicchatbox.UI.Controls
 
         public static readonly DependencyProperty TeardownDelayProperty = DependencyProperty.Register(
             nameof(TeardownDelay), typeof(TimeSpan), typeof(LazyPageHost),
-            new PropertyMetadata(TimeSpan.FromSeconds(20)));
+            new PropertyMetadata(TimeSpan.FromSeconds(3)));
 
         public LazyPageHost()
         {
@@ -74,11 +80,21 @@ namespace vrcosc_magicchatbox.UI.Controls
                 return;
 
             Child = PageTemplate.LoadContent() as UIElement;
+
+            if (_scrollOffsets.Count > 0)
+                Dispatcher.BeginInvoke(DispatcherPriority.Loaded, new Action(RestoreScrollOffsets));
         }
 
         public void Release()
         {
             _teardown?.Stop();
+
+            if (Child == null)
+                return;
+
+            CommitPendingEdit();
+            CaptureScrollOffsets();
+
             Child = null;
         }
 
@@ -126,7 +142,60 @@ namespace vrcosc_magicchatbox.UI.Controls
             if (PageIndex == SelectedIndex)
                 return;
 
-            Child = null;
+            Release();
+        }
+
+        private void CommitPendingEdit()
+        {
+            if (Keyboard.FocusedElement is not TextBox box || !IsInThisPage(box))
+                return;
+
+            box.GetBindingExpression(TextBox.TextProperty)?.UpdateSource();
+        }
+
+        private bool IsInThisPage(DependencyObject element)
+        {
+            DependencyObject? current = element;
+
+            while (current != null)
+            {
+                if (ReferenceEquals(current, this))
+                    return true;
+
+                current = current is Visual or System.Windows.Media.Media3D.Visual3D
+                    ? VisualTreeHelper.GetParent(current)
+                    : LogicalTreeHelper.GetParent(current);
+            }
+
+            return false;
+        }
+
+        private void CaptureScrollOffsets()
+        {
+            _scrollOffsets.Clear();
+            ForEachScrollViewer(Child, (name, viewer) => _scrollOffsets[name] = viewer.VerticalOffset);
+        }
+
+        private void RestoreScrollOffsets()
+        {
+            ForEachScrollViewer(Child, (name, viewer) =>
+            {
+                if (_scrollOffsets.TryGetValue(name, out double offset) && offset > 0)
+                    viewer.ScrollToVerticalOffset(offset);
+            });
+        }
+
+        private static void ForEachScrollViewer(DependencyObject? root, Action<string, ScrollViewer> visit)
+        {
+            if (root == null)
+                return;
+
+            if (root is ScrollViewer viewer && viewer.Name is { Length: > 0 } name)
+                visit(name, viewer);
+
+            int count = VisualTreeHelper.GetChildrenCount(root);
+            for (int i = 0; i < count; i++)
+                ForEachScrollViewer(VisualTreeHelper.GetChild(root, i), visit);
         }
     }
 }

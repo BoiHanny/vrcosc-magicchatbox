@@ -29,15 +29,35 @@ namespace vrcosc_magicchatbox.UI.Pages
 
             DataContextChanged += (_, args) =>
             {
-                if (args.OldValue is ChattingPageViewModel oldVm && _scrollToEndHandler != null)
-                    oldVm.ScrollToEndRequested -= _scrollToEndHandler;
+                if (args.OldValue is ChattingPageViewModel oldVm)
+                    Detach(oldVm);
 
-                if (args.NewValue is ChattingPageViewModel vm)
-                {
-                    _scrollToEndHandler = () => RecentScroll.ScrollToEnd();
-                    vm.ScrollToEndRequested += _scrollToEndHandler;
-                }
+                if (args.NewValue is ChattingPageViewModel)
+                    Attach();
             };
+
+            Loaded += (_, _) => Attach();
+            Unloaded += (_, _) => Detach(DataContext as ChattingPageViewModel);
+        }
+
+        private void Attach()
+        {
+            if (_scrollToEndHandler != null || DataContext is not ChattingPageViewModel vm)
+                return;
+
+            _scrollToEndHandler = () => RecentScroll.ScrollToEnd();
+            vm.ScrollToEndRequested += _scrollToEndHandler;
+        }
+
+        private void Detach(ChattingPageViewModel? vm)
+        {
+            if (_scrollToEndHandler == null)
+                return;
+
+            if (vm != null)
+                vm.ScrollToEndRequested -= _scrollToEndHandler;
+
+            _scrollToEndHandler = null;
         }
 
         public void SendChat() => ButtonChattingTxt_Click(null, null);

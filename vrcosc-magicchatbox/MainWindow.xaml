@@ -65,7 +65,7 @@
                 <controls:LazyPageHost
                     x:Name="statusHost"
                     Grid.Row="1"
-                    KeepAlive="True"
+                    KeepAlive="False"
                     PageIndex="1"
                     SelectedIndex="{Binding DataContext.SelectedMenuIndex, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=-1}">
                     <controls:LazyPageHost.PageTemplate>
@@ -79,7 +79,7 @@
                 <controls:LazyPageHost
                     x:Name="optionsHost"
                     Grid.Row="1"
-                    KeepAlive="True"
+                    KeepAlive="False"
                     PageIndex="3"
                     SelectedIndex="{Binding DataContext.SelectedMenuIndex, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=-1}">
                     <controls:LazyPageHost.PageTemplate>
@@ -93,7 +93,7 @@
                 <controls:LazyPageHost
                     x:Name="chattingHost"
                     Grid.Row="1"
-                    KeepAlive="True"
+                    KeepAlive="False"
                     PageIndex="2"
                     SelectedIndex="{Binding DataContext.SelectedMenuIndex, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=-1}">
                     <controls:LazyPageHost.PageTemplate>

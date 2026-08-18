@@ -132,6 +132,88 @@ public class LazyPageHostTests
         Assert.True(failure == null, "returning host: " + failure);
     }
 
+    [Fact]
+    public void Releasing_and_returning_rebuilds_a_fresh_page()
+    {
+        Exception? failure = WpfHost.RunInWindow(
+            () => Host(pageIndex: 2, selectedIndex: 2, keepAlive: false,
+                       teardown: TimeSpan.FromMilliseconds(30)),
+            element =>
+            {
+                var host = (LazyPageHost)element;
+                element.UpdateLayout();
+                object first = host.Child!;
+
+                host.SelectedIndex = 0;
+                PumpPast(TimeSpan.FromMilliseconds(30));
+                Assert.False(host.IsRealized);
+
+                host.SelectedIndex = 2;
+                element.UpdateLayout();
+
+                Assert.True(host.IsRealized);
+                Assert.NotSame(first, host.Child);
+            });
+
+        Assert.True(failure == null, "rebuild after release: " + failure);
+    }
+
+    [Fact]
+    public void Release_is_safe_to_call_when_nothing_is_built()
+    {
+        Exception? failure = WpfHost.RunInWindow(
+            () => Host(pageIndex: 2, selectedIndex: 0, keepAlive: false),
+            element =>
+            {
+                var host = (LazyPageHost)element;
+                Assert.False(host.IsRealized);
+
+                host.Release();
+                host.Release();
+
+                Assert.False(host.IsRealized);
+            });
+
+        Assert.True(failure == null, "release with no page: " + failure);
+    }
+
+    [Fact]
+    public void A_released_page_is_collectable()
+    {
+        WeakReference? page = null;
+
+        Exception? failure = WpfHost.RunInWindow(
+            () => Host(pageIndex: 2, selectedIndex: 2, keepAlive: false,
+                       teardown: TimeSpan.FromMilliseconds(30)),
+            element =>
+            {
+                var host = (LazyPageHost)element;
+                element.UpdateLayout();
+
+                page = new WeakReference(host.Child);
+                Assert.True(page.IsAlive);
+
+                host.SelectedIndex = 0;
+                PumpPast(TimeSpan.FromMilliseconds(30));
+                Assert.False(host.IsRealized);
+
+                element.UpdateLayout();
+            });
+
+        Assert.True(failure == null, "release: " + failure);
+        Assert.NotNull(page);
+
+        // Releasing is only worth anything if nothing is still holding the tree. A subscription the
+        // page never took back is exactly what would keep this alive.
+        for (int i = 0; i < 4 && page!.IsAlive; i++)
+        {
+            GC.Collect();
+            GC.WaitForPendingFinalizers();
+        }
+
+        Assert.False(page!.IsAlive, "the released page is still rooted, so tearing it down reclaims nothing");
+    }
+
     private static LazyPageHost Host(
         int pageIndex,
         int selectedIndex,
