@@ -26,7 +26,13 @@ public sealed partial class LyricsDisplayState : ObservableObject
 
     public bool SuppressMediaTitle { get; set; }
 
-    public LyricCursor Cursor { get; set; } = LyricCursor.None;
+    private object _cursor = LyricCursor.None;
+
+    public LyricCursor Cursor
+    {
+        get => (LyricCursor)System.Threading.Volatile.Read(ref _cursor);
+        set => System.Threading.Volatile.Write(ref _cursor, value);
+    }
 
     public TimeSpan Position { get; set; }
 
