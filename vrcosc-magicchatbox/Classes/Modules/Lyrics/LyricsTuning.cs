@@ -5,7 +5,7 @@ namespace vrcosc_magicchatbox.Classes.Modules.Lyrics;
 
 public static class LyricsTuning
 {
-    public const int DefaultOffsetMs = 100;
+    public const int DefaultOffsetMs = 0;
 
     public const int MinOffsetMs = -10000;
 
