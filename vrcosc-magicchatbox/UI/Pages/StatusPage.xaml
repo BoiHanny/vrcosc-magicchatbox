@@ -792,6 +792,18 @@
                     gradient would fight the gradient every frame; a border is one solid color and costs
                     nothing extra to swap.
                 -->
+                <!--
+                    The same pastel edge the Pulsoid tile's "-15% always" badge outlines itself with -
+                    this app's one recurring "something special is happening here" signature. Marking
+                    the active status with plain LimeGreen was the one place on this page reaching
+                    outside that language for a color that appears nowhere else in the app.
+                -->
+                <LinearGradientBrush x:Key="StatusActiveHologramBrush" StartPoint="0,1" EndPoint="1,0" po:Freeze="True">
+                    <GradientStop Offset="0" Color="#8FF4E8" />
+                    <GradientStop Offset="0.5" Color="#C9A6FF" />
+                    <GradientStop Offset="1" Color="#FFA8DF" />
+                </LinearGradientBrush>
+
                 <Style x:Key="StatusRowCardStyle" TargetType="Border">
                     <Setter Property="Background" Value="{StaticResource StatusRowSurfaceBrush}" />
                     <Setter Property="BorderBrush" Value="#FF150C33" />
@@ -854,9 +866,9 @@
                             -->
                             <Grid Grid.Column="0" Visibility="{Binding DataContext.IsSelectionMode, RelativeSource={RelativeSource AncestorType=ListBox}, Converter={StaticResource InverseBoolToVisibilityConverter}}">
                                 <Border
-                                    Background="{StaticResource SurfaceButtonDarkBrush}"
-                                    BorderBrush="LimeGreen"
-                                    BorderThickness="1"
+                                    Background="{StaticResource TileIconFrameBrush}"
+                                    BorderBrush="{StaticResource StatusActiveHologramBrush}"
+                                    BorderThickness="1.4"
                                     CornerRadius="4">
                                     <Image
                                         Width="22"
@@ -870,7 +882,8 @@
                                     Height="35"
                                     HorizontalAlignment="Left"
                                     VerticalAlignment="Center"
-                                    Background="{StaticResource SurfaceButtonDarkBrush}"
+                                    Background="{StaticResource TileIconFrameBrush}"
+                                    BorderBrush="{StaticResource TileIconFrameBorderBrush}"
                                     Command="{Binding DataContext.ActivateStatusCommand, RelativeSource={RelativeSource AncestorType=ListBox}}"
                                     CommandParameter="{Binding}"
                                     Cursor="Hand"
