@@ -48,11 +48,11 @@ public sealed class WindowOscProvider : IOscProvider
         string text = showFocus
             ? SegmentWriter.Fit(
                 budget,
-                Compose(focusWord, app),
-                Compose(null, app),
-                Compose(null, SegmentWriter.Truncate(app, budget - (Compose(null, "x").Length - 1))),
-                Compose(null, null))
-            : SegmentWriter.Fit(budget, Compose(null, null));
+                () => Compose(focusWord, app),
+                () => Compose(null, app),
+                () => Compose(null, SegmentWriter.Truncate(app, budget - (Compose(null, "x").Length - 1))),
+                () => Compose(null, null))
+            : SegmentWriter.Fit(budget, () => Compose(null, null));
 
         return text.Length == 0 ? null : new OscSegment { Text = text };
     }

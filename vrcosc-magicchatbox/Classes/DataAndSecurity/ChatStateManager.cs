@@ -50,7 +50,7 @@ public class ChatStateManager
         }
     }
 
-    public void CreateChat(bool createItem, string? messageText = null)
+    public bool CreateChat(bool createItem, string? messageText = null)
     {
         try
         {
@@ -60,7 +60,7 @@ public class ChatStateManager
                 : sourceMessage;
 
             if (completeMsg.Length == 0 || completeMsg.Length > Core.Constants.OscMaxMessageLength)
-                return;
+                return false;
 
             _chatStatus.ScanPauseCountDown = _appSettings.ScanPauseTimeout;
             _chatStatus.ScanPause = true;
@@ -74,10 +74,13 @@ public class ChatStateManager
                 if (messageText is null)
                     _chatStatus.NewChattingTxt = string.Empty;
             }
+
+            return true;
         }
         catch (Exception ex)
         {
             Logging.WriteException(ex, MSGBox: false);
+            return false;
         }
     }
 

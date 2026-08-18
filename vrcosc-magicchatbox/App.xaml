@@ -1968,6 +1968,7 @@
             <local:CountToVisibilityConverter x:Key="CountToVisibilityConverter" />
             <local:CharacterCountToBoolConverter x:Key="CharacterCountToBoolConverter" />
             <local:BoolToBlurEffectConverter x:Key="BoolToBlurEffectConverter" />
+            <local:BlurRadiusToEffectConverter x:Key="BlurRadiusToEffectConverter" />
             <local:InverseBoolToVisibilityConverter x:Key="InverseBoolToVisibilityConverter" />
             <local:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" />
             <local:InverseBoolToHiddenConverter x:Key="InverseBoolToHiddenConverter" />

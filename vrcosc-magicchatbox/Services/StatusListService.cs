@@ -126,8 +126,14 @@ public sealed class StatusListService : IStatusListService, IDisposable
             IsActiveForCycle = true,
             CreationDate = DateTime.Now
         };
-        _dispatcher.BeginInvoke(() => _chatStatus.GroupList.Add(group));
-        SaveStatusList();
+        void Apply()
+        {
+            _chatStatus.GroupList.Add(group);
+            SaveStatusList();
+        }
+
+        if (_dispatcher.CheckAccess()) Apply();
+        else _dispatcher.BeginInvoke(Apply);
     }
 
     public void RenameGroup(string groupId, string newName)
@@ -149,8 +155,14 @@ public sealed class StatusListService : IStatusListService, IDisposable
         foreach (var item in _chatStatus.StatusList.Where(i => i.GroupId == groupId))
             item.GroupId = defaultGroup.GroupId;
 
-        _dispatcher.BeginInvoke(() => _chatStatus.GroupList.Remove(group));
-        SaveStatusList();
+        void Apply()
+        {
+            _chatStatus.GroupList.Remove(group);
+            SaveStatusList();
+        }
+
+        if (_dispatcher.CheckAccess()) Apply();
+        else _dispatcher.BeginInvoke(Apply);
     }
 
     private void LoadFromJson(string json)
@@ -371,15 +383,18 @@ public sealed class StatusListService : IStatusListService, IDisposable
                 count++;
             }
 
-            _dispatcher.BeginInvoke(() =>
+            void Apply()
             {
                 foreach (var group in importedGroups)
                     _chatStatus.GroupList.Add(group);
                 foreach (var item in importedItems)
                     _chatStatus.StatusList.Add(item);
-            });
+                SaveStatusList();
+            }
 
-            SaveStatusList();
+            if (_dispatcher.CheckAccess()) Apply();
+            else _dispatcher.BeginInvoke(Apply);
+
             return count;
         }
         catch (Exception ex)

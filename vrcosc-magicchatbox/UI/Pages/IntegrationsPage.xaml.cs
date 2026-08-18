@@ -17,9 +17,11 @@ namespace vrcosc_magicchatbox.UI.Pages
 {
     public partial class IntegrationsPage : UserControl
     {
-        private ObservableCollection<string> _integrationSortOrder;
+        private ObservableCollection<string>? _integrationSortOrder;
 
         private readonly Dictionary<FrameworkElement, (ScrollViewer Scroller, ScrollChangedEventHandler Handler)> _ribbonScrollHooks = new();
+
+        private bool _attached;
 
         private IntegrationsPageViewModel? VM => DataContext as IntegrationsPageViewModel;
 
@@ -29,21 +31,60 @@ namespace vrcosc_magicchatbox.UI.Pages
             DataContextChanged += (_, e) =>
             {
                 if (e.OldValue is IntegrationsPageViewModel oldVm)
-                    oldVm.IntegrationDisplay.PropertyChanged -= IntegrationDisplay_PropertyChanged;
+                    Detach(oldVm);
 
-                if (e.NewValue is IntegrationsPageViewModel vm)
-                {
-                    vm.IntegrationDisplay.PropertyChanged += IntegrationDisplay_PropertyChanged;
-                    HookIntegrationSortOrder();
-
-                    vm.TileLayoutChanged -= OnTileLayoutChanged;
-                    vm.TileLayoutChanged += OnTileLayoutChanged;
-                    vm.TileShown -= OnTileShown;
-                    vm.TileShown += OnTileShown;
-
-                    ApplyIntegrationOrder();
-                }
+                if (e.NewValue is IntegrationsPageViewModel)
+                    Attach();
             };
+
+            Loaded += OnLoaded;
+            Unloaded += OnUnloaded;
+        }
+
+        private void Attach()
+        {
+            var vm = VM;
+            if (vm == null || _attached) return;
+
+            vm.IntegrationDisplay.PropertyChanged += IntegrationDisplay_PropertyChanged;
+            HookIntegrationSortOrder();
+
+            vm.TileLayoutChanged += OnTileLayoutChanged;
+            vm.TileShown += OnTileShown;
+            _attached = true;
+
+            ApplyIntegrationOrder();
+        }
+
+        private void Detach(IntegrationsPageViewModel? vm)
+        {
+            if (!_attached) return;
+            _attached = false;
+
+            if (vm != null)
+            {
+                vm.IntegrationDisplay.PropertyChanged -= IntegrationDisplay_PropertyChanged;
+                vm.TileLayoutChanged -= OnTileLayoutChanged;
+                vm.TileShown -= OnTileShown;
+            }
+
+            if (_integrationSortOrder != null)
+            {
+                _integrationSortOrder.CollectionChanged -= IntegrationSortOrder_CollectionChanged;
+                _integrationSortOrder = null;
+            }
+        }
+
+        private void OnLoaded(object sender, RoutedEventArgs e) => Attach();
+
+        private void OnUnloaded(object sender, RoutedEventArgs e)
+        {
+            Detach(VM);
+
+            foreach (var hook in _ribbonScrollHooks.Values)
+                hook.Scroller.ScrollChanged -= hook.Handler;
+
+            _ribbonScrollHooks.Clear();
         }
 
         public void ApplyIntegrationOrder()

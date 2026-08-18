@@ -196,10 +196,79 @@ public partial class ComponentStatsSectionViewModel : ObservableObject
         UpdateTemperatureTimer();
     }
 
+    private bool _previewRefreshPending;
+
     private void OnAnythingChanged(object? sender, PropertyChangedEventArgs e)
     {
-        RefreshPreview();
         UpdateTemperatureTimer();
+
+        if (!IsPreviewRelevant(e.PropertyName))
+            return;
+
+        SchedulePreviewRefresh();
+    }
+
+    private static bool IsPreviewRelevant(string? propertyName) => propertyName switch
+    {
+        null => true,
+        nameof(ComponentStatsSettings.StatsSeparator) => true,
+        nameof(ComponentStatsSettings.UseEmojisForTempAndPower) => true,
+        nameof(ComponentStatsSettings.TemperatureCompanionScale) => true,
+        nameof(ComponentStatsSettings.EnabledTemperatureScales) => true,
+        nameof(ComponentStatsSettings.ShowGpuMemoryTemperature) => true,
+        nameof(ComponentStatsSettings.ShowGpuFanSpeed) => true,
+        nameof(ComponentStatsSettings.ShowGpuCoreClock) => true,
+        nameof(ComponentStatsSettings.ShowGpuMemoryClock) => true,
+        nameof(ComponentStatsSettings.ShowGpuMemoryLoad) => true,
+        nameof(ComponentStatsViewModel.ComponentStatGPUTempVisible) => true,
+        nameof(ComponentStatsViewModel.ComponentStatGPUHotSpotVisible) => true,
+        nameof(ComponentStatsViewModel.ComponentStatGPUWattageVisible) => true,
+        nameof(ComponentStatsViewModel.RAM_ShowDDRVersion) => true,
+        nameof(ComponentStatsViewModel.CPU_SmallName) => true,
+        nameof(ComponentStatsViewModel.CPU_EnableHardwareTitle) => true,
+        nameof(ComponentStatsViewModel.CPU_PrefixHardwareTitle) => true,
+        nameof(ComponentStatsViewModel.CPUCustomHardwareName) => true,
+        nameof(ComponentStatsViewModel.CPU_NumberTrailingZeros) => true,
+        nameof(ComponentStatsViewModel.GPU_SmallName) => true,
+        nameof(ComponentStatsViewModel.GPU_EnableHardwareTitle) => true,
+        nameof(ComponentStatsViewModel.GPU_PrefixHardwareTitle) => true,
+        nameof(ComponentStatsViewModel.GPUCustomHardwareName) => true,
+        nameof(ComponentStatsViewModel.GPU_NumberTrailingZeros) => true,
+        nameof(ComponentStatsViewModel.VRAM_SmallName) => true,
+        nameof(ComponentStatsViewModel.VRAM_EnableHardwareTitle) => true,
+        nameof(ComponentStatsViewModel.VRAM_PrefixHardwareTitle) => true,
+        nameof(ComponentStatsViewModel.VRAMCustomHardwareName) => true,
+        nameof(ComponentStatsViewModel.VRAM_NumberTrailingZeros) => true,
+        nameof(ComponentStatsViewModel.VRAM_ShowMaxValue) => true,
+        nameof(ComponentStatsViewModel.RAM_SmallName) => true,
+        nameof(ComponentStatsViewModel.RAM_EnableHardwareTitle) => true,
+        nameof(ComponentStatsViewModel.RAM_PrefixHardwareTitle) => true,
+        nameof(ComponentStatsViewModel.RAMCustomHardwareName) => true,
+        nameof(ComponentStatsViewModel.RAM_NumberTrailingZeros) => true,
+        nameof(ComponentStatsViewModel.RAM_ShowMaxValue) => true,
+        _ => false,
+    };
+
+    private void SchedulePreviewRefresh()
+    {
+        if (_previewRefreshPending)
+            return;
+
+        _previewRefreshPending = true;
+
+        var dispatcher = System.Windows.Application.Current?.Dispatcher;
+        if (dispatcher == null)
+        {
+            _previewRefreshPending = false;
+            RefreshPreview();
+            return;
+        }
+
+        dispatcher.BeginInvoke(DispatcherPriority.Background, new Action(() =>
+        {
+            _previewRefreshPending = false;
+            RefreshPreview();
+        }));
     }
 
     private void OnAppSettingsChanged(object? sender, PropertyChangedEventArgs e)

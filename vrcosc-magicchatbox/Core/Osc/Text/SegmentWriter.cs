@@ -49,17 +49,46 @@ public sealed class SegmentWriter
         if (rungs is null || rungs.Length == 0)
             return string.Empty;
 
-        var tidied = rungs.Select(Tidy).Where(r => r.Length > 0).ToList();
-        if (tidied.Count == 0)
-            return string.Empty;
+        string fallback = string.Empty;
 
-        foreach (string rung in tidied)
+        foreach (string rung in rungs)
         {
-            if (rung.Length <= budget)
-                return rung;
+            string tidied = Tidy(rung);
+            if (tidied.Length == 0)
+                continue;
+
+            if (tidied.Length <= budget)
+                return tidied;
+
+            fallback = tidied;
         }
 
-        return Truncate(tidied[^1], budget);
+        return fallback.Length == 0 ? string.Empty : Truncate(fallback, budget);
+    }
+
+    public static string Fit(int budget, params Func<string>[] rungs)
+    {
+        if (rungs is null || rungs.Length == 0)
+            return string.Empty;
+
+        string fallback = string.Empty;
+
+        foreach (Func<string> rung in rungs)
+        {
+            if (rung is null)
+                continue;
+
+            string tidied = Tidy(rung());
+            if (tidied.Length == 0)
+                continue;
+
+            if (tidied.Length <= budget)
+                return tidied;
+
+            fallback = tidied;
+        }
+
+        return fallback.Length == 0 ? string.Empty : Truncate(fallback, budget);
     }
 
     public static string Truncate(string? text, int budget)

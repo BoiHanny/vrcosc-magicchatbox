@@ -69,7 +69,7 @@ public sealed class StatusOscProvider : IOscProvider
                 return new OscSegment { Text = afkText };
         }
 
-        if (!_intgr.IntgrStatus || _chatStatus.StatusList == null || !_chatStatus.StatusList.Any())
+        if (!_intgr.IntgrStatus || _chatStatus.StatusList == null || _chatStatus.StatusList.Count == 0)
             return null;
 
         if (_app.CycleStatus)
@@ -78,8 +78,9 @@ public sealed class StatusOscProvider : IOscProvider
         StatusItem? active = _chatStatus.StatusList.FirstOrDefault(item => item.IsActive);
         if (active == null) return null;
 
-        string icon = _emojis.GetNextEmoji();
-        string text = StatusLine.Compose(active.msg, icon, _app.PrefixIconStatus, budget);
+        bool prefixIcon = _app.PrefixIconStatus;
+        string? icon = prefixIcon ? _emojis.GetNextEmoji() : null;
+        string text = StatusLine.Compose(active.msg, icon, prefixIcon, budget);
 
         return string.IsNullOrEmpty(text) ? null : new OscSegment { Text = text };
     }
@@ -97,7 +98,10 @@ public sealed class StatusOscProvider : IOscProvider
 
     private void CycleStatus()
     {
-        if (_chatStatus.StatusList == null || !_chatStatus.StatusList.Any())
+        if (_chatStatus.StatusList == null || _chatStatus.StatusList.Count == 0)
+            return;
+
+        if (DateTime.Now - _oscDisplay.LastSwitchCycle < TimeSpan.FromSeconds(_app.SwitchStatusInterval))
             return;
 
         if (_app.CycleOverrideCurrentGroup && !string.IsNullOrEmpty(_app.CycleOverrideGroupId))
@@ -131,13 +135,9 @@ public sealed class StatusOscProvider : IOscProvider
 
     private void CycleItems(System.Collections.Generic.List<StatusItem> cycleItems)
     {
-        if (DateTime.Now - _oscDisplay.LastSwitchCycle < TimeSpan.FromSeconds(_app.SwitchStatusInterval))
-            return;
-
         if (_app.IsRandomCycling)
         {
-            foreach (var item in _chatStatus.StatusList)
-                item.IsActive = false;
+            ClearActiveItem();
 
             try
             {
@@ -171,10 +171,26 @@ public sealed class StatusOscProvider : IOscProvider
             }
             else
             {
-                foreach (var item in _chatStatus.StatusList) item.IsActive = false;
+                ClearActiveItem();
                 cycleItems[0].IsActive = true;
                 cycleItems[0].LastUsed = DateTime.Now;
                 _oscDisplay.LastSwitchCycle = DateTime.Now;
+            }
+        }
+    }
+
+    private void ClearActiveItem()
+    {
+        var statusList = _chatStatus.StatusList;
+        if (statusList == null)
+            return;
+
+        for (int i = 0; i < statusList.Count; i++)
+        {
+            if (statusList[i].IsActive)
+            {
+                statusList[i].IsActive = false;
+                return;
             }
         }
     }

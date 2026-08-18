@@ -44,10 +44,7 @@
             BorderBrush="{StaticResource SurfaceDarkBrush}"
             BorderThickness="1">
             <Border.Effect>
-                <BlurEffect
-                    d:Radius="0"
-                    KernelType="Gaussian"
-                    Radius="{Binding MainWindowBlurEffect}" />
+                <Binding Converter="{StaticResource BlurRadiusToEffectConverter}" Path="MainWindowBlurEffect" />
             </Border.Effect>
             <Grid HorizontalAlignment="Stretch" Background="{StaticResource SurfaceCardBrush}">
 
@@ -65,27 +62,46 @@
 
 
 
-                <pages:StatusPage
+                <controls:LazyPageHost
+                    x:Name="statusHost"
                     Grid.Row="1"
-                    d:Visibility="Collapsed"
-                    DataContext="{Binding Status}"
-                    Visibility="{Binding DataContext.SelectedMenuIndex, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource IndexToVisibilityConverter}, FallbackValue=Collapsed, ConverterParameter=1}" />
+                    KeepAlive="True"
+                    PageIndex="1"
+                    SelectedIndex="{Binding DataContext.SelectedMenuIndex, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=-1}">
+                    <controls:LazyPageHost.PageTemplate>
+                        <DataTemplate>
+                            <pages:StatusPage DataContext="{Binding DataContext.Status, RelativeSource={RelativeSource AncestorType=Window}}" />
+                        </DataTemplate>
+                    </controls:LazyPageHost.PageTemplate>
+                </controls:LazyPageHost>
 
 
-                <pages:OptionsPage
-                    x:Name="optionsPage"
+                <controls:LazyPageHost
+                    x:Name="optionsHost"
                     Grid.Row="1"
-                    d:Visibility="Collapsed"
-                    DataContext="{Binding Options}"
-                    Visibility="{Binding DataContext.SelectedMenuIndex, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource IndexToVisibilityConverter}, FallbackValue=Collapsed, ConverterParameter=3}" />
+                    KeepAlive="True"
+                    PageIndex="3"
+                    SelectedIndex="{Binding DataContext.SelectedMenuIndex, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=-1}">
+                    <controls:LazyPageHost.PageTemplate>
+                        <DataTemplate>
+                            <pages:OptionsPage DataContext="{Binding DataContext.Options, RelativeSource={RelativeSource AncestorType=Window}}" />
+                        </DataTemplate>
+                    </controls:LazyPageHost.PageTemplate>
+                </controls:LazyPageHost>
 
 
-                <pages:ChattingPage
-                    x:Name="chattingPage"
+                <controls:LazyPageHost
+                    x:Name="chattingHost"
                     Grid.Row="1"
-                    d:Visibility="Visible"
-                    DataContext="{Binding Chatting}"
-                    Visibility="{Binding DataContext.SelectedMenuIndex, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource IndexToVisibilityConverter}, FallbackValue=Collapsed, ConverterParameter=2}" />
+                    KeepAlive="True"
+                    PageIndex="2"
+                    SelectedIndex="{Binding DataContext.SelectedMenuIndex, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=-1}">
+                    <controls:LazyPageHost.PageTemplate>
+                        <DataTemplate>
+                            <pages:ChattingPage DataContext="{Binding DataContext.Chatting, RelativeSource={RelativeSource AncestorType=Window}}" />
+                        </DataTemplate>
+                    </controls:LazyPageHost.PageTemplate>
+                </controls:LazyPageHost>
 
                 <!--
                     The full-width "Some integrations can't be showed because a limit on characters"
@@ -1209,12 +1225,18 @@
 
 
                 </Grid>
-                <pages:IntegrationsPage
-                    x:Name="integrationsPage"
+                <controls:LazyPageHost
+                    x:Name="integrationsHost"
                     Grid.Row="1"
-                    d:Visibility="Collapsed"
-                    DataContext="{Binding Integrations}"
-                    Visibility="{Binding DataContext.SelectedMenuIndex, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource IndexToVisibilityConverter}, FallbackValue=Collapsed, ConverterParameter=0}" />
+                    KeepAlive="False"
+                    PageIndex="0"
+                    SelectedIndex="{Binding DataContext.SelectedMenuIndex, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=-1}">
+                    <controls:LazyPageHost.PageTemplate>
+                        <DataTemplate>
+                            <pages:IntegrationsPage DataContext="{Binding DataContext.Integrations, RelativeSource={RelativeSource AncestorType=Window}}" />
+                        </DataTemplate>
+                    </controls:LazyPageHost.PageTemplate>
+                </controls:LazyPageHost>
             </Grid>
         </Border>
 

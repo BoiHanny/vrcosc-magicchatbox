@@ -5,6 +5,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Interop;
+using System.Windows.Media;
 using System.Windows.Media.Animation;
 using System.Windows.Shell;
 using System.Windows.Threading;
@@ -209,7 +210,24 @@ namespace vrcosc_magicchatbox
 
         public void ApplyIntegrationOrder()
         {
-            integrationsPage?.ApplyIntegrationOrder();
+            FindDescendant<UI.Pages.IntegrationsPage>(integrationsHost)?.ApplyIntegrationOrder();
+        }
+
+        private static T? FindDescendant<T>(DependencyObject? root) where T : DependencyObject
+        {
+            if (root == null) return null;
+
+            int count = VisualTreeHelper.GetChildrenCount(root);
+            for (int i = 0; i < count; i++)
+            {
+                var child = VisualTreeHelper.GetChild(root, i);
+                if (child is T match) return match;
+
+                var found = FindDescendant<T>(child);
+                if (found != null) return found;
+            }
+
+            return null;
         }
 
         private void ReorderIntegrations_Click(object sender, RoutedEventArgs e)

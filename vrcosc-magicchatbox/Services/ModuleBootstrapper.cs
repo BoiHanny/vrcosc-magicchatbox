@@ -300,6 +300,7 @@ public class ModuleBootstrapper
             {
                 _host.Discord = discord;
                 _host.RegisterModule(discord);
+                integrationSettings.PropertyChanged += discord.PropertyChangedHandler;
             }
 
             if (spotify != null)
@@ -456,14 +457,14 @@ public class ModuleBootstrapper
                 {
                     await _startupComplete.Task;                    bool hasToken = !string.IsNullOrWhiteSpace(discord.Settings.AccessToken);
 
-                    if (discord.Settings.AutoConnectOnStartup && hasToken)
+                    if (integrationSettings.IntgrDiscord && discord.Settings.AutoConnectOnStartup && hasToken)
                     {
                         Logging.WriteInfo($"Discord voice: Auto-connecting on startup (hasToken={hasToken}, richPresenceRunning={_discordRichPresence.IsRunning})...");
                         await discord.StartAsync();
                     }
                     else
                     {
-                        Logging.WriteInfo($"Discord voice: Auto-connect skipped (enabled={discord.Settings.AutoConnectOnStartup}, hasToken={hasToken})");
+                        Logging.WriteInfo($"Discord voice: Auto-connect skipped (enabled={integrationSettings.IntgrDiscord}, autoConnect={discord.Settings.AutoConnectOnStartup}, hasToken={hasToken})");
                     }
                 }
                 catch (Exception ex) { Logging.WriteInfo($"Discord auto-connect failed: {ex.Message}"); }

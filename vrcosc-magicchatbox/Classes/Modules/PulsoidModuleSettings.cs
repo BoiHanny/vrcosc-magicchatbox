@@ -21,7 +21,14 @@ public partial class PulsoidModuleSettings : VersionedSettings
     [ObservableProperty]
     private int throttleHRMax = 105;
 
+    partial void OnThrottleHRMaxChanged(int value)
+    {
+        if (value < 40) ThrottleHRMax = 40;
+        else if (value > 199) ThrottleHRMax = 199;
+    }
+
     [ObservableProperty]
+    [property: JsonIgnore]
     private int currentHeartIconIndex = 0;
 
     [ObservableProperty]
@@ -41,6 +48,7 @@ public partial class PulsoidModuleSettings : VersionedSettings
     private int heartRateAdjustment = -5;
 
     [ObservableProperty]
+    [property: JsonIgnore]
     private string heartRateIcon = "❤️";
 
     [ObservableProperty]
@@ -50,6 +58,7 @@ public partial class PulsoidModuleSettings : VersionedSettings
     private bool heartRateTitle = false;
 
     [ObservableProperty]
+    [property: JsonIgnore]
     private string heartRateTrendIndicator = string.Empty;
 
     [ObservableProperty]

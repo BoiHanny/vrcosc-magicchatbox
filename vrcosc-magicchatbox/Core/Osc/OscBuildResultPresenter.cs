@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using vrcosc_magicchatbox.Core.State;
 using vrcosc_magicchatbox.ViewModels.State;
 
@@ -27,20 +28,25 @@ public sealed class OscBuildResultPresenter
     {
         _integrationDisplay.ResetAllOpacity();
 
-        _integrationDisplay.LiveOutputKeys = _appState.Value.MasterSwitch
+        var liveKeys = _appState.Value.MasterSwitch
             ? result.IncludedProviders
             : NothingLive;
 
+        if (!SequenceEqualsIgnoreCase(_integrationDisplay.LiveOutputKeys, liveKeys))
+            _integrationDisplay.LiveOutputKeys = liveKeys;
+
         if (result.ExceededLimit)
         {
-            _integrationDisplay.TrimmedOutputKeys = result.TrimmedProviders;
+            if (!SequenceEqualsIgnoreCase(_integrationDisplay.TrimmedOutputKeys, result.TrimmedProviders))
+                _integrationDisplay.TrimmedOutputKeys = result.TrimmedProviders;
 
             foreach (var key in result.TrimmedProviders)
                 _integrationDisplay.SetOpacity(key, "0.5");
         }
         else
         {
-            _integrationDisplay.TrimmedOutputKeys = NothingLive;
+            if (!SequenceEqualsIgnoreCase(_integrationDisplay.TrimmedOutputKeys, NothingLive))
+                _integrationDisplay.TrimmedOutputKeys = NothingLive;
         }
 
         if (result.Length > OscBuildContext.MaxOscLength)
@@ -55,5 +61,16 @@ public sealed class OscBuildResultPresenter
             _oscDisplay.OscMsgCount = result.Length;
             _oscDisplay.OscMsgCountUI = $"{result.Length}/{OscBuildContext.MaxOscLength}";
         }
+    }
+
+    private static bool SequenceEqualsIgnoreCase(IReadOnlyCollection<string> current, IReadOnlyCollection<string> incoming)
+    {
+        if (ReferenceEquals(current, incoming))
+            return true;
+
+        if (current.Count != incoming.Count)
+            return false;
+
+        return current.SequenceEqual(incoming, StringComparer.OrdinalIgnoreCase);
     }
 }

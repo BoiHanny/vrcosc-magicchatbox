@@ -6,6 +6,7 @@
     <conv:CountToVisibilityConverter x:Key="CountToVisibilityConverter" />
     <conv:CharacterCountToBoolConverter x:Key="CharacterCountToBoolConverter" />
     <conv:BoolToBlurEffectConverter x:Key="BoolToBlurEffectConverter" />
+    <conv:BlurRadiusToEffectConverter x:Key="BlurRadiusToEffectConverter" />
     <conv:InverseBoolToVisibilityConverter x:Key="InverseBoolToVisibilityConverter" />
     <conv:InverseBoolToHiddenConverter x:Key="InverseBoolToHiddenConverter" />
     <conv:InvertBooleanConverter x:Key="InvertBooleanConverter" />

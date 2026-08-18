@@ -112,6 +112,10 @@ namespace vrcosc_magicchatbox.ViewModels
             _statusSets = statusSets;
             _afkStyles = afkStyles;
 
+            _selectedMenuIndex = AppSettingsInstance.CurrentMenuItem is >= 0 and <= 3
+                ? AppSettingsInstance.CurrentMenuItem
+                : 3;
+
             UpdateState.AppVersion = new Models.Version(appInfoService.GetApplicationVersion());
 
             Emojis.ShuffleEmojis();

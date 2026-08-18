@@ -160,6 +160,8 @@ public partial class AfkModule : ObservableObject, IModule
     private bool overrideAfkStarted = false;
     private bool _disposed;
     private bool _timerRunning;
+    private int _lastAfkSecondsFormatted = int.MinValue;
+    private int _lastRemainingSecondsFormatted = int.MinValue;
 
     public string FriendlyTimeoutTime => FormatDuration(TimeSpan.FromSeconds(Settings.AfkTimeout), Settings.UseSmallLettersForDuration);
 
@@ -273,6 +275,9 @@ public partial class AfkModule : ObservableObject, IModule
 
     private void AfkTimer_Tick()
     {
+        if (_disposed)
+            return;
+
         OverrideButtonVisible = Settings.OverrideAfk || !IsAfk;
 
         if (_appState.IsVRRunning && !Settings.ActivateInVR)
@@ -328,11 +333,21 @@ public partial class AfkModule : ObservableObject, IModule
 
         if (IsAfk)
         {
-            TimeCurrentlyAFK = FormatDuration(DateTime.Now - lastActionTime, Settings.UseSmallLettersForDuration);
+            var afkSeconds = (int)(DateTime.Now - lastActionTime).TotalSeconds;
+            if (afkSeconds != _lastAfkSecondsFormatted)
+            {
+                _lastAfkSecondsFormatted = afkSeconds;
+                TimeCurrentlyAFK = FormatDuration(TimeSpan.FromSeconds(afkSeconds), Settings.UseSmallLettersForDuration);
+            }
         }
         else
         {
-            RemainingTimeUntilAFK = FormatDuration(TimeSpan.FromSeconds(Settings.AfkTimeout - idleTime), Settings.UseSmallLettersForDuration);
+            var remainingSeconds = Settings.AfkTimeout - (int)idleTime;
+            if (remainingSeconds != _lastRemainingSecondsFormatted)
+            {
+                _lastRemainingSecondsFormatted = remainingSeconds;
+                RemainingTimeUntilAFK = FormatDuration(TimeSpan.FromSeconds(remainingSeconds), Settings.UseSmallLettersForDuration);
+            }
         }
     }
 
@@ -345,7 +360,10 @@ public partial class AfkModule : ObservableObject, IModule
             lastActionTime = DateTime.Now;
         }
 
-        TimeCurrentlyAFK = FormatDuration(DateTime.Now - lastActionTime, Settings.UseSmallLettersForDuration);
+        var afkSeconds = (int)(DateTime.Now - lastActionTime).TotalSeconds;
+        _lastAfkSecondsFormatted = afkSeconds;
+        _lastRemainingSecondsFormatted = int.MinValue;
+        TimeCurrentlyAFK = FormatDuration(TimeSpan.FromSeconds(afkSeconds), Settings.UseSmallLettersForDuration);
         AfkDetected?.Invoke(this, EventArgs.Empty);
     }
 
@@ -355,6 +373,8 @@ public partial class AfkModule : ObservableObject, IModule
         lastActionTime = DateTime.Now;
         TimeCurrentlyAFK = string.Empty;
         overrideAfkStarted = false;
+        _lastAfkSecondsFormatted = int.MinValue;
+        _lastRemainingSecondsFormatted = Settings.AfkTimeout;
         RemainingTimeUntilAFK = FormatDuration(TimeSpan.FromSeconds(Settings.AfkTimeout), Settings.UseSmallLettersForDuration);
         OverrideButtonVisible = true;
     }
@@ -415,13 +435,15 @@ public partial class AfkModule : ObservableObject, IModule
         if (_consentService == null || !_consentService.IsApproved(PrivacyHook.AfkSensor))
             return 0;
 
-        LASTINPUTINFO lastInputInfo = new LASTINPUTINFO { cbSize = (uint)Marshal.SizeOf(typeof(LASTINPUTINFO)) };
+        LASTINPUTINFO lastInputInfo = new LASTINPUTINFO { cbSize = (uint)LastInputInfoSize };
         GetLastInputInfo(ref lastInputInfo);
         return ((uint)Environment.TickCount - lastInputInfo.dwTime) / 1000;
     }
 
     [DllImport("user32.dll")]
     private static extern bool GetLastInputInfo(ref LASTINPUTINFO plii);
+
+    private static readonly int LastInputInfoSize = Marshal.SizeOf(typeof(LASTINPUTINFO));
 
     [StructLayout(LayoutKind.Sequential)]
     private struct LASTINPUTINFO

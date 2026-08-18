@@ -309,10 +309,6 @@ namespace vrcosc_magicchatbox
 
                 mainWindow.UpdateOverlayProgress("Registering hotkeys...", 85, "Rendering interface...");
 
-                Logging.WriteInfo("[Startup] Waiting for initial render...");
-                await Task.Delay(150);
-                Logging.WriteInfo("[Startup] Initial render completed.");
-
                 mainWindow.UpdateOverlayProgress("Rendering interface...", 95, "Restoring open page...");
 
                 if (mainWindow.WindowState == WindowState.Minimized)
@@ -370,14 +366,22 @@ namespace vrcosc_magicchatbox
                         durationMs: 7000);
 
                 Logging.WriteInfo("[Startup] Initializing user monitoring...");
-                InitializeUserMonitoring();
+                if (consentSvc.IsApproved(PrivacyHook.InternetAccess))
+                {
+                    InitializeUserMonitoring();
+                }
+                consentSvc.ConsentChanged += (_, args) =>
+                {
+                    if (args.Hook == PrivacyHook.InternetAccess && args.NewState == ConsentState.Approved)
+                        InitializeUserMonitoring();
+                };
                 Logging.WriteInfo("[Startup] User monitoring initialized.");
 
                 Logging.WriteInfo("[Startup] Starting background scan loop...");
                 mainWindow.StartBackgroundProcessing();
                 Logging.WriteInfo("[Startup] Background processing started.");
 
-                if (vm.AppSettingsInstance.CheckUpdateOnStartup)
+                if (vm.AppSettingsInstance.CheckUpdateOnStartup && consentSvc.IsApproved(PrivacyHook.InternetAccess))
                 {
                     _ = RunDeferredStartupUpdateCheckAsync();
                 }
@@ -802,7 +806,9 @@ namespace vrcosc_magicchatbox
                     Services.GetRequiredService<IBanEnforcementService>().ProcessBan(args.UserId, args.Reason);
                 });
             };
-            allowedService.StartUserMonitoring(Core.Constants.AutoUpdateCheckInterval);
+            _ = Task.Delay(TimeSpan.FromSeconds(5)).ContinueWith(
+                _ => allowedService.StartUserMonitoring(Core.Constants.AutoUpdateCheckInterval),
+                TaskScheduler.Default);
         }
 
         private async Task RunOptionalStartupTaskAsync(
@@ -926,7 +932,11 @@ namespace vrcosc_magicchatbox
                     var componentStats = Services.GetRequiredService<ComponentStatsModule>();
                     Services.GetRequiredService<ComponentStatsViewModel>();
                     await bootMods.RegisterComponentStatsAsync(componentStats).ConfigureAwait(false);
-                    componentStats.StartModule();
+                    if (_integrationSettings.IntgrComponentStats
+                        && Services.GetRequiredService<IPrivacyConsentService>().IsApproved(PrivacyHook.HardwareMonitor))
+                    {
+                        componentStats.StartModule();
+                    }
                     LogStep("ComponentStats");
                 }, cancellationToken),
                 RunOptionalStartupTaskAsync("NetworkStats", () =>

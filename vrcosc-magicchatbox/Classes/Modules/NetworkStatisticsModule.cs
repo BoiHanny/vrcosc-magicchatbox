@@ -79,7 +79,7 @@ public class NetworkStatisticsModule : INotifyPropertyChanged, IModule
 
         _consentService.ConsentChanged += OnConsentChanged;
 
-        if (_consentService.IsApproved(PrivacyHook.NetworkStats))
+        if (_consentService.IsApproved(PrivacyHook.NetworkStats) && ShouldStartMonitoring())
             BeginInitializeNetworkStats();
     }
 
@@ -231,7 +231,7 @@ public class NetworkStatisticsModule : INotifyPropertyChanged, IModule
 
                 IsInitialized = true;
 
-                if (!_isMonitoring)
+                if (!_isMonitoring && ShouldStartMonitoring())
                 {
                     StartModule();
                 }
@@ -283,6 +283,12 @@ public class NetworkStatisticsModule : INotifyPropertyChanged, IModule
         {
             if (!_consentService.IsApproved(PrivacyHook.NetworkStats))
                 return;
+
+            if (!ShouldStartMonitoring())
+            {
+                StopModule();
+                return;
+            }
 
             if (_activeNetworkInterface == null)
             {

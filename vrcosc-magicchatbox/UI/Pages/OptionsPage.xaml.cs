@@ -12,6 +12,8 @@ public partial class OptionsPage : UserControl
 {
     private Dictionary<string, FrameworkElement>? _sectionMap;
 
+    private bool _attached;
+
     public OptionsPage()
     {
         InitializeComponent();
@@ -22,15 +24,41 @@ public partial class OptionsPage : UserControl
             new RoutedEventHandler(OnSettingToggled));
 
         DataContextChanged += OptionsPage_DataContextChanged;
+        Loaded += OnLoaded;
+        Unloaded += OnUnloaded;
+    }
+
+    private void OnLoaded(object sender, RoutedEventArgs e)
+    {
+        if (DataContext is OptionsPageViewModel vm && !_attached)
+        {
+            vm.ScrollToSectionRequested += OnScrollToSectionRequested;
+            _attached = true;
+        }
+    }
+
+    private void OnUnloaded(object sender, RoutedEventArgs e)
+    {
+        if (DataContext is OptionsPageViewModel vm && _attached)
+        {
+            vm.ScrollToSectionRequested -= OnScrollToSectionRequested;
+            _attached = false;
+        }
     }
 
     private void OptionsPage_DataContextChanged(object sender, DependencyPropertyChangedEventArgs e)
     {
-        if (e.OldValue is OptionsPageViewModel oldVm)
+        if (e.OldValue is OptionsPageViewModel oldVm && _attached)
+        {
             oldVm.ScrollToSectionRequested -= OnScrollToSectionRequested;
+            _attached = false;
+        }
 
-        if (e.NewValue is OptionsPageViewModel newVm)
+        if (e.NewValue is OptionsPageViewModel newVm && !_attached)
+        {
             newVm.ScrollToSectionRequested += OnScrollToSectionRequested;
+            _attached = true;
+        }
     }
 
     private void EnsureSectionMap()

@@ -28,6 +28,11 @@ public class ComponentStatsModule : IModule
     private readonly object _statsInitLock = new();
     private bool _statsLoaded;
     private bool _ddrVersionFetchStarted;
+    private bool _gpuListLoaded;
+    private bool _gpuNameResolvedThisTick;
+    private bool _cpuNameResolvedThisTick;
+    private string _cachedGpuNameThisTick;
+    private string _cachedCpuNameThisTick;
 
     private static readonly StatsComponentType[] StatDisplayOrder =
     {
@@ -217,7 +222,7 @@ public class ComponentStatsModule : IModule
 
     private void EnsureGpuListLoaded()
     {
-        if (GPUList.Any())
+        if (_gpuListLoaded)
             return;
 
         RefreshGpuList();
@@ -230,7 +235,7 @@ public class ComponentStatsModule : IModule
         try
         {
             float? load = _hwService.GetCpuLoad();
-            string name = _hwService.GetCpuName();
+            string name = GetCachedCpuName();
             UpdateHardwareName(current, name);
             if (load == null) return "N/A";
             return current.RemoveNumberTrailing == true ? $"{(int)load}" : $"{load:F1}";
@@ -459,7 +464,27 @@ public class ComponentStatsModule : IModule
         }
     }
 
+    private string GetCachedCpuName()
+    {
+        if (_cpuNameResolvedThisTick)
+            return _cachedCpuNameThisTick;
+
+        _cachedCpuNameThisTick = _hwService.GetCpuName();
+        _cpuNameResolvedThisTick = true;
+        return _cachedCpuNameThisTick;
+    }
+
     private string GetDedicatedGPUName()
+    {
+        if (_gpuNameResolvedThisTick)
+            return _cachedGpuNameThisTick;
+
+        _cachedGpuNameThisTick = ResolveDedicatedGPUName();
+        _gpuNameResolvedThisTick = true;
+        return _cachedGpuNameThisTick;
+    }
+
+    private string ResolveDedicatedGPUName()
     {
         try
         {
@@ -578,6 +603,9 @@ public class ComponentStatsModule : IModule
 
     private void PerformUpdateActions()
     {
+        _gpuNameResolvedThisTick = false;
+        _cpuNameResolvedThisTick = false;
+
         EnsureComponentStatsLoaded();
 
         bool hardwareAccessApproved = _consentService.IsApproved(PrivacyHook.HardwareMonitor);
@@ -610,6 +638,7 @@ public class ComponentStatsModule : IModule
         _integrationDisplay.ComponentStatsRunning = true;
         _integrationDisplay.ComponentStatsPhase = ComponentStatsPhase.Running;
 
+        EnsureGpuListLoaded();
         _hwService.UpdateAll();
         StatsVm.SyncComponentStatsList();
         QueueDdrVersionFetchIfNeeded();
@@ -793,6 +822,9 @@ public class ComponentStatsModule : IModule
 
         var readings = new List<StatReading>(StatDisplayOrder.Length);
 
+        bool hasCpu = GetCachedCpuName() != null;
+        bool hasGpu = GetDedicatedGPUName() != null;
+
         foreach (var type in StatDisplayOrder)
         {
             var stat = _componentStats.FirstOrDefault(s => s.ComponentType == type && s.IsEnabled && s.Available);
@@ -801,9 +833,6 @@ public class ComponentStatsModule : IModule
 
             var core = new List<StatExtra>(3);
             var other = new List<StatExtra>(5);
-
-            bool hasCpu = _hwService.GetCpuName() != null;
-            bool hasGpu = GetDedicatedGPUName() != null;
 
             if (stat.ComponentType == StatsComponentType.CPU && hasCpu)
             {
@@ -1055,20 +1084,24 @@ public class ComponentStatsModule : IModule
 
     public bool IsVRRunning()
     {
+        Process[] steamVrProcesses = Array.Empty<Process>();
+        Process[] oculusProcesses = Array.Empty<Process>();
         try
         {
-            bool isSteamVRRunning = Process.GetProcessesByName("vrmonitor").Length > 0;
+            steamVrProcesses = Process.GetProcessesByName("vrmonitor");
+            bool isSteamVRRunning = steamVrProcesses.Length > 0;
             bool isOculusRunning = false;
             if (AS.CountOculusSystemAsVR)
             {
-                isOculusRunning = Process.GetProcessesByName("OVRServer_x64").Length > 0;
+                oculusProcesses = Process.GetProcessesByName("OVRServer_x64");
+                isOculusRunning = oculusProcesses.Length > 0;
             }
 
             bool isVRRunning = isSteamVRRunning || isOculusRunning;
 
             if (isVRRunning != _appState.IsVRRunning)
             {
-                _appState.IsVRRunning = isVRRunning;
+                _dispatcher.BeginInvoke(() => _appState.IsVRRunning = isVRRunning);
             }
 
             return isVRRunning;
@@ -1077,6 +1110,13 @@ public class ComponentStatsModule : IModule
         {
             Logging.WriteException(ex, MSGBox: false);
             return false;
+        }
+        finally
+        {
+            foreach (var proc in steamVrProcesses)
+                proc.Dispose();
+            foreach (var proc in oculusProcesses)
+                proc.Dispose();
         }
     }
 
@@ -1304,7 +1344,6 @@ public class ComponentStatsModule : IModule
     {
         EnsureComponentStatsLoaded();
         _dispatcher.BeginInvoke(() => _statsVm?.SyncComponentStatsList());
-        EnsureGpuListLoaded();
         QueueDdrVersionFetchIfNeeded();
     }
 
@@ -1332,12 +1371,18 @@ public class ComponentStatsModule : IModule
 
     private void RefreshGpuList()
     {
+        _gpuListLoaded = true;
         var gpus = _hwService.GetAvailableGpus();
         _dispatcher.BeginInvoke(() =>
         {
-            GPUList.Clear();
-            foreach (var gpu in gpus)
-                GPUList.Add(gpu);
+            if (!GPUList.SequenceEqual(gpus))
+            {
+                var selectedGpu = StaticSettings.SelectedGPU;
+                GPUList.Clear();
+                foreach (var gpu in gpus)
+                    GPUList.Add(gpu);
+                StaticSettings.SelectedGPU = selectedGpu;
+            }
         });
     }
 

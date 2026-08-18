@@ -8,6 +8,7 @@ using System.Management;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading;
 using System.Threading.Tasks;
 using vrcosc_magicchatbox.Classes.DataAndSecurity;
 using vrcosc_magicchatbox.Services.Hardware;
@@ -28,17 +29,41 @@ public sealed class HardwareMonitorService : IHardwareMonitorService
     private int _nvidiaSmiFailures;
     private const int MaxNvidiaSmiFailures = 3;
     private DateTime _nvidiaSmiRetryAfterUtc;
+    private bool? _nvidiaSmiSupportsMemoryTemperature;
 
     private static readonly TimeSpan NvidiaSmiFailureCooldown = TimeSpan.FromMinutes(5);
+    private static readonly TimeSpan NvidiaSmiQueryTimeout = TimeSpan.FromMilliseconds(1500);
+    private static readonly TimeSpan MinimumNvidiaSmiSampleTtl = TimeSpan.FromSeconds(5);
+    private const int NvidiaSmiSampleTtlTickFactor = 2;
+    private static readonly TimeSpan DefaultStatsTickInterval = TimeSpan.FromSeconds(2);
+    private TimeSpan _statsTickInterval = DefaultStatsTickInterval;
     private readonly Dictionary<string, PerformanceCounter> _performanceCounters = new(StringComparer.OrdinalIgnoreCase);
     private GpuPerformanceSnapshot _gpuPerformanceSnapshot = GpuPerformanceSnapshot.Empty;
     private DateTime _gpuPerformanceCapturedAtUtc;
+    private string? _gpuPerformanceSnapshotLuidToken;
+    private int _gpuPerformanceRefreshInFlight;
     private bool _isOpen;
     private bool _hasPreviousSystemTimes;
     private ulong _previousIdleTime;
     private ulong _previousKernelTime;
     private ulong _previousUserTime;
-    private static readonly TimeSpan GpuPerformanceCounterRefreshInterval = TimeSpan.FromSeconds(3);
+    private static readonly TimeSpan GpuPerformanceCounterRefreshInterval = TimeSpan.FromSeconds(5);
+    private const string GpuEngineCategory = "GPU Engine";
+    private const string GpuProcessMemoryCategory = "GPU Process Memory";
+    private const string GpuAdapterMemoryCategory = "GPU Adapter Memory";
+    private const string GpuEngineTypeMarker = "_engtype_";
+    private const int MaxGpuCounterInstances = 64;
+    private static readonly string[] ConsumedGpuEngineTypes =
+    {
+        "3D",
+        "Graphics",
+        "Compute",
+        "Cuda",
+        "VideoDecode",
+        "VideoEncode",
+        "VideoProcessing",
+        "Copy",
+    };
     private static readonly Regex GpuCounterLuidRegex = new(
         @"luid_0x(?<high>[0-9a-f]+)_0x(?<low>[0-9a-f]+)",
         RegexOptions.IgnoreCase | RegexOptions.CultureInvariant | RegexOptions.Compiled);
@@ -169,6 +194,11 @@ public sealed class HardwareMonitorService : IHardwareMonitorService
             _gpuInfoCache = null;
             _gpuPerformanceSnapshot = GpuPerformanceSnapshot.Empty;
             _gpuPerformanceCapturedAtUtc = default;
+            _gpuPerformanceSnapshotLuidToken = null;
+
+            foreach (var counter in _performanceCounters.Values)
+                counter.Dispose();
+            _performanceCounters.Clear();
 
             _hasPreviousSystemTimes = false;
             _previousIdleTime = 0;
@@ -180,6 +210,7 @@ public sealed class HardwareMonitorService : IHardwareMonitorService
             _nvidiaSmiCapturedAtUtc = default;
             _nvidiaSmiFailures = 0;
             _nvidiaSmiRetryAfterUtc = default;
+            _nvidiaSmiSupportsMemoryTemperature = null;
         }
     }
 
@@ -189,6 +220,23 @@ public sealed class HardwareMonitorService : IHardwareMonitorService
     }
 
     public bool VendorGpuSensorsEnabled { get; set; } = true;
+
+    public TimeSpan StatsTickInterval
+    {
+        get { lock (_lock) return _statsTickInterval; }
+        set
+        {
+            lock (_lock)
+            {
+                _statsTickInterval = value > TimeSpan.Zero ? value : DefaultStatsTickInterval;
+            }
+        }
+    }
+
+    private TimeSpan NvidiaSmiSampleTtl
+        => TimeSpan.FromTicks(Math.Max(
+            MinimumNvidiaSmiSampleTtl.Ticks,
+            _statsTickInterval.Ticks * NvidiaSmiSampleTtlTickFactor));
 
     private bool VendorGpuActive => VendorGpuSensorsEnabled && !_vendorGpu.IsPermanentlyUnavailable;
 
@@ -664,7 +712,7 @@ public sealed class HardwareMonitorService : IHardwareMonitorService
         try
         {
             string? luidToken = ResolveGpuInfo(gpuName)?.LuidToken;
-            var snapshot = GetGpuPerformanceSnapshot();
+            var snapshot = GetGpuPerformanceSnapshot(luidToken);
             return snapshot.GetEngineUtilization(luidToken, engineTypeFilter);
         }
         catch (Exception ex)
@@ -679,7 +727,7 @@ public sealed class HardwareMonitorService : IHardwareMonitorService
         try
         {
             string? luidToken = ResolveGpuInfo(gpuName)?.LuidToken;
-            double bytes = GetGpuPerformanceSnapshot().GetDedicatedUsageBytes(luidToken);
+            double bytes = GetGpuPerformanceSnapshot(luidToken).GetDedicatedUsageBytes(luidToken);
 
             if (bytes <= 0)
                 return null;
@@ -694,43 +742,58 @@ public sealed class HardwareMonitorService : IHardwareMonitorService
         }
     }
 
-    private readonly object _gpuSnapshotReadLock = new();
-
-    private GpuPerformanceSnapshot GetGpuPerformanceSnapshot()
+    private GpuPerformanceSnapshot GetGpuPerformanceSnapshot(string? luidToken)
     {
         lock (_lock)
         {
-            if (DateTime.UtcNow - _gpuPerformanceCapturedAtUtc < GpuPerformanceCounterRefreshInterval)
+            if (IsGpuPerformanceSnapshotFresh(luidToken))
                 return _gpuPerformanceSnapshot;
         }
 
-        lock (_gpuSnapshotReadLock)
+        if (Interlocked.CompareExchange(ref _gpuPerformanceRefreshInFlight, 1, 0) != 0)
+        {
+            lock (_lock)
+                return _gpuPerformanceSnapshot;
+        }
+
+        try
         {
             lock (_lock)
             {
-                if (DateTime.UtcNow - _gpuPerformanceCapturedAtUtc < GpuPerformanceCounterRefreshInterval)
+                if (IsGpuPerformanceSnapshotFresh(luidToken))
                     return _gpuPerformanceSnapshot;
             }
 
-            var snapshot = ReadGpuPerformanceSnapshot();
+            var snapshot = ReadGpuPerformanceSnapshot(luidToken);
+
             lock (_lock)
             {
                 _gpuPerformanceSnapshot = snapshot;
                 _gpuPerformanceCapturedAtUtc = DateTime.UtcNow;
+                _gpuPerformanceSnapshotLuidToken = luidToken;
             }
 
             return snapshot;
         }
+        finally
+        {
+            Interlocked.Exchange(ref _gpuPerformanceRefreshInFlight, 0);
+        }
     }
 
-    private GpuPerformanceSnapshot ReadGpuPerformanceSnapshot()
+    private bool IsGpuPerformanceSnapshotFresh(string? luidToken)
+        => _gpuPerformanceCapturedAtUtc != default
+           && DateTime.UtcNow - _gpuPerformanceCapturedAtUtc < GpuPerformanceCounterRefreshInterval
+           && string.Equals(_gpuPerformanceSnapshotLuidToken, luidToken, StringComparison.OrdinalIgnoreCase);
+
+    private GpuPerformanceSnapshot ReadGpuPerformanceSnapshot(string? luidToken)
     {
-        var rawEngineValues = ReadPerformanceCounterValues("GPU Engine", "Utilization Percentage");
+        var rawEngineValues = ReadPerformanceCounterValues(GpuEngineCategory, "Utilization Percentage", luidToken);
         var engines = new Dictionary<string, GpuEngineMetric>(StringComparer.OrdinalIgnoreCase);
 
         foreach (var pair in rawEngineValues)
         {
-            if (!TryParseGpuEngineCounter(pair.Key, out string? luidToken, out string engineKey, out string engineType))
+            if (!TryParseGpuEngineCounter(pair.Key, out string? engineLuidToken, out string engineKey, out string engineType))
                 continue;
 
             if (engines.TryGetValue(engineKey, out var existing))
@@ -743,7 +806,7 @@ public sealed class HardwareMonitorService : IHardwareMonitorService
             else
             {
                 engines[engineKey] = new GpuEngineMetric(
-                    luidToken,
+                    engineLuidToken,
                     engineKey,
                     engineType,
                     Math.Clamp(pair.Value, 0f, 100f));
@@ -751,14 +814,14 @@ public sealed class HardwareMonitorService : IHardwareMonitorService
         }
 
         var processDedicatedBytes = SumGpuMemoryByLuid(
-            ReadPerformanceCounterValues("GPU Process Memory", "Dedicated Usage"));
+            ReadPerformanceCounterValues(GpuProcessMemoryCategory, "Dedicated Usage", luidToken));
         var adapterDedicatedBytes = SumGpuMemoryByLuid(
-            ReadPerformanceCounterValues("GPU Adapter Memory", "Dedicated Usage"));
+            ReadPerformanceCounterValues(GpuAdapterMemoryCategory, "Dedicated Usage", luidToken));
 
         return new GpuPerformanceSnapshot(engines.Values.ToList(), processDedicatedBytes, adapterDedicatedBytes);
     }
 
-    private IReadOnlyDictionary<string, float> ReadPerformanceCounterValues(string categoryName, string counterName)
+    private IReadOnlyDictionary<string, float> ReadPerformanceCounterValues(string categoryName, string counterName, string? luidToken)
     {
         string[] instanceNames;
         try
@@ -775,7 +838,7 @@ public sealed class HardwareMonitorService : IHardwareMonitorService
         var values = new Dictionary<string, float>(StringComparer.OrdinalIgnoreCase);
         var activeKeys = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
-        foreach (string instanceName in instanceNames)
+        foreach (string instanceName in SelectGpuCounterInstances(categoryName, instanceNames, luidToken))
         {
             string cacheKey = GetPerformanceCounterCacheKey(categoryName, counterName, instanceName);
             activeKeys.Add(cacheKey);
@@ -815,6 +878,63 @@ public sealed class HardwareMonitorService : IHardwareMonitorService
 
         RemoveStalePerformanceCounters(categoryName, counterName, activeKeys);
         return values;
+    }
+
+    private static List<string> SelectGpuCounterInstances(string categoryName, string[] instanceNames, string? luidToken)
+    {
+        bool filterEngineTypes = categoryName.Equals(GpuEngineCategory, StringComparison.OrdinalIgnoreCase);
+        bool filterLuid = !string.IsNullOrWhiteSpace(luidToken);
+        var matches = new List<string>();
+
+        foreach (string instanceName in instanceNames)
+        {
+            if (filterEngineTypes && GetConsumedGpuEngineTypeIndex(GetGpuEngineType(instanceName)) < 0)
+                continue;
+
+            if (filterLuid &&
+                !string.Equals(TryParseLuidToken(instanceName), luidToken, StringComparison.OrdinalIgnoreCase))
+            {
+                continue;
+            }
+
+            matches.Add(instanceName);
+        }
+
+        if (matches.Count <= MaxGpuCounterInstances)
+            return matches;
+
+        return matches
+            .OrderBy(GetGpuEngineTypePriority)
+            .Take(MaxGpuCounterInstances)
+            .ToList();
+    }
+
+    private static string GetGpuEngineType(string instanceName)
+    {
+        int markerIndex = instanceName.LastIndexOf(GpuEngineTypeMarker, StringComparison.OrdinalIgnoreCase);
+        return markerIndex < 0
+            ? string.Empty
+            : instanceName[(markerIndex + GpuEngineTypeMarker.Length)..];
+    }
+
+    private static int GetConsumedGpuEngineTypeIndex(string engineType)
+    {
+        if (engineType.Length == 0)
+            return -1;
+
+        for (int index = 0; index < ConsumedGpuEngineTypes.Length; index++)
+        {
+            if (engineType.StartsWith(ConsumedGpuEngineTypes[index], StringComparison.OrdinalIgnoreCase))
+                return index;
+        }
+
+        return -1;
+    }
+
+    private static int GetGpuEngineTypePriority(string instanceName)
+    {
+        int index = GetConsumedGpuEngineTypeIndex(GetGpuEngineType(instanceName));
+        return index < 0 ? ConsumedGpuEngineTypes.Length : index;
     }
 
     private void RemovePerformanceCounter(string cacheKey)
@@ -944,7 +1064,7 @@ public sealed class HardwareMonitorService : IHardwareMonitorService
         lock (_lock)
         {
             if (_nvidiaSmiCache != null &&
-                DateTime.UtcNow - _nvidiaSmiCapturedAtUtc < TimeSpan.FromSeconds(2))
+                DateTime.UtcNow - _nvidiaSmiCapturedAtUtc < NvidiaSmiSampleTtl)
             {
                 return _nvidiaSmiCache;
             }
@@ -962,7 +1082,7 @@ public sealed class HardwareMonitorService : IHardwareMonitorService
             }
         }
 
-        IReadOnlyList<NvidiaSmiSample> samples = QueryNvidiaSmi();
+        IReadOnlyList<NvidiaSmiSample> samples = QueryNvidiaSmiAsync().GetAwaiter().GetResult();
         lock (_lock)
         {
             _nvidiaSmiCache = samples;
@@ -972,7 +1092,7 @@ public sealed class HardwareMonitorService : IHardwareMonitorService
         return samples;
     }
 
-    private IReadOnlyList<NvidiaSmiSample> QueryNvidiaSmi()
+    private async Task<IReadOnlyList<NvidiaSmiSample>> QueryNvidiaSmiAsync()
     {
         string? executablePath = FindNvidiaSmi();
         if (executablePath == null)
@@ -983,26 +1103,46 @@ public sealed class HardwareMonitorService : IHardwareMonitorService
 
         try
         {
-            string? output = RunNvidiaSmiQuery(executablePath, includeMemoryTemperature: true);
-            output ??= RunNvidiaSmiQuery(executablePath, includeMemoryTemperature: false);
+            bool? supportsMemoryTemperature;
+            lock (_lock)
+            {
+                supportsMemoryTemperature = _nvidiaSmiSupportsMemoryTemperature;
+            }
+
+            string? output = null;
+            if (supportsMemoryTemperature != false)
+                output = await RunNvidiaSmiQueryAsync(executablePath, includeMemoryTemperature: true).ConfigureAwait(false);
+
+            bool readMemoryTemperature = !string.IsNullOrWhiteSpace(output);
+            if (!readMemoryTemperature)
+                output = await RunNvidiaSmiQueryAsync(executablePath, includeMemoryTemperature: false).ConfigureAwait(false);
+
             if (string.IsNullOrWhiteSpace(output))
             {
                 RecordNvidiaSmiFailure();
                 return Array.Empty<NvidiaSmiSample>();
             }
 
-            lock (_lock)
-            {
-                _nvidiaSmiFailures = 0;
-                _nvidiaSmiRetryAfterUtc = default;
-            }
-
-            return output
+            var samples = output
                 .Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries)
                 .Select(ParseNvidiaSmiLine)
                 .Where(sample => sample != null)
                 .Cast<NvidiaSmiSample>()
                 .ToList();
+
+            lock (_lock)
+            {
+                _nvidiaSmiFailures = 0;
+                _nvidiaSmiRetryAfterUtc = default;
+
+                if (supportsMemoryTemperature != false)
+                {
+                    _nvidiaSmiSupportsMemoryTemperature = readMemoryTemperature
+                        && samples.Any(sample => sample.MemoryTemperatureC != null);
+                }
+            }
+
+            return samples;
         }
         catch (Exception ex)
         {
@@ -1032,12 +1172,13 @@ public sealed class HardwareMonitorService : IHardwareMonitorService
             $"{NvidiaSmiFailureCooldown.TotalMinutes:F0} minutes.");
     }
 
-    private static string? RunNvidiaSmiQuery(string executablePath, bool includeMemoryTemperature)
+    private static async Task<string?> RunNvidiaSmiQueryAsync(string executablePath, bool includeMemoryTemperature)
     {
         string queryFields = includeMemoryTemperature
             ? "index,name,utilization.gpu,utilization.memory,memory.used,memory.total,temperature.gpu,power.draw,fan.speed,clocks.gr,clocks.mem,temperature.memory"
             : "index,name,utilization.gpu,utilization.memory,memory.used,memory.total,temperature.gpu,power.draw,fan.speed,clocks.gr,clocks.mem";
 
+        using var queryTimeout = new CancellationTokenSource(NvidiaSmiQueryTimeout);
         using var process = new Process();
         process.StartInfo = new ProcessStartInfo
         {
@@ -1054,22 +1195,52 @@ public sealed class HardwareMonitorService : IHardwareMonitorService
         Task<string> standardOutput = process.StandardOutput.ReadToEndAsync();
         Task<string> standardError = process.StandardError.ReadToEndAsync();
 
-        if (!process.WaitForExit(1500))
+        try
         {
-            process.Kill(entireProcessTree: true);
+            await process.WaitForExitAsync(queryTimeout.Token).ConfigureAwait(false);
+        }
+        catch (OperationCanceledException)
+        {
+            KillNvidiaSmiProcess(process);
+            await DrainNvidiaSmiOutputAsync(standardOutput, standardError).ConfigureAwait(false);
             return null;
         }
 
-        process.WaitForExit();
+        string output = await standardOutput.ConfigureAwait(false);
+        string error = await standardError.ConfigureAwait(false);
 
         if (process.ExitCode != 0)
         {
             if (!includeMemoryTemperature)
-                Logging.WriteInfo($"nvidia-smi read error: {standardError.Result.Trim()}");
+                Logging.WriteInfo($"nvidia-smi read error: {error.Trim()}");
             return null;
         }
 
-        return standardOutput.Result;
+        return output;
+    }
+
+    private static void KillNvidiaSmiProcess(Process process)
+    {
+        try
+        {
+            process.Kill(entireProcessTree: true);
+        }
+        catch (Exception ex)
+        {
+            Logging.WriteInfo($"nvidia-smi terminate error: {ex.Message}");
+        }
+    }
+
+    private static async Task DrainNvidiaSmiOutputAsync(Task<string> standardOutput, Task<string> standardError)
+    {
+        try
+        {
+            await Task.WhenAll(standardOutput, standardError).ConfigureAwait(false);
+        }
+        catch (Exception ex)
+        {
+            Logging.WriteInfo($"nvidia-smi output drain error: {ex.Message}");
+        }
     }
 
     private static NvidiaSmiSample? ParseNvidiaSmiLine(string line)

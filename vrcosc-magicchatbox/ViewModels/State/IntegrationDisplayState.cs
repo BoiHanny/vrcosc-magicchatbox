@@ -149,6 +149,7 @@ public partial class IntegrationDisplayState : ObservableObject
             case "NetworkStatistics": NetworkStatsOpacity = opacity; break;
             case "Soundpad": SoundpadOpacity = opacity; break;
             case "MediaLink": MediaLinkOpacity = opacity; break;
+            case "VrPerformance": VrPerformanceOpacity = opacity; break;
         }
     }
 
@@ -169,5 +170,6 @@ public partial class IntegrationDisplayState : ObservableObject
         NetworkStatsOpacity = "1";
         SoundpadOpacity = "1";
         MediaLinkOpacity = "1";
+        VrPerformanceOpacity = "1";
     }
 }

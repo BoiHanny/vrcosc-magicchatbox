@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using vrcosc_magicchatbox.Classes.DataAndSecurity;
@@ -11,6 +12,12 @@ internal static class TitleContentFilter
     private static readonly Regex RepeatedHorizontalWhitespace = new("[ \t]{2,}", RegexOptions.CultureInvariant, RegexTimeout);
     private static readonly object InvalidRuleLock = new();
     private static readonly HashSet<string> InvalidRulesLogged = new(StringComparer.Ordinal);
+    private static readonly ConcurrentDictionary<(string Pattern, RegexOptions Options), Regex> RegexCache = new();
+
+    private static Regex GetOrCreateRegex(string pattern, RegexOptions options)
+    {
+        return RegexCache.GetOrAdd((pattern, options), key => new Regex(key.Pattern, key.Options, RegexTimeout));
+    }
 
     public static string ApplyRegexTransform(string text, string expression)
     {
@@ -27,7 +34,7 @@ internal static class TitleContentFilter
 
         try
         {
-            Regex regex = new(pattern, RegexOptions.CultureInvariant, RegexTimeout);
+            Regex regex = GetOrCreateRegex(pattern, RegexOptions.CultureInvariant);
 
             if (replacement != null)
             {
@@ -131,7 +138,7 @@ internal static class TitleContentFilter
 
         try
         {
-            return new ContentRule(rule, new Regex(pattern, options, RegexTimeout), replacement);
+            return new ContentRule(rule, GetOrCreateRegex(pattern, options), replacement);
         }
         catch (ArgumentException ex)
         {

@@ -71,8 +71,11 @@ namespace vrcosc_magicchatbox.ViewModels
             get { return _CreationDate; }
             set
             {
-                _CreationDate = value;
-                NotifyPropertyChanged(nameof(CreationDate));
+                if (_CreationDate != value)
+                {
+                    _CreationDate = value;
+                    NotifyPropertyChanged(nameof(CreationDate));
+                }
             }
         }
 
@@ -81,8 +84,11 @@ namespace vrcosc_magicchatbox.ViewModels
             get { return _editMsg; }
             set
             {
-                _editMsg = value;
-                NotifyPropertyChanged(nameof(editMsg));
+                if (_editMsg != value)
+                {
+                    _editMsg = value;
+                    NotifyPropertyChanged(nameof(editMsg));
+                }
             }
         }
 
@@ -91,8 +97,11 @@ namespace vrcosc_magicchatbox.ViewModels
             get { return _IsActive; }
             set
             {
-                _IsActive = value;
-                NotifyPropertyChanged(nameof(IsActive));
+                if (_IsActive != value)
+                {
+                    _IsActive = value;
+                    NotifyPropertyChanged(nameof(IsActive));
+                }
             }
         }
 
@@ -101,8 +110,11 @@ namespace vrcosc_magicchatbox.ViewModels
             get { return _IsEditing; }
             set
             {
-                _IsEditing = value;
-                NotifyPropertyChanged(nameof(IsEditing));
+                if (_IsEditing != value)
+                {
+                    _IsEditing = value;
+                    NotifyPropertyChanged(nameof(IsEditing));
+                }
             }
         }
 
@@ -111,8 +123,11 @@ namespace vrcosc_magicchatbox.ViewModels
             get { return _IsFavorite; }
             set
             {
-                _IsFavorite = value;
-                NotifyPropertyChanged(nameof(IsFavorite));
+                if (_IsFavorite != value)
+                {
+                    _IsFavorite = value;
+                    NotifyPropertyChanged(nameof(IsFavorite));
+                }
             }
         }
 
@@ -132,8 +147,11 @@ namespace vrcosc_magicchatbox.ViewModels
 
             set
             {
-                _LastEdited = value;
-                NotifyPropertyChanged(nameof(LastEdited));
+                if (_LastEdited != value)
+                {
+                    _LastEdited = value;
+                    NotifyPropertyChanged(nameof(LastEdited));
+                }
             }
         }
 
@@ -142,8 +160,11 @@ namespace vrcosc_magicchatbox.ViewModels
             get { return _LastUsed; }
             set
             {
-                _LastUsed = value;
-                NotifyPropertyChanged(nameof(LastUsed));
+                if (_LastUsed != value)
+                {
+                    _LastUsed = value;
+                    NotifyPropertyChanged(nameof(LastUsed));
+                }
             }
         }
 
@@ -152,8 +173,11 @@ namespace vrcosc_magicchatbox.ViewModels
             get { return _msg; }
             set
             {
-                _msg = value;
-                NotifyPropertyChanged(nameof(msg));
+                if (_msg != value)
+                {
+                    _msg = value;
+                    NotifyPropertyChanged(nameof(msg));
+                }
             }
         }
 
@@ -162,8 +186,11 @@ namespace vrcosc_magicchatbox.ViewModels
             get { return _MSGID; }
             set
             {
-                _MSGID = value;
-                NotifyPropertyChanged(nameof(MSGID));
+                if (_MSGID != value)
+                {
+                    _MSGID = value;
+                    NotifyPropertyChanged(nameof(MSGID));
+                }
             }
         }
 

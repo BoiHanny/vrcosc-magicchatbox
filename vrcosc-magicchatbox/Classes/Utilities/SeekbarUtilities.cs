@@ -65,8 +65,8 @@ public static class SeekbarUtilities
 
     public static string FormatTimeSpan(TimeSpan ts)
     {
-        return ts.Hours > 0
-            ? $"{ts.Hours}:{ts.Minutes:D2}:{ts.Seconds:D2}"
+        return ts.TotalHours >= 1
+            ? $"{(int)ts.TotalHours}:{ts.Minutes:D2}:{ts.Seconds:D2}"
             : $"{ts.Minutes}:{ts.Seconds:D2}";
     }
 

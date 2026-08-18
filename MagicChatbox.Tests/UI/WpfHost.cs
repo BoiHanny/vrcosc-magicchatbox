@@ -103,5 +103,11 @@ internal static class WpfHost
         // only Run() reaches.
         var app = new vrcosc_magicchatbox.App();
         app.InitializeComponent();
+
+        // Every host window is opened and closed again, and the default OnLastWindowClose would
+        // queue a shutdown behind that last Close. Nothing pumps here, so it normally sits in the
+        // queue forever and no test notices - until one pumps the dispatcher and takes the whole
+        // application dictionary down under the tests that come after it.
+        app.ShutdownMode = ShutdownMode.OnExplicitShutdown;
     }
 }

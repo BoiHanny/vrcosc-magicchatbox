@@ -252,7 +252,7 @@ public partial class PulsoidModule : ObservableObject, IModule
     private static double CalculateSlope(Queue<int> values)
     {
         int count = values.Count;
-        double avgX = count / 2.0;
+        double avgX = (count - 1) / 2.0;
         double avgY = values.Average();
 
         double sumXY = 0;
@@ -313,7 +313,7 @@ public partial class PulsoidModule : ObservableObject, IModule
         int allowedSpread = Settings.ThrottleMaxAdditional;
 
         int excess = rawHR - baseHR;
-        int compressibleRange = maxHumanHR - baseHR;
+        int compressibleRange = Math.Max(1, maxHumanHR - baseHR);
 
         int scaledAdjustment = (excess * allowedSpread) / compressibleRange;
 
@@ -643,7 +643,11 @@ public partial class PulsoidModule : ObservableObject, IModule
 
             _heartRateHistory.Enqueue(hr);
 
-            if (_heartRateHistory.Count > 1)
+            if (sampleRate <= 1)
+            {
+                Settings.HeartRateTrendIndicator = "";
+            }
+            else if (_heartRateHistory.Count > 1)
             {
                 double slope = CalculateSlope(_heartRateHistory);
                 if (slope > Settings.HeartRateTrendIndicatorSensitivity)

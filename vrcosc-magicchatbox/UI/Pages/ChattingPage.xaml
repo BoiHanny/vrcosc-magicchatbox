@@ -100,7 +100,7 @@
                             Foreground="{StaticResource ChatTextBrush}"
                             KeyDown="NewChattingTxt_KeyDown"
                             LostKeyboardFocus="NewChattingTxt_LostKeyboardFocus"
-                            MaxLength="144"
+                            MaxLength="{x:Static core:Constants.MaxChatMessageLength}"
                             Style="{StaticResource InlineTransparentTextBox}"
                             Text="{Binding ChatStatus.NewChattingTxt, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                             TextAlignment="Left"

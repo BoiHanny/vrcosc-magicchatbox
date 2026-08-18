@@ -108,6 +108,9 @@ public partial class LyricsModule : ObservableObject, IModule
 
     private void Tick()
     {
+        if (_disposed)
+            return;
+
         try
         {
             var source = ResolvePosition();
@@ -252,9 +255,14 @@ public partial class LyricsModule : ObservableObject, IModule
 
     private string DescribeNoSource()
     {
-        var candidates = SnapshotSessions()
-            .Select(s => new LyricsSourceCandidate(s.Title, s.PlaybackStatus.ToString()))
-            .ToList();
+        if (!_integrationSettings.IntgrScanMediaLink && !_integrationSettings.IntgrSpotify)
+            return LyricsSourceStatus.NoHost;
+
+        var candidates = _integrationSettings.IntgrScanMediaLink
+            ? SnapshotSessions()
+                .Select(s => new LyricsSourceCandidate(s.Title, s.PlaybackStatus.ToString()))
+                .ToList()
+            : new List<LyricsSourceCandidate>();
 
         return LyricsSourceStatus.Describe(
             _integrationSettings.IntgrScanMediaLink,
