@@ -17,7 +17,7 @@ public sealed class ScanLoopService : IDisposable
     private Timer? _backgroundCheck;
     private TimeSpan _currentInterval;
     private static readonly TimeSpan ComponentStatsMinInterval = TimeSpan.FromSeconds(2);
-    private static readonly TimeSpan VrCheckMinInterval = TimeSpan.FromSeconds(2);
+    private static readonly TimeSpan VrCheckMinInterval = TimeSpan.FromSeconds(5);
     private static readonly TimeSpan WindowActivityMinInterval = TimeSpan.FromSeconds(1);
     private static readonly TimeSpan VrCheckTimeout = TimeSpan.FromSeconds(2);
     private static readonly TimeSpan WindowActivityTimeout = TimeSpan.FromSeconds(4);

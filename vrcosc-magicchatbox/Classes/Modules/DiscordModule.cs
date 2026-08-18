@@ -265,10 +265,10 @@ public partial class DiscordModule : ObservableObject, IModule
 
         return SegmentWriter.Fit(
             budget,
-            Render(channel, Speakers(settings.MaxSpeakingUsersToShow)),
-            Render(channel, Speakers(1)),
-            Render(channel, names.Count.ToString()),
-            Render(SegmentWriter.Truncate(channel, MinChannelChars), names.Count.ToString()));
+            () => Render(channel, Speakers(settings.MaxSpeakingUsersToShow)),
+            () => Render(channel, Speakers(1)),
+            () => Render(channel, names.Count.ToString()),
+            () => Render(SegmentWriter.Truncate(channel, MinChannelChars), names.Count.ToString()));
     }
 
     private static OscText State(string? word)

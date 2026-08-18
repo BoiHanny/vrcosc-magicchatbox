@@ -1,42 +1,23 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using vrcosc_magicchatbox.Classes.Modules;
-using vrcosc_magicchatbox.ViewModels.Models;
 
 namespace vrcosc_magicchatbox.ViewModels;
 
 public partial class ComponentStatsViewModel : ObservableObject
 {
     private readonly ComponentStatsModule _module;
-    private readonly ObservableCollection<ComponentStatsItem> _statsList = new();
-    private readonly ReadOnlyObservableCollection<ComponentStatsItem> _componentStatsList;
     private readonly Dictionary<string, object?> _lastRefreshedValues = new();
 
     public ComponentStatsViewModel(ComponentStatsModule module)
     {
         _module = module;
-        _componentStatsList = new ReadOnlyObservableCollection<ComponentStatsItem>(_statsList);
     }
 
     public ComponentStatsModule Module => _module;
 
-    public ReadOnlyObservableCollection<ComponentStatsItem> ComponentStatsList => _componentStatsList;
-
-    public void UpdateComponentStatsList(ObservableCollection<ComponentStatsItem> newList)
-    {
-        _statsList.Clear();
-        foreach (var item in newList)
-            _statsList.Add(item);
-    }
-
     public void SyncComponentStatsList()
-    {
-        _statsList.Clear();
-        foreach (var stat in _module.GetAllStats())
-            _statsList.Add(stat);
-        RefreshAllProperties();
-    }
+        => RefreshAllProperties();
 
     public void UpdateComponentStat(StatsComponentType type, string newValue)
         => _module.UpdateStatValue(type, newValue);

@@ -59,9 +59,9 @@ public sealed class SoundpadOscProvider : IOscProvider
 
         return SegmentWriter.Fit(
             budget,
-            Compose(clean, withIcon),
-            Compose(SegmentWriter.Truncate(clean, TitleRoom(budget, withIcon)), withIcon),
-            Compose(SegmentWriter.Truncate(clean, TitleRoom(budget, false)), false));
+            () => Compose(clean, withIcon),
+            () => Compose(SegmentWriter.Truncate(clean, TitleRoom(budget, withIcon)), withIcon),
+            () => Compose(SegmentWriter.Truncate(clean, TitleRoom(budget, false)), false));
     }
 
     private static int TitleRoom(int budget, bool withIcon)

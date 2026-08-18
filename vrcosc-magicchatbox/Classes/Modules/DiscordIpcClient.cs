@@ -19,10 +19,8 @@ public sealed class DiscordIpcClient : IDisposable
     private CancellationTokenSource? _readCts;
     private CancellationTokenSource? _reconnectCts;
     private Task? _readTask;
-    private Task? _reconnectTask;
     private volatile bool _disposed;
     private volatile bool _intentionalDisconnect;
-    private int _reconnectAttempts;
     private readonly SemaphoreSlim _writeLock = new(1, 1);
 
     public event Action<JObject>? MessageReceived;
@@ -46,7 +44,6 @@ public sealed class DiscordIpcClient : IDisposable
                 if (pipe.IsConnected)
                 {
                     _pipe = pipe;
-                    _reconnectAttempts = 0;
                     StartReadLoop();
                     Logging.WriteInfo($"Discord IPC connected on pipe: {pipeName}");
                     return true;
@@ -145,45 +142,6 @@ public sealed class DiscordIpcClient : IDisposable
                 ["activity"] = activity            }
         };
         await SendFrameAsync(payload).ConfigureAwait(false);
-    }
-
-    public void StartAutoReconnect(Func<Task> onReconnected)
-    {
-        _reconnectCts?.Cancel();
-        _reconnectCts = new CancellationTokenSource();
-        var ct = _reconnectCts.Token;
-
-        _reconnectTask = Task.Run(async () =>
-        {
-            while (!ct.IsCancellationRequested && !_disposed)
-            {
-                _reconnectAttempts++;
-                var delay = TimeSpan.FromSeconds(
-                    Math.Min(
-                        Core.Constants.DiscordReconnectMinDelay.TotalSeconds * Math.Pow(2, _reconnectAttempts - 1),
-                        Core.Constants.DiscordReconnectMaxDelay.TotalSeconds));
-
-                Logging.WriteInfo($"Discord IPC reconnect attempt {_reconnectAttempts} in {delay.TotalSeconds:0.#}s");
-
-                try
-                {
-                    await Task.Delay(delay, ct).ConfigureAwait(false);
-                    if (ct.IsCancellationRequested) break;
-
-                    if (await ConnectAsync(ct).ConfigureAwait(false))
-                    {
-                        Logging.WriteInfo("Discord IPC reconnected successfully.");
-                        await onReconnected().ConfigureAwait(false);
-                        return;
-                    }
-                }
-                catch (OperationCanceledException) { return; }
-                catch (Exception ex)
-                {
-                    Logging.WriteInfo($"Discord IPC reconnect failed: {ex.Message}");
-                }
-            }
-        }, ct);
     }
 
     public void Disconnect()

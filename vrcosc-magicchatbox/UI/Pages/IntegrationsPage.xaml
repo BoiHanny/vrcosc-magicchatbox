@@ -5,14 +5,15 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:vm="clr-namespace:vrcosc_magicchatbox.ViewModels"
+    xmlns:po="http://schemas.microsoft.com/winfx/2006/xaml/presentation/options"
     d:DataContext="{d:DesignInstance Type=vm:IntegrationsPageViewModel,
                                      IsDesignTimeCreatable=False}"
     Background="{StaticResource SurfaceCardBrush}"
-    mc:Ignorable="d">
+    mc:Ignorable="d po">
     <UserControl.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
-                <ResourceDictionary Source="/UI/Resources/SharedConverters.xaml" />
+                <ResourceDictionary Source="/MagicChatbox;component/UI/Resources/SharedConverters.xaml" />
             </ResourceDictionary.MergedDictionaries>
 
             <!--  Local to this page on purpose: Theme.xaml is owned elsewhere this cycle. Candidates
@@ -159,28 +160,16 @@
                                 IsOpen="{Binding IsChecked, ElementName=LyricsSyncToggle, Mode=TwoWay}"
                                 Placement="Bottom"
                                 PlacementTarget="{Binding ElementName=LyricsRibbonRoot}"
-                                HorizontalOffset="24"
                                 PopupAnimation="Slide"
-                                StaysOpen="False"
-                                VerticalOffset="-22">
+                                StaysOpen="False">
                                 <!--  Sized to the ribbon so the card right-aligns with no magic offsets.
-
-                                      The popup HWND is exactly this Grid, so anything the card paints
-                                      outside its own bounds - here a 20px blur offset 4px down-right - is
-                                      clipped by the window edge. The Border margin is that blur's headroom,
-                                      not spacing: 24px on top, right and bottom, and on the left the card
-                                      is right-aligned inside a Grid that is wider than its 330 minimum, so
-                                      the slack is already there.
-
-                                      The two offsets cancel the margin so the card lands where it did
-                                      before the margin grew: HorizontalOffset 24 undoes the right margin
-                                      (the card is right-aligned, so a right margin walks it left), and
-                                      VerticalOffset -22 undoes the 24 top margin while keeping the
-                                      original 2px gap under the ribbon.  -->
+                                      The card no longer paints outside its own bounds, so the margin
+                                      below is plain spacing, not blur headroom, and no offsets are
+                                      needed to compensate for it.  -->
                                 <Grid Width="{Binding ActualWidth, ElementName=LyricsRibbonRoot}">
                                     <Border
                                         MinWidth="330"
-                                        Margin="0,24,24,24"
+                                        Margin="0,2,2,2"
                                         Padding="12,10"
                                         HorizontalAlignment="Right"
                                         BorderThickness="1"
@@ -197,13 +186,6 @@
                                                 <GradientStop Offset="1" Color="#FF2D2050" />
                                             </LinearGradientBrush>
                                         </Border.BorderBrush>
-                                        <Border.Effect>
-                                            <DropShadowEffect
-                                                BlurRadius="20"
-                                                Opacity="0.6"
-                                                ShadowDepth="4"
-                                                Color="Black" />
-                                        </Border.Effect>
 
                                         <StackPanel>
                                             <TextBlock
@@ -382,24 +364,6 @@
                                     BorderThickness="{TemplateBinding BorderThickness}">
                                     <ContentPresenter HorizontalAlignment="Stretch" />
                                 </Border>
-                                <ControlTemplate.Triggers>
-                                    <!--
-                                        A soft halo on hover: the tiles keep their own look, they just
-                                        acknowledge the cursor.
-                                    -->
-                                    <Trigger Property="IsMouseOver" Value="True">
-                                        <Setter TargetName="itemHost" Property="Effect">
-                                            <Setter.Value>
-                                                <DropShadowEffect
-                                                    BlurRadius="14"
-                                                    Opacity="0.55"
-                                                    RenderingBias="Performance"
-                                                    ShadowDepth="0"
-                                                    Color="#9B7FD9" />
-                                            </Setter.Value>
-                                        </Setter>
-                                    </Trigger>
-                                </ControlTemplate.Triggers>
                             </ControlTemplate>
                         </Setter.Value>
                     </Setter>
@@ -494,16 +458,6 @@
                                                                 <DataTrigger Binding="{Binding IsRunning}" Value="True">
                                                                     <Setter Property="Fill" Value="#7BE495" />
                                                                     <Setter Property="Stroke" Value="#7BE495" />
-                                                                    <Setter Property="Effect">
-                                                                        <Setter.Value>
-                                                                            <DropShadowEffect
-                                                                                BlurRadius="6"
-                                                                                Opacity="0.9"
-                                                                                RenderingBias="Performance"
-                                                                                ShadowDepth="0"
-                                                                                Color="#7BE495" />
-                                                                        </Setter.Value>
-                                                                    </Setter>
                                                                 </DataTrigger>
                                                             </Style.Triggers>
                                                         </Style>
@@ -552,15 +506,9 @@
                 <Border
                     Margin="5"
                     Background="{StaticResource TileSurfaceBrush}"
-                    CornerRadius="5">
-                    <Border.Effect>
-                        <DropShadowEffect
-                            BlurRadius="9"
-                            Opacity="0.5"
-                            RenderingBias="Performance"
-                            ShadowDepth="0"
-                            Color="#FF150C33" />
-                    </Border.Effect>
+                    CornerRadius="5"
+                    BorderBrush="#FF150C33"
+                    BorderThickness="1">
                     <Grid Margin="3">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="62" />
@@ -612,7 +560,6 @@
                             SnapsToDevicePixels="True">
                             <Grid Margin="4">
                                 <Image
-                                    Effect="{StaticResource ImageShadowEffect}"
                                     RenderOptions.BitmapScalingMode="HighQuality"
                                     Source="/Img/Icons/PersonalMsg_ico.png" />
                             </Grid>
@@ -663,15 +610,9 @@
                 <Border
                     Margin="5,0,5,5"
                     Background="{StaticResource TileSurfaceBrush}"
-                    CornerRadius="5">
-                    <Border.Effect>
-                        <DropShadowEffect
-                            BlurRadius="9"
-                            Opacity="0.5"
-                            RenderingBias="Performance"
-                            ShadowDepth="0"
-                            Color="#FF150C33" />
-                    </Border.Effect>
+                    CornerRadius="5"
+                    BorderBrush="#FF150C33"
+                    BorderThickness="1">
                     <Grid Margin="3">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="62" />
@@ -723,7 +664,6 @@
                             SnapsToDevicePixels="True">
                             <Grid Margin="4">
                                 <Image
-                                    Effect="{StaticResource ImageShadowEffect}"
                                     RenderOptions.BitmapScalingMode="HighQuality"
                                     Source="/Img/Icons/WindowActivity_ico.png" />
                             </Grid>
@@ -783,15 +723,9 @@
                 <Border
                     Margin="5,0,5,5"
                     Background="{StaticResource TileSurfaceBrush}"
-                    CornerRadius="5">
-                    <Border.Effect>
-                        <DropShadowEffect
-                            BlurRadius="9"
-                            Opacity="0.5"
-                            RenderingBias="Performance"
-                            ShadowDepth="0"
-                            Color="#FF150C33" />
-                    </Border.Effect>
+                    CornerRadius="5"
+                    BorderBrush="#FF150C33"
+                    BorderThickness="1">
                     <Grid Margin="3">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="62" />
@@ -843,7 +777,6 @@
                             SnapsToDevicePixels="True">
                             <Grid Margin="4">
                                 <Image
-                                    Effect="{StaticResource ImageShadowEffect}"
                                     RenderOptions.BitmapScalingMode="HighQuality"
                                     Source="/Img/Icons/HeartRate_ico.png" />
                             </Grid>
@@ -866,7 +799,6 @@
                                         <TextBlock
                                             Margin="5,0,0,0"
                                             VerticalAlignment="Center"
-                                            Effect="{StaticResource TextBlockShadowEffect}"
                                             FontFamily="/Fonts/#Comfortaa"
                                             FontSize="12"
                                             Foreground="LightSeaGreen"
@@ -877,7 +809,6 @@
                                     <TextBlock
                                         Margin="5,0,0,0"
                                         VerticalAlignment="Center"
-                                        Effect="{StaticResource TextBlockShadowEffect}"
                                         FontFamily="/Fonts/#Comfortaa"
                                         FontSize="12"
                                         Foreground="PaleVioletRed"
@@ -888,7 +819,6 @@
                                         <TextBlock
                                             Margin="5,0,0,0"
                                             VerticalAlignment="Center"
-                                            Effect="{StaticResource TextBlockShadowEffect}"
                                             FontFamily="/Fonts/#Comfortaa"
                                             FontSize="12"
                                             Foreground="#ABA4B8"
@@ -1004,14 +934,6 @@
                                             </StackPanel>
                                         </Grid>
 
-                                        <Border.Effect>
-                                            <DropShadowEffect
-                                                BlurRadius="15"
-                                                Opacity="1"
-                                                RenderingBias="Performance"
-                                                ShadowDepth="0"
-                                                Color="#8FD6FF" />
-                                        </Border.Effect>
                                     </Border>
                                 </StackPanel>
                             </Grid>
@@ -1064,15 +986,9 @@
                         Margin="10,-15,10,5"
                         Background="#230E52"
                         CornerRadius="0,0,5,5"
-                        Visibility="{Binding IntegrationSettings.IntgrTrackerBattery, Converter={StaticResource InverseBoolToHiddenConverter}}">
-                        <Border.Effect>
-                            <DropShadowEffect
-                                BlurRadius="9"
-                                Opacity="0.5"
-                                RenderingBias="Performance"
-                                ShadowDepth="0"
-                                Color="#FF150C33" />
-                        </Border.Effect>
+                        Visibility="{Binding IntegrationSettings.IntgrTrackerBattery, Converter={StaticResource InverseBoolToHiddenConverter}}"
+                        BorderBrush="#FF150C33"
+                        BorderThickness="1">
                         <Border
                             Margin="5,15,5,5"
                             Background="{StaticResource TileSurfaceBrush}"
@@ -1135,15 +1051,9 @@
                         Grid.Row="0"
                         Margin="5,0,5,5"
                         Background="{StaticResource TileSurfaceBrush}"
-                        CornerRadius="5">
-                        <Border.Effect>
-                            <DropShadowEffect
-                                BlurRadius="9"
-                                Opacity="0.5"
-                                RenderingBias="Performance"
-                                ShadowDepth="0"
-                                Color="#FF150C33" />
-                        </Border.Effect>
+                        CornerRadius="5"
+                        BorderBrush="#FF150C33"
+                        BorderThickness="1">
                         <Grid Margin="3">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="62" />
@@ -1195,7 +1105,6 @@
                                 SnapsToDevicePixels="True">
                                 <Grid Margin="4">
                                     <Image
-                                        Effect="{StaticResource ImageShadowEffect}"
                                         RenderOptions.BitmapScalingMode="HighQuality"
                                         Source="/Img/Icons/VR_bat_ico.png" />
                                 </Grid>
@@ -1255,15 +1164,9 @@
                         Margin="10,-15,10,5"
                         Background="#230E52"
                         CornerRadius="0,0,5,5"
-                        Visibility="{Binding IntegrationSettings.IntgrVrPerformance, Converter={StaticResource InverseBoolToHiddenConverter}}">
-                        <Border.Effect>
-                            <DropShadowEffect
-                                BlurRadius="9"
-                                Opacity="0.5"
-                                RenderingBias="Performance"
-                                ShadowDepth="0"
-                                Color="#FF150C33" />
-                        </Border.Effect>
+                        Visibility="{Binding IntegrationSettings.IntgrVrPerformance, Converter={StaticResource InverseBoolToHiddenConverter}}"
+                        BorderBrush="#FF150C33"
+                        BorderThickness="1">
                         <Border
                             Margin="5,15,5,5"
                             Background="{StaticResource TileSurfaceBrush}"
@@ -1380,15 +1283,9 @@
                         Grid.Row="0"
                         Margin="5,0,5,5"
                         Background="{StaticResource TileSurfaceBrush}"
-                        CornerRadius="5">
-                        <Border.Effect>
-                            <DropShadowEffect
-                                BlurRadius="9"
-                                Opacity="0.5"
-                                RenderingBias="Performance"
-                                ShadowDepth="0"
-                                Color="#FF150C33" />
-                        </Border.Effect>
+                        CornerRadius="5"
+                        BorderBrush="#FF150C33"
+                        BorderThickness="1">
                         <Grid Margin="3">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="62" />
@@ -1440,7 +1337,6 @@
                                 SnapsToDevicePixels="True">
                                 <Grid Margin="4">
                                     <Image
-                                        Effect="{StaticResource ImageShadowEffect}"
                                         RenderOptions.BitmapScalingMode="HighQuality"
                                         Source="/Img/Icons/vr-performance.png" />
                                 </Grid>
@@ -1498,15 +1394,9 @@
                         d:Visibility="Visible"
                         Background="#230E52"
                         CornerRadius="0,0,5,5"
-                        Visibility="{Binding IntegrationDisplay.ComponentStatsRunning, Converter={StaticResource InverseBoolToHiddenConverter}}">
-                        <Border.Effect>
-                            <DropShadowEffect
-                                BlurRadius="9"
-                                Opacity="0.5"
-                                RenderingBias="Performance"
-                                ShadowDepth="0"
-                                Color="#FF150C33" />
-                        </Border.Effect>
+                        Visibility="{Binding IntegrationDisplay.ComponentStatsRunning, Converter={StaticResource InverseBoolToHiddenConverter}}"
+                        BorderBrush="#FF150C33"
+                        BorderThickness="1">
                         <Border
                             Margin="5,15,5,5"
                             Background="{StaticResource TileSurfaceBrush}"
@@ -1554,13 +1444,6 @@
                                         Text="{Binding ComponentStats.ComponentStatsError, UpdateSourceTrigger=PropertyChanged}"
                                         TextWrapping="Wrap"
                                         Visibility="{Binding ComponentStats.IsThereAComponentThatIsNotAvailable, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}">
-                                        <TextBlock.Effect>
-                                            <DropShadowEffect
-                                                BlurRadius="10"
-                                                Opacity="1"
-                                                ShadowDepth="0"
-                                                Color="#8B2FFA" />
-                                        </TextBlock.Effect>
                                     </TextBlock>
 
                                 </StackPanel>
@@ -1599,15 +1482,9 @@
                         Grid.Row="0"
                         Margin="5,0,5,5"
                         Background="{StaticResource TileSurfaceBrush}"
-                        CornerRadius="5">
-                        <Border.Effect>
-                            <DropShadowEffect
-                                BlurRadius="9"
-                                Opacity="0.5"
-                                RenderingBias="Performance"
-                                ShadowDepth="0"
-                                Color="#FF150C33" />
-                        </Border.Effect>
+                        CornerRadius="5"
+                        BorderBrush="#FF150C33"
+                        BorderThickness="1">
                         <Grid Margin="3">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="62" />
@@ -1659,7 +1536,6 @@
                                 SnapsToDevicePixels="True">
                                 <Grid Margin="4">
                                     <Image
-                                        Effect="{StaticResource ImageShadowEffect}"
                                         RenderOptions.BitmapScalingMode="HighQuality"
                                         Source="/Img/Icons/ComponentStats_ico.png" />
                                 </Grid>
@@ -1681,7 +1557,6 @@
                                     <TextBlock
                                         Margin="5,0,0,0"
                                         VerticalAlignment="Center"
-                                        Effect="{StaticResource TextBlockShadowEffect}"
                                         FontFamily="/Fonts/#Comfortaa"
                                         FontSize="12"
                                         Foreground="#ABA4B8"
@@ -1737,15 +1612,9 @@
                 <Border
                     Margin="5,0,5,5"
                     Background="{StaticResource TileSurfaceBrush}"
-                    CornerRadius="5">
-                    <Border.Effect>
-                        <DropShadowEffect
-                            BlurRadius="9"
-                            Opacity="0.5"
-                            RenderingBias="Performance"
-                            ShadowDepth="0"
-                            Color="#FF150C33" />
-                    </Border.Effect>
+                    CornerRadius="5"
+                    BorderBrush="#FF150C33"
+                    BorderThickness="1">
                     <Grid Margin="3">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="62" />
@@ -1797,7 +1666,6 @@
                             SnapsToDevicePixels="True">
                             <Grid Margin="4">
                                 <Image
-                                    Effect="{StaticResource ImageShadowEffect}"
                                     RenderOptions.BitmapScalingMode="HighQuality"
                                     Source="/Img/Icons/NetworkStats_ico.png" />
                             </Grid>
@@ -1848,15 +1716,9 @@
                 <Border
                     Margin="5,0,5,5"
                     Background="{StaticResource TileSurfaceBrush}"
-                    CornerRadius="5">
-                    <Border.Effect>
-                        <DropShadowEffect
-                            BlurRadius="9"
-                            Opacity="0.5"
-                            RenderingBias="Performance"
-                            ShadowDepth="0"
-                            Color="#FF150C33" />
-                    </Border.Effect>
+                    CornerRadius="5"
+                    BorderBrush="#FF150C33"
+                    BorderThickness="1">
                     <Grid Margin="3">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="62" />
@@ -1908,7 +1770,6 @@
                             SnapsToDevicePixels="True">
                             <Grid Margin="4">
                                 <Image
-                                    Effect="{StaticResource ImageShadowEffect}"
                                     RenderOptions.BitmapScalingMode="HighQuality"
                                     Source="/Img/Icons/SystemTime_ico.png" />
                             </Grid>
@@ -1960,15 +1821,9 @@
                 <Border
                     Margin="5,0,5,5"
                     Background="{StaticResource TileSurfaceBrush}"
-                    CornerRadius="5">
-                    <Border.Effect>
-                        <DropShadowEffect
-                            BlurRadius="9"
-                            Opacity="0.5"
-                            RenderingBias="Performance"
-                            ShadowDepth="0"
-                            Color="#FF150C33" />
-                    </Border.Effect>
+                    CornerRadius="5"
+                    BorderBrush="#FF150C33"
+                    BorderThickness="1">
                     <Grid Margin="3">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="62" />
@@ -2020,7 +1875,6 @@
                             SnapsToDevicePixels="True">
                             <Grid Margin="4">
                                 <Image
-                                    Effect="{StaticResource ImageShadowEffect}"
                                     RenderOptions.BitmapScalingMode="HighQuality"
                                     Source="/Img/Icons/Weather_ico.png" />
                             </Grid>
@@ -2037,7 +1891,6 @@
                                 <TextBlock
                                     Margin="6,0,0,0"
                                     VerticalAlignment="Center"
-                                    Effect="{StaticResource TextBlockShadowEffect}"
                                     FontFamily="/Fonts/#Comfortaa"
                                     FontSize="12"
                                     Foreground="#D4D0E1"
@@ -2082,15 +1935,9 @@
                 <Border
                     Margin="5,0,5,5"
                     Background="{StaticResource TileSurfaceBrush}"
-                    CornerRadius="5">
-                    <Border.Effect>
-                        <DropShadowEffect
-                            BlurRadius="9"
-                            Opacity="0.5"
-                            RenderingBias="Performance"
-                            ShadowDepth="0"
-                            Color="#FF150C33" />
-                    </Border.Effect>
+                    CornerRadius="5"
+                    BorderBrush="#FF150C33"
+                    BorderThickness="1">
                     <Grid Margin="3">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="62" />
@@ -2142,7 +1989,6 @@
                             SnapsToDevicePixels="True">
                             <Grid Margin="4">
                                 <Image
-                                    Effect="{StaticResource ImageShadowEffect}"
                                     RenderOptions.BitmapScalingMode="HighQuality"
                                     Source="/Img/Icons/Twitch_ico.png" />
                             </Grid>
@@ -2182,7 +2028,7 @@
                                             </Style.Triggers>
                                         </Style>
                                     </StackPanel.Style>
-                                    <TextBlock Effect="{StaticResource TextBlockShadowEffect}" Text="{Binding Modules.Twitch.StatusMessage}">
+                                    <TextBlock Text="{Binding Modules.Twitch.StatusMessage}">
                                         <TextBlock.Style>
                                             <Style BasedOn="{StaticResource TileStatusPill}" TargetType="TextBlock">
                                                 <Setter Property="Foreground" Value="#C9C3D9" />
@@ -2197,7 +2043,6 @@
                                     <TextBlock
                                         Margin="8,0"
                                         VerticalAlignment="Center"
-                                        Effect="{StaticResource TextBlockShadowEffect}"
                                         FontFamily="/Fonts/#Comfortaa"
                                         FontSize="11"
                                         Foreground="#D1C6E6"
@@ -2240,15 +2085,9 @@
                 <Border
                     Margin="5,0,5,5"
                     Background="{StaticResource TileSurfaceBrush}"
-                    CornerRadius="5">
-                    <Border.Effect>
-                        <DropShadowEffect
-                            BlurRadius="9"
-                            Opacity="0.5"
-                            RenderingBias="Performance"
-                            ShadowDepth="0"
-                            Color="#FF150C33" />
-                    </Border.Effect>
+                    CornerRadius="5"
+                    BorderBrush="#FF150C33"
+                    BorderThickness="1">
                     <Grid Margin="3">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="62" />
@@ -2303,7 +2142,6 @@
                             SnapsToDevicePixels="True">
                             <Grid Margin="4">
                                 <Image
-                                    Effect="{StaticResource ImageShadowEffect}"
                                     RenderOptions.BitmapScalingMode="HighQuality"
                                     Source="/Img/Icons/TikTok_ico.png" />
                             </Grid>
@@ -2393,15 +2231,9 @@
                 <Border
                     Margin="5,0,5,5"
                     Background="{StaticResource TileSurfaceBrush}"
-                    CornerRadius="5">
-                    <Border.Effect>
-                        <DropShadowEffect
-                            BlurRadius="9"
-                            Opacity="0.5"
-                            RenderingBias="Performance"
-                            ShadowDepth="0"
-                            Color="#FF150C33" />
-                    </Border.Effect>
+                    CornerRadius="5"
+                    BorderBrush="#FF150C33"
+                    BorderThickness="1">
                     <Grid Margin="3">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="62" />
@@ -2453,7 +2285,6 @@
                             SnapsToDevicePixels="True">
                             <Grid Margin="4">
                                 <Image
-                                    Effect="{StaticResource ImageShadowEffect}"
                                     RenderOptions.BitmapScalingMode="HighQuality"
                                     Source="/Img/Icons/Discord_ico.png" />
                             </Grid>
@@ -2494,7 +2325,6 @@
                                         </Style>
                                     </StackPanel.Style>
                                     <TextBlock
-                                        Effect="{StaticResource TextBlockShadowEffect}"
                                         Style="{StaticResource TileStatusPill}"
                                         Text="{Binding Modules.Discord.CurrentChannelName, FallbackValue='Not connected'}" />
                                 </StackPanel>
@@ -2539,15 +2369,9 @@
                 <Border
                     Margin="5,0,5,5"
                     Background="{StaticResource TileSurfaceBrush}"
-                    CornerRadius="5">
-                    <Border.Effect>
-                        <DropShadowEffect
-                            BlurRadius="9"
-                            Opacity="0.5"
-                            RenderingBias="Performance"
-                            ShadowDepth="0"
-                            Color="#FF150C33" />
-                    </Border.Effect>
+                    CornerRadius="5"
+                    BorderBrush="#FF150C33"
+                    BorderThickness="1">
                     <Grid Margin="3">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="62" />
@@ -2599,7 +2423,6 @@
                             SnapsToDevicePixels="True">
                             <Grid Margin="4">
                                 <Image
-                                    Effect="{StaticResource ImageShadowEffect}"
                                     RenderOptions.BitmapScalingMode="HighQuality"
                                     Source="/Img/Icons/VRCRadar_ico.png" />
                             </Grid>
@@ -2640,7 +2463,6 @@
                                         </Style>
                                     </StackPanel.Style>
                                     <TextBlock
-                                        Effect="{StaticResource TextBlockShadowEffect}"
                                         Style="{StaticResource TileStatusPill}"
                                         Text="{Binding Modules.VrcRadar.CurrentWorldName, FallbackValue='Not in a world'}" />
                                 </StackPanel>
@@ -2695,15 +2517,9 @@
                             Margin="5,0,5,5"
                             VerticalAlignment="Stretch"
                             Background="{StaticResource SurfaceButtonDarkBrush}"
-                            CornerRadius="5">
-                            <Border.Effect>
-                                <DropShadowEffect
-                                    BlurRadius="9"
-                                    Opacity="0.5"
-                                    RenderingBias="Performance"
-                                    ShadowDepth="0"
-                                    Color="#FF150C33" />
-                            </Border.Effect>
+                            CornerRadius="5"
+                            BorderBrush="#FF150C33"
+                            BorderThickness="1">
                             <Grid>
                                 <Border
                                     Margin="0"
@@ -2799,13 +2615,6 @@
                                         Text="{Binding Modules.Soundpad.ErrorString}"
                                         TextWrapping="Wrap"
                                         Visibility="{Binding Modules.Soundpad.Error, Converter={StaticResource InverseBoolToHiddenConverter}}">
-                                        <TextBlock.Effect>
-                                            <DropShadowEffect
-                                                BlurRadius="10"
-                                                Opacity="1"
-                                                ShadowDepth="0"
-                                                Color="#8B2FFA" />
-                                        </TextBlock.Effect>
                                     </TextBlock>
                                 </StackPanel>
 
@@ -2817,15 +2626,9 @@
                     <Border
                         Margin="5,0,5,5"
                         Background="{StaticResource TileSurfaceBrush}"
-                        CornerRadius="5">
-                        <Border.Effect>
-                            <DropShadowEffect
-                                BlurRadius="9"
-                                Opacity="0.5"
-                                RenderingBias="Performance"
-                                ShadowDepth="0"
-                                Color="#FF150C33" />
-                        </Border.Effect>
+                        CornerRadius="5"
+                        BorderBrush="#FF150C33"
+                        BorderThickness="1">
                         <Grid Margin="3">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="62" />
@@ -2877,7 +2680,6 @@
                                 SnapsToDevicePixels="True">
                                 <Grid Margin="4">
                                     <Image
-                                        Effect="{StaticResource ImageShadowEffect}"
                                         RenderOptions.BitmapScalingMode="HighQuality"
                                         Source="/Img/Icons/Soundpad.png" />
                                 </Grid>
@@ -2944,15 +2746,9 @@
                     <Border
                         Margin="5,0,5,5"
                         Background="{StaticResource TileSurfaceBrush}"
-                        CornerRadius="5">
-                        <Border.Effect>
-                            <DropShadowEffect
-                                BlurRadius="9"
-                                Opacity="0.5"
-                                RenderingBias="Performance"
-                                ShadowDepth="0"
-                                Color="#FF150C33" />
-                        </Border.Effect>
+                        CornerRadius="5"
+                        BorderBrush="#FF150C33"
+                        BorderThickness="1">
                         <Grid Margin="3">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="62" />
@@ -3004,7 +2800,6 @@
                                 SnapsToDevicePixels="True">
                                 <Grid Margin="4">
                                     <Image
-                                        Effect="{StaticResource ImageShadowEffect}"
                                         RenderOptions.BitmapScalingMode="HighQuality"
                                         Source="/Img/Icons/spotify_ico.png" />
                                 </Grid>
@@ -3257,15 +3052,9 @@
                     <Border
                         Margin="5,0,5,5"
                         Background="{StaticResource TileSurfaceBrush}"
-                        CornerRadius="5">
-                        <Border.Effect>
-                            <DropShadowEffect
-                                BlurRadius="9"
-                                Opacity="0.5"
-                                RenderingBias="Performance"
-                                ShadowDepth="0"
-                                Color="#FF150C33" />
-                        </Border.Effect>
+                        CornerRadius="5"
+                        BorderBrush="#FF150C33"
+                        BorderThickness="1">
                         <Grid Margin="3">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="62" />
@@ -3317,7 +3106,6 @@
                                 SnapsToDevicePixels="True">
                                 <Grid Margin="4">
                                     <Image
-                                        Effect="{StaticResource ImageShadowEffect}"
                                         RenderOptions.BitmapScalingMode="HighQuality"
                                         Source="/Img/Icons/MediaLink_ico.png" />
                                 </Grid>
@@ -3382,15 +3170,9 @@
                         d:Visibility="Visible"
                         Background="Transparent"
                         CornerRadius="0,0,5,5"
-                        Visibility="{Binding MediaLinkDisplay.MediaSessions.Count, Converter={StaticResource CountToVisibilityConverter}}">
-                        <Border.Effect>
-                            <DropShadowEffect
-                                BlurRadius="9"
-                                Opacity="0.5"
-                                RenderingBias="Performance"
-                                ShadowDepth="0"
-                                Color="#FF150C33" />
-                        </Border.Effect>
+                        Visibility="{Binding MediaLinkDisplay.MediaSessions.Count, Converter={StaticResource CountToVisibilityConverter}}"
+                        BorderBrush="#FF150C33"
+                        BorderThickness="1">
                         <ItemsControl
                             Height="auto"
                             Padding="0,0,0,5"
@@ -3481,23 +3263,6 @@
                                                             Content="{TemplateBinding Content}"
                                                             ContentTemplate="{TemplateBinding ContentTemplate}" />
 
-                                                        <ControlTemplate.Triggers>
-                                                            <MultiDataTrigger>
-                                                                <MultiDataTrigger.Conditions>
-                                                                    <Condition Binding="{Binding Path=IsChecked, RelativeSource={RelativeSource Self}}" Value="False" />
-                                                                    <Condition Binding="{Binding Path=IsMouseOver, RelativeSource={RelativeSource Self}}" Value="True" />
-                                                                </MultiDataTrigger.Conditions>
-                                                                <Setter TargetName="contentPresenter" Property="Effect">
-                                                                    <Setter.Value>
-                                                                        <DropShadowEffect
-                                                                            BlurRadius="15"
-                                                                            Opacity="1"
-                                                                            ShadowDepth="0"
-                                                                            Color="White" />
-                                                                    </Setter.Value>
-                                                                </Setter>
-                                                            </MultiDataTrigger>
-                                                        </ControlTemplate.Triggers>
                                                     </ControlTemplate>
                                                 </RadioButton.Template>
                                             </RadioButton>
@@ -3587,7 +3352,7 @@
                                                                 Visibility="{Binding TimePeekEnabled, Converter={StaticResource InverseBoolToHiddenConverter}}"
                                                                 Value="69" />
                                                             <Grid.Effect>
-                                                                <BlurEffect Radius="10" />
+                                                                <BlurEffect Radius="10" po:Freeze="True" />
                                                             </Grid.Effect>
                                                         </Grid>
                                                         <TextBox
@@ -3607,14 +3372,6 @@
                                                             RenderOptions.BitmapScalingMode="NearestNeighbor"
                                                             Text="LIVE"
                                                             TextAlignment="Center">
-                                                            <TextBox.Effect>
-                                                                <DropShadowEffect
-                                                                    BlurRadius="25"
-                                                                    Opacity="1"
-                                                                    RenderingBias="Performance"
-                                                                    ShadowDepth="0"
-                                                                    Color="#25A0F9" />
-                                                            </TextBox.Effect>
                                                         </TextBox>
                                                     </Grid>
 

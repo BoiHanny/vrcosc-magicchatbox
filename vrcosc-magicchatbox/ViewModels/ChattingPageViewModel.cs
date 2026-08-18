@@ -224,7 +224,9 @@ namespace vrcosc_magicchatbox.ViewModels
 
             LiveTyping.Release(clearChatbox: false);
 
-            Osc.CreateChat(true, preserveCurrentInput ? chat : null);
+            if (!Osc.CreateChat(true, preserveCurrentInput ? chat : null))
+                return false;
+
             int smalldelay = CS.ChatAddSmallDelay ? (int)(CS.ChatAddSmallDelayTIME * 1000) : 0;
             _ = SendOscMessageWithFeedbackAsync(CS.ChatFX, smalldelay);
             _chatHistorySvc.Value.SaveChatHistory();
@@ -307,7 +309,13 @@ namespace vrcosc_magicchatbox.ViewModels
                 item.LiveEditButtonTxt = ChatStateManager.EditLabel(CS);
                 item.IsRunning = true;
 
-                Osc.CreateChat(false, item.Msg);
+                if (!Osc.CreateChat(false, item.Msg))
+                {
+                    item.IsRunning = false;
+                    _chatStatus.ChatFeedbackTxt = "Message too long to send";
+                    return;
+                }
+
                 int smalldelay = CS.ChatAddSmallDelay ? (int)(CS.ChatAddSmallDelayTIME * 1000) : 0;
                 _ = SendOscMessageWithFeedbackAsync(CS.ChatFX && CS.ChatSendAgainFX, smalldelay);
 

@@ -38,6 +38,7 @@ public partial class SoundpadModule : ObservableObject, IModule
     private readonly IAppState _appState;
     private readonly IUiDispatcher _dispatcher;
     private readonly IPrivacyConsentService _consentService;
+    private readonly IProcessPresenceService _processPresence;
 
     private readonly IntegrationSettings _integrationSettings;
 
@@ -65,13 +66,14 @@ public partial class SoundpadModule : ObservableObject, IModule
     [ObservableProperty]
     public string playingSong = string.Empty;
 
-    public SoundpadModule(int time, IAppState appState, IUiDispatcher dispatcher, IntegrationSettings integrationSettings, IPrivacyConsentService consentService, IToastService? toast = null)
+    public SoundpadModule(int time, IAppState appState, IUiDispatcher dispatcher, IntegrationSettings integrationSettings, IPrivacyConsentService consentService, IToastService? toast = null, IProcessPresenceService? processPresence = null)
     {
         _appState = appState;
         _dispatcher = dispatcher;
         _integrationSettings = integrationSettings;
         _consentService = consentService;
         _toast = toast;
+        _processPresence = processPresence ?? new ProcessPresenceService();
         _stateTimer = new System.Timers.Timer(time)
         {
             AutoReset = true,
@@ -140,19 +142,14 @@ public partial class SoundpadModule : ObservableObject, IModule
             bool pipeHealthy = _client.IsConnected;
             Process? soundpadProc = null;
 
-            if (!pipeHealthy)
+            if (!pipeHealthy && !_processPresence.IsRunning(SoundpadProcessName))
             {
-                soundpadProcs = Process.GetProcessesByName(SoundpadProcessName);
-                soundpadProc = soundpadProcs.FirstOrDefault();
-                if (soundpadProc == null)
-                {
-                    _client.Disconnect();
-                    _pipeFailureStreak = 0;
-                    _ticksUntilPipeRetry = 0;
-                    ApplyState(epoch, soundpadState.NotRunning, playingNow: false, stopped: true, song: string.Empty,
-                        isRunning: false, error: true, errorMessage: "😞 Soundpad is not running.");
-                    return;
-                }
+                _client.Disconnect();
+                _pipeFailureStreak = 0;
+                _ticksUntilPipeRetry = 0;
+                ApplyState(epoch, soundpadState.NotRunning, playingNow: false, stopped: true, song: string.Empty,
+                    isRunning: false, error: true, errorMessage: "😞 Soundpad is not running.");
+                return;
             }
 
             var status = SoundpadPlayStatus.Unknown;

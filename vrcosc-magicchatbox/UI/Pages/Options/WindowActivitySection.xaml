@@ -14,7 +14,7 @@
     <UserControl.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
-                <ResourceDictionary Source="/UI/Resources/SharedConverters.xaml" />
+                <ResourceDictionary Source="/MagicChatbox;component/UI/Resources/SharedConverters.xaml" />
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
     </UserControl.Resources>
@@ -545,10 +545,21 @@
                         Color="black" />
                 </Border.Effect>
             </Border>
-            <ItemsControl
+            <ScrollViewer
                 Grid.Row="5"
-                HorizontalAlignment="Stretch"
-                ItemsSource="{Binding WindowActivity.ScannedAppsView, UpdateSourceTrigger=PropertyChanged, NotifyOnTargetUpdated=True}">
+                MaxHeight="600"
+                CanContentScroll="True"
+                VerticalScrollBarVisibility="Auto">
+                <ItemsControl
+                    HorizontalAlignment="Stretch"
+                    VirtualizingPanel.IsVirtualizing="True"
+                    VirtualizingPanel.VirtualizationMode="Recycling"
+                    ItemsSource="{Binding WindowActivity.ScannedAppsView, UpdateSourceTrigger=PropertyChanged, NotifyOnTargetUpdated=True}">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <VirtualizingStackPanel VirtualizingPanel.IsVirtualizing="True" VirtualizingPanel.VirtualizationMode="Recycling" />
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
                 <ItemsControl.ItemTemplate>
                     <DataTemplate DataType="{x:Type vm:ProcessInfo}">
                         <Border
@@ -690,7 +701,8 @@
                         </Border>
                     </DataTemplate>
                 </ItemsControl.ItemTemplate>
-            </ItemsControl>
+                </ItemsControl>
+            </ScrollViewer>
         </Grid>
 
     </Grid>

@@ -46,7 +46,7 @@ public partial class EmojiService : ObservableObject
     {
         const string defaultIcon = "💬";
 
-        if (_appSettings.EmojiCollection == null || !_appSettings.EmojiCollection.Any())
+        if (_appSettings.EmojiCollection == null || _appSettings.EmojiCollection.Count == 0)
         {
             CurrentEmoji = defaultIcon;
             return defaultIcon;

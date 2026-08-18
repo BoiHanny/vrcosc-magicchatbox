@@ -39,7 +39,13 @@ public class SharedControlResourceTests
         // Constructing SegmentPreview above proves the app-level dictionary works today; this says
         // where it has to stay. Moving the converters back down to the pages would break every
         // control in UI/Controls without breaking the build.
-        Assert.Contains(@"Source=""UI/Resources/SharedConverters.xaml""", File.ReadAllText(AppFile("App.xaml")));
+        string appXaml = File.ReadAllText(AppFile("App.xaml"));
+
+        // Matched on the file rather than the whole Uri: the reference is assembly-qualified
+        // so it resolves against this assembly rather than whichever one happens to be
+        // hosting, and that prefix is not what this test is about.
+        Assert.Contains("UI/Resources/SharedConverters.xaml", appXaml, System.StringComparison.Ordinal);
+        Assert.Contains("<ResourceDictionary.MergedDictionaries>", appXaml, System.StringComparison.Ordinal);
     }
 
     [Theory]

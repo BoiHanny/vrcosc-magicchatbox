@@ -26,6 +26,32 @@ public sealed class OscBuildResultPresenter
 
     public void Present(OscBuildResult result)
     {
+        PresentOutgoingMessage(result);
+
+        if (!_appState.Value.IsUiObservable)
+            return;
+
+        PresentIntegrationTiles(result);
+    }
+
+    private void PresentOutgoingMessage(OscBuildResult result)
+    {
+        if (result.Length > OscBuildContext.MaxOscLength)
+        {
+            _oscDisplay.OscToSent = string.Empty;
+            _oscDisplay.OscMsgCount = result.Length;
+            _oscDisplay.OscMsgCountUI = $"MAX/{OscBuildContext.MaxOscLength}";
+        }
+        else
+        {
+            _oscDisplay.OscToSent = result.Message;
+            _oscDisplay.OscMsgCount = result.Length;
+            _oscDisplay.OscMsgCountUI = $"{result.Length}/{OscBuildContext.MaxOscLength}";
+        }
+    }
+
+    private void PresentIntegrationTiles(OscBuildResult result)
+    {
         _integrationDisplay.ResetAllOpacity();
 
         var liveKeys = _appState.Value.MasterSwitch
@@ -47,19 +73,6 @@ public sealed class OscBuildResultPresenter
         {
             if (!SequenceEqualsIgnoreCase(_integrationDisplay.TrimmedOutputKeys, NothingLive))
                 _integrationDisplay.TrimmedOutputKeys = NothingLive;
-        }
-
-        if (result.Length > OscBuildContext.MaxOscLength)
-        {
-            _oscDisplay.OscToSent = string.Empty;
-            _oscDisplay.OscMsgCount = result.Length;
-            _oscDisplay.OscMsgCountUI = $"MAX/{OscBuildContext.MaxOscLength}";
-        }
-        else
-        {
-            _oscDisplay.OscToSent = result.Message;
-            _oscDisplay.OscMsgCount = result.Length;
-            _oscDisplay.OscMsgCountUI = $"{result.Length}/{OscBuildContext.MaxOscLength}";
         }
     }
 

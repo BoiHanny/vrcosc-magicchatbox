@@ -264,6 +264,8 @@ namespace vrcosc_magicchatbox.ViewModels
         private bool _IsVRRunning = false;
         [ObservableProperty]
         private bool _MasterSwitch = true;
+        [ObservableProperty]
+        private bool _IsUiObservable = true;
 
         private int _selectedMenuIndex = 3;
 

@@ -76,6 +76,7 @@ public static class ServiceRegistration
             sp.GetRequiredService<IToastService>()));
 
         services.AddSingleton<ITimeFormattingService, TimeFormattingService>();
+        services.AddSingleton<IProcessPresenceService, ProcessPresenceService>();
 
         services.AddSingleton<IUiDispatcher, WpfUiDispatcher>();
 

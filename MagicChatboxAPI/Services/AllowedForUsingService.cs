@@ -23,6 +23,7 @@ namespace MagicChatboxAPI.Services
 
         private const string CheckApiEndpoint = "https://api.magicchatbox.com/moderation/checkIfClientIsAllowed";
         private const string AcknowledgeBanEndpoint = "https://api.magicchatbox.com/moderation/acknowledgeBan";
+        private static readonly TimeSpan InitialCheckDelay = TimeSpan.FromSeconds(5);
 
         private readonly HttpClient _httpClient;
         private Timer _timer;
@@ -72,7 +73,7 @@ namespace MagicChatboxAPI.Services
 
                 _timer = new Timer(async _ => await UserMonitorCallback(),
                                    null,
-                                   TimeSpan.Zero,
+                                   InitialCheckDelay,
                                    interval);
                 _isMonitoring = true;
             }

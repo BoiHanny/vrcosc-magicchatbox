@@ -1,5 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Collections.Specialized;
+using System.ComponentModel;
 using System.Globalization;
 using System.Linq;
 using System.Text;
@@ -44,6 +47,10 @@ namespace vrcosc_magicchatbox.Classes.Modules
         private DateTime _lastRotationUtc = DateTime.MinValue;
         private readonly StringBuilder _stringBuilder = new StringBuilder(256);
 
+        private ObservableCollection<TrackerDevice>? _observedDevices;
+        private IReadOnlyList<TrackerDevice> _deviceSnapshot = Array.Empty<TrackerDevice>();
+        private bool _disposed;
+
         private readonly ISettingsProvider<TrackerBatterySettings> _settingsProvider;
         public TrackerBatterySettings Settings => _settingsProvider.Value;
         public void SaveSettings() => _settingsProvider.Save();
@@ -54,7 +61,28 @@ namespace vrcosc_magicchatbox.Classes.Modules
         public Task InitializeAsync(CancellationToken ct = default) { Initialize(); return Task.CompletedTask; }
         public Task StartAsync(CancellationToken ct = default) => Task.CompletedTask;
         public Task StopAsync(CancellationToken ct = default) { ReleaseSession("StopAsync"); return Task.CompletedTask; }
-        public void Dispose() => ReleaseSession("Dispose");
+
+        public void Dispose()
+        {
+            if (_disposed)
+            {
+                return;
+            }
+
+            _disposed = true;
+
+            _consentService.ConsentChanged -= OnConsentChanged;
+            _tracker.PropertyChanged -= OnTrackerStateChanged;
+
+            var observed = _observedDevices;
+            if (observed != null)
+            {
+                observed.CollectionChanged -= OnDeviceCollectionChanged;
+            }
+            _observedDevices = null;
+
+            ReleaseSession("Dispose");
+        }
 
         private readonly IAppState _appState;
         private readonly TrackerDisplayState _tracker;
@@ -85,6 +113,60 @@ namespace vrcosc_magicchatbox.Classes.Modules
             _toast = toast;
 
             _consentService.ConsentChanged += OnConsentChanged;
+            _tracker.PropertyChanged += OnTrackerStateChanged;
+            AttachDeviceCollection();
+        }
+
+        private IReadOnlyList<TrackerDevice> DeviceSnapshot => Volatile.Read(ref _deviceSnapshot);
+
+        private void OnTrackerStateChanged(object? sender, PropertyChangedEventArgs e)
+        {
+            if (!string.IsNullOrEmpty(e.PropertyName)
+                && !string.Equals(e.PropertyName, nameof(TrackerDisplayState.TrackerDevices), StringComparison.Ordinal))
+            {
+                return;
+            }
+
+            AttachDeviceCollection();
+        }
+
+        private void AttachDeviceCollection()
+        {
+            var current = _tracker.TrackerDevices;
+            var previous = _observedDevices;
+
+            if (!ReferenceEquals(previous, current))
+            {
+                if (previous != null)
+                {
+                    previous.CollectionChanged -= OnDeviceCollectionChanged;
+                }
+
+                _observedDevices = current;
+
+                if (current != null)
+                {
+                    current.CollectionChanged += OnDeviceCollectionChanged;
+                }
+            }
+
+            RefreshDeviceSnapshot();
+        }
+
+        private void OnDeviceCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
+        {
+            RefreshDeviceSnapshot();
+        }
+
+        private void RefreshDeviceSnapshot()
+        {
+            var source = _observedDevices;
+
+            IReadOnlyList<TrackerDevice> snapshot = source == null || source.Count == 0
+                ? Array.Empty<TrackerDevice>()
+                : source.ToArray();
+
+            Volatile.Write(ref _deviceSnapshot, snapshot);
         }
 
         private void OnConsentChanged(object? sender, ConsentChangedEventArgs e)
@@ -135,6 +217,7 @@ namespace vrcosc_magicchatbox.Classes.Modules
 
             _trackerErrorShown = false;
             var currentSerialNumbers = new HashSet<string>();
+            IReadOnlyList<TrackerDevice> knownDevices = DeviceSnapshot;
 
             for (uint i = 0; i < Valve.VR.OpenVR.k_unMaxTrackedDeviceCount; i++)
             {
@@ -159,7 +242,7 @@ namespace vrcosc_magicchatbox.Classes.Modules
 
                 currentSerialNumbers.Add(serial);
 
-                TrackerDevice device = _tracker.TrackerDevices
+                TrackerDevice device = knownDevices
                     .FirstOrDefault(d => string.Equals(d.SerialNumber, serial, StringComparison.OrdinalIgnoreCase));
 
                 if (device == null)
@@ -226,7 +309,7 @@ namespace vrcosc_magicchatbox.Classes.Modules
                 }
             }
 
-            foreach (var device in _tracker.TrackerDevices)
+            foreach (var device in knownDevices)
             {
                 if (!currentSerialNumbers.Contains(device.SerialNumber))
                 {
@@ -252,7 +335,7 @@ namespace vrcosc_magicchatbox.Classes.Modules
 
         private void MarkAllDisconnected()
         {
-            foreach (var device in _tracker.TrackerDevices)
+            foreach (var device in DeviceSnapshot)
             {
                 device.IsConnected = false;
                 device.DeviceIndex = -1;
@@ -266,7 +349,7 @@ namespace vrcosc_magicchatbox.Classes.Modules
 
             bool globalEmergency = Settings.GlobalEmergency;
 
-            IEnumerable<TrackerDevice> activeDevices = _tracker.TrackerDevices
+            IEnumerable<TrackerDevice> activeDevices = DeviceSnapshot
                 .Where(ShouldIncludeDevice);
 
             IEnumerable<TrackerDevice> orderedDevices = ApplySort(activeDevices);
@@ -391,8 +474,9 @@ namespace vrcosc_magicchatbox.Classes.Modules
 
         private void UpdateSummary(string scanStatus)
         {
-            int total = _tracker.TrackerDevices.Count;
-            int connected = _tracker.TrackerDevices.Count(d => d.IsConnected);
+            IReadOnlyList<TrackerDevice> devices = DeviceSnapshot;
+            int total = devices.Count;
+            int connected = devices.Count(d => d.IsConnected);
 
             _dispatcher.InvokeAsync(() =>
             {

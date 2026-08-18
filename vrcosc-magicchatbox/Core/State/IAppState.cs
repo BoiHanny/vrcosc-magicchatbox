@@ -15,4 +15,10 @@ public interface IAppState : INotifyPropertyChanged
     PulsoidAuthState PulsoidAuthState { get; set; }
 
     int MainWindowBlurEffect { get; set; }
+
+    bool IsUiObservable
+    {
+        get => true;
+        set { }
+    }
 }

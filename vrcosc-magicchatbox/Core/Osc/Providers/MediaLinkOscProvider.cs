@@ -81,9 +81,18 @@ public sealed class MediaLinkOscProvider : IOscProvider
 
     #region Core MediaLink logic (moved from OSCController.AddMediaLink)
 
+    private IReadOnlyList<MediaSessionInfo> SnapshotSessions()
+    {
+        var live = _mediaLink.MediaSessions;
+        if (live == null || live.Count == 0)
+            return Array.Empty<MediaSessionInfo>();
+
+        return live.ToArray();
+    }
+
     private string BuildMediaText(OscBuildContext context)
     {
-        var sessions = _mediaLink.MediaSessions?.Where(s => s.IsActive) ?? Enumerable.Empty<MediaSessionInfo>();
+        IEnumerable<MediaSessionInfo> sessions = SnapshotSessions().Where(s => s.IsActive);
         if (ShouldSuppressSpotifySessions(context.IsVRRunning))
             sessions = sessions.Where(s => !IsSpotifySession(s));
 

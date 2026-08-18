@@ -11,10 +11,11 @@ public static class StatusLine
             return string.Empty;
 
         if (!prefixIcon || string.IsNullOrWhiteSpace(icon))
-            return SegmentWriter.Fit(budget, plain);
+            return SegmentWriter.Fit(budget, () => plain);
 
-        string decorated = new SegmentWriter().Field(OscText.Raw(icon), OscText.Value(message)).Text;
-
-        return SegmentWriter.Fit(budget, decorated, plain);
+        return SegmentWriter.Fit(
+            budget,
+            () => new SegmentWriter().Field(OscText.Raw(icon), OscText.Value(message)).Text,
+            () => plain);
     }
 }

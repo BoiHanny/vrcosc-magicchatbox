@@ -143,6 +143,24 @@ namespace vrcosc_magicchatbox
                 if (WindowState == WindowState.Minimized && VM.AppSettingsInstance.MinimizeToTrayOnMinimize)
                     HideToTray();
             }
+
+            UpdateUiObservable();
+        }
+
+        private void MainWindow_IsVisibleChanged(object sender, DependencyPropertyChangedEventArgs e)
+        {
+            UpdateUiObservable();
+        }
+
+        private void MainWindow_Loaded(object sender, RoutedEventArgs e)
+        {
+            UpdateUiObservable();
+        }
+
+        private void UpdateUiObservable()
+        {
+            if (DataContext is ViewModel viewModel)
+                viewModel.IsUiObservable = IsVisible && WindowState != WindowState.Minimized;
         }
 
         private IntPtr WindowProc(IntPtr hwnd, int uMsg, IntPtr wParam, IntPtr lParam, ref bool handled)
@@ -206,6 +224,8 @@ namespace vrcosc_magicchatbox
             Closing += MainWindow_ClosingAsync;
             PreviewMouseDown += MainWindow_PreviewMouseDown;
             ContentRendered += OnFirstContentRendered;
+            Loaded += MainWindow_Loaded;
+            IsVisibleChanged += MainWindow_IsVisibleChanged;
         }
 
         public void ApplyIntegrationOrder()
@@ -310,6 +330,7 @@ namespace vrcosc_magicchatbox
         private void HideToTray(string? notificationText = "Still running in the tray.")
         {
             Hide();
+            UpdateUiObservable();
 
             if (VM.AppSettingsInstance.EnableTrayNotifications &&
                 VM.AppSettingsInstance.ShowTrayRunningReminder &&

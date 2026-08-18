@@ -1565,10 +1565,9 @@ public static class TikTokLiveOutput
 
     public static string Fit(int budget, string? combined, string? profileOutput, string? liveOutput)
     {
-        string essential = string.IsNullOrWhiteSpace(liveOutput)
-            ? profileOutput ?? string.Empty
-            : liveOutput;
-
-        return SegmentWriter.Fit(budget, combined ?? string.Empty, essential);
+        return SegmentWriter.Fit(
+            budget,
+            () => combined ?? string.Empty,
+            () => string.IsNullOrWhiteSpace(liveOutput) ? profileOutput ?? string.Empty : liveOutput);
     }
 }

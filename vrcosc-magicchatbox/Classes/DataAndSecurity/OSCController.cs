@@ -22,7 +22,7 @@ public sealed class OSCController
 
     internal void ClearChat(ChatItem lastsendchat = null) => _chatMgr.ClearChat(lastsendchat);
 
-    public void CreateChat(bool createItem, string? messageText = null) => _chatMgr.CreateChat(createItem, messageText);
+    public bool CreateChat(bool createItem, string? messageText = null) => _chatMgr.CreateChat(createItem, messageText);
 
     public void BuildOSC(bool allowExternalRefresh = true)
     {

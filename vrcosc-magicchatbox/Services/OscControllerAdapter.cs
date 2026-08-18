@@ -13,5 +13,5 @@ public sealed class OscControllerAdapter : IOscController
     }
 
     public void BuildOSC(bool allowExternalRefresh = true) => _osc.Value.BuildOSC(allowExternalRefresh);
-    public void CreateChat(bool createItem, string? messageText = null) => _osc.Value.CreateChat(createItem, messageText);
+    public bool CreateChat(bool createItem, string? messageText = null) => _osc.Value.CreateChat(createItem, messageText);
 }
