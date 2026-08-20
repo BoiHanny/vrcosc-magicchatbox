@@ -4,6 +4,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:controls="clr-namespace:vrcosc_magicchatbox.UI.Controls"
     xmlns:vm="clr-namespace:vrcosc_magicchatbox.ViewModels"
     xmlns:po="http://schemas.microsoft.com/winfx/2006/xaml/presentation/options"
     d:DataContext="{d:DesignInstance Type=vm:IntegrationsPageViewModel,
@@ -2734,6 +2735,124 @@
 
                 </Grid>
 
+            </ListBoxItem>
+
+            <ListBoxItem Name="VoicemodItem" Opacity="{Binding IntegrationDisplay.VoicemodOpacity}">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+
+                    <Border
+                        Grid.Row="0"
+                        Margin="5,0,5,5"
+                        Background="{StaticResource TileSurfaceBrush}"
+                        BorderBrush="#FF150C33"
+                        BorderThickness="1"
+                        CornerRadius="5">
+                        <Grid Margin="3">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="62" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+
+                            <Border
+                                Grid.Column="0"
+                                Width="3"
+                                Margin="-3,-3,0,-3"
+                                HorizontalAlignment="Left"
+                                CornerRadius="5,0,0,5"
+                                IsHitTestVisible="False">
+                                <Border.Style>
+                                    <Style TargetType="Border">
+                                        <Setter Property="Background" Value="#1AFFFFFF" />
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding Voicemod.Display.IsConnected}" Value="True">
+                                                <Setter Property="Background">
+                                                    <Setter.Value>
+                                                        <LinearGradientBrush StartPoint="0,1" EndPoint="0,0">
+                                                            <GradientStop Offset="0" Color="#3FE0D2" />
+                                                            <GradientStop Offset="1" Color="#B96BFF" />
+                                                        </LinearGradientBrush>
+                                                    </Setter.Value>
+                                                </Setter>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Border.Style>
+                            </Border>
+
+                            <Border
+                                Grid.Column="0"
+                                Width="50"
+                                Height="50"
+                                Margin="6,4,6,4"
+                                HorizontalAlignment="Left"
+                                VerticalAlignment="Center"
+                                Background="{StaticResource TileIconFrameBrush}"
+                                BorderBrush="{StaticResource TileIconFrameBorderBrush}"
+                                BorderThickness="1"
+                                CornerRadius="10"
+                                SnapsToDevicePixels="True">
+                                <TextBlock
+                                    HorizontalAlignment="Center"
+                                    VerticalAlignment="Center"
+                                    FontFamily="Segoe UI Emoji"
+                                    FontSize="25"
+                                    Text="🎙️" />
+                            </Border>
+
+                            <StackPanel
+                                Grid.Column="1"
+                                HorizontalAlignment="Stretch"
+                                VerticalAlignment="Center">
+                                <TextBlock Style="{StaticResource TileTitleStyle}" Text="Voicemod" />
+                                <TextBlock Style="{StaticResource TileDescriptionStyle}" Text="Choose voices, run the soundboard, tune effects, mute, monitor, and hold-to-bleep without leaving MagicChatbox." />
+                                <TextBlock
+                                    Margin="0,3,0,0"
+                                    FontFamily="{StaticResource FontPrimary}"
+                                    FontSize="{StaticResource FontSizeMicro}"
+                                    Foreground="{StaticResource TextMutedBrush}"
+                                    Text="{Binding Voicemod.Display.StatusText}"
+                                    TextTrimming="CharacterEllipsis" />
+                            </StackPanel>
+
+                            <StackPanel Grid.Column="2" Style="{StaticResource TileControlDeck}">
+                                <StackPanel Style="{StaticResource DeckChromeRow}">
+                                    <Button
+                                        AutomationProperties.Name="Hide this tile"
+                                        Click="HideTile_Click"
+                                        Style="{StaticResource TileHideButton}"
+                                        ToolTip="Hide this tile from the list. The integration stays switched on." />
+                                    <Button
+                                        Command="{Binding Voicemod.ToggleExpandedCommand}"
+                                        Content="{Binding Voicemod.PanelButtonText}"
+                                        Style="{StaticResource TileDoorButton}"
+                                        ToolTip="Open the full Voicemod controller." />
+                                </StackPanel>
+                            </StackPanel>
+
+                            <CheckBox
+                                Name="Voicemod_switch"
+                                Grid.Column="3"
+                                Margin="5,0,5,0"
+                                HorizontalAlignment="Center"
+                                VerticalAlignment="Center"
+                                Click="Update_Click"
+                                IsChecked="{Binding IntegrationSettings.IntgrVoicemod, Mode=TwoWay}"
+                                Style="{DynamicResource Switch}" />
+                        </Grid>
+                    </Border>
+
+                    <Grid
+                        Grid.Row="1"
+                        Visibility="{Binding Voicemod.IsExpanded, Converter={StaticResource BoolToVisibilityConverter}}">
+                        <controls:VoicemodControlPanel ViewModel="{Binding Voicemod}" />
+                    </Grid>
+                </Grid>
             </ListBoxItem>
 
             <ListBoxItem Name="SpotifyItem" Opacity="{Binding IntegrationDisplay.SpotifyOpacity}">

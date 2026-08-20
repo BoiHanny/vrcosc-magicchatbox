@@ -231,6 +231,7 @@ Every name below links to a full guide covering all of its settings.
 | :------------ | :------------ |
 | **[Chatbox & Chatting](https://github.com/BoiHanny/vrcosc-magicchatbox/wiki/Chatbox-and-Chatting)** | Type straight into the VRChat chatbox, with live edit, autocomplete and history. |
 | **[TTS & Voice](https://github.com/BoiHanny/vrcosc-magicchatbox/wiki/TTS-and-Voice)** | Speak your messages out loud, or dictate them with speech-to-text. |
+| **[Voicemod Control](https://control-api.voicemod.net/)** | Browse voices and soundboards, adjust live voice parameters, control Voicemod switches, mute, and hold-to-bleep from the Integrations page. |
 | **[IntelliChat](https://github.com/BoiHanny/vrcosc-magicchatbox/wiki/IntelliChat)** | AI spelling, translation and shortening — for when your message will not fit in 144 characters. |
 | **[Standalone](https://github.com/BoiHanny/vrcosc-magicchatbox/wiki/Standalone)** | Run it on a spare PC and send to a Quest over your network, no PCVR required. |
 | **[App Options](https://github.com/BoiHanny/vrcosc-magicchatbox/wiki/App-Options)** | OSC ports, extra outputs, startup behaviour and global preferences. |
@@ -282,6 +283,7 @@ for one specific thing at a time, not blanket access.**
 | 🎯 **VR Performance** | VR Performance |
 | 📶 **Network Statistics** | Network Statistics |
 | 🔊 **Soundpad Bridge** | Soundpad |
+| 🎙️ **Voicemod Control** | Voicemod |
 | 📡 **VRChat Log Reader** | VRChat Radar |
 | 🌐 **Internet Access** | Spotify · Twitch · TikTok · Heart Rate · Lyrics · Weather |
 
@@ -291,7 +293,7 @@ for one specific thing at a time, not blanket access.**
 
 | 🏠 Stays local | 🌐 Uses the network |
 | :------------ | :------------ |
-| Hardware sensors · Window titles · VRChat log<br>Media state · VR device batteries · Soundpad | Spotify · Twitch · TikTok<br>Pulsoid · Lyrics · Weather |
+| Hardware sensors · Window titles · VRChat log<br>Media state · VR device batteries · Soundpad · Voicemod | Spotify · Twitch · TikTok<br>Pulsoid · Lyrics · Weather |
 
 </div>
 
@@ -332,6 +334,12 @@ and nothing is sent anywhere else.
 | 👥 **[Staff](information/Staff.md)** | Meet the team behind MagicChatBox |
 | ⭐ **[Rating](information/Rating.md)** | Our user ratings |
 | 💜 **[Funding](information/Funding.md)** | Our community's advocates |
+
+### Building with Voicemod Control
+
+Release builds require a GitHub Actions repository secret named `VOICEMOD_CLIENT_KEY`; the workflow
+injects it as assembly metadata without writing it to source control. Local builds can override the
+embedded value at runtime with the `MAGICCHATBOX_VOICEMOD_CLIENT_KEY` environment variable.
 
 ---
 

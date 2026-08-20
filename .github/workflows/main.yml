@@ -250,8 +250,15 @@ jobs:
     # Step 6: Publish application to a stable output folder
     - name: Publish Application
       if: steps.resolve_release.outputs.is_tag_release != 'true' || steps.check_release.outputs.release_exists == 'false'
+      env:
+        VOICEMOD_CLIENT_KEY: ${{ secrets.VOICEMOD_CLIENT_KEY }}
       shell: pwsh
       run: |
+        if ([string]::IsNullOrWhiteSpace($env:VOICEMOD_CLIENT_KEY)) {
+          Write-Error "The VOICEMOD_CLIENT_KEY repository secret is required for release builds."
+          exit 1
+        }
+
         $publishDir = Join-Path $env:GITHUB_WORKSPACE 'publish-output'
         if (Test-Path -LiteralPath $publishDir) {
           Remove-Item -LiteralPath $publishDir -Recurse -Force
@@ -262,7 +269,8 @@ jobs:
           --runtime win-x64 `
           --self-contained false `
           --no-restore `
-          --output $publishDir
+          --output $publishDir `
+          -p:VoicemodClientKey="$env:VOICEMOD_CLIENT_KEY"
 
     # Step 7: Create ZIP of artifacts
     - name: Create Zip File

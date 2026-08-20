@@ -83,6 +83,13 @@ public partial class PrivacyConsentDialog : Window
             warning: null,
             isApproved: _consentService.IsApproved(hook)),
 
+        PrivacyHook.VoicemodControl => new HookItem(hook,
+            title: "🎙️  Voicemod Control  (local WebSocket)",
+            description: "Connects only to the Voicemod desktop app on this PC. It can read available voices and " +
+                         "soundboards, change voice effects, play sounds, and control Voicemod's microphone switches.",
+            warning: "The bleep and mute controls directly affect what listeners hear through Voicemod.",
+            isApproved: _consentService.IsApproved(hook)),
+
         PrivacyHook.VrcLogReader => new HookItem(hook,
             title: "📡  VRChat Log Reader  (file read)",
             description: "Reads VRChat's output_log.txt to extract world info, player events, and session stats. " +

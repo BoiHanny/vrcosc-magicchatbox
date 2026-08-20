@@ -50,6 +50,7 @@ public partial class IntegrationsPageViewModel : ObservableObject
     public WeatherSettings WeatherSettings { get; }
     public TrackerDisplayState Tracker { get; }
     public IAppState AppState { get; }
+    public Sections.VoicemodSectionViewModel Voicemod { get; }
 
     private readonly Lazy<ComponentStatsViewModel> _componentStats;
     public ComponentStatsViewModel ComponentStats => _componentStats.Value;
@@ -111,6 +112,7 @@ public partial class IntegrationsPageViewModel : ObservableObject
         SpotifyDisplayState spotifyDisplay,
         LyricsDisplayState lyricsDisplay,
         Lazy<Sections.LyricsSectionViewModel> lyricsTuning,
+        Sections.VoicemodSectionViewModel voicemod,
         TrackerDisplayState tracker,
         IAppState appState,
         IMenuNavigationService menuNav,
@@ -132,6 +134,7 @@ public partial class IntegrationsPageViewModel : ObservableObject
         SpotifyDisplay = spotifyDisplay;
         LyricsDisplay = lyricsDisplay;
         _lyricsTuning = lyricsTuning;
+        Voicemod = voicemod;
         MediaLinkSettings = mediaLinkSettingsProvider.Value;
         SpotifySettings = spotifySettingsProvider.Value;
         WeatherSettings = weatherSettingsProvider.Value;
@@ -167,6 +170,7 @@ public partial class IntegrationsPageViewModel : ObservableObject
             { nameof(IntegrationSettings.IntgrTrackerBattery),     (PrivacyHook.VrTrackerBattery, () => IntegrationSettings.IntgrTrackerBattery,      () => IntegrationSettings.IntgrTrackerBattery = false) },
             { nameof(IntegrationSettings.IntgrNetworkStatistics),  (PrivacyHook.NetworkStats,     () => IntegrationSettings.IntgrNetworkStatistics,   () => IntegrationSettings.IntgrNetworkStatistics = false) },
             { nameof(IntegrationSettings.IntgrSoundpad),           (PrivacyHook.SoundpadBridge,   () => IntegrationSettings.IntgrSoundpad,            () => IntegrationSettings.IntgrSoundpad = false) },
+            { nameof(IntegrationSettings.IntgrVoicemod),           (PrivacyHook.VoicemodControl,  () => IntegrationSettings.IntgrVoicemod,            () => IntegrationSettings.IntgrVoicemod = false) },
             { nameof(IntegrationSettings.IntgrVrcRadar),           (PrivacyHook.VrcLogReader,     () => IntegrationSettings.IntgrVrcRadar,            () => IntegrationSettings.IntgrVrcRadar = false) },
             { nameof(IntegrationSettings.IntgrVrPerformance),      (PrivacyHook.VrPerformance,    () => IntegrationSettings.IntgrVrPerformance,       () => IntegrationSettings.IntgrVrPerformance = false) },
             { nameof(IntegrationSettings.IntgrLyrics),             (PrivacyHook.InternetAccess,   () => IntegrationSettings.IntgrLyrics,              () => IntegrationSettings.IntgrLyrics = false) },
@@ -192,6 +196,7 @@ public partial class IntegrationsPageViewModel : ObservableObject
             { nameof(IntegrationSettings.IntgrWeather_DESKTOP),    ("Weather",        () => IntegrationSettings.IntgrWeather_DESKTOP) },
             { nameof(IntegrationSettings.IntgrScanMediaLink),      ("MediaLink",      () => IntegrationSettings.IntgrScanMediaLink) },
             { nameof(IntegrationSettings.IntgrSoundpad),           ("Soundpad",       () => IntegrationSettings.IntgrSoundpad) },
+            { nameof(IntegrationSettings.IntgrVoicemod),           ("Voicemod",       () => IntegrationSettings.IntgrVoicemod) },
         };
 
         IntegrationSettings.PropertyChanged += OnIntegrationSettingChanged;
@@ -268,6 +273,9 @@ public partial class IntegrationsPageViewModel : ObservableObject
 
         if (e.PropertyName is nameof(IntegrationSettings.IntgrSpotify) or nameof(IntegrationSettings.IntgrScanMediaLink))
             HandleSpotifyMediaLinkCoexistence();
+
+        if (e.PropertyName == nameof(IntegrationSettings.IntgrVoicemod) && IntegrationSettings.IntgrVoicemod)
+            Voicemod.IsExpanded = true;
 
         if (e.PropertyName == nameof(IntegrationSettings.HiddenStripCollapsed))
         {

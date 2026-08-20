@@ -15,7 +15,7 @@ public partial class IntegrationDisplayState : ObservableObject
     {
         "Status", "Window", "Twitch", "TikTokLive", "Discord", "Spotify", "VrcRadar", "HeartRate", "Component",
         "VrPerformance", "TrackerBattery", "Network", "Weather", "Time", "Soundpad",
-        "MediaLink", "Lyrics"
+        "Voicemod", "MediaLink", "Lyrics"
     };
 
     public static readonly IReadOnlyList<string> FollowerKeys = new[] { "Lyrics" };
@@ -132,6 +132,7 @@ public partial class IntegrationDisplayState : ObservableObject
     [ObservableProperty] private string _componentStatOpacity = "1";
     [ObservableProperty] private string _networkStatsOpacity = "1";
     [ObservableProperty] private string _soundpadOpacity = "1";
+    [ObservableProperty] private string _voicemodOpacity = "1";
     [ObservableProperty] private string _mediaLinkOpacity = "1";
 
     [ObservableProperty] private IReadOnlyCollection<string> _liveOutputKeys = Array.Empty<string>();
@@ -184,6 +185,7 @@ public partial class IntegrationDisplayState : ObservableObject
             case "ComponentStat": ComponentStatOpacity = opacity; break;
             case "NetworkStatistics": NetworkStatsOpacity = opacity; break;
             case "Soundpad": SoundpadOpacity = opacity; break;
+            case "Voicemod": VoicemodOpacity = opacity; break;
             case "MediaLink": MediaLinkOpacity = opacity; break;
             case "VrPerformance": VrPerformanceOpacity = opacity; break;
         }
@@ -205,6 +207,7 @@ public partial class IntegrationDisplayState : ObservableObject
         ComponentStatOpacity = "1";
         NetworkStatsOpacity = "1";
         SoundpadOpacity = "1";
+        VoicemodOpacity = "1";
         MediaLinkOpacity = "1";
         VrPerformanceOpacity = "1";
     }

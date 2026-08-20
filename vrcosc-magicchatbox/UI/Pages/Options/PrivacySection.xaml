@@ -422,6 +422,51 @@
 
                         <Separator Margin="0,2,10,2" Background="{StaticResource SurfaceVariantBrush}" />
 
+                        <Grid x:Name="VoicemodControlRow" Margin="0,4,10,12">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+
+                            <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                                <TextBlock Style="{StaticResource OptionFieldLabelStyle}" Text="🎙️  Voicemod Control" />
+                                <TextBlock Style="{StaticResource OptionHelpTextStyle}" Text="Connects to Voicemod on this PC to read and control voices, sounds, mute, monitoring, and bleep." />
+                            </StackPanel>
+
+                            <Border
+                                Grid.Column="1"
+                                Margin="8,0"
+                                Background="{StaticResource AccentDeepPurpleBrush}"
+                                Style="{StaticResource StateBadgeStyle}">
+                                <TextBlock
+                                    FontFamily="{StaticResource FontPrimary}"
+                                    FontSize="{StaticResource FontSizeMicro}"
+                                    Foreground="{StaticResource TextSectionHeaderBrush}"
+                                    Text="{Binding VoicemodControlState, Converter={StaticResource EnumDescriptionConverter}}" />
+                            </Border>
+
+                            <StackPanel Grid.Column="2" Orientation="Horizontal">
+                                <Button
+                                    Width="70"
+                                    Height="26"
+                                    Margin="0,0,6,0"
+                                    Command="{Binding ManageHookCommand}"
+                                    CommandParameter="{x:Static privacy:PrivacyHook.VoicemodControl}"
+                                    Content="Manage"
+                                    Style="{StaticResource Status_Button_style}" />
+                                <Button
+                                    Width="60"
+                                    Height="26"
+                                    Command="{Binding RevokeHookCommand}"
+                                    CommandParameter="{x:Static privacy:PrivacyHook.VoicemodControl}"
+                                    Content="Revoke"
+                                    Style="{StaticResource Status_Button_style}" />
+                            </StackPanel>
+                        </Grid>
+
+                        <Separator Margin="0,2,10,2" Background="{StaticResource SurfaceVariantBrush}" />
+
                         <Grid Margin="0,4,10,12">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*" />

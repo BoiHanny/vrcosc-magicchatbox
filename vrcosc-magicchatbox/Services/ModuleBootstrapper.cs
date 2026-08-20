@@ -9,6 +9,7 @@ using vrcosc_magicchatbox.Classes.Modules.Spotify;
 using vrcosc_magicchatbox.Classes.Modules.Vr;
 using vrcosc_magicchatbox.Classes.Modules.Lyrics;
 using vrcosc_magicchatbox.Classes.Modules.Twitch;
+using vrcosc_magicchatbox.Classes.Modules.Voicemod;
 using vrcosc_magicchatbox.Core.Configuration;
 using vrcosc_magicchatbox.Core.Privacy;
 using vrcosc_magicchatbox.Core.Services;
@@ -60,6 +61,7 @@ public class ModuleBootstrapper
     private readonly DiscordRichPresenceService _discordRichPresence;
     private readonly IPrivacyConsentService _consentService;
     private readonly IToastService _toast;
+    private readonly VoicemodModule _voicemod;
     private readonly TaskCompletionSource _startupComplete = new(TaskCreationOptions.RunContinuationsAsynchronously);
     private readonly object _teardownLock = new();
     private List<Action> _teardownActions = new();
@@ -135,7 +137,8 @@ public class ModuleBootstrapper
         Lazy<DiscordOAuthHandler> discordOAuth,
         DiscordRichPresenceService discordRichPresence,
         IPrivacyConsentService consentService,
-        IToastService toast)
+        IToastService toast,
+        VoicemodModule voicemod)
     {
         _host = host;
         _appState = appState;
@@ -175,6 +178,7 @@ public class ModuleBootstrapper
         _discordRichPresence = discordRichPresence;
         _consentService = consentService;
         _toast = toast;
+        _voicemod = voicemod;
     }
 
     public Task RegisterComponentStatsAsync(ComponentStatsModule statsModule)
@@ -317,6 +321,27 @@ public class ModuleBootstrapper
                 _host.RegisterModule(soundpad);
                 integrationSettings.PropertyChanged += soundpad.PropertyChangedHandler;
                 TrackSubscription(() => integrationSettings.PropertyChanged -= soundpad.PropertyChangedHandler);
+            }
+
+            _host.Voicemod = _voicemod;
+            _host.RegisterModule(_voicemod);
+            integrationSettings.PropertyChanged += _voicemod.PropertyChangedHandler;
+            TrackSubscription(() => integrationSettings.PropertyChanged -= _voicemod.PropertyChangedHandler);
+
+            if (integrationSettings.IntgrVoicemod)
+            {
+                _ = Task.Run(async () =>
+                {
+                    try
+                    {
+                        await _startupComplete.Task;
+                        await _voicemod.StartAsync();
+                    }
+                    catch (Exception ex)
+                    {
+                        Logging.WriteInfo($"Voicemod auto-connect failed: {ex.Message}");
+                    }
+                });
             }
 
             if (twitch != null)

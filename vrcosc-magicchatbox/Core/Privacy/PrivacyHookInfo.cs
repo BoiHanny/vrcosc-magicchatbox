@@ -14,6 +14,7 @@ public static class PrivacyHookInfo
         PrivacyHook.SoundpadBridge => ("Soundpad Bridge", "🔊"),
         PrivacyHook.VrcLogReader => ("VRChat Log Reader", "📡"),
         PrivacyHook.VrPerformance => ("VR Performance", "🎯"),
+        PrivacyHook.VoicemodControl => ("Voicemod Control", "🎙️"),
         _ => (hook.ToString(), "🔒"),
     };
 }

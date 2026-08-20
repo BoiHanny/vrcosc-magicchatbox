@@ -1,0 +1,423 @@
+<UserControl
+    x:Class="vrcosc_magicchatbox.UI.Controls.VoicemodControlPanel"
+    x:Name="Root"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:sections="clr-namespace:vrcosc_magicchatbox.ViewModels.Sections"
+    d:DataContext="{d:DesignInstance Type=sections:VoicemodSectionViewModel,
+                                     IsDesignTimeCreatable=False}"
+    mc:Ignorable="d">
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="/MagicChatbox;component/UI/Resources/SharedConverters.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+
+            <Style
+                x:Key="VoicemodCompactButton"
+                BasedOn="{StaticResource Status_Button_style}"
+                TargetType="Button">
+                <Setter Property="Height" Value="28" />
+                <Setter Property="MinWidth" Value="76" />
+                <Setter Property="Margin" Value="0,0,6,6" />
+                <Setter Property="Padding" Value="8,2" />
+                <Setter Property="FontSize" Value="{StaticResource FontSizeCaption}" />
+            </Style>
+        </ResourceDictionary>
+    </UserControl.Resources>
+
+    <Border
+        Margin="5,0,5,7"
+        Padding="10"
+        Background="{StaticResource SurfaceButtonDarkBrush}"
+        BorderBrush="#FF3A1F73"
+        BorderThickness="1"
+        CornerRadius="7">
+        <StackPanel x:Name="PanelContent">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+
+                <StackPanel Grid.Column="0">
+                    <TextBlock
+                        FontFamily="{StaticResource FontPrimary}"
+                        FontSize="{StaticResource FontSizeSecondary}"
+                        FontWeight="SemiBold"
+                        Foreground="{StaticResource TextPrimaryBrush}"
+                        Text="{Binding Display.StatusText}"
+                        TextWrapping="Wrap" />
+                    <TextBlock
+                        Margin="0,3,0,0"
+                        FontFamily="{StaticResource FontPrimary}"
+                        FontSize="{StaticResource FontSizeMicro}"
+                        Foreground="{StaticResource TextMutedBrush}"
+                        Text="{Binding ConnectionDetails}" />
+                </StackPanel>
+
+                <WrapPanel Grid.Column="1" HorizontalAlignment="Right">
+                    <Button
+                        Command="{Binding ReconnectCommand}"
+                        Content="Reconnect"
+                        Style="{StaticResource VoicemodCompactButton}" />
+                    <Button
+                        Command="{Binding RefreshCommand}"
+                        Content="Refresh"
+                        IsEnabled="{Binding CanControl}"
+                        Style="{StaticResource VoicemodCompactButton}" />
+                    <Button
+                        Command="{Binding OpenDocumentationCommand}"
+                        Content="API docs"
+                        Style="{StaticResource VoicemodCompactButton}" />
+                </WrapPanel>
+            </Grid>
+
+            <Border
+                Margin="0,8,0,8"
+                Padding="8"
+                Background="#33FFB74D"
+                BorderBrush="{StaticResource StatusWarningBrush}"
+                BorderThickness="1"
+                CornerRadius="5"
+                Visibility="{Binding HasError, Converter={StaticResource BoolToVisibilityConverter}}">
+                <TextBlock
+                    FontFamily="{StaticResource FontPrimary}"
+                    FontSize="{StaticResource FontSizeCaption}"
+                    Foreground="{StaticResource StatusWarningBrush}"
+                    Text="{Binding Display.ErrorText}"
+                    TextWrapping="Wrap" />
+            </Border>
+
+            <Border
+                Margin="0,0,0,8"
+                Padding="8"
+                Background="#332A84FF"
+                BorderBrush="{StaticResource AccentTealBrush}"
+                BorderThickness="1"
+                CornerRadius="5"
+                Visibility="{Binding NeedsPermission, Converter={StaticResource BoolToVisibilityConverter}}">
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock
+                        VerticalAlignment="Center"
+                        FontFamily="{StaticResource FontPrimary}"
+                        FontSize="{StaticResource FontSizeCaption}"
+                        Foreground="{StaticResource TextPrimaryBrush}"
+                        Text="Allow the local Voicemod connection in Privacy &amp; permissions." />
+                    <Button
+                        Margin="10,0,0,0"
+                        Command="{Binding OpenPrivacyCommand}"
+                        Content="Open privacy"
+                        Style="{StaticResource VoicemodCompactButton}" />
+                </StackPanel>
+            </Border>
+
+            <Grid x:Name="VoiceAndSwitchCards">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+
+                <Border
+                    Grid.Column="0"
+                    Margin="0,0,8,8"
+                    Padding="10"
+                    Background="#FF1D1730"
+                    BorderBrush="#FF3A2A66"
+                    BorderThickness="1"
+                    CornerRadius="7">
+                    <StackPanel>
+                        <TextBlock Style="{StaticResource OptionSubsectionHeaderStyle}" Text="Voice filter" />
+                        <TextBlock Margin="0,2,0,7" Style="{StaticResource OptionHelpTextStyle}">
+                            <Run Text="Current: " />
+                            <Run Text="{Binding Display.CurrentVoiceName}" />
+                        </TextBlock>
+                        <TextBox
+                            Margin="0,0,0,6"
+                            Padding="6,3"
+                            Text="{Binding VoiceSearchText, UpdateSourceTrigger=PropertyChanged, Delay=150}"
+                            ToolTip="Filter by voice name or ID" />
+                        <ComboBox
+                            MinWidth="230"
+                            ItemsSource="{Binding FilteredVoices}"
+                            SelectedItem="{Binding SelectedVoice, Mode=TwoWay}"
+                            Style="{StaticResource DarkComboBoxStyle}">
+                            <ComboBox.ItemTemplate>
+                                <DataTemplate>
+                                    <TextBlock Text="{Binding DisplayName}" TextTrimming="CharacterEllipsis" />
+                                </DataTemplate>
+                            </ComboBox.ItemTemplate>
+                        </ComboBox>
+                        <WrapPanel Margin="0,8,0,0">
+                            <Button
+                                Command="{Binding ApplyVoiceCommand}"
+                                Content="Load voice"
+                                IsEnabled="{Binding CanControl}"
+                                Style="{StaticResource VoicemodCompactButton}" />
+                            <Button
+                                Command="{Binding DisableVoiceCommand}"
+                                Content="No effect"
+                                IsEnabled="{Binding CanControl}"
+                                Style="{StaticResource VoicemodCompactButton}" />
+                        </WrapPanel>
+                        <StackPanel Orientation="Horizontal">
+                            <ComboBox
+                                Width="140"
+                                Margin="0,0,6,6"
+                                ItemsSource="{Binding RandomVoiceModes}"
+                                SelectedItem="{Binding SelectedRandomMode}"
+                                Style="{StaticResource DarkComboBoxStyle}">
+                                <ComboBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding Converter={StaticResource EnumDescriptionConverter}}" />
+                                    </DataTemplate>
+                                </ComboBox.ItemTemplate>
+                            </ComboBox>
+                            <Button
+                                Command="{Binding SelectRandomVoiceCommand}"
+                                Content="Random"
+                                IsEnabled="{Binding CanControl}"
+                                Style="{StaticResource VoicemodCompactButton}" />
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+
+                <Border
+                    Grid.Column="1"
+                    Margin="0,0,8,8"
+                    Padding="10"
+                    Background="#FF1D1730"
+                    BorderBrush="#FF3A2A66"
+                    BorderThickness="1"
+                    CornerRadius="7">
+                    <StackPanel>
+                        <TextBlock Style="{StaticResource OptionSubsectionHeaderStyle}" Text="Live switches" />
+                        <TextBlock
+                            Margin="0,2,0,7"
+                            Style="{StaticResource OptionHelpTextStyle}"
+                            Text="These mirror Voicemod itself and update when another client or the Voicemod UI changes them." />
+                        <WrapPanel>
+                            <Button
+                                Command="{Binding ToggleVoiceChangerCommand}"
+                                Content="{Binding VoiceChangerButtonText}"
+                                IsEnabled="{Binding CanControl}"
+                                Style="{StaticResource VoicemodCompactButton}" />
+                            <Button
+                                Command="{Binding ToggleHearMyselfCommand}"
+                                Content="{Binding HearMyselfButtonText}"
+                                IsEnabled="{Binding CanControl}"
+                                Style="{StaticResource VoicemodCompactButton}" />
+                            <Button
+                                Command="{Binding ToggleBackgroundCommand}"
+                                Content="{Binding BackgroundButtonText}"
+                                IsEnabled="{Binding CanControl}"
+                                Style="{StaticResource VoicemodCompactButton}" />
+                            <Button
+                                Command="{Binding ToggleMicrophoneMuteCommand}"
+                                Content="{Binding MicrophoneMuteButtonText}"
+                                IsEnabled="{Binding CanControl}"
+                                Style="{StaticResource VoicemodCompactButton}" />
+                        </WrapPanel>
+                        <Button
+                            x:Name="BleepButton"
+                            MinWidth="170"
+                            HorizontalAlignment="Left"
+                            AutomationProperties.HelpText="Hold this button while speaking to replace your voice with a bleep."
+                            AutomationProperties.Name="Hold to bleep"
+                            Content="{Binding BleepButtonText}"
+                            IsEnabled="{Binding CanControl}"
+                            LostKeyboardFocus="BleepButton_LostKeyboardFocus"
+                            LostMouseCapture="BleepButton_LostMouseCapture"
+                            PreviewKeyDown="BleepButton_PreviewKeyDown"
+                            PreviewKeyUp="BleepButton_PreviewKeyUp"
+                            PreviewMouseLeftButtonDown="BleepButton_PreviewMouseLeftButtonDown"
+                            PreviewMouseLeftButtonUp="BleepButton_PreviewMouseLeftButtonUp"
+                            Style="{StaticResource VoicemodCompactButton}"
+                            ToolTip="Press and hold. Releasing always sends the stop command." />
+                    </StackPanel>
+                </Border>
+            </Grid>
+
+            <Border
+                x:Name="SoundboardCard"
+                Margin="0,0,8,8"
+                Padding="10"
+                Background="#FF1D1730"
+                BorderBrush="#FF3A2A66"
+                BorderThickness="1"
+                CornerRadius="7">
+                <StackPanel>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Grid.Column="0">
+                            <TextBlock Style="{StaticResource OptionSubsectionHeaderStyle}" Text="Soundboard" />
+                            <TextBlock
+                                Margin="0,2,0,7"
+                                Style="{StaticResource OptionHelpTextStyle}"
+                                Text="Unavailable Pro sounds stay visible but cannot be played. Stop all is the API's only guaranteed stop command." />
+                        </StackPanel>
+                        <Button
+                            Grid.Column="1"
+                            Command="{Binding ToggleSoundboardMuteCommand}"
+                            Content="{Binding SoundboardMuteButtonText}"
+                            IsEnabled="{Binding CanControl}"
+                            Style="{StaticResource VoicemodCompactButton}" />
+                    </Grid>
+
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="220" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <ComboBox
+                            Grid.Column="0"
+                            Margin="0,0,8,6"
+                            ItemsSource="{Binding Display.Soundboards}"
+                            SelectedItem="{Binding SelectedSoundboard, Mode=TwoWay}"
+                            Style="{StaticResource DarkComboBoxStyle}">
+                            <ComboBox.ItemTemplate>
+                                <DataTemplate>
+                                    <TextBlock Text="{Binding DisplayName}" TextTrimming="CharacterEllipsis" />
+                                </DataTemplate>
+                            </ComboBox.ItemTemplate>
+                        </ComboBox>
+                        <TextBox
+                            Grid.Column="1"
+                            Margin="0,0,0,6"
+                            Padding="6,3"
+                            Text="{Binding SoundSearchText, UpdateSourceTrigger=PropertyChanged, Delay=150}"
+                            ToolTip="Filter sounds in this soundboard" />
+                    </Grid>
+
+                    <ListBox
+                        Height="140"
+                        ItemsSource="{Binding FilteredSounds}"
+                        SelectedItem="{Binding SelectedSound, Mode=TwoWay}"
+                        Background="#77100B1E"
+                        BorderBrush="#FF3A2A66"
+                        BorderThickness="1"
+                        ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <Grid Margin="4,3">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock
+                                        Grid.Column="0"
+                                        Foreground="{StaticResource TextPrimaryBrush}"
+                                        Text="{Binding DisplayName}"
+                                        TextTrimming="CharacterEllipsis" />
+                                    <TextBlock
+                                        Grid.Column="1"
+                                        Margin="10,0,0,0"
+                                        Foreground="{StaticResource TextMutedBrush}"
+                                        Text="{Binding PlaybackMode}" />
+                                </Grid>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+
+                    <WrapPanel Margin="0,8,0,0">
+                        <Button
+                            Command="{Binding PlaySelectedSoundCommand}"
+                            Content="Play selected"
+                            IsEnabled="{Binding CanControl}"
+                            Style="{StaticResource VoicemodCompactButton}" />
+                        <Button
+                            Command="{Binding StopAllSoundsCommand}"
+                            Content="Stop all sounds"
+                            IsEnabled="{Binding CanControl}"
+                            Style="{StaticResource VoicemodCompactButton}" />
+                    </WrapPanel>
+                </StackPanel>
+            </Border>
+
+            <Border
+                x:Name="ParametersCard"
+                Margin="0,0,8,8"
+                Padding="10"
+                Background="#FF1D1730"
+                BorderBrush="#FF3A2A66"
+                BorderThickness="1"
+                CornerRadius="7">
+                <StackPanel>
+                    <TextBlock Style="{StaticResource OptionSubsectionHeaderStyle}" Text="Current voice parameters" />
+                    <TextBlock
+                        Margin="0,2,0,7"
+                        Style="{StaticResource OptionHelpTextStyle}"
+                        Text="Voices expose different controls. Move a slider, then press Apply; Reset restores Voicemod's default for that parameter." />
+
+                    <TextBlock
+                        Margin="0,5"
+                        HorizontalAlignment="Center"
+                        Foreground="{StaticResource TextMutedBrush}"
+                        Text="This voice exposes no adjustable parameters."
+                        Visibility="{Binding HasParameterEditors, Converter={StaticResource InverseBoolToVisibilityConverter}}" />
+
+                    <ScrollViewer
+                        MaxHeight="250"
+                        VerticalScrollBarVisibility="Auto"
+                        Visibility="{Binding HasParameterEditors, Converter={StaticResource BoolToVisibilityConverter}}">
+                        <ItemsControl ItemsSource="{Binding ParameterEditors}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Grid Margin="0,3">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="150" />
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="54" />
+                                            <ColumnDefinition Width="Auto" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock
+                                            Grid.Column="0"
+                                            Margin="0,0,8,0"
+                                            VerticalAlignment="Center"
+                                            Foreground="{StaticResource TextPrimaryBrush}"
+                                            Text="{Binding Name}"
+                                            TextTrimming="CharacterEllipsis"
+                                            ToolTip="{Binding Name}" />
+                                        <Slider
+                                            Grid.Column="1"
+                                            Margin="0,0,8,0"
+                                            IsEnabled="{Binding CanChange}"
+                                            Maximum="{Binding Maximum}"
+                                            Minimum="{Binding Minimum}"
+                                            Style="{StaticResource CustomSlider}"
+                                            Value="{Binding DraftValue, Mode=TwoWay}" />
+                                        <TextBlock
+                                            Grid.Column="2"
+                                            VerticalAlignment="Center"
+                                            Foreground="{StaticResource TextMutedBrush}"
+                                            Text="{Binding ValueText}" />
+                                        <Button
+                                            Grid.Column="3"
+                                            Command="{Binding DataContext.ApplyParameterCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                            CommandParameter="{Binding}"
+                                            Content="Apply"
+                                            IsEnabled="{Binding DataContext.CanControl, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                            Style="{StaticResource VoicemodCompactButton}" />
+                                        <Button
+                                            Grid.Column="4"
+                                            Command="{Binding DataContext.ResetParameterCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                            CommandParameter="{Binding}"
+                                            Content="Reset"
+                                            IsEnabled="{Binding DataContext.CanControl, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                            Style="{StaticResource VoicemodCompactButton}" />
+                                    </Grid>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </ScrollViewer>
+                </StackPanel>
+            </Border>
+        </StackPanel>
+    </Border>
+</UserControl>

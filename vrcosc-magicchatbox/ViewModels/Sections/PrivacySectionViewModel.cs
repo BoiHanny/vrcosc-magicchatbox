@@ -29,6 +29,7 @@ public partial class PrivacySectionViewModel : ObservableObject
     [ObservableProperty] private ConsentState _soundpadBridgeState;
     [ObservableProperty] private ConsentState _vrcLogReaderState;
     [ObservableProperty] private ConsentState _vrPerformanceState;
+    [ObservableProperty] private ConsentState _voicemodControlState;
 
     public PrivacySectionViewModel(
         IPrivacyConsentService consentService,
@@ -52,6 +53,7 @@ public partial class PrivacySectionViewModel : ObservableObject
         SoundpadBridgeState = _consentService.GetState(PrivacyHook.SoundpadBridge);
         VrcLogReaderState = _consentService.GetState(PrivacyHook.VrcLogReader);
         VrPerformanceState = _consentService.GetState(PrivacyHook.VrPerformance);
+        VoicemodControlState = _consentService.GetState(PrivacyHook.VoicemodControl);
     }
 
     [RelayCommand]
