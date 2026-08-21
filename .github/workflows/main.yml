@@ -1,4 +1,4 @@
-name: .NET Core Desktop Build and Release
+name: Build and Release
 
 on:
   push:
@@ -15,9 +15,8 @@ concurrency:
   cancel-in-progress: false
 
 env:
-  Solution_Name: vrcosc-magicchatbox.sln
-  Project_Path: vrcosc-magicchatbox\MagicChatbox.csproj
-  DOTNET_ROOT: C:\Program Files\dotnet
+  SOLUTION_PATH: vrcosc-magicchatbox.sln
+  PROJECT_PATH: vrcosc-magicchatbox\MagicChatbox.csproj
 
 jobs:
   build-and-release:
@@ -27,21 +26,21 @@ jobs:
       contents: write
 
     steps:
-    - name: Checkout Repository
+    - name: Check out the repository
       uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
       with:
         fetch-depth: 0
 
-    - name: Setup .NET Core
+    - name: Set up the .NET SDK
       uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
       with:
         dotnet-version: '10.0.x'
 
-    # Step 1: Extract version from the csproj
-    - name: Extract Version from csproj
+    # ---- Version and release tag ----
+    - name: Read the version from the project file
       shell: pwsh
       run: |
-        $csproj = "${{ env.Project_Path }}"
+        $csproj = "${{ env.PROJECT_PATH }}"
         $pattern = '<Version>(.*)</Version>'
         $content = Get-Content $csproj -Raw
         $match = [regex]::Match($content, $pattern)
@@ -54,8 +53,7 @@ jobs:
           exit 1
         }
 
-    # Step 2: Resolve the release tag for this run
-    - name: Resolve Release Tag
+    - name: Resolve the release tag
       id: resolve_release
       shell: pwsh
       run: |
@@ -84,8 +82,7 @@ jobs:
         "release_tag=$releaseTag" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
         "is_tag_release=$($isTagRelease.ToString().ToLowerInvariant())" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
 
-    # Step 3: Check if a release with this tag already exists
-    - name: Check if Release Exists
+    - name: Check whether the release already exists
       id: check_release
       uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
       with:
@@ -108,7 +105,7 @@ jobs:
             }
           }
 
-    - name: Ensure Release Tag Exists (Actions token)
+    - name: Create the release tag
       if: steps.resolve_release.outputs.is_tag_release != 'true' && steps.check_release.outputs.release_exists == 'false'
       id: ensure_tag_actions
       uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
@@ -151,7 +148,7 @@ jobs:
             }
           }
 
-    - name: Ensure Release Tag Exists (MY_PAT fallback)
+    - name: Create the release tag (fallback token)
       if: steps.resolve_release.outputs.is_tag_release != 'true' && steps.check_release.outputs.release_exists == 'false' && steps.ensure_tag_actions.outputs.tag_ready != 'true'
       id: ensure_tag_pat
       uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
@@ -194,7 +191,7 @@ jobs:
             }
           }
 
-    - name: Finalize Branch Release Path
+    - name: Decide whether this branch run publishes
       if: steps.resolve_release.outputs.is_tag_release != 'true' && steps.check_release.outputs.release_exists == 'false'
       id: finalize_branch_release
       env:
@@ -235,20 +232,18 @@ jobs:
         "tag_source=$tagSource" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
         "publish_now=$publishNow" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
 
-    # Step 4: If the release already exists for this tag, stop here
-    - name: Release Already Exists
+    - name: Stop early, the release already exists
       if: steps.resolve_release.outputs.is_tag_release == 'true' && steps.check_release.outputs.release_exists == 'true'
       run: |
         echo "Release ${{ steps.resolve_release.outputs.release_tag }} already exists. Skipping tagged release."
         exit 0
 
-    # Step 5: Restore Dependencies
-    - name: Restore Dependencies
+    # ---- Build ----
+    - name: Restore dependencies
       if: steps.resolve_release.outputs.is_tag_release != 'true' || steps.check_release.outputs.release_exists == 'false'
-      run: dotnet restore ${{ env.Solution_Name }} -r win-x64
+      run: dotnet restore ${{ env.SOLUTION_PATH }} -r win-x64
 
-    # Step 6: Publish application to a stable output folder
-    - name: Publish Application
+    - name: Publish the application
       if: steps.resolve_release.outputs.is_tag_release != 'true' || steps.check_release.outputs.release_exists == 'false'
       id: publish_app
       env:
@@ -276,7 +271,7 @@ jobs:
         }
 
         $publishArgs = @(
-          "${{ env.Project_Path }}",
+          "${{ env.PROJECT_PATH }}",
           '--configuration',
           'Release',
           '--runtime',
@@ -299,7 +294,7 @@ jobs:
 
         dotnet publish @publishArgs
 
-    - name: Verify Voicemod Client Key Embedded
+    - name: Verify the embedded Voicemod client key
       if: (steps.resolve_release.outputs.is_tag_release != 'true' || steps.check_release.outputs.release_exists == 'false') && steps.publish_app.outputs.key_embedded == 'true'
       env:
         VOICEMOD_CLIENT_KEY: ${{ secrets.VOICEMOD_CLIENT_KEY }}
@@ -383,8 +378,7 @@ jobs:
 
         Write-Host "Embedded Voicemod client key verified: found $($foundValue.Length) characters."
 
-    # Step 7: Create ZIP of artifacts
-    - name: Create Zip File
+    - name: Package the release archive
       if: steps.resolve_release.outputs.is_tag_release != 'true' || steps.check_release.outputs.release_exists == 'false'
       shell: pwsh
       run: |
@@ -398,12 +392,12 @@ jobs:
 
         Compress-Archive -Path $archiveSource -DestinationPath "MagicChatbox-${{ env.VERSION }}.zip" -Force
 
-    - name: Await Tag-Triggered Release Run
+    - name: Hand off to the tag-triggered run
       if: steps.resolve_release.outputs.is_tag_release != 'true' && steps.check_release.outputs.release_exists == 'false' && steps.finalize_branch_release.outputs.publish_now != 'true'
       run: echo "Created release tag ${{ steps.resolve_release.outputs.release_tag }} during the branch run. The tag-triggered workflow run will publish the release."
 
-    # Step 8: Upload & Scan with VirusTotal
-    - name: Check Optional VirusTotal Secret
+    # ---- Malware scan ----
+    - name: Check for a VirusTotal credential
       if: steps.check_release.outputs.release_exists == 'false' && (steps.resolve_release.outputs.is_tag_release == 'true' || steps.finalize_branch_release.outputs.publish_now == 'true')
       id: optional_secrets
       env:
@@ -413,7 +407,7 @@ jobs:
         $hasVirusTotalKey = -not [string]::IsNullOrWhiteSpace($env:VIRUSTOTAL_API_KEY)
         "has_virustotal_key=$($hasVirusTotalKey.ToString().ToLowerInvariant())" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
 
-    - name: Upload and Scan with VirusTotal
+    - name: Submit the archive to VirusTotal
       if: steps.check_release.outputs.release_exists == 'false' && (steps.resolve_release.outputs.is_tag_release == 'true' || steps.finalize_branch_release.outputs.publish_now == 'true') && steps.optional_secrets.outputs.has_virustotal_key == 'true'
       id: virustotal_scan
       env:
@@ -471,7 +465,7 @@ jobs:
         $analysisId = $response.data.id
         "scan_id=$analysisId" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
 
-    - name: Wait for VirusTotal Scan Report
+    - name: Wait for the VirusTotal report
       if: steps.check_release.outputs.release_exists == 'false' && (steps.resolve_release.outputs.is_tag_release == 'true' || steps.finalize_branch_release.outputs.publish_now == 'true') && steps.optional_secrets.outputs.has_virustotal_key == 'true'
       id: virustotal_report
       env:
@@ -533,8 +527,8 @@ jobs:
         $reportUrl = "https://www.virustotal.com/gui/file/$sha256/detection"
         "report_url=$reportUrl" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
 
-    # Step 9: Determine if this is a pre-release or final release
-    - name: Determine Release Type
+    # ---- Publish ----
+    - name: Determine the release type
       if: steps.check_release.outputs.release_exists == 'false' && (steps.resolve_release.outputs.is_tag_release == 'true' || steps.finalize_branch_release.outputs.publish_now == 'true')
       id: determine_release_type
       shell: pwsh
@@ -583,8 +577,7 @@ jobs:
           "release_name=${{ steps.resolve_release.outputs.release_tag }} (pre-release)" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
         }
 
-    # Step 10: Create GitHub Release and upload the asset in a single step
-    - name: Create Release
+    - name: Publish the GitHub release
       if: steps.check_release.outputs.release_exists == 'false' && (steps.resolve_release.outputs.is_tag_release == 'true' || steps.finalize_branch_release.outputs.publish_now == 'true')
       id: create_release
       uses: softprops/action-gh-release@3d0d9888cb7fd7b750713d6e236d1fcb99157228 # v3.0.2
