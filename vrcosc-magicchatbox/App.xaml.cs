@@ -1,4 +1,4 @@
-using MagicChatboxAPI.Services;
+﻿using MagicChatboxAPI.Services;
 using Microsoft.Extensions.DependencyInjection;
 using NLog;
 using NLog.Common;
@@ -203,26 +203,34 @@ namespace vrcosc_magicchatbox
                             switch (arg)
                             {
                                 case "-update":
-                                    loadingWindow.UpdateProgress("Go, go, go! Update, update, update!", 75);
+                                    ShowHandoffSteps(loadingWindow, updater);
+                                    loadingWindow.UpdateProgress("Installing the new version", 75);
                                     await Task.Run(() => updater.UpdateApplication());
+                                    loadingWindow.MarkInstallComplete();
                                     loadingWindow.CloseFromAnyThread();
                                     Shutdown();
                                     return;
                                 case "-updateadmin":
-                                    loadingWindow.UpdateProgress("Admin style update, now that's fancy!", 85);
+                                    ShowHandoffSteps(loadingWindow, updater);
+                                    loadingWindow.UpdateProgress("Installing the new version as administrator", 85);
                                     await Task.Run(() => updater.UpdateApplication(true));
+                                    loadingWindow.MarkInstallComplete();
                                     loadingWindow.CloseFromAnyThread();
                                     Shutdown();
                                     return;
                                 case "-rollback":
-                                    loadingWindow.UpdateProgress("Oops! Let's roll back.", 50);
+                                    ShowHandoffSteps(loadingWindow, updater);
+                                    loadingWindow.UpdateProgress("Going back to your previous version", 50);
                                     await Task.Run(() => updater.RollbackApplication(loadingWindow));
+                                    loadingWindow.MarkInstallComplete();
                                     loadingWindow.CloseFromAnyThread();
                                     Shutdown();
                                     return;
                                 case "-rollbackadmin":
-                                    loadingWindow.UpdateProgress("Rollback with admin powers engaged.", 55);
+                                    ShowHandoffSteps(loadingWindow, updater);
+                                    loadingWindow.UpdateProgress("Going back to your previous version as administrator", 55);
                                     await Task.Run(() => updater.RollbackApplication(loadingWindow, true));
+                                    loadingWindow.MarkInstallComplete();
                                     loadingWindow.CloseFromAnyThread();
                                     Shutdown();
                                     return;
@@ -611,6 +619,26 @@ namespace vrcosc_magicchatbox
             }
             catch
             {
+            }
+        }
+
+        private void ShowHandoffSteps(StartUp loadingWindow, UpdateApp updater)
+        {
+            try
+            {
+                string dataPath = updater.DataDirectory;
+                Core.Updates.UpdateHandoffInfo? handoff = Core.Updates.UpdateHandoff.Read(dataPath);
+
+                if (handoff.HasValue)
+                {
+                    loadingWindow.ShowUpdateSteps(handoff.Value);
+                }
+
+                Core.Updates.UpdateHandoff.Clear(dataPath);
+            }
+            catch (Exception ex)
+            {
+                LogStartupPhase($"Could not show the update summary: {ex.Message}");
             }
         }
 

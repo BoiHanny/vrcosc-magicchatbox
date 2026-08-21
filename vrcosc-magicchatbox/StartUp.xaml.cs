@@ -34,6 +34,16 @@ namespace vrcosc_magicchatbox
 
         private static readonly TimeSpan SplashCreationTimeout = TimeSpan.FromSeconds(15);
 
+        private static readonly System.Windows.Media.SolidColorBrush VerifiedBrush = CreateFrozenBrush(0x6F, 0xD8, 0x9B);
+        private static readonly System.Windows.Media.SolidColorBrush CautionBrush = CreateFrozenBrush(0xFF, 0xC1, 0x07);
+
+        private static System.Windows.Media.SolidColorBrush CreateFrozenBrush(byte r, byte g, byte b)
+        {
+            var brush = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(r, g, b));
+            brush.Freeze();
+            return brush;
+        }
+
         private const int DwmWindowCornerPreference = 33;
         private const int DwmCornerRound = 2;
 
@@ -181,6 +191,70 @@ namespace vrcosc_magicchatbox
                 {
                     EasingFunction = new QuadraticEase { EasingMode = EasingMode.EaseOut }
                 });
+        }
+
+        public void ShowUpdateSteps(Core.Updates.UpdateHandoffInfo info)
+        {
+            if (!Dispatcher.CheckAccess())
+            {
+                Dispatcher.BeginInvoke(() => ShowUpdateSteps(info));
+                return;
+            }
+
+            if (info.IsRollback)
+            {
+                StepDownload.Text = "✔ Backup checked";
+                StepVerify.Text = "✔ Contents complete";
+                StepUnpack.Text = "✔ Current version saved";
+                StepInstall.Text = "● Restoring";
+                TrustLine.Text = string.IsNullOrWhiteSpace(info.TargetVersion)
+                    ? "Putting your previous version back. The version you are on now is kept, so you can undo this."
+                    : $"Putting {info.TargetVersion} back. The version you are on now is kept, so you can undo this.";
+            }
+            else
+            {
+                StepDownload.Text = "✔ Download";
+                StepUnpack.Text = "✔ Unpack";
+                StepInstall.Text = "● Install";
+
+                switch (info.Integrity)
+                {
+                    case Core.Updates.DigestVerificationStatus.Match:
+                        StepVerify.Text = "✔ Verify integrity";
+                        StepVerify.Foreground = VerifiedBrush;
+                        TrustLine.Text = $"Valid package from the developer · sha256 {info.ShortHash}";
+                        TrustLine.Foreground = VerifiedBrush;
+                        break;
+
+                    case Core.Updates.DigestVerificationStatus.NotPublished:
+                        StepVerify.Text = "! Verify integrity";
+                        StepVerify.Foreground = CautionBrush;
+                        TrustLine.Text = "This release published no checksum, so the download could not be checked against one.";
+                        TrustLine.Foreground = CautionBrush;
+                        break;
+
+                    default:
+                        StepVerify.Text = "✕ Verify integrity";
+                        StepVerify.Foreground = CautionBrush;
+                        TrustLine.Text = "The download did not match its published checksum.";
+                        TrustLine.Foreground = CautionBrush;
+                        break;
+                }
+            }
+
+            UpdateStepsPanel.Visibility = Visibility.Visible;
+        }
+
+        public void MarkInstallComplete()
+        {
+            if (!Dispatcher.CheckAccess())
+            {
+                Dispatcher.BeginInvoke(MarkInstallComplete);
+                return;
+            }
+
+            StepInstall.Text = "✔ Install";
+            StepInstall.Foreground = VerifiedBrush;
         }
 
         public void UpdateProgress(string message, double value, string? nextHint = null)

@@ -118,13 +118,16 @@
 
 
 
-                <controls:ToastOverlay
+                <StackPanel
                     Grid.Row="1"
                     Grid.ColumnSpan="2"
                     Margin="0,0,12,12"
                     HorizontalAlignment="Right"
                     VerticalAlignment="Bottom"
-                    Panel.ZIndex="100" />
+                    Panel.ZIndex="100">
+                    <controls:UpdateProgressCard />
+                    <controls:ToastOverlay />
+                </StackPanel>
 
 
                 <Grid Grid.ColumnSpan="2" Background="{StaticResource SurfacePrimaryBrush}">

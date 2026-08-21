@@ -71,20 +71,43 @@ public readonly record struct ReleaseAssetDigest(string Sha256Hex)
         return Convert.ToHexString(sha256.ComputeHash(stream)).ToLowerInvariant();
     }
 
-    public static string ComputeSha256File(string filePath)
+    public static string ComputeSha256File(string filePath, Action<long, long>? progress = null)
     {
         using var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read);
-        return ComputeSha256(stream);
+
+        if (progress is null)
+        {
+            return ComputeSha256(stream);
+        }
+
+        long total = stream.Length;
+        long read = 0;
+        byte[] buffer = new byte[81920];
+
+        using var hash = IncrementalHash.CreateHash(HashAlgorithmName.SHA256);
+
+        int count;
+        while ((count = stream.Read(buffer, 0, buffer.Length)) > 0)
+        {
+            hash.AppendData(buffer, 0, count);
+            read += count;
+            progress(read, total);
+        }
+
+        return Convert.ToHexString(hash.GetHashAndReset()).ToLowerInvariant();
     }
 
-    public static DigestVerificationResult Verify(string? publishedDigest, string filePath)
+    public static DigestVerificationResult Verify(
+        string? publishedDigest,
+        string filePath,
+        Action<long, long>? progress = null)
     {
         if (!TryParse(publishedDigest, out ReleaseAssetDigest expected))
         {
             return new DigestVerificationResult(DigestVerificationStatus.NotPublished, null, null);
         }
 
-        string actual = ComputeSha256File(filePath);
+        string actual = ComputeSha256File(filePath, progress);
 
         return expected.Matches(actual)
             ? new DigestVerificationResult(DigestVerificationStatus.Match, expected.Sha256Hex, actual)

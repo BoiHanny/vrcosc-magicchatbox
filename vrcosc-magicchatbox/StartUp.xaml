@@ -202,6 +202,56 @@
                 <StackPanel Grid.Row="1" Margin="30,22,30,20">
                     <ProgressBar x:Name="ProgressBar" Style="{StaticResource StartupProgressBar}" />
 
+                    <Border
+                        x:Name="UpdateStepsPanel"
+                        Margin="0,16,0,0"
+                        Padding="14,12"
+                        Background="#1A1030"
+                        BorderBrush="#2E2255"
+                        BorderThickness="1"
+                        CornerRadius="8"
+                        Visibility="Collapsed">
+                        <StackPanel>
+                            <UniformGrid Columns="2" Rows="2">
+                                <TextBlock
+                                    x:Name="StepDownload"
+                                    Margin="0,0,0,4"
+                                    FontFamily="/Fonts/#Albert Sans"
+                                    FontSize="12"
+                                    Foreground="#6FD89B"
+                                    Text="✔ Download" />
+                                <TextBlock
+                                    x:Name="StepVerify"
+                                    Margin="0,0,0,4"
+                                    FontFamily="/Fonts/#Albert Sans"
+                                    FontSize="12"
+                                    Foreground="#6FD89B"
+                                    Text="✔ Verify integrity" />
+                                <TextBlock
+                                    x:Name="StepUnpack"
+                                    FontFamily="/Fonts/#Albert Sans"
+                                    FontSize="12"
+                                    Foreground="#6FD89B"
+                                    Text="✔ Unpack" />
+                                <TextBlock
+                                    x:Name="StepInstall"
+                                    FontFamily="/Fonts/#Albert Sans"
+                                    FontSize="12"
+                                    Foreground="#C3A9FF"
+                                    Text="● Install" />
+                            </UniformGrid>
+
+                            <TextBlock
+                                x:Name="TrustLine"
+                                Margin="0,10,0,0"
+                                FontFamily="/Fonts/#Albert Sans"
+                                FontSize="11"
+                                Foreground="#8E85A6"
+                                Text=""
+                                TextWrapping="Wrap" />
+                        </StackPanel>
+                    </Border>
+
                     <Grid
                         Height="72"
                         Margin="0,18,0,0"
