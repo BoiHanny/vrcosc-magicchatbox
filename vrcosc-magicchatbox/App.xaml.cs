@@ -83,15 +83,23 @@ namespace vrcosc_magicchatbox
 
             if (!ShouldSkipSingleInstanceGuard(e.Args) && !TryAcquireSingleInstance(startupProfileNumber))
             {
-                LogStartupPhase($"Second instance detected for profile {startupProfileNumber}. Exiting this instance.");
-                MessageBox.Show(
-                    "MagicChatbox is already running for this profile.",
-                    "MagicChatbox",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Information);
+                // Launching it again is how someone asks for the window back, not a mistake to be
+                // told off for. Wake the copy that already exists and leave quietly.
+                LogStartupPhase($"Second instance detected for profile {startupProfileNumber}. Waking the running one and exiting.");
+                if (!TrySignalRunningInstance(startupProfileNumber))
+                {
+                    MessageBox.Show(
+                        "MagicChatbox is already running for this profile, but it could not be brought to the front.",
+                        "MagicChatbox",
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Information);
+                }
+
                 Shutdown();
                 return;
             }
+
+            StartListeningForActivationRequests(startupProfileNumber);
 
             AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
             DispatcherUnhandledException += App_DispatcherUnhandledException;
@@ -471,6 +479,17 @@ namespace vrcosc_magicchatbox
                 }
             }
 
+            try
+            {
+                _activationListenerCancellation?.Cancel();
+                _activationListenerCancellation?.Dispose();
+                _activationSignal?.Dispose();
+            }
+            catch (Exception ex)
+            {
+                WriteEarlyStartupLog($"Could not stop the activation listener: {ex}");
+            }
+
             _singleInstanceMutex?.Dispose();
             base.OnExit(e);
         }
@@ -631,6 +650,103 @@ namespace vrcosc_magicchatbox
             {
                 Console.Error.WriteLine(line);
             }
+        }
+
+        private EventWaitHandle? _activationSignal;
+        private CancellationTokenSource? _activationListenerCancellation;
+
+        private static string ActivationSignalName(int profileNumber)
+            => $@"Local\VrcoscMagicChatbox_Activate_Profile_{profileNumber}";
+
+        [System.Runtime.InteropServices.DllImport("user32.dll")]
+        [return: System.Runtime.InteropServices.MarshalAs(System.Runtime.InteropServices.UnmanagedType.Bool)]
+        private static extern bool AllowSetForegroundWindow(int processId);
+
+        private const int AllowForegroundFromAnyProcess = -1;
+
+        private static bool TrySignalRunningInstance(int profileNumber)
+        {
+            try
+            {
+                if (!EventWaitHandle.TryOpenExisting(ActivationSignalName(profileNumber), out EventWaitHandle? signal))
+                    return false;
+
+                using (signal)
+                {
+                    // Windows only lets the foreground process hand focus away. This one is the
+                    // foreground process for the moment, so it has to grant that right before the
+                    // running copy can raise itself.
+                    AllowSetForegroundWindow(AllowForegroundFromAnyProcess);
+                    signal.Set();
+                }
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                WriteEarlyStartupLog($"Could not signal the running instance: {ex}");
+                return false;
+            }
+        }
+
+        private void StartListeningForActivationRequests(int profileNumber)
+        {
+            try
+            {
+                _activationSignal = new EventWaitHandle(
+                    initialState: false,
+                    EventResetMode.AutoReset,
+                    ActivationSignalName(profileNumber));
+
+                _activationListenerCancellation = new CancellationTokenSource();
+                CancellationToken token = _activationListenerCancellation.Token;
+                EventWaitHandle signal = _activationSignal;
+
+                var listener = new Thread(() =>
+                {
+                    var waits = new WaitHandle[] { signal, token.WaitHandle };
+                    while (!token.IsCancellationRequested)
+                    {
+                        if (WaitHandle.WaitAny(waits) != 0)
+                            return;
+
+                        try
+                        {
+                            Dispatcher.BeginInvoke(new Action(BringMainWindowToFront));
+                        }
+                        catch (Exception ex)
+                        {
+                            Logging.WriteInfo($"Could not bring the window to the front: {ex.Message}");
+                        }
+                    }
+                })
+                {
+                    IsBackground = true,
+                    Name = "MagicChatbox activation listener",
+                };
+
+                listener.Start();
+                LogStartupPhase("Listening for activation requests from later launches.");
+            }
+            catch (Exception ex)
+            {
+                WriteEarlyStartupLog($"Could not start the activation listener: {ex}");
+            }
+        }
+
+        private static void BringMainWindowToFront()
+        {
+            MainWindow? window = mainWindow;
+            if (window is null)
+                return;
+
+            window.Show();
+
+            if (window.WindowState == WindowState.Minimized)
+                window.WindowState = WindowState.Normal;
+
+            window.Activate();
+            window.Focus();
         }
 
         private bool TryAcquireSingleInstance(int profileNumber)

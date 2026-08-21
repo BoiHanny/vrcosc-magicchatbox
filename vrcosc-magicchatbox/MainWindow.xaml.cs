@@ -1,4 +1,5 @@
 ﻿using System;
+using System;
 using System.ComponentModel;
 using System.Threading.Tasks;
 using System.Windows;
@@ -19,6 +20,7 @@ using vrcosc_magicchatbox.Services;
 using vrcosc_magicchatbox.UI.Dialogs;
 using vrcosc_magicchatbox.ViewModels;
 using vrcosc_magicchatbox.ViewModels.Models;
+using Forms = System.Windows.Forms;
 
 namespace vrcosc_magicchatbox
 {
@@ -83,6 +85,8 @@ namespace vrcosc_magicchatbox
 
                 if (placement is { } rect)
                 {
+                    rect = FollowTheMonitorItWasOpenedOn(rect);
+
                     WindowStartupLocation = WindowStartupLocation.Manual;
                     Left = rect.Left;
                     Top = rect.Top;
@@ -98,6 +102,64 @@ namespace vrcosc_magicchatbox
                 Logging.WriteInfo($"Could not restore window placement: {ex.Message}");
             }
         }
+
+        /// <summary>
+        /// Reopening from the taskbar on a different monitor should put the window where you are
+        /// looking, not where you left it three monitors away. Launching on the same monitor keeps
+        /// the exact saved position, so nothing moves for the common single-screen case.
+        /// </summary>
+        private Rect FollowTheMonitorItWasOpenedOn(Rect saved)
+        {
+            try
+            {
+                double scale = DeviceScale();
+
+                var savedPixels = new Rect(
+                    saved.Left * scale,
+                    saved.Top * scale,
+                    saved.Width * scale,
+                    saved.Height * scale);
+
+                Forms.Screen launchScreen = Forms.Screen.FromPoint(Forms.Cursor.Position);
+                Rect launchArea = ToRect(launchScreen.WorkingArea);
+
+                if (WindowPlacementPolicy.BelongsTo(savedPixels, launchArea))
+                    return saved;
+
+                Rect savedArea = ToRect(Forms.Screen.FromRectangle(ToRectangle(savedPixels)).WorkingArea);
+                Rect movedPixels = WindowPlacementPolicy.MoveToWorkArea(savedPixels, savedArea, launchArea);
+
+                Logging.WriteInfo(
+                    $"Window restored onto the monitor it was opened from rather than its saved position.");
+
+                return new Rect(
+                    movedPixels.Left / scale,
+                    movedPixels.Top / scale,
+                    movedPixels.Width / scale,
+                    movedPixels.Height / scale);
+            }
+            catch (Exception ex)
+            {
+                Logging.WriteInfo($"Could not resolve the launch monitor, keeping the saved position: {ex.Message}");
+                return saved;
+            }
+        }
+
+        private static double DeviceScale()
+        {
+            Forms.Screen? primary = Forms.Screen.PrimaryScreen;
+            if (primary is null || SystemParameters.PrimaryScreenWidth <= 0)
+                return 1;
+
+            double scale = primary.Bounds.Width / SystemParameters.PrimaryScreenWidth;
+            return scale > 0 ? scale : 1;
+        }
+
+        private static Rect ToRect(System.Drawing.Rectangle rectangle)
+            => new(rectangle.Left, rectangle.Top, rectangle.Width, rectangle.Height);
+
+        private static System.Drawing.Rectangle ToRectangle(Rect rect)
+            => new((int)rect.Left, (int)rect.Top, (int)Math.Max(1, rect.Width), (int)Math.Max(1, rect.Height));
 
         private void SaveWindowPlacement()
         {
