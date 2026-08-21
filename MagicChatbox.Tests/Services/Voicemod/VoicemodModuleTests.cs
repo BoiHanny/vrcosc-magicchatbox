@@ -150,18 +150,343 @@ public sealed class VoicemodModuleTests
         module.Dispose();
     }
 
+    [Fact]
+    public async Task PlayingAndStoppingASound_UpdatesTheChatboxPlaybackState()
+    {
+        var socket = ScriptedSocket.Authorized();
+        var (module, display) = CreateModule(new QueueSocketFactory(socket));
+
+        await module.StartAsync();
+        await WaitForStateAsync(display, VoicemodConnectionState.Connected);
+
+        await module.PlaySoundAsync("sound-id", "Air horn");
+
+        Assert.Equal("Air horn", display.LastPlayedSoundName);
+        Assert.NotEqual(default, display.LastSoundPlaybackStartedUtc);
+        Assert.Contains(socket.SentMessages, message => ReadAction(message) == "playMeme");
+
+        await module.StopAllSoundsAsync();
+
+        Assert.Empty(display.LastPlayedSoundName);
+        Assert.Equal(default, display.LastSoundPlaybackStartedUtc);
+        Assert.Contains(socket.SentMessages, message => ReadAction(message) == "stopAllMemeSounds");
+
+        await module.StopAsync();
+        module.Dispose();
+    }
+
+    [Fact]
+    public async Task SynchronizeResponses_PopulateTheCatalogEndToEnd()
+    {
+        var socket = ScriptedSocket.Authorized()
+            .Replying("getVoices", """
+                {
+                  "actionType": "getVoices",
+                  "actionObject": {
+                    "currentVoice": "robot",
+                    "voices": [
+                      { "id": "robot", "friendlyName": "Robot", "enabled": true },
+                      { "id": "cave", "friendlyName": "Cave", "enabled": false }
+                    ]
+                  }
+                }
+                """)
+            .Replying("getAllSoundboard", """
+                {
+                  "actionType": "getAllSoundboard",
+                  "actionObject": {
+                    "soundboards": [
+                      {
+                        "id": "board-1",
+                        "name": "Favourites",
+                        "enabled": true,
+                        "sounds": [ { "id": "airhorn", "name": "Air horn", "enabled": true } ]
+                      }
+                    ]
+                  }
+                }
+                """)
+            .Replying("getUserLicense", """
+                { "actionType": "getUserLicense", "actionObject": { "licenseType": "pro" } }
+                """);
+
+        var (module, display) = CreateModule(new QueueSocketFactory(socket));
+
+        await module.StartAsync();
+        await WaitForStateAsync(display, VoicemodConnectionState.Connected);
+        await WaitForAsync(() => display.Voices.Count == 2 && display.Soundboards.Count == 1);
+
+        Assert.Equal("robot", display.CurrentVoiceId);
+        Assert.Equal("Robot", display.CurrentVoiceName);
+        Assert.Equal("pro", display.LicenseType);
+        Assert.Single(display.Soundboards[0].Sounds);
+        Assert.False(display.IsFreeLicense);
+
+        await module.StopAsync();
+        module.Dispose();
+    }
+
+    [Fact]
+    public async Task UnsolicitedEvents_UpdateTheLiveSwitches()
+    {
+        var socket = ScriptedSocket.Authorized();
+        var (module, display) = CreateModule(new QueueSocketFactory(socket));
+
+        await module.StartAsync();
+        await WaitForStateAsync(display, VoicemodConnectionState.Connected);
+
+        await socket.PushAsync("""{ "actionType": "voiceChangerEnabledEvent" }""");
+        await WaitForAsync(() => display.VoiceChangerEnabled);
+
+        await socket.PushAsync("""{ "actionType": "badLanguageEnabledEvent" }""");
+        await WaitForAsync(() => display.IsBleeping);
+
+        await socket.PushAsync("""
+            { "actionType": "toggleMuteMic", "actionObject": { "value": true } }
+            """);
+        await WaitForAsync(() => display.MicrophoneMuted);
+
+        await module.StopAsync();
+        module.Dispose();
+    }
+
+    [Fact]
+    public async Task DisabledFeature_DropsItsEventsAndSkipsItsQueries()
+    {
+        VoicemodSettings features = AllFeatures();
+        features.SoundboardControlEnabled = false;
+        var socket = ScriptedSocket.Authorized();
+        var (module, display) = CreateModule(
+            new QueueSocketFactory(socket), out _, out _, out _, features);
+
+        await module.StartAsync();
+        await WaitForStateAsync(display, VoicemodConnectionState.Connected);
+
+        string[] actions = socket.SentMessages.Select(ReadAction).ToArray();
+        Assert.DoesNotContain("getAllSoundboard", actions);
+        Assert.DoesNotContain("getMemes", actions);
+        Assert.Contains("getVoices", actions);
+
+        await socket.PushAsync("""
+            { "actionType": "toggleMuteMemeForMe", "actionObject": { "value": true } }
+            """);
+        await Task.Delay(60);
+        Assert.False(display.SoundboardMutedForMe);
+
+        await module.StopAsync();
+        module.Dispose();
+    }
+
+    [Fact]
+    public async Task ServerHangUp_ClearsTheCatalogAndReconnects()
+    {
+        var first = ScriptedSocket.Authorized();
+        var second = ScriptedSocket.Authorized();
+        var (module, display) = CreateModule(new QueueSocketFactory(first, second));
+
+        await module.StartAsync();
+        await WaitForStateAsync(display, VoicemodConnectionState.Connected);
+
+        await first.PushAsync("""
+            {
+              "actionType": "getVoices",
+              "actionObject": { "currentVoice": "robot", "voices": [ { "id": "robot", "friendlyName": "Robot", "enabled": true } ] }
+            }
+            """);
+        await WaitForAsync(() => display.Voices.Count == 1);
+
+        first.HangUp();
+
+        // A stale list read as live is the specific failure here, so assert the clear, not just the state.
+        await WaitForAsync(() => display.Voices.Count == 0);
+        await WaitForStateAsync(display, VoicemodConnectionState.Reconnecting);
+
+        await module.StopAsync();
+        module.Dispose();
+    }
+
+    [Fact]
+    public async Task TurningTheIntegrationOffMidConnection_DisconnectsCleanly()
+    {
+        var socket = ScriptedSocket.Authorized();
+        var (module, display) = CreateModule(
+            new QueueSocketFactory(socket), out IntegrationSettings integrations, out _, out _);
+
+        await module.StartAsync();
+        await WaitForStateAsync(display, VoicemodConnectionState.Connected);
+
+        integrations.IntgrVoicemod = false;
+        module.PropertyChangedHandler(
+            integrations,
+            new System.ComponentModel.PropertyChangedEventArgs(nameof(IntegrationSettings.IntgrVoicemod)));
+
+        await WaitForStateAsync(display, VoicemodConnectionState.Disabled);
+        Assert.False(module.IsRunning);
+        Assert.Empty(display.Voices);
+
+        module.Dispose();
+    }
+
+    [Fact]
+    public async Task RevokingConsentMidConnection_StopsAndReportsPermissionRequired()
+    {
+        var socket = ScriptedSocket.Authorized();
+        var (module, display) = CreateModule(
+            new QueueSocketFactory(socket), out _, out _, out ApprovedConsentService consent);
+
+        await module.StartAsync();
+        await WaitForStateAsync(display, VoicemodConnectionState.Connected);
+
+        consent.Revoke();
+
+        await WaitForStateAsync(display, VoicemodConnectionState.PermissionRequired);
+        Assert.False(module.IsRunning);
+
+        module.Dispose();
+    }
+
+    [Fact]
+    public async Task EveryOfficialPortIsTried_BeforeGivingUp()
+    {
+        ScriptedSocket[] refused = VoicemodProtocol.Ports
+            .Select(_ => ScriptedSocket.Refused())
+            .ToArray();
+        var (module, display) = CreateModule(new QueueSocketFactory(refused));
+
+        await module.StartAsync();
+        await WaitForStateAsync(display, VoicemodConnectionState.Reconnecting);
+
+        Assert.Equal(
+            VoicemodProtocol.Ports.ToArray(),
+            refused.Select(socket => socket.ConnectedUri!.Port).ToArray());
+
+        await module.StopAsync();
+        module.Dispose();
+    }
+
+    [Fact]
+    public async Task DisposeIsIdempotent()
+    {
+        var socket = ScriptedSocket.Authorized();
+        var (module, display) = CreateModule(new QueueSocketFactory(socket));
+
+        await module.StartAsync();
+        await WaitForStateAsync(display, VoicemodConnectionState.Connected);
+        await module.StopAsync();
+
+        module.Dispose();
+        module.Dispose();
+    }
+
+    [Fact]
+    public async Task BitmapResponse_LandsInTheArtworkCache()
+    {
+        // A 1x1 PNG - the smallest thing that proves the base64 actually decoded.
+        const string OnePixelPng =
+            "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==";
+
+        var artwork = new VoicemodArtworkCache();
+        var socket = ScriptedSocket.Authorized();
+        var (module, display) = CreateModule(
+            new QueueSocketFactory(socket), out _, out _, out _, artwork: artwork);
+
+        await module.StartAsync();
+        await WaitForStateAsync(display, VoicemodConnectionState.Connected);
+
+        await socket.PushAsync($$"""
+            { "actionType": "getBitmap", "actionObject": { "voiceID": "robot", "result": "{{OnePixelPng}}" } }
+            """);
+
+        await WaitForAsync(() => artwork.Contains("voice", "robot"));
+        Assert.NotNull(artwork.Get("voice", "robot"));
+
+        await module.StopAsync();
+        module.Dispose();
+    }
+
+    [Fact]
+    public void BuildSynchronizeActions_AsksOnlyForWhatIsSwitchedOn()
+    {
+        var soundboardOnly = new VoicemodSettings
+        {
+            VoiceControlEnabled = false,
+            MicControlEnabled = false,
+        };
+
+        IReadOnlyList<string> actions = VoicemodModule.BuildSynchronizeActions(soundboardOnly);
+
+        Assert.Contains("getAllSoundboard", actions);
+        Assert.Contains("getMemes", actions);
+        Assert.DoesNotContain("getVoices", actions);
+        Assert.DoesNotContain("getMuteMicStatus", actions);
+        Assert.Contains("getUserLicense", actions);
+    }
+
+    [Theory]
+    [InlineData("getVoices", true, false, false, true)]
+    [InlineData("getVoices", false, true, true, false)]
+    [InlineData("getAllSoundboard", false, true, false, true)]
+    [InlineData("toggleMuteMic", false, false, true, true)]
+    [InlineData("badLanguageEnabledEvent", false, false, false, false)]
+    [InlineData("getUserLicense", false, false, false, true)]
+    public void IsActionEnabled_FollowsTheFeatureSwitches(
+        string action,
+        bool voice,
+        bool soundboard,
+        bool mic,
+        bool expected)
+    {
+        var features = new VoicemodSettings
+        {
+            VoiceControlEnabled = voice,
+            SoundboardControlEnabled = soundboard,
+            MicControlEnabled = mic,
+        };
+
+        Assert.Equal(expected, VoicemodModule.IsActionEnabled(action, features));
+    }
+
+    private static async Task WaitForAsync(Func<bool> condition)
+    {
+        using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(3));
+        while (!condition())
+            await Task.Delay(10, timeout.Token);
+    }
+
+    private static VoicemodSettings AllFeatures() => new()
+    {
+        VoiceControlEnabled = true,
+        SoundboardControlEnabled = true,
+        MicControlEnabled = true,
+    };
+
     private static (VoicemodModule Module, VoicemodDisplayState Display) CreateModule(
         IVoicemodSocketFactory socketFactory)
+        => CreateModule(socketFactory, out _, out _, out _, AllFeatures());
+
+    // The out parameters are what lets a test reach in and flip a setting, revoke consent, or read
+    // the artwork cache while the module is mid-connection - none of which the module exposes.
+    private static (VoicemodModule Module, VoicemodDisplayState Display) CreateModule(
+        IVoicemodSocketFactory socketFactory,
+        out IntegrationSettings integrationSettings,
+        out VoicemodSettings features,
+        out ApprovedConsentService consent,
+        VoicemodSettings? initialFeatures = null,
+        IVoicemodArtworkCache? artwork = null)
     {
         var display = new VoicemodDisplayState();
-        var settings = new IntegrationSettings { IntgrVoicemod = true };
+        integrationSettings = new IntegrationSettings { IntgrVoicemod = true };
+        features = initialFeatures ?? new VoicemodSettings();
+        consent = new ApprovedConsentService();
         var module = new VoicemodModule(
-            new StubSettingsProvider<IntegrationSettings>(settings),
+            new StubSettingsProvider<IntegrationSettings>(integrationSettings),
+            new StubSettingsProvider<VoicemodSettings>(features),
             display,
             new StubClientKeyProvider(),
             socketFactory,
             new InlineDispatcher(),
-            new ApprovedConsentService());
+            consent,
+            artwork ?? new VoicemodArtworkCache());
         return (module, display);
     }
 
@@ -199,18 +524,35 @@ public sealed class VoicemodModuleTests
 
     private sealed class StubClientKeyProvider : IVoicemodClientKeyProvider
     {
+        public bool HasLocalClientKey => false;
+
         public bool TryGetClientKey(out string clientKey)
         {
             clientKey = "test-client-key";
             return true;
         }
+
+        public void SaveLocalClientKey(string clientKey) { }
+
+        public void ClearLocalClientKey() { }
     }
 
     private sealed class ApprovedConsentService : IPrivacyConsentService
     {
+        private bool _voicemodApproved = true;
+
         public event EventHandler<ConsentChangedEventArgs>? ConsentChanged;
 
-        public bool IsApproved(PrivacyHook hook) => hook == PrivacyHook.VoicemodControl;
+        public void Revoke()
+        {
+            _voicemodApproved = false;
+            ConsentChanged?.Invoke(
+                this,
+                new ConsentChangedEventArgs(PrivacyHook.VoicemodControl, ConsentState.Denied));
+        }
+
+        public bool IsApproved(PrivacyHook hook) =>
+            hook == PrivacyHook.VoicemodControl && _voicemodApproved;
         public ConsentState GetState(PrivacyHook hook) =>
             IsApproved(hook) ? ConsentState.Approved : ConsentState.Denied;
         public void Approve(PrivacyHook hook) =>
@@ -263,9 +605,31 @@ public sealed class VoicemodModuleTests
         private readonly TimeSpan _sendDelay;
         private readonly TimeSpan _closeDelay;
 
+        // Canned replies keyed by the outbound action that should trigger them. Without this the
+        // double could only ever answer registerClient, which left the whole inbound dispatch table
+        // unreachable from a module-level test.
+        private readonly Dictionary<string, string> _replies =
+            new(StringComparer.OrdinalIgnoreCase);
+
         public List<string> SentMessages { get; } = new();
         public Uri? ConnectedUri { get; private set; }
         public WebSocketState State { get; private set; } = WebSocketState.None;
+
+        public ScriptedSocket Replying(string action, string json)
+        {
+            _replies[action] = json;
+            return this;
+        }
+
+        /// <summary>Delivers a message the client never asked for, the way a real event arrives.</summary>
+        public ValueTask PushAsync(string json) => _incoming.Writer.WriteAsync(json);
+
+        /// <summary>Ends the receive loop the way a server-side hang-up would.</summary>
+        public void HangUp()
+        {
+            State = WebSocketState.Closed;
+            _incoming.Writer.TryComplete();
+        }
 
         private ScriptedSocket(
             int authorizationCode,
@@ -310,7 +674,12 @@ public sealed class VoicemodModuleTests
                 await Task.Delay(_sendDelay, cancellationToken);
 
             SentMessages.Add(message);
-            if (ReadAction(message) != "registerClient")
+
+            string action = ReadAction(message);
+            if (_replies.TryGetValue(action, out string? reply))
+                await _incoming.Writer.WriteAsync(reply, cancellationToken);
+
+            if (action != "registerClient")
                 return;
 
             string description = _authorizationCode == 200 ? "Authorized" : "Unauthorized";

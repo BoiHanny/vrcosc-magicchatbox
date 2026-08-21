@@ -1,3 +1,5 @@
+using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json;
 using vrcosc_magicchatbox.Classes.Modules.Voicemod;
@@ -174,6 +176,141 @@ public sealed class VoicemodProtocolTests
     }
 
     [Fact]
+    public void TheConnectGreeting_IsRealTrafficRatherThanAMalformedMessage()
+    {
+        // Captured verbatim from Voicemod 3.16.70. It carries no action of any kind, and it is the
+        // first thing a fresh socket receives, so rejecting it loses the app version it hands over.
+        const string json =
+            """{"appVersion":"3.16.70","msg":"Pending authentication","server":"Kestrel"}""";
+
+        Assert.True(VoicemodProtocol.TryParseEnvelope(json, out VoicemodEnvelope? envelope, out _));
+
+        Assert.Equal(VoicemodProtocol.ServerNoticeAction, envelope!.Action);
+        Assert.Equal("3.16.70", envelope.AppVersion);
+        Assert.Equal("Pending authentication", VoicemodProtocol.ReadServerNotice(envelope));
+    }
+
+    [Fact]
+    public void AMessageWithNeitherAnActionNorANotice_IsStillRejected()
+    {
+        Assert.False(VoicemodProtocol.TryParseEnvelope(
+            """{"appVersion":"3.16.70"}""",
+            out _,
+            out string? error));
+
+        Assert.Equal("The message did not contain an action.", error);
+    }
+
+    [Fact]
+    public void TheFlatSoundCatalog_IsReadFromListOfMemes()
+    {
+        VoicemodEnvelope envelope = Parse("""
+            {
+              "actionType": "getMemes",
+              "actionObject": {
+                "listOfMemes": [
+                  { "Name": "Air horn", "FileName": "airhorn", "Type": "PlayRestart", "enabled": true },
+                  { "Name": "Locked", "FileName": "locked", "Type": "PlayRestart", "enabled": false }
+                ]
+              }
+            }
+            """);
+
+        IReadOnlyList<VoicemodSound>? sounds = VoicemodProtocol.ReadMemes(envelope);
+
+        Assert.NotNull(sounds);
+        Assert.Equal(2, sounds!.Count);
+        Assert.Equal("airhorn", sounds[0].Id);
+        Assert.Equal("Air horn", sounds[0].Name);
+        Assert.True(sounds[0].Enabled);
+        Assert.False(sounds[1].Enabled);
+        Assert.Equal("Locked (unavailable)", sounds[1].DisplayName);
+    }
+
+    [Fact]
+    public void ABitmapReply_IsAttributedToTheVoiceOrSoundThatAskedForIt()
+    {
+        var voice = VoicemodProtocol.ReadBitmap(Parse("""
+            { "actionType": "getBitmap", "actionObject": { "voiceID": "robot", "result": "AAAA" } }
+            """));
+        Assert.NotNull(voice);
+        Assert.Equal(("voice", "robot", "AAAA"), voice!.Value);
+
+        var sound = VoicemodProtocol.ReadBitmap(Parse("""
+            { "actionType": "getBitmap", "actionObject": { "memeId": "airhorn", "result": "BBBB" } }
+            """));
+        Assert.NotNull(sound);
+        Assert.Equal(("sound", "airhorn", "BBBB"), sound!.Value);
+
+        Assert.Null(VoicemodProtocol.ReadBitmap(Parse("""
+            { "actionType": "getBitmap", "actionObject": { "voiceID": "robot" } }
+            """)));
+    }
+
+    [Fact]
+    public void ABitmapReplyCarriesNamedRenditions_NotASingleValue()
+    {
+        // Captured from Voicemod 3.16.70. The published reference shows result as one value; the
+        // real server sends an object of named renditions, so reading it as a string found nothing
+        // and every sound silently came back without artwork.
+        var bitmap = VoicemodProtocol.ReadBitmap(Parse("""
+            {
+              "actionType": "getBitmap",
+              "actionID": "4ba195d0-4ffa-4ae2-ac4e-e0446e37ae4f",
+              "actionId": "4ba195d0-4ffa-4ae2-ac4e-e0446e37ae4f",
+              "actionObject": {
+                "memeId": "8ccaeee0-8873-4ff7-8e89-3a1d523f10b0",
+                "result": { "default": "AAAA", "selected": "BBBB" }
+              }
+            }
+            """));
+
+        Assert.NotNull(bitmap);
+        Assert.Equal(("sound", "8ccaeee0-8873-4ff7-8e89-3a1d523f10b0", "AAAA"), bitmap!.Value);
+    }
+
+    [Fact]
+    public void ABitmapReplyFallsBackToWhicheverRenditionArrived()
+    {
+        var bitmap = VoicemodProtocol.ReadBitmap(Parse("""
+            {
+              "actionType": "getBitmap",
+              "actionObject": { "voiceID": "robot", "result": { "somethingNew": "CCCC" } }
+            }
+            """));
+
+        Assert.NotNull(bitmap);
+        Assert.Equal(("voice", "robot", "CCCC"), bitmap!.Value);
+    }
+
+    [Theory]
+    [InlineData(90, 90)]
+    [InlineData(86400, 86400)]
+    [InlineData(3600000, 3600)]
+    public void RemainingTime_IsReadAsSecondsUntilTheNumberIsClearlyMilliseconds(
+        double raw,
+        double expectedSeconds)
+    {
+        // The docs give this field in seconds in one place and milliseconds in another, so the
+        // reader has to pick by magnitude rather than trust either.
+        Assert.Equal(
+            TimeSpan.FromSeconds(expectedSeconds),
+            VoicemodProtocol.NormalizeRemainingTime(raw));
+    }
+
+    [Fact]
+    public void TheSignedInAccount_IsReadFromEitherCasingOfTheField()
+    {
+        Assert.Equal("user-1", VoicemodProtocol.ReadUserId(Parse("""
+            { "actionType": "getUser", "actionObject": { "userId": "user-1" } }
+            """)));
+
+        Assert.Equal("user-2", VoicemodProtocol.ReadUserId(Parse("""
+            { "actionType": "getUser", "actionObject": { "userID": "user-2" } }
+            """)));
+    }
+
+    [Fact]
     public void OutboundMessages_AlwaysHaveTheRequiredShape()
     {
         string json = VoicemodProtocol.CreateMessage(
@@ -188,5 +325,10 @@ public sealed class VoicemodProtocolTests
         Assert.Equal("loadVoice", root.GetProperty("action").GetString());
         Assert.Equal("robot", root.GetProperty("payload").GetProperty("voiceID").GetString());
         Assert.Equal(3, root.EnumerateObject().Count());
+    }
+    private static VoicemodEnvelope Parse(string json)
+    {
+        Assert.True(VoicemodProtocol.TryParseEnvelope(json, out VoicemodEnvelope? envelope, out _));
+        return envelope!;
     }
 }

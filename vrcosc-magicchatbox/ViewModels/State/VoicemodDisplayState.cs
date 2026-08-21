@@ -14,6 +14,8 @@ public partial class VoicemodDisplayState : ObservableObject
     [NotifyPropertyChangedFor(nameof(CanControl))]
     private VoicemodConnectionState _connectionState = VoicemodConnectionState.Disabled;
 
+    partial void OnLicenseTypeChanged(string value) => OnPropertyChanged(nameof(IsFreeLicense));
+
     [ObservableProperty] private string _statusText = "Voicemod control is off";
     [ObservableProperty] private string _errorText = string.Empty;
     [ObservableProperty] private bool _clientKeyConfigured;
@@ -21,6 +23,15 @@ public partial class VoicemodDisplayState : ObservableObject
     [ObservableProperty] private string _appVersion = string.Empty;
     [ObservableProperty] private string _licenseType = string.Empty;
     [ObservableProperty] private DateTime? _lastSynchronizedAt;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsFreeLicense))]
+    private DateTime? _rotatingVoicesRefreshAt;
+
+    [ObservableProperty] private string _userId = string.Empty;
+
+    public bool IsFreeLicense
+        => string.Equals(LicenseType, "free", StringComparison.OrdinalIgnoreCase);
 
     [ObservableProperty] private bool _voiceChangerEnabled;
     [ObservableProperty] private bool _hearMyselfEnabled;
@@ -36,10 +47,28 @@ public partial class VoicemodDisplayState : ObservableObject
 
     [ObservableProperty] private string _activeSoundboardId = string.Empty;
     [ObservableProperty] private int _parametersRevision;
+    [ObservableProperty] private string _lastPlayedSoundName = string.Empty;
+    [ObservableProperty] private DateTime _lastSoundPlaybackStartedUtc;
 
     public ObservableCollection<VoicemodVoice> Voices { get; } = new();
     public ObservableCollection<VoicemodSoundboard> Soundboards { get; } = new();
     public ObservableCollection<VoicemodVoiceParameter> Parameters { get; } = new();
+    public ObservableCollection<VoicemodSound> AllSounds { get; } = new();
+
+    public bool HasAllSounds => AllSounds.Count > 0;
+
+    public void ReplaceAllSounds(IEnumerable<VoicemodSound> sounds)
+    {
+        AllSounds.Clear();
+        foreach (VoicemodSound sound in sounds.OrderBy(
+                     sound => sound.Name,
+                     StringComparer.CurrentCultureIgnoreCase))
+        {
+            AllSounds.Add(sound);
+        }
+
+        OnPropertyChanged(nameof(HasAllSounds));
+    }
 
     public bool IsConnected => ConnectionState == VoicemodConnectionState.Connected;
     public bool CanControl => IsConnected;
@@ -114,6 +143,24 @@ public partial class VoicemodDisplayState : ObservableObject
         LastSynchronizedAt = DateTime.Now;
     }
 
+    public void ClearCatalog()
+    {
+        Voices.Clear();
+        Soundboards.Clear();
+        Parameters.Clear();
+        AllSounds.Clear();
+        OnPropertyChanged(nameof(HasAllSounds));
+        CurrentVoiceId = "nofx";
+        CurrentVoiceName = "No effect";
+        ActiveSoundboardId = string.Empty;
+        LicenseType = string.Empty;
+        RotatingVoicesRefreshAt = null;
+        ParametersRevision++;
+        OnPropertyChanged(nameof(HasVoices));
+        OnPropertyChanged(nameof(HasSoundboards));
+        OnPropertyChanged(nameof(HasParameters));
+    }
+
     public void ResetSwitches()
     {
         VoiceChangerEnabled = false;
@@ -122,6 +169,18 @@ public partial class VoicemodDisplayState : ObservableObject
         MicrophoneMuted = false;
         SoundboardMutedForMe = false;
         IsBleeping = false;
+    }
+
+    public void RecordSoundPlayback(string soundName)
+    {
+        LastPlayedSoundName = soundName?.Trim() ?? string.Empty;
+        LastSoundPlaybackStartedUtc = DateTime.UtcNow;
+    }
+
+    public void ClearSoundPlayback()
+    {
+        LastPlayedSoundName = string.Empty;
+        LastSoundPlaybackStartedUtc = default;
     }
 
     partial void OnCurrentVoiceIdChanged(string value)

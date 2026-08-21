@@ -20,14 +20,18 @@ public sealed class VoicemodModule : IModule
     private static readonly TimeSpan PortConnectTimeout = TimeSpan.FromMilliseconds(900);
     private static readonly TimeSpan AuthorizationTimeout = TimeSpan.FromSeconds(5);
     private static readonly TimeSpan CloseTimeout = TimeSpan.FromSeconds(1);
+    private static readonly TimeSpan SendTimeout = TimeSpan.FromSeconds(3);
+    private static readonly TimeSpan FaultRecoveryDelay = TimeSpan.FromSeconds(5);
     private static readonly int[] ReconnectDelaySeconds = [1, 2, 4, 8, 15, 30];
 
     private readonly ISettingsProvider<IntegrationSettings> _integrationSettingsProvider;
+    private readonly ISettingsProvider<VoicemodSettings> _settingsProvider;
     private readonly VoicemodDisplayState _display;
     private readonly IVoicemodClientKeyProvider _clientKeyProvider;
     private readonly IVoicemodSocketFactory _socketFactory;
     private readonly IUiDispatcher _dispatcher;
     private readonly IPrivacyConsentService _consentService;
+    private readonly IVoicemodArtworkCache _artwork;
     private readonly SemaphoreSlim _sendLock = new(1, 1);
     private readonly SemaphoreSlim _bleepLock = new(1, 1);
     private readonly SemaphoreSlim _lifecycleGate = new(1, 1);
@@ -40,6 +44,7 @@ public sealed class VoicemodModule : IModule
     private bool _disposed;
 
     private IntegrationSettings Settings => _integrationSettingsProvider.Value;
+    private VoicemodSettings Features => _settingsProvider.Value;
 
     public string Name => "Voicemod";
     public bool IsEnabled { get; set; } = true;
@@ -48,19 +53,24 @@ public sealed class VoicemodModule : IModule
 
     public VoicemodModule(
         ISettingsProvider<IntegrationSettings> integrationSettingsProvider,
+        ISettingsProvider<VoicemodSettings> settingsProvider,
         VoicemodDisplayState display,
         IVoicemodClientKeyProvider clientKeyProvider,
         IVoicemodSocketFactory socketFactory,
         IUiDispatcher dispatcher,
-        IPrivacyConsentService consentService)
+        IPrivacyConsentService consentService,
+        IVoicemodArtworkCache artwork)
     {
+        _artwork = artwork;
         _integrationSettingsProvider = integrationSettingsProvider;
+        _settingsProvider = settingsProvider;
         _display = display;
         _clientKeyProvider = clientKeyProvider;
         _socketFactory = socketFactory;
         _dispatcher = dispatcher;
         _consentService = consentService;
         _consentService.ConsentChanged += OnConsentChanged;
+        Features.PropertyChanged += OnFeatureSettingChanged;
     }
 
     public Task InitializeAsync(CancellationToken ct = default) => Task.CompletedTask;
@@ -138,8 +148,8 @@ public sealed class VoicemodModule : IModule
         {
             await SetStateAsync(
                 VoicemodConnectionState.NotConfigured,
-                "This build does not contain a Voicemod client key",
-                "Set MAGICCHATBOX_VOICEMOD_CLIENT_KEY locally or inject VoicemodClientKey at build time.",
+                "No Voicemod client key is configured",
+                "Save a local key in Voicemod options or inject VoicemodClientKey at build time.",
                 clearPort: true).ConfigureAwait(false);
             return;
         }
@@ -218,6 +228,9 @@ public sealed class VoicemodModule : IModule
         await _dispatcher.InvokeAsync(() =>
         {
             _display.ResetSwitches();
+            _display.ClearCatalog();
+            _display.ClearSoundPlayback();
+            _artwork.Clear();
             _display.ConnectionState = Settings.IntgrVoicemod
                 ? VoicemodConnectionState.Disconnected
                 : VoicemodConnectionState.Disabled;
@@ -245,17 +258,22 @@ public sealed class VoicemodModule : IModule
             port: _display.ConnectedPort).ConfigureAwait(false);
     }
 
+    public Task RequestVoiceArtworkAsync(string voiceId, CancellationToken ct = default)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(voiceId);
+        return SendCommandAsync("getBitmap", new { voiceID = voiceId }, ct);
+    }
+
+    public Task RequestSoundArtworkAsync(string soundId, CancellationToken ct = default)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(soundId);
+        return SendCommandAsync("getBitmap", new { memeId = soundId }, ct);
+    }
+
     public Task LoadVoiceAsync(string voiceId, CancellationToken ct = default)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(voiceId);
-        return SendCommandAsync(
-            "loadVoice",
-            new
-            {
-                voiceID = voiceId,
-                voiceId,
-            },
-            ct);
+        return SendCommandAsync("loadVoice", new { voiceID = voiceId }, ct);
     }
 
     public Task SelectRandomVoiceAsync(
@@ -300,21 +318,30 @@ public sealed class VoicemodModule : IModule
         }
     }
 
-    public Task PlaySoundAsync(string soundId, CancellationToken ct = default)
+    public async Task PlaySoundAsync(
+        string soundId,
+        string soundName,
+        CancellationToken ct = default)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(soundId);
-        return SendCommandAsync(
+        await SendCommandAsync(
             "playMeme",
             new
             {
                 FileName = soundId,
                 IsKeyDown = true,
             },
-            ct);
+            ct).ConfigureAwait(false);
+
+        await _dispatcher.InvokeAsync(
+            () => _display.RecordSoundPlayback(soundName)).ConfigureAwait(false);
     }
 
-    public Task StopAllSoundsAsync(CancellationToken ct = default)
-        => SendCommandAsync("stopAllMemeSounds", null, ct);
+    public async Task StopAllSoundsAsync(CancellationToken ct = default)
+    {
+        await SendCommandAsync("stopAllMemeSounds", null, ct).ConfigureAwait(false);
+        await _dispatcher.InvokeAsync(_display.ClearSoundPlayback).ConfigureAwait(false);
+    }
 
     public Task SetVoiceParameterAsync(
         VoicemodVoiceParameter parameter,
@@ -355,6 +382,7 @@ public sealed class VoicemodModule : IModule
 
         _disposed = true;
         _consentService.ConsentChanged -= OnConsentChanged;
+        Features.PropertyChanged -= OnFeatureSettingChanged;
         _runCancellation?.Cancel();
         _runCancellation?.Dispose();
         _bleepLock.Dispose();
@@ -363,6 +391,40 @@ public sealed class VoicemodModule : IModule
     }
 
     private async Task RunConnectionLoopAsync(CancellationToken ct)
+    {
+        while (!ct.IsCancellationRequested && Settings.IntgrVoicemod)
+        {
+            try
+            {
+                await RunConnectionLoopCoreAsync(ct).ConfigureAwait(false);
+                return;
+            }
+            catch (OperationCanceledException) when (ct.IsCancellationRequested)
+            {
+                return;
+            }
+            catch (Exception ex)
+            {
+                Logging.WriteException(ex, MSGBox: false);
+                await SetStateAsync(
+                    VoicemodConnectionState.Faulted,
+                    "Voicemod control hit an unexpected error",
+                    ex.Message,
+                    clearPort: true).ConfigureAwait(false);
+            }
+
+            try
+            {
+                await Task.Delay(FaultRecoveryDelay, ct).ConfigureAwait(false);
+            }
+            catch (OperationCanceledException)
+            {
+                return;
+            }
+        }
+    }
+
+    private async Task RunConnectionLoopCoreAsync(CancellationToken ct)
     {
         int reconnectAttempt = 0;
 
@@ -382,8 +444,8 @@ public sealed class VoicemodModule : IModule
                 await _dispatcher.InvokeAsync(() => _display.ClientKeyConfigured = false).ConfigureAwait(false);
                 await SetStateAsync(
                     VoicemodConnectionState.NotConfigured,
-                    "This build does not contain a Voicemod client key",
-                    "Set MAGICCHATBOX_VOICEMOD_CLIENT_KEY locally or inject VoicemodClientKey at build time.",
+                    "No Voicemod client key is configured",
+                    "Save a local key in Voicemod options or inject VoicemodClientKey at build time.",
                     clearPort: true).ConfigureAwait(false);
                 return;
             }
@@ -521,7 +583,11 @@ public sealed class VoicemodModule : IModule
                     if (ReferenceEquals(_socket, socket))
                         _socket = null;
 
-                    await _dispatcher.InvokeAsync(() => _display.ResetSwitches()).ConfigureAwait(false);
+                    await _dispatcher.InvokeAsync(() =>
+                    {
+                        _display.ResetSwitches();
+                        _display.ClearCatalog();
+                    }).ConfigureAwait(false);
                 }
 
                 break;
@@ -568,7 +634,8 @@ public sealed class VoicemodModule : IModule
                 if (!VoicemodProtocol.TryParseEnvelope(message, out VoicemodEnvelope? envelope, out string? error)
                     || envelope == null)
                 {
-                    Logging.WriteInfo($"Voicemod: ignored an invalid message: {error}");
+                    Logging.WriteInfo(
+                        $"Voicemod: ignored an invalid message: {error} Message: {Excerpt(message)}");
                     continue;
                 }
 
@@ -618,6 +685,9 @@ public sealed class VoicemodModule : IModule
             await _dispatcher.InvokeAsync(() => _display.AppVersion = envelope.AppVersion).ConfigureAwait(false);
         }
 
+        if (!IsActionEnabled(action, Features))
+            return;
+
         switch (action.ToLowerInvariant())
         {
             case "getuserlicense":
@@ -632,6 +702,56 @@ public sealed class VoicemodModule : IModule
                         _display.LicenseType = licenseType;
                         _display.MarkSynchronized(envelope.AppVersion);
                     }).ConfigureAwait(false);
+                }
+
+                break;
+            }
+
+            case "servernotice":
+            {
+                string? notice = VoicemodProtocol.ReadServerNotice(envelope);
+                if (!string.IsNullOrWhiteSpace(notice))
+                    Logging.WriteInfo($"Voicemod says: {notice}");
+                break;
+            }
+
+            case "getbitmap":
+            {
+                var bitmap = VoicemodProtocol.ReadBitmap(envelope);
+                if (bitmap != null)
+                {
+                    (string kind, string id, string base64) = bitmap.Value;
+                    bool stored = await _dispatcher.InvokeAsync(
+                        () => _artwork.Store(kind, id, base64)).ConfigureAwait(false);
+
+                    if (!stored)
+                        Logging.WriteInfo($"Voicemod: artwork for {kind} '{id}' could not be decoded.");
+                }
+                else
+                {
+                    Logging.WriteInfo(
+                        $"Voicemod: an artwork reply did not match the documented shape: {Excerpt(envelope.Root.GetRawText())}");
+                }
+
+                break;
+            }
+
+            case "getuser":
+            {
+                string? userId = VoicemodProtocol.ReadUserId(envelope);
+                if (!string.IsNullOrWhiteSpace(userId))
+                    await _dispatcher.InvokeAsync(() => _display.UserId = userId).ConfigureAwait(false);
+                break;
+            }
+
+            case "getrotatoryvoicesremainingtime":
+            {
+                TimeSpan? remaining = VoicemodProtocol.ReadRotatingVoicesRemainingTime(envelope);
+                if (remaining != null)
+                {
+                    DateTime refreshAt = DateTime.Now.Add(remaining.Value);
+                    await _dispatcher.InvokeAsync(
+                        () => _display.RotatingVoicesRefreshAt = refreshAt).ConfigureAwait(false);
                 }
 
                 break;
@@ -661,6 +781,21 @@ public sealed class VoicemodModule : IModule
                     await _dispatcher.InvokeAsync(() =>
                     {
                         _display.ReplaceSoundboards(soundboards);
+                        _display.MarkSynchronized(envelope.AppVersion);
+                    }).ConfigureAwait(false);
+                }
+
+                break;
+            }
+
+            case "getmemes":
+            {
+                IReadOnlyList<VoicemodSound>? memes = VoicemodProtocol.ReadMemes(envelope);
+                if (memes != null)
+                {
+                    await _dispatcher.InvokeAsync(() =>
+                    {
+                        _display.ReplaceAllSounds(memes);
                         _display.MarkSynchronized(envelope.AppVersion);
                     }).ConfigureAwait(false);
                 }
@@ -837,22 +972,100 @@ public sealed class VoicemodModule : IModule
 
     private async Task SynchronizeAsync(CancellationToken ct)
     {
-        string[] actions =
-        [
-            "getUserLicense",
-            "getVoices",
-            "getAllSoundboard",
-            "getBackgroundEffectStatus",
-            "getHearMyselfStatus",
-            "getVoiceChangerStatus",
-            "getMuteMemeForMeStatus",
-            "getMuteMicStatus",
-            "getCurrentVoice",
-            "getActiveSoundboardProfile",
-        ];
-
-        foreach (string action in actions)
+        foreach (string action in BuildSynchronizeActions(Features))
             await SendCommandCoreAsync(action, null, requireAuthorization: true, ct).ConfigureAwait(false);
+    }
+
+    private static readonly string[] VoiceActions =
+    [
+        "getvoices", "getcurrentvoice", "getrotatoryvoicesremainingtime", "setcurrentvoiceparameter",
+        "parameterschangedevent", "parameterchangedevent", "voiceparameterupdated",
+        "voicechangedevent", "voiceloadedevent",
+        "togglevoicemod", "togglevoicechanger",
+        "voicechangerenabledevent", "voicechangerdisabledevent",
+        "togglehearmyvoice", "hearmyselfenabledevent", "hearmyselfdisabledevent",
+        "togglebackground", "backgroundeffectsenabledevent", "backgroundeffectsdisabledevent",
+    ];
+
+    private static readonly string[] SoundboardActions =
+    [
+        "getallsoundboard", "getmemes", "getactivesoundboardprofile",
+        "togglemutememeforme", "mutememeformeenabledevent", "mutememeformedisabledevent",
+    ];
+
+    private static readonly string[] MicActions =
+    [
+        "togglemutemic", "togglemute",
+        "mutemicrophoneenabledevent", "mutemicrophonedisabledevent",
+        "badlanguageenabledevent", "badlanguagedisabledevent",
+    ];
+
+    public static bool IsActionEnabled(string action, VoicemodSettings features)
+    {
+        ArgumentNullException.ThrowIfNull(features);
+
+        string key = (action ?? string.Empty).ToLowerInvariant();
+
+        if (Array.IndexOf(VoiceActions, key) >= 0)
+            return features.VoiceControlEnabled;
+        if (Array.IndexOf(SoundboardActions, key) >= 0)
+            return features.SoundboardControlEnabled;
+        if (Array.IndexOf(MicActions, key) >= 0)
+            return features.MicControlEnabled;
+
+        return true;
+    }
+
+    public static IReadOnlyList<string> BuildSynchronizeActions(VoicemodSettings features)
+    {
+        ArgumentNullException.ThrowIfNull(features);
+
+        var actions = new List<string> { "getUserLicense", "getUser" };
+
+        if (features.VoiceControlEnabled)
+        {
+            actions.Add("getVoices");
+            actions.Add("getCurrentVoice");
+            actions.Add("getRotatoryVoicesRemainingTime");
+            actions.Add("getVoiceChangerStatus");
+            actions.Add("getHearMyselfStatus");
+            actions.Add("getBackgroundEffectStatus");
+        }
+
+        if (features.SoundboardControlEnabled)
+        {
+            actions.Add("getAllSoundboard");
+            actions.Add("getMemes");
+            actions.Add("getActiveSoundboardProfile");
+            actions.Add("getMuteMemeForMeStatus");
+        }
+
+        if (features.MicControlEnabled)
+            actions.Add("getMuteMicStatus");
+
+        return actions;
+    }
+
+    private async void OnFeatureSettingChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName is not (nameof(VoicemodSettings.VoiceControlEnabled)
+            or nameof(VoicemodSettings.SoundboardControlEnabled)
+            or nameof(VoicemodSettings.MicControlEnabled)))
+        {
+            return;
+        }
+
+        if (_disposed || !_authorized)
+            return;
+
+        try
+        {
+            await RefreshAsync().ConfigureAwait(false);
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            Logging.WriteInfo($"Voicemod: could not resynchronize after a feature switch changed: {ex.Message}");
+        }
     }
 
     private Task SendCommandAsync(string action, object? payload, CancellationToken ct)
@@ -874,14 +1087,28 @@ public sealed class VoicemodModule : IModule
             throw new InvalidOperationException("Voicemod has not authorized this client yet.");
 
         string message = VoicemodProtocol.CreateMessage(action, payload);
-        await _sendLock.WaitAsync(ct).ConfigureAwait(false);
+        using var sendCancellation = CancellationTokenSource.CreateLinkedTokenSource(ct);
+        sendCancellation.CancelAfter(SendTimeout);
+
         try
         {
-            await socket.SendTextAsync(message, ct).ConfigureAwait(false);
+            await _sendLock.WaitAsync(sendCancellation.Token).ConfigureAwait(false);
+            try
+            {
+                await socket.SendTextAsync(message, sendCancellation.Token).ConfigureAwait(false);
+            }
+            finally
+            {
+                _sendLock.Release();
+            }
         }
-        finally
+        catch (OperationCanceledException) when (!ct.IsCancellationRequested)
         {
-            _sendLock.Release();
+            throw new TimeoutException($"Voicemod did not accept the '{action}' command in time.");
+        }
+        catch (ObjectDisposedException)
+        {
+            throw new InvalidOperationException("Voicemod is not connected.");
         }
     }
 
@@ -952,6 +1179,16 @@ public sealed class VoicemodModule : IModule
             else if (port != null)
                 _display.ConnectedPort = port;
         }).ConfigureAwait(false);
+    }
+
+    private const int LoggedMessageLength = 240;
+
+    private static string Excerpt(string message)
+    {
+        string collapsed = message.Replace('\r', ' ').Replace('\n', ' ').Trim();
+        return collapsed.Length <= LoggedMessageLength
+            ? collapsed
+            : collapsed[..LoggedMessageLength] + "...";
     }
 
     private static string ConnectedStatusText(int? port)

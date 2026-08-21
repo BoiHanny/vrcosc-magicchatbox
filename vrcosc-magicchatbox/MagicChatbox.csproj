@@ -112,6 +112,7 @@
     <None Remove="Img\Icons\Wand_ico.png" />
     <None Remove="Img\Icons\Weather_ico.png" />
     <None Remove="Img\Icons\WindowActivity_ico.png" />
+    <None Remove="Img\Icons\Voicemod.png" />
     <None Remove="Img\Icons\yes.png" />
     <None Remove="Img\MagicOSC_icon.png" />
     <None Remove="Json\voices.json" />
@@ -199,6 +200,7 @@
     <Resource Include="Img\Icons\WindowActivity_ico.png">
       <CopyToOutputDirectory></CopyToOutputDirectory>
     </Resource>
+    <Resource Include="Img\Icons\Voicemod.png" />
     <Resource Include="Img\Icons\yes.png" />
     <Resource Include="Img\MagicOSC_icon.png" />
     <Resource Include="Img\Icons\NetworkStats_ico.png" />

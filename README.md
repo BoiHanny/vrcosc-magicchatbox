@@ -337,9 +337,22 @@ and nothing is sent anywhere else.
 
 ### Building with Voicemod Control
 
-Release builds require a GitHub Actions repository secret named `VOICEMOD_CLIENT_KEY`; the workflow
-injects it as assembly metadata without writing it to source control. Local builds can override the
-embedded value at runtime with the `MAGICCHATBOX_VOICEMOD_CLIENT_KEY` environment variable.
+Voicemod's Control API needs a client key, which you request from Voicemod through
+[their form](https://control-api.voicemod.net/getting-started/). There are two ways to supply one.
+
+**In the app.** Open **Options → Voicemod → Client key**, paste the key and save it. It is stored with
+Windows DPAPI for your Windows user only, and it takes priority over any key baked into the build. This
+is the path for anyone running a build from source, and it needs no rebuild.
+
+**At build time.** Pass the key as an MSBuild property so it is embedded as assembly metadata:
+
+```
+dotnet publish vrcosc-magicchatbox\MagicChatbox.csproj -c Release -r win-x64 --self-contained false -p:VoicemodClientKey=YOUR_KEY
+```
+
+Official releases do this from a repository secret named `VOICEMOD_CLIENT_KEY`, so the key never
+reaches source control. Builds without a key still work — Voicemod control simply reports that no key
+is configured until one is saved in Options.
 
 ---
 

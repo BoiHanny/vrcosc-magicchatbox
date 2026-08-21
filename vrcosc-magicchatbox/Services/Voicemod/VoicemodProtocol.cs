@@ -31,6 +31,11 @@ public static class VoicemodProtocol
         30546,
     ];
 
+    public const string ServerNoticeAction = "serverNotice";
+
+    public static string? ReadServerNotice(VoicemodEnvelope envelope)
+        => GetString(envelope.Root, "msg");
+
     private static readonly JsonSerializerOptions SerializerOptions = new()
     {
         PropertyNamingPolicy = null,
@@ -77,8 +82,19 @@ public static class VoicemodProtocol
 
             if (string.IsNullOrWhiteSpace(action))
             {
-                error = "The message did not contain an action.";
-                return false;
+                // Voicemod greets a fresh socket with a bare status line that carries no action at
+                // all, so treating "no action" as malformed drops a legitimate message and buries
+                // the app version it hands over for free.
+                if (TryGetProperty(root, "msg", out JsonElement notice)
+                    && notice.ValueKind == JsonValueKind.String)
+                {
+                    action = ServerNoticeAction;
+                }
+                else
+                {
+                    error = "The message did not contain an action.";
+                    return false;
+                }
             }
 
             envelope = new VoicemodEnvelope(
@@ -295,6 +311,139 @@ public static class VoicemodProtocol
 
         return null;
     }
+
+    public static IReadOnlyList<VoicemodSound>? ReadMemes(VoicemodEnvelope envelope)
+    {
+        JsonElement data = SelectDataWithProperty(envelope, "listOfMemes");
+        if (!TryGetProperty(data, "listOfMemes", out JsonElement memesElement)
+            || memesElement.ValueKind != JsonValueKind.Array)
+        {
+            return null;
+        }
+
+        var sounds = new List<VoicemodSound>();
+        foreach (JsonElement item in memesElement.EnumerateArray())
+        {
+            if (item.ValueKind != JsonValueKind.Object)
+                continue;
+
+            string? id = GetString(item, "FileName")
+                ?? GetString(item, "fileName")
+                ?? GetString(item, "id");
+            if (string.IsNullOrWhiteSpace(id))
+                continue;
+
+            sounds.Add(new VoicemodSound(
+                id,
+                GetString(item, "Name") ?? GetString(item, "name") ?? id,
+                GetBoolean(item, "enabled") ?? GetBoolean(item, "isEnabled") ?? true,
+                GetBoolean(item, "isCustom") ?? false,
+                GetString(item, "Type") ?? GetString(item, "type") ?? string.Empty,
+                GetBoolean(item, "loop") ?? false,
+                GetBoolean(item, "muteOtherSounds") ?? false,
+                GetBoolean(item, "muteVoice") ?? false,
+                GetBoolean(item, "stopOtherSounds") ?? false,
+                GetBoolean(item, "showProLogo") ?? false,
+                GetString(item, "Image") ?? GetString(item, "bitmapChecksum") ?? string.Empty));
+        }
+
+        return sounds;
+    }
+
+    // Voices carry default/selected/transparent; sounds are specified as a single "image". The live
+    // server sends "default" for sounds too, so try every named form before the catch-all.
+    private static readonly string[] BitmapVariants = ["default", "image", "selected", "transparent"];
+
+    public static (string Kind, string Id, string Base64)? ReadBitmap(VoicemodEnvelope envelope)
+    {
+        foreach (JsonElement data in EnumerateData(envelope))
+        {
+            string? result = ReadBitmapPayload(data);
+            if (string.IsNullOrWhiteSpace(result))
+                continue;
+
+            string? voiceId = GetString(data, "voiceID") ?? GetString(data, "voiceId");
+            if (!string.IsNullOrWhiteSpace(voiceId))
+                return ("voice", voiceId, result);
+
+            string? memeId = GetString(data, "memeId") ?? GetString(data, "memeID");
+            if (!string.IsNullOrWhiteSpace(memeId))
+                return ("sound", memeId, result);
+        }
+
+        return null;
+    }
+
+    private static string? ReadBitmapPayload(JsonElement data)
+    {
+        if (!TryGetProperty(data, "result", out JsonElement result))
+            return null;
+
+        if (result.ValueKind == JsonValueKind.String)
+            return result.GetString();
+
+        if (result.ValueKind != JsonValueKind.Object)
+            return null;
+
+        // The reference presents result as a single value, but Voicemod sends an object of named
+        // renditions. Prefer the plain one and fall back to whatever it did send.
+        foreach (string variant in BitmapVariants)
+        {
+            string? value = GetString(result, variant);
+            if (!string.IsNullOrWhiteSpace(value))
+                return value;
+        }
+
+        foreach (JsonProperty property in result.EnumerateObject())
+        {
+            if (property.Value.ValueKind == JsonValueKind.String)
+            {
+                string? value = property.Value.GetString();
+                if (!string.IsNullOrWhiteSpace(value))
+                    return value;
+            }
+        }
+
+        return null;
+    }
+
+    public static string? ReadUserId(VoicemodEnvelope envelope)
+    {
+        foreach (JsonElement data in EnumerateData(envelope))
+        {
+            string? value = GetString(data, "userId") ?? GetString(data, "userID");
+            if (!string.IsNullOrWhiteSpace(value))
+                return value;
+        }
+
+        return null;
+    }
+
+    public static TimeSpan? ReadRotatingVoicesRemainingTime(VoicemodEnvelope envelope)
+    {
+        foreach (JsonElement data in EnumerateData(envelope))
+        {
+            double? value = GetDouble(data, "remainingTime");
+            if (value == null || value < 0)
+                continue;
+
+            return NormalizeRemainingTime(value.Value);
+        }
+
+        return null;
+    }
+
+    public static TimeSpan NormalizeRemainingTime(double value)
+    {
+        if (value <= 0)
+            return TimeSpan.Zero;
+
+        return value > SecondsInADay
+            ? TimeSpan.FromMilliseconds(value)
+            : TimeSpan.FromSeconds(value);
+    }
+
+    private const double SecondsInADay = 86400;
 
     public static string? ReadLicenseType(VoicemodEnvelope envelope)
     {
