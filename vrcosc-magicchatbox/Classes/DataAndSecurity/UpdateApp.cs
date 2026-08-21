@@ -11,6 +11,7 @@ using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using vrcosc_magicchatbox.Core.State;
+using vrcosc_magicchatbox.Core.Updates;
 using vrcosc_magicchatbox.ViewModels.State;
 
 namespace vrcosc_magicchatbox.Classes.DataAndSecurity;
@@ -18,6 +19,7 @@ namespace vrcosc_magicchatbox.Classes.DataAndSecurity;
 public class UpdateApp
 {
     private static readonly SemaphoreSlim PrepareUpdateGate = new(1, 1);
+    private static int _legacyWorkspacesChecked;
     private const string ExecutableName = "MagicChatbox.exe";
     private const int UpdateLocationMetadataVersion = 2;
     private string backupPath;
@@ -221,12 +223,85 @@ public class UpdateApp
         SaveUpdateLocation(backupDirectory);
     }
 
+    private static string GetWorkspaceRoot() =>
+        Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+            "Vrcosc-MagicChatbox",
+            "update");
+
     private void ResetUpdateWorkspacePaths()
     {
-        tempPath = Path.Combine(Path.GetTempPath(), "vrcosc_magicchatbox_update");
+        tempPath = GetWorkspaceRoot();
         unzipPath = Path.Combine(tempPath, "update_unzip");
         maintenanceRunnerPath = Path.Combine(tempPath, "maintenance_runner");
         magicChatboxExePath = Path.Combine(unzipPath, ExecutableName);
+    }
+
+    private static void RemoveLegacyWorkspaces()
+    {
+        if (Interlocked.Exchange(ref _legacyWorkspacesChecked, 1) != 0)
+        {
+            return;
+        }
+
+        string[] legacyPaths =
+        [
+            Path.Combine(Path.GetTempPath(), "vrcosc_magicchatbox_update"),
+            Path.Combine(Path.GetTempPath(), "vrcosc_magicchatbox_custom_update")
+        ];
+
+        foreach (string legacyPath in legacyPaths)
+        {
+            try
+            {
+                if (Directory.Exists(legacyPath))
+                {
+                    Directory.Delete(legacyPath, true);
+                    Logging.WriteInfo($"Removed legacy update workspace: {legacyPath}");
+                }
+            }
+            catch (Exception ex) when (ex is IOException || ex is UnauthorizedAccessException)
+            {
+                Logging.WriteInfo($"Could not remove legacy update workspace {legacyPath}: {ex.Message}");
+            }
+        }
+    }
+
+    private void VerifyDownloadedPackage(string zipPath)
+    {
+        DigestVerificationResult verification = ReleaseAssetDigest.Verify(_updateState.UpdateDigest, zipPath);
+
+        switch (verification.Status)
+        {
+            case DigestVerificationStatus.Match:
+                Logging.WriteInfo($"Update package verified against the published SHA-256 ({verification.Expected}).");
+                break;
+
+            case DigestVerificationStatus.NotPublished:
+                Logging.WriteInfo("No SHA-256 was published for this release asset, so the package could not be verified.");
+                break;
+
+            case DigestVerificationStatus.Mismatch:
+                TryDeleteFile(zipPath);
+                throw new InvalidOperationException(
+                    "The downloaded update did not match the checksum published for it. " +
+                    $"Expected {verification.Expected}, got {verification.Actual}. The download was discarded.");
+        }
+    }
+
+    private static void TryDeleteFile(string path)
+    {
+        try
+        {
+            if (File.Exists(path))
+            {
+                File.Delete(path);
+            }
+        }
+        catch (Exception ex) when (ex is IOException || ex is UnauthorizedAccessException)
+        {
+            Logging.WriteInfo($"Could not delete {path}: {ex.Message}");
+        }
     }
 
     private async Task DownloadAndExtractUpdate(string zipPath)
@@ -256,6 +331,9 @@ public class UpdateApp
             await fs.FlushAsync();
         }
 
+        UpdateStatus("Verifying download");
+        VerifyDownloadedPackage(zipPath);
+
         string targetFullPath = Path.GetFullPath(unzipPath);
         using (ZipArchive archive = ZipFile.OpenRead(zipPath))
         {
@@ -282,6 +360,8 @@ public class UpdateApp
                 }
             }
         }
+
+        TryDeleteFile(zipPath);
     }
 
 
@@ -375,6 +455,7 @@ public class UpdateApp
         }
 
         SetDefaultPaths();
+        RemoveLegacyWorkspaces();
 
         if (!createNewAppLocation && File.Exists(jsonFilePath))
         {
@@ -758,7 +839,7 @@ public class UpdateApp
 
         if (useCustomZip)
         {
-            unzipPath = Path.Combine(Path.GetTempPath(), "vrcosc_magicchatbox_custom_update");
+            unzipPath = Path.Combine(GetWorkspaceRoot(), "custom_unzip");
             magicChatboxExePath = Path.Combine(unzipPath, ExecutableName);
             ResetExtractionWorkspace();
             ExtractCustomZip(customZipPath);

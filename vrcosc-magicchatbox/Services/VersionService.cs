@@ -107,6 +107,7 @@ public sealed class VersionService : IVersionService
             if (assetsLatest != null && assetsLatest.Count > 0)
             {
                 _updateState.LatestReleaseURL = assetsLatest[0].Value<string>("browser_download_url");
+                _updateState.LatestReleaseDigest = assetsLatest[0].Value<string>("digest") ?? string.Empty;
             }
 
             using var responsePreRelease = await client.GetAsync(urlPreRelease);
@@ -120,15 +121,20 @@ public sealed class VersionService : IVersionService
                     string preReleaseVersion = release.Value<string>("tag_name");
                     JArray assetsPreRelease = release.Value<JArray>("assets");
                     string preReleaseDownloadUrl = null;
+                    string preReleaseDigest = null;
 
                     if (assetsPreRelease != null && assetsPreRelease.Count > 0)
+                    {
                         preReleaseDownloadUrl = assetsPreRelease[0].Value<string>("browser_download_url");
+                        preReleaseDigest = assetsPreRelease[0].Value<string>("digest");
+                    }
 
                     if (_appSettingsProvider.Value.JoinedAlphaChannel && !string.IsNullOrEmpty(preReleaseVersion))
                     {
                         _updateState.PreReleaseVersion = new ViewModels.Models.Version(
                             Regex.Replace(preReleaseVersion, "[^0-9.]", string.Empty));
                         _updateState.PreReleaseURL = preReleaseDownloadUrl ?? string.Empty;
+                        _updateState.PreReleaseDigest = preReleaseDigest ?? string.Empty;
                     }
                     break;
                 }
@@ -184,6 +190,7 @@ public sealed class VersionService : IVersionService
                 _updateState.CanUpdate = true;
                 _updateState.CanUpdateLabel = true;
                 _updateState.UpdateURL = _updateState.LatestReleaseURL;
+                _updateState.UpdateDigest = _updateState.LatestReleaseDigest;
                 return;
             }
 
@@ -201,6 +208,7 @@ public sealed class VersionService : IVersionService
                     _updateState.CanUpdate = true;
                     _updateState.CanUpdateLabel = false;
                     _updateState.UpdateURL = _updateState.PreReleaseURL;
+                    _updateState.UpdateDigest = _updateState.PreReleaseDigest;
                     return;
                 }
                 else if (compareWithPre == 0)

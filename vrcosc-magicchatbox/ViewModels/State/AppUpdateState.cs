@@ -11,8 +11,11 @@ public partial class AppUpdateState : ObservableObject
     [ObservableProperty] private bool _canUpdateLabel;
     [ObservableProperty] private string _updateStatustxt = string.Empty;
     [ObservableProperty] private string _updateURL = string.Empty;
+    [ObservableProperty] private string _updateDigest = string.Empty;
     [ObservableProperty] private string _latestReleaseURL = string.Empty;
+    [ObservableProperty] private string _latestReleaseDigest = string.Empty;
     [ObservableProperty] private string _preReleaseURL = string.Empty;
+    [ObservableProperty] private string _preReleaseDigest = string.Empty;
     [ObservableProperty] private string _tagURL = string.Empty;
     [ObservableProperty] private string _appLocation = string.Empty;
     [ObservableProperty] private bool _rollBackUpdateAvailable;
