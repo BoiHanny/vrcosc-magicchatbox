@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-	<Version>0.9.221</Version>
+	<Version>0.9.222</Version>
     <TargetFramework>net10.0-windows10.0.26100.0</TargetFramework>
     <RootNamespace>vrcosc_magicchatbox</RootNamespace>
     <Nullable>enable</Nullable>
@@ -16,7 +16,6 @@
     <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
     <StartupObject>vrcosc_magicchatbox.App</StartupObject>
     <SupportedOSPlatformVersion>10.0.26100.0</SupportedOSPlatformVersion>
-	  <GenerateBootstrapperOnBuild>true</GenerateBootstrapperOnBuild>
     <Product>MagicChatbox</Product>
     <AssemblyTitle>MagicChatbox</AssemblyTitle>
     <Description>Your VRChat chatbox, but alive. Show your music, lyrics, heart rate, world and PC stats in VRChat over OSC.</Description>
@@ -32,8 +31,8 @@
 		<WarningLevel>4</WarningLevel>
 		<DebugType>none</DebugType>
 		<Prefer32Bit>false</Prefer32Bit>
-		<PublishReadyToRun>false</PublishReadyToRun>
 		<SatelliteResourceLanguages>en</SatelliteResourceLanguages>
+		<AllowedReferenceRelatedFileExtensions>none</AllowedReferenceRelatedFileExtensions>
 	</PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
@@ -227,10 +226,6 @@
   <ItemGroup>
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2" />
     <PackageReference Include="DiscordRichPresence" Version="1.6.1.70" />
-    <PackageReference Include="DotnetRuntimeBootstrapper" Version="2.5.4">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
     <PackageReference Include="Dubya.WindowsMediaController" Version="2.5.6" />
     <PackageReference Include="LibreHardwareMonitorLib" Version="0.9.6" />
     <PackageReference Include="Microsoft.Extensions.Http.Polly" Version="10.0.11" />
@@ -301,5 +296,15 @@
       <SubType>Designer</SubType>
     </Page>
   </ItemGroup>
+
+  <!-- Transitive dependencies drag in Unix syscall shims that a Windows-only build can never load.
+       Shipping unreachable native code only widens the surface a scanner has to judge. -->
+  <Target Name="RemoveUnixInteropShims" AfterTargets="ComputeResolvedFilesToPublishList">
+    <ItemGroup>
+      <ResolvedFileToPublish
+        Remove="@(ResolvedFileToPublish)"
+        Condition="'%(Filename)' == 'MonoPosixHelper' or '%(Filename)' == 'libMonoPosixHelper'" />
+    </ItemGroup>
+  </Target>
 
 </Project>

@@ -378,6 +378,51 @@ jobs:
 
         Write-Host "Embedded Voicemod client key verified: found $($foundValue.Length) characters."
 
+    - name: Verify the published launcher
+      if: steps.resolve_release.outputs.is_tag_release != 'true' || steps.check_release.outputs.release_exists == 'false'
+      shell: pwsh
+      run: |
+        $publishDir = Join-Path $env:GITHUB_WORKSPACE 'publish-output'
+        $exePath = Join-Path $publishDir 'MagicChatbox.exe'
+
+        if (-not (Test-Path -LiteralPath $exePath)) {
+          Write-Error "Published launcher not found: $exePath"
+          exit 1
+        }
+
+        $bytes = [System.IO.File]::ReadAllBytes($exePath)
+        $peOffset = [BitConverter]::ToInt32($bytes, 0x3C)
+        $machine = [BitConverter]::ToUInt16($bytes, $peOffset + 4)
+        $magic = [BitConverter]::ToUInt16($bytes, $peOffset + 24)
+        $dataDirectories = $peOffset + 24 + $(if ($magic -eq 0x20B) { 112 } else { 96 })
+        $clrHeaderRva = [BitConverter]::ToUInt32($bytes, $dataDirectories + 14 * 8)
+
+        # The stock .NET apphost is a native x64 PE with no CLR header and no side-car .config.
+        # Anything else means a launcher stub replaced it after publish, which changes what
+        # ships to users without changing a line of our own code.
+        if ($machine -ne 0x8664) {
+          Write-Error "MagicChatbox.exe reports machine 0x$('{0:X4}' -f $machine) instead of x64 (0x8664)."
+          exit 1
+        }
+
+        if ($clrHeaderRva -ne 0) {
+          Write-Error "MagicChatbox.exe carries a CLR header, so it is a managed launcher stub rather than the .NET apphost."
+          exit 1
+        }
+
+        if (Test-Path -LiteralPath (Join-Path $publishDir 'MagicChatbox.exe.config')) {
+          Write-Error "MagicChatbox.exe.config was published. The .NET apphost does not use one."
+          exit 1
+        }
+
+        $strays = Get-ChildItem -LiteralPath $publishDir -Recurse -File -Include '*.pdb', 'MonoPosixHelper.dll', 'libMonoPosixHelper.dll'
+        if ($strays) {
+          Write-Error "Files that should never ship were published: $(($strays | ForEach-Object { $_.Name }) -join ', ')"
+          exit 1
+        }
+
+        Write-Host "Published launcher verified: native x64 .NET apphost, $($bytes.Length) bytes."
+
     - name: Package the release archive
       if: steps.resolve_release.outputs.is_tag_release != 'true' || steps.check_release.outputs.release_exists == 'false'
       shell: pwsh
@@ -397,6 +442,47 @@ jobs:
       run: echo "Created release tag ${{ steps.resolve_release.outputs.release_tag }} during the branch run. The tag-triggered workflow run will publish the release."
 
     # ---- Malware scan ----
+    - name: Scan the published output with Microsoft Defender
+      if: steps.check_release.outputs.release_exists == 'false' && (steps.resolve_release.outputs.is_tag_release == 'true' || steps.finalize_branch_release.outputs.publish_now == 'true')
+      continue-on-error: true
+      shell: pwsh
+      run: |
+        $publishDir = Join-Path $env:GITHUB_WORKSPACE 'publish-output'
+
+        # The copy under Program Files is the stale inbox build. The Platform directory holds the
+        # engine that is actually running, and its version is the number worth recording.
+        $platform = Get-ChildItem 'C:\ProgramData\Microsoft\Windows Defender\Platform' -Directory -ErrorAction SilentlyContinue |
+          Sort-Object Name -Descending |
+          Select-Object -First 1
+
+        $mpCmdRun = if ($platform) { Join-Path $platform.FullName 'MpCmdRun.exe' } else { 'C:\Program Files\Windows Defender\MpCmdRun.exe' }
+
+        if (-not (Test-Path -LiteralPath $mpCmdRun)) {
+          Write-Host "::warning::MpCmdRun.exe was not found on this runner. Skipping the Defender check."
+          exit 0
+        }
+
+        try {
+          $status = Get-MpComputerStatus -ErrorAction Stop
+          Write-Host "Defender engine $($status.AMEngineVersion), security intelligence $($status.AntivirusSignatureVersion)."
+        }
+        catch {
+          Write-Host "::warning::Defender status is unavailable on this runner."
+        }
+
+        & $mpCmdRun -Scan -ScanType 3 -File $publishDir -DisableRemediation
+        $scanExit = $LASTEXITCODE
+
+        # Reports whether the launcher is already a known good file. It will not be until a
+        # consistent publisher identity has had time to accumulate reputation.
+        & $mpCmdRun -TrustCheck -File (Join-Path $publishDir 'MagicChatbox.exe')
+
+        # Instrumentation, not a gate: runner definition state varies by image, and a stale-model
+        # false alarm must never be able to block a release on its own.
+        if ($scanExit -ne 0) {
+          Write-Host "::warning::Microsoft Defender reported a detection in publish-output (exit code $scanExit)."
+        }
+
     - name: Check for a VirusTotal credential
       if: steps.check_release.outputs.release_exists == 'false' && (steps.resolve_release.outputs.is_tag_release == 'true' || steps.finalize_branch_release.outputs.publish_now == 'true')
       id: optional_secrets
@@ -527,6 +613,45 @@ jobs:
         $reportUrl = "https://www.virustotal.com/gui/file/$sha256/detection"
         "report_url=$reportUrl" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
 
+    - name: Submit the launcher to VirusTotal
+      if: steps.check_release.outputs.release_exists == 'false' && (steps.resolve_release.outputs.is_tag_release == 'true' || steps.finalize_branch_release.outputs.publish_now == 'true') && steps.optional_secrets.outputs.has_virustotal_key == 'true'
+      id: virustotal_launcher
+      continue-on-error: true
+      env:
+        VIRUSTOTAL_API_KEY: ${{ secrets.VIRUSTOTAL_API_KEY }}
+      shell: pwsh
+      run: |
+        $filePath = Join-Path $env:GITHUB_WORKSPACE 'publish-output\MagicChatbox.exe'
+
+        if (-not (Test-Path -LiteralPath $filePath)) {
+          Write-Error "File not found: $filePath"
+          exit 1
+        }
+
+        # Scanners score the extracted launcher, not the archive it arrived in, so the launcher
+        # needs a report of its own. The GUI URL is derived from the hash, so there is nothing
+        # to poll for — the link resolves once the analysis lands.
+        $fileInfo = Get-Item $filePath
+        $sha256 = (Get-FileHash -LiteralPath $filePath -Algorithm SHA256).Hash.ToLowerInvariant()
+
+        try {
+          Invoke-RestMethod `
+            -Uri "https://www.virustotal.com/api/v3/files" `
+            -Method Post `
+            -Headers @{
+              "x-apikey" = $env:VIRUSTOTAL_API_KEY
+            } `
+            -Form @{
+              "file" = $fileInfo
+            } `
+            -TimeoutSec 120 | Out-Null
+        }
+        catch {
+          Write-Host "::warning::Could not submit MagicChatbox.exe to VirusTotal: $($_.Exception.Message)"
+        }
+
+        "report_url=https://www.virustotal.com/gui/file/$sha256/detection" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+
     # ---- Publish ----
     - name: Determine the release type
       if: steps.check_release.outputs.release_exists == 'false' && (steps.resolve_release.outputs.is_tag_release == 'true' || steps.finalize_branch_release.outputs.publish_now == 'true')
@@ -584,6 +709,7 @@ jobs:
         APP_VERSION: ${{ env.VERSION }}
         RELEASE_TAG: ${{ steps.resolve_release.outputs.release_tag }}
         VIRUSTOTAL_URL: ${{ steps.virustotal_report.outputs.report_url }}
+        VIRUSTOTAL_EXE_URL: ${{ steps.virustotal_launcher.outputs.report_url }}
         IS_PRERELEASE: ${{ steps.determine_release_type.outputs.pre_release }}
       with:
         script: |
@@ -598,6 +724,7 @@ jobs:
           const version = process.env.APP_VERSION;
           const tag = process.env.RELEASE_TAG;
           const vtUrl = process.env.VIRUSTOTAL_URL || '';
+          const vtExeUrl = process.env.VIRUSTOTAL_EXE_URL || '';
           const isPrerelease = process.env.IS_PRERELEASE === 'true';
           const { owner, repo } = context.repo;
           const slug = owner + '/' + repo;
@@ -763,7 +890,7 @@ jobs:
           ## \`Installing this version\`
 
             1. **Download** \`${zipName}\` from the link above.
-            2. **[.NET 10 Desktop Runtime](https://dotnet.microsoft.com/en-us/download/dotnet/10.0)** — free, from Microsoft. If you skip this, MagicChatbox will offer to fetch it for you on first launch.
+            2. **[.NET 10 Desktop Runtime](https://dotnet.microsoft.com/en-us/download/dotnet/10.0)** — free, from Microsoft. On that page pick **Desktop Runtime → Windows x64**; the plain ".NET Runtime" is not enough. Install it before step 4 or MagicChatbox will not start.
             3. **Extract the ZIP into a folder of its own.** Do not run it from inside the ZIP — the app needs to write its files next to itself.
             4. Run **MagicChatbox.exe**.
 
@@ -787,7 +914,7 @@ jobs:
 
           <br>
 
-          - Some antivirus engines report a false positive. MagicChatbox is not a RAT, a Trojan or spyware. Every release is scanned with VirusTotal before it is published${vtUrl ? ', and the report is linked at the top of this page' : ''}. The [full source](https://github.com/${slug}) is published for anyone to read.
+          - Some antivirus engines report a false positive. MagicChatbox is not a RAT, a Trojan or spyware. Every release is scanned with VirusTotal before it is published${vtUrl ? ', and the report is linked at the top of this page' : ''}.${vtExeUrl ? ' `MagicChatbox.exe` is [scanned separately](' + vtExeUrl + '), because scanners judge the extracted launcher rather than the archive.' : ''} The [full source](https://github.com/${slug}) is published for anyone to read.
 
           <br>
 

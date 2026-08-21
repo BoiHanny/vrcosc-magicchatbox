@@ -150,7 +150,7 @@ for the full list of values you can hook up.
 
 <table>
 <tr><td width="60">1️⃣</td><td><a href="https://github.com/BoiHanny/vrcosc-magicchatbox/releases"><b>Download</b></a> the official ZIP from Releases</td></tr>
-<tr><td>2️⃣</td><td><a href="https://dotnet.microsoft.com/en-us/download/dotnet/10.0"><b>Install .NET 10.0</b></a> from Microsoft</td></tr>
+<tr><td>2️⃣</td><td><a href="https://dotnet.microsoft.com/en-us/download/dotnet/10.0"><b>Install the .NET 10 Desktop Runtime (Windows x64)</b></a> from Microsoft — pick <b>Desktop Runtime</b>, the plain ".NET Runtime" is not enough</td></tr>
 <tr><td>3️⃣</td><td>Extract the ZIP into a folder</td></tr>
 <tr><td>4️⃣</td><td>Run <b>MagicChatBox.exe</b></td></tr>
 <tr><td>5️⃣</td><td>You're good to go!</td></tr>
