@@ -176,7 +176,7 @@ for the full list of values you can hook up.
 Every name below links to a full guide covering all of its settings.
 
 <details open>
-<summary><h3>🎵 &nbsp;Music &nbsp;<sub><i>— four ways to show what you're listening to</i></sub></h3></summary>
+<summary><h3>🎵 &nbsp;Audio &nbsp;<sub><i>— what you're listening to, and what you're playing</i></sub></h3></summary>
 
 | Integration | What it does |
 | :------------ | :------------ |
@@ -184,6 +184,7 @@ Every name below links to a full guide covering all of its settings.
 | **[Spotify](https://github.com/BoiHanny/vrcosc-magicchatbox/wiki/Spotify)** | Connects to Spotify directly for liked tracks, explicit flags, shuffle, repeat, device, volume and queue, with a template you write yourself. |
 | **[Lyrics](https://github.com/BoiHanny/vrcosc-magicchatbox/wiki/Lyrics)** | Synced lyrics that follow the music, line by line, from LRCLIB or your own `.lrc` files. |
 | **[Soundpad](https://github.com/BoiHanny/vrcosc-magicchatbox/wiki/Soundpad)** | Shows the sound you just played through Soundpad. |
+| **[Voicemod](https://github.com/BoiHanny/vrcosc-magicchatbox/wiki/Voicemod)** | Your Voicemod soundboard on the Integrations page — fire a sound, switch voice, mute or hold-to-bleep without leaving VR, and show the room what you played. |
 
 </details>
 
@@ -231,7 +232,6 @@ Every name below links to a full guide covering all of its settings.
 | :------------ | :------------ |
 | **[Chatbox & Chatting](https://github.com/BoiHanny/vrcosc-magicchatbox/wiki/Chatbox-and-Chatting)** | Type straight into the VRChat chatbox, with live edit, autocomplete and history. |
 | **[TTS & Voice](https://github.com/BoiHanny/vrcosc-magicchatbox/wiki/TTS-and-Voice)** | Speak your messages out loud, or dictate them with speech-to-text. |
-| **[Voicemod Control](https://control-api.voicemod.net/)** | Browse voices and soundboards, adjust live voice parameters, control Voicemod switches, mute, and hold-to-bleep from the Integrations page. |
 | **[IntelliChat](https://github.com/BoiHanny/vrcosc-magicchatbox/wiki/IntelliChat)** | AI spelling, translation and shortening — for when your message will not fit in 144 characters. |
 | **[Standalone](https://github.com/BoiHanny/vrcosc-magicchatbox/wiki/Standalone)** | Run it on a spare PC and send to a Quest over your network, no PCVR required. |
 | **[App Options](https://github.com/BoiHanny/vrcosc-magicchatbox/wiki/App-Options)** | OSC ports, extra outputs, startup behaviour and global preferences. |
