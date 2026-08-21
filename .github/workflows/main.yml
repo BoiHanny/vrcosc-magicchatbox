@@ -250,13 +250,24 @@ jobs:
     # Step 6: Publish application to a stable output folder
     - name: Publish Application
       if: steps.resolve_release.outputs.is_tag_release != 'true' || steps.check_release.outputs.release_exists == 'false'
+      id: publish_app
       env:
         VOICEMOD_CLIENT_KEY: ${{ secrets.VOICEMOD_CLIENT_KEY }}
       shell: pwsh
       run: |
-        if ([string]::IsNullOrWhiteSpace($env:VOICEMOD_CLIENT_KEY)) {
-          Write-Error "The VOICEMOD_CLIENT_KEY repository secret is required for release builds."
+        $keyMissing = [string]::IsNullOrWhiteSpace($env:VOICEMOD_CLIENT_KEY)
+        $isTagRelease = '${{ steps.resolve_release.outputs.is_tag_release }}' -eq 'true'
+        $isRealRelease = $isTagRelease -or ($env:GITHUB_REF -eq 'refs/heads/master')
+
+        if ($keyMissing -and $isRealRelease) {
+          Write-Error "The VOICEMOD_CLIENT_KEY repository secret is required for tag and master release builds."
           exit 1
+        }
+
+        if ($keyMissing) {
+          $warningMessage = "VOICEMOD_CLIENT_KEY is not set. This build will ship without an embedded Voicemod client key; users will need to supply their own in Options."
+          Write-Warning $warningMessage
+          Write-Host "::warning::$warningMessage"
         }
 
         $publishDir = Join-Path $env:GITHUB_WORKSPACE 'publish-output'
@@ -264,13 +275,113 @@ jobs:
           Remove-Item -LiteralPath $publishDir -Recurse -Force
         }
 
-        dotnet publish "${{ env.Project_Path }}" `
-          --configuration Release `
-          --runtime win-x64 `
-          --self-contained false `
-          --no-restore `
-          --output $publishDir `
-          -p:VoicemodClientKey="$env:VOICEMOD_CLIENT_KEY"
+        $publishArgs = @(
+          "${{ env.Project_Path }}",
+          '--configuration',
+          'Release',
+          '--runtime',
+          'win-x64',
+          '--self-contained',
+          'false',
+          '--no-restore',
+          '--output',
+          $publishDir
+        )
+
+        if (-not $keyMissing) {
+          # Kept as a single array element so PowerShell hands dotnet.exe one argv entry;
+          # MSBuild special characters in the key (; % $ *) would still need %3B-style
+          # escaping if a future key ever contains them, since MSBuild parses -p: values itself.
+          $publishArgs += "-p:VoicemodClientKey=$env:VOICEMOD_CLIENT_KEY"
+        }
+
+        "key_embedded=$((-not $keyMissing).ToString().ToLowerInvariant())" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+
+        dotnet publish @publishArgs
+
+    - name: Verify Voicemod Client Key Embedded
+      if: (steps.resolve_release.outputs.is_tag_release != 'true' || steps.check_release.outputs.release_exists == 'false') && steps.publish_app.outputs.key_embedded == 'true'
+      env:
+        VOICEMOD_CLIENT_KEY: ${{ secrets.VOICEMOD_CLIENT_KEY }}
+      shell: pwsh
+      run: |
+        Add-Type -AssemblyName System.Reflection.Metadata
+
+        $publishDir = Join-Path $env:GITHUB_WORKSPACE 'publish-output'
+        $dllPath = Join-Path $publishDir 'MagicChatbox.dll'
+
+        if (-not (Test-Path -LiteralPath $dllPath)) {
+          Write-Error "Published assembly not found: $dllPath"
+          exit 1
+        }
+
+        $expectedLength = $env:VOICEMOD_CLIENT_KEY.Length
+        $foundValue = $null
+
+        $fs = [System.IO.File]::OpenRead($dllPath)
+        try {
+          $peReader = New-Object System.Reflection.PortableExecutable.PEReader($fs)
+          try {
+            $mdReader = [System.Reflection.Metadata.PEReaderExtensions]::GetMetadataReader($peReader)
+            $asmDef = $mdReader.GetAssemblyDefinition()
+
+            foreach ($caHandle in $asmDef.GetCustomAttributes()) {
+              $ca = $mdReader.GetCustomAttribute($caHandle)
+              $ctorHandle = $ca.Constructor
+              $typeName = $null
+
+              if ($ctorHandle.Kind -eq [System.Reflection.Metadata.HandleKind]::MemberReference) {
+                $memberRef = $mdReader.GetMemberReference([System.Reflection.Metadata.MemberReferenceHandle]$ctorHandle)
+                $parent = $memberRef.Parent
+                if ($parent.Kind -eq [System.Reflection.Metadata.HandleKind]::TypeReference) {
+                  $typeRef = $mdReader.GetTypeReference([System.Reflection.Metadata.TypeReferenceHandle]$parent)
+                  $typeName = $mdReader.GetString($typeRef.Name)
+                }
+              }
+              elseif ($ctorHandle.Kind -eq [System.Reflection.Metadata.HandleKind]::MethodDefinition) {
+                $methodDef = $mdReader.GetMethodDefinition([System.Reflection.Metadata.MethodDefinitionHandle]$ctorHandle)
+                $typeDef = $mdReader.GetTypeDefinition($methodDef.GetDeclaringType())
+                $typeName = $mdReader.GetString($typeDef.Name)
+              }
+
+              if ($typeName -ne 'AssemblyMetadataAttribute') {
+                continue
+              }
+
+              $blobReader = $mdReader.GetBlobReader($ca.Value)
+              $prolog = $blobReader.ReadUInt16()
+              if ($prolog -ne 1) {
+                continue
+              }
+
+              $attrKey = $blobReader.ReadSerializedString()
+              $attrValue = $blobReader.ReadSerializedString()
+
+              if ($attrKey -eq 'VoicemodClientKey') {
+                $foundValue = $attrValue
+                break
+              }
+            }
+          }
+          finally {
+            $peReader.Dispose()
+          }
+        }
+        finally {
+          $fs.Dispose()
+        }
+
+        if ([string]::IsNullOrEmpty($foundValue)) {
+          Write-Error "AssemblyMetadataAttribute 'VoicemodClientKey' was not found (or was empty) in the published MagicChatbox.dll."
+          exit 1
+        }
+
+        if ($foundValue.Length -ne $expectedLength) {
+          Write-Error "Embedded Voicemod client key length ($($foundValue.Length)) does not match the source secret length ($expectedLength)."
+          exit 1
+        }
+
+        Write-Host "Embedded Voicemod client key verified: found $($foundValue.Length) characters."
 
     # Step 7: Create ZIP of artifacts
     - name: Create Zip File
