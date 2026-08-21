@@ -1,7 +1,8 @@
-﻿using System;
+using System;
 using System.Threading.Tasks;
 using vrcosc_magicchatbox.Classes.DataAndSecurity;
 using vrcosc_magicchatbox.Classes.Modules;
+using vrcosc_magicchatbox.Classes.Modules.Voicemod;
 using vrcosc_magicchatbox.Core.Configuration;
 using vrcosc_magicchatbox.Core.Privacy;
 using vrcosc_magicchatbox.Core.Services;
@@ -31,6 +32,7 @@ public sealed class OptionsSectionResetService : IOptionsSectionResetService
     private readonly ISettingsProvider<PulsoidModuleSettings> _pulsoid;
     private readonly ISettingsProvider<OscSettings> _osc;
     private readonly ISettingsProvider<PrivacySettings> _privacy;
+    private readonly ISettingsProvider<VoicemodSettings> _voicemod;
     private readonly Lazy<IModuleHost> _moduleHost;
     private readonly DiscordRichPresenceService _discordRichPresence;
 
@@ -56,6 +58,7 @@ public sealed class OptionsSectionResetService : IOptionsSectionResetService
         ISettingsProvider<PulsoidModuleSettings> pulsoid,
         ISettingsProvider<OscSettings> osc,
         ISettingsProvider<PrivacySettings> privacy,
+        ISettingsProvider<VoicemodSettings> voicemod,
         Lazy<IModuleHost> moduleHost,
         DiscordRichPresenceService discordRichPresence)
     {
@@ -80,6 +83,7 @@ public sealed class OptionsSectionResetService : IOptionsSectionResetService
         _pulsoid = pulsoid;
         _osc = osc;
         _privacy = privacy;
+        _voicemod = voicemod;
         _moduleHost = moduleHost;
         _discordRichPresence = discordRichPresence;
     }
@@ -170,6 +174,15 @@ public sealed class OptionsSectionResetService : IOptionsSectionResetService
             case "tts":
                 count += _reset.ResetAll(_tts);
                 return Result("Speech To Text / TTS", count);
+
+            case "voicemod":
+                count += _reset.ResetAll(_voicemod);
+                count += ResetIntegration(
+                    nameof(IntegrationSettings.IntgrVoicemod),
+                    nameof(IntegrationSettings.IntgrVoicemod_VR),
+                    nameof(IntegrationSettings.IntgrVoicemod_DESKTOP));
+                restarted |= await RestartIfRunningAsync(_moduleHost.Value.Voicemod, () => restartFailed = true).ConfigureAwait(false);
+                return Result("Voicemod", count, restarted, restartFailed, note: "Credentials were preserved.");
 
             case "media-link":
                 count += _reset.ResetAll(_mediaLink);

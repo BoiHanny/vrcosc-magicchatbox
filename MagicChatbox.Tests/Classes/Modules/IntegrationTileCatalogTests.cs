@@ -31,11 +31,11 @@ public class IntegrationTileCatalogTests
     }
 
     [Fact]
-    public void TheCatalogCoversAllSixteenTilesWithUniqueKeysAndElements()
+    public void TheCatalogCoversAllSeventeenTilesWithUniqueKeysAndElements()
     {
-        Assert.Equal(16, IntegrationTileCatalog.Tiles.Count);
-        Assert.Equal(16, IntegrationTileCatalog.Tiles.Select(t => t.Key).Distinct(StringComparer.OrdinalIgnoreCase).Count());
-        Assert.Equal(16, IntegrationTileCatalog.Tiles.Select(t => t.ElementName).Distinct(StringComparer.Ordinal).Count());
+        Assert.Equal(17, IntegrationTileCatalog.Tiles.Count);
+        Assert.Equal(17, IntegrationTileCatalog.Tiles.Select(t => t.Key).Distinct(StringComparer.OrdinalIgnoreCase).Count());
+        Assert.Equal(17, IntegrationTileCatalog.Tiles.Select(t => t.ElementName).Distinct(StringComparer.Ordinal).Count());
         Assert.All(IntegrationTileCatalog.Tiles, t => Assert.False(string.IsNullOrWhiteSpace(t.DisplayName)));
     }
 
@@ -58,7 +58,7 @@ public class IntegrationTileCatalogTests
         var visible = IntegrationTileCatalog.VisibleKeysInOrder(order, new[] { "Spotify" });
 
         Assert.DoesNotContain("Spotify", visible, StringComparer.OrdinalIgnoreCase);
-        Assert.Equal(15, visible.Count);
+        Assert.Equal(16, visible.Count);
     }
 
     [Fact]
@@ -68,12 +68,12 @@ public class IntegrationTileCatalogTests
         var partial = new[] { "Status", "Spotify" };
 
         var visible = IntegrationTileCatalog.VisibleKeysInOrder(partial, Array.Empty<string>());
-        Assert.Equal(16, visible.Count);
+        Assert.Equal(17, visible.Count);
         Assert.Equal("Status", visible[0]);
         Assert.Equal("Spotify", visible[1]);
 
         var withHidden = IntegrationTileCatalog.VisibleKeysInOrder(partial, new[] { "Weather" });
-        Assert.Equal(15, withHidden.Count);
+        Assert.Equal(16, withHidden.Count);
         Assert.DoesNotContain("Weather", withHidden, StringComparer.OrdinalIgnoreCase);
     }
 
@@ -110,6 +110,9 @@ public class IntegrationTileCatalogTests
 
         Assert.True(IntegrationTileCatalog.TryKeyForMasterProperty("IntgrNetworkStatistics", out var network));
         Assert.Equal("Network", network);
+
+        Assert.True(IntegrationTileCatalog.TryKeyForMasterProperty("IntgrVoicemod", out var voicemod));
+        Assert.Equal("Voicemod", voicemod);
 
         // Weather's switch lives on WeatherSettings, not IntegrationSettings.
         Assert.True(IntegrationTileCatalog.TryKeyForMasterProperty("ShowWeatherInTime", out var weather));

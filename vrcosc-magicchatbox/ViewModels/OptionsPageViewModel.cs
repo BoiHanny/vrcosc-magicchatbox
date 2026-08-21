@@ -44,7 +44,7 @@ namespace vrcosc_magicchatbox.ViewModels
         public EggDevSectionViewModel EggDevSection { get; }
         public PrivacySectionViewModel PrivacySection { get; }
         public VrcRadarSectionViewModel VrcRadarSection { get; }
-
+        public VoicemodSectionViewModel VoicemodSection { get; }
         public INavigationService Navigation { get; }
 
         public OptionsPageViewModel(
@@ -75,7 +75,8 @@ namespace vrcosc_magicchatbox.ViewModels
             AppOptionsSectionViewModel appOptionsSection,
             EggDevSectionViewModel eggDevSection,
             PrivacySectionViewModel privacySection,
-            VrcRadarSectionViewModel vrcRadarSection)
+            VrcRadarSectionViewModel vrcRadarSection,
+            VoicemodSectionViewModel voicemodSection)
         {
             _chatStatus = chatStatus;
             _osc = osc;
@@ -106,6 +107,7 @@ namespace vrcosc_magicchatbox.ViewModels
             EggDevSection = eggDevSection;
             PrivacySection = privacySection;
             VrcRadarSection = vrcRadarSection;
+            VoicemodSection = voicemodSection;
         }
 
         public void OnSettingToggled()
@@ -117,11 +119,6 @@ namespace vrcosc_magicchatbox.ViewModels
 
         private readonly ReplayableRequest<string> _scrollToSection = new();
 
-        // A deep link (the tray menu, a "Customize" button on an integration tile) can reach a page
-        // that has never been built: setting the selected index realizes it synchronously, but the
-        // page does not subscribe until its own Loaded fires, which is a later, lower-priority pass.
-        // Firing into that gap used to drop the request silently; replaying it the moment something
-        // does subscribe makes the request outlive the gap instead of racing it.
         public event Action<string>? ScrollToSectionRequested
         {
             add => _scrollToSection.Requested += value;

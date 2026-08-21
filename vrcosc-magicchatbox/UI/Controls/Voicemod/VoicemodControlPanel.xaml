@@ -1,0 +1,601 @@
+<UserControl
+    x:Class="vrcosc_magicchatbox.UI.Controls.Voicemod.VoicemodControlPanel"
+    x:Name="Root"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:sections="clr-namespace:vrcosc_magicchatbox.ViewModels.Sections"
+    d:DataContext="{d:DesignInstance Type=sections:VoicemodSectionViewModel,
+                                     IsDesignTimeCreatable=False}"
+    mc:Ignorable="d">
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="/MagicChatbox;component/UI/Resources/SharedConverters.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+
+            <Style
+                x:Key="VoicemodCompactButton"
+                BasedOn="{StaticResource Status_Button_style}"
+                TargetType="Button">
+                <Setter Property="Height" Value="26" />
+                <Setter Property="MinWidth" Value="72" />
+                <Setter Property="Margin" Value="0,0,5,5" />
+                <Setter Property="Padding" Value="7,2" />
+                <Setter Property="FontSize" Value="{StaticResource FontSizeCaption}" />
+            </Style>
+
+            <Style
+                x:Key="VoicemodHeaderButton"
+                BasedOn="{StaticResource VoicemodCompactButton}"
+                TargetType="Button">
+                <Setter Property="Margin" Value="0,0,4,0" />
+                <Setter Property="MinWidth" Value="0" />
+            </Style>
+
+            <Style x:Key="VoicemodSectionRule" TargetType="Border">
+                <Setter Property="Margin" Value="0,12,0,10" />
+                <Setter Property="Height" Value="1" />
+                <Setter Property="Background" Value="{StaticResource DeckEdgeBrush}" />
+                <Setter Property="Opacity" Value="0.6" />
+            </Style>
+
+            <Style x:Key="SoundBlobGlyph" TargetType="TextBlock">
+                <Setter Property="Margin" Value="0,0,5,0" />
+                <Setter Property="VerticalAlignment" Value="Center" />
+                <Setter Property="FontSize" Value="8" />
+                <Setter Property="Opacity" Value="0" />
+                <Setter Property="Text" Value="▶" />
+                <Style.Triggers>
+                    <DataTrigger Binding="{Binding IsMouseOver, RelativeSource={RelativeSource AncestorType=Button}}" Value="True">
+                        <Setter Property="Opacity" Value="1" />
+                    </DataTrigger>
+                    <!--  The sound's own icon already says "playable"; two marks is clutter.  -->
+                    <DataTrigger Binding="{Binding HasArtwork}" Value="True">
+                        <Setter Property="Visibility" Value="Collapsed" />
+                    </DataTrigger>
+                </Style.Triggers>
+            </Style>
+
+            <!--
+                Opacity, never Visibility. The star keeps its slot whether it is showing or not, so
+                revealing it on hover cannot re-measure the blob and shove every neighbouring sound
+                sideways under the pointer.
+            -->
+            <Style
+                x:Key="SoundBlobStar"
+                BasedOn="{StaticResource SoundBlobStarButton}"
+                TargetType="ToggleButton">
+                <Setter Property="Opacity" Value="0" />
+                <Style.Triggers>
+                    <DataTrigger Binding="{Binding IsFavorite}" Value="True">
+                        <Setter Property="Opacity" Value="1" />
+                    </DataTrigger>
+                    <DataTrigger Binding="{Binding IsMouseOver, RelativeSource={RelativeSource AncestorType=Button}}" Value="True">
+                        <Setter Property="Opacity" Value="1" />
+                    </DataTrigger>
+                </Style.Triggers>
+            </Style>
+        </ResourceDictionary>
+    </UserControl.Resources>
+
+    <Border
+        Padding="0"
+        Background="Transparent"
+        BorderThickness="0"
+        DataContext="{Binding ViewModel, ElementName=Root}">
+        <StackPanel>
+            <Border
+                Padding="10"
+                Background="{StaticResource StatusInfoBackgroundBrush}"
+                CornerRadius="5"
+                Visibility="{Binding Settings.AnyFeatureEnabled, Converter={StaticResource InverseBoolToVisibilityConverter}}">
+                <TextBlock
+                    Style="{StaticResource OptionHelpTextStyle}"
+                    Text="Every Voicemod feature is switched off. Turn on Soundboard, Voice or Mic to get controls back."
+                    TextWrapping="Wrap" />
+            </Border>
+
+            <StackPanel Visibility="{Binding Settings.SoundboardControlEnabled, Converter={StaticResource BoolToVisibilityConverter}}">
+                <Grid Margin="0,0,0,5">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <TextBlock
+                        Grid.Column="0"
+                        VerticalAlignment="Center"
+                        Style="{StaticResource OptionSubsectionHeaderStyle}"
+                        Text="Soundboard" />
+                    <TextBlock
+                        Grid.Column="1"
+                        Margin="7,0,0,0"
+                        VerticalAlignment="Center"
+                        Style="{StaticResource OptionHelpTextStyle}"
+                        Text="{Binding SoundCountText}" />
+                    <TextBox
+                        Grid.Column="2"
+                        MinWidth="120"
+                        Height="22"
+                        MinHeight="22"
+                        Margin="12,0,8,0"
+                        Padding="6,1"
+                        VerticalAlignment="Center"
+                        Text="{Binding SoundSearchText, UpdateSourceTrigger=PropertyChanged, Delay=150}"
+                        ToolTip="Search sounds in whatever is selected below" />
+                    <StackPanel
+                        Grid.Column="3"
+                        HorizontalAlignment="Right"
+                        Orientation="Horizontal">
+                        <Button
+                            Command="{Binding CycleSoundSortCommand}"
+                            Content="{Binding SoundSortButtonText}"
+                            Style="{StaticResource VoicemodHeaderButton}"
+                            ToolTip="Order sounds by how recently you played them, or by name. Pinned sounds always come first." />
+                        <Button
+                            Command="{Binding ToggleSoundboardMuteCommand}"
+                            Content="{Binding SoundboardMuteButtonText}"
+                            IsEnabled="{Binding CanControl}"
+                            Style="{StaticResource VoicemodHeaderButton}"
+                            ToolTip="Whether you hear the soundboard yourself." />
+                        <Button
+                            Command="{Binding StopAllSoundsCommand}"
+                            Content="Stop all"
+                            IsEnabled="{Binding CanControl}"
+                            Style="{StaticResource VoicemodHeaderButton}"
+                            ToolTip="Stop everything the soundboard is playing." />
+                    </StackPanel>
+                </Grid>
+
+                <!--
+                    Favourites and All are pinned outside the scroller on purpose: with dozens of
+                    boards they would otherwise scroll out of reach, and they are the two a person
+                    returns to most.
+                -->
+                <Grid
+                    Margin="0,0,0,6"
+                    Visibility="{Binding Settings.ShowSoundboardStrip, Converter={StaticResource BoolToVisibilityConverter}}">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <!--
+                        Top, not the default stretch. The strip beside it reserves height for its
+                        scrollbar, so anything centring itself in the row would drift by half that
+                        the moment the bar appears and back again when it goes.
+                    -->
+                    <StackPanel
+                        Grid.Column="0"
+                        VerticalAlignment="Top"
+                        Orientation="Horizontal">
+                        <ToggleButton
+                            Command="{Binding SelectSoundScopeCommand}"
+                            CommandParameter="{Binding FavoritesScope}"
+                            Content="{Binding FavoritesScope.Label}"
+                            IsChecked="{Binding FavoritesScope.IsSelected, Mode=OneWay}"
+                            Style="{StaticResource FeatureChip}"
+                            ToolTip="{Binding FavoritesScope.Tooltip}" />
+                        <ToggleButton
+                            Command="{Binding SelectSoundScopeCommand}"
+                            CommandParameter="{Binding AllScope}"
+                            Content="{Binding AllScope.Label}"
+                            IsChecked="{Binding AllScope.IsSelected, Mode=OneWay}"
+                            Style="{StaticResource FeatureChip}"
+                            ToolTip="{Binding AllScope.Tooltip}" />
+                        <Border
+                            Width="1"
+                            Height="16"
+                            Margin="3,0,7,0"
+                            VerticalAlignment="Center"
+                            Background="{StaticResource DeckEdgeBrush}" />
+                    </StackPanel>
+                    <!--
+                        Auto, so the rail only appears once there are more boards than fit. It is
+                        the only cue that the strip scrolls at all, which matters at two dozen
+                        boards and would be noise at three.
+                    -->
+                    <ScrollViewer
+                        x:Name="BoardStrip"
+                        Grid.Column="1"
+                        VerticalAlignment="Top"
+                        HorizontalScrollBarVisibility="Auto"
+                        PreviewMouseWheel="BoardStrip_PreviewMouseWheel"
+                        VerticalScrollBarVisibility="Disabled">
+                        <ItemsControl ItemsSource="{Binding BoardScopes}">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <StackPanel Orientation="Horizontal" />
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <ToggleButton
+                                        Command="{Binding DataContext.SelectSoundScopeCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                        CommandParameter="{Binding}"
+                                        Content="{Binding Label}"
+                                        IsChecked="{Binding IsSelected, Mode=OneWay}"
+                                        Style="{StaticResource FeatureChip}"
+                                        ToolTip="{Binding Tooltip}" />
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </ScrollViewer>
+                </Grid>
+
+                <TextBlock
+                    Margin="0,4,0,8"
+                    HorizontalAlignment="Center"
+                    Foreground="{StaticResource TextMutedBrush}"
+                    Style="{StaticResource OptionHelpTextStyle}"
+                    Text="{Binding EmptySoundsText}"
+                    TextWrapping="Wrap"
+                    Visibility="{Binding HasFilteredSounds, Converter={StaticResource InverseBoolToVisibilityConverter}}" />
+
+                <Grid Visibility="{Binding HasFilteredSounds, Converter={StaticResource BoolToVisibilityConverter}}">
+                    <ItemsControl ItemsSource="{Binding FilteredSounds}">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <WrapPanel />
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Button
+                                    Height="{Binding DataContext.SoundBlobHeight, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                    MaxWidth="{Binding DataContext.SoundBlobMaxWidth, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                    Command="{Binding DataContext.PlaySoundCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                    CommandParameter="{Binding}"
+                                    IsEnabled="{Binding IsAvailable}"
+                                    Style="{StaticResource SoundBlobButton}"
+                                    ToolTip="{Binding Tooltip}">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto" />
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+
+                                        <!--
+                                            Painted as a Border background rather than hosted as an
+                                            Image, for two reasons: a Border clips its background to
+                                            its corner radius (ClipToBounds only clips to the square
+                                            bounds, which left the picture sitting over the curve),
+                                            and a background contributes nothing to layout, so the
+                                            blob keeps exactly the same width before and after the
+                                            picture arrives. The seat is always drawn while
+                                            thumbnails are on, so the space is reserved either way.
+                                        -->
+                                        <!--
+                                            A literal width, not a binding. An ancestor-relative
+                                            binding resolves after the first measure, so the seat
+                                            started at zero and grew the blob the moment it
+                                            resolved - which read as the picture stretching the box.
+                                            The exact number matters less than it never changing.
+                                        -->
+                                        <Border
+                                            Grid.Column="0"
+                                            Width="33"
+                                            Margin="-1,-1,0,-1"
+                                            Background="{StaticResource SoundThumbnailSeatBrush}"
+                                            CornerRadius="9,0,0,9"
+                                            SnapsToDevicePixels="True"
+                                            Visibility="{Binding DataContext.Settings.ShowSoundThumbnails, RelativeSource={RelativeSource AncestorType=ItemsControl}, Converter={StaticResource BoolToVisibilityConverter}}">
+                                            <Border CornerRadius="9,0,0,9">
+                                                <Border.Background>
+                                                    <ImageBrush
+                                                        ImageSource="{Binding Artwork}"
+                                                        Stretch="UniformToFill" />
+                                                </Border.Background>
+                                            </Border>
+                                        </Border>
+
+                                        <StackPanel
+                                            Grid.Column="1"
+                                            Margin="8,0,0,0"
+                                            VerticalAlignment="Center"
+                                            Orientation="Horizontal">
+                                            <TextBlock Style="{StaticResource SoundBlobGlyph}" />
+                                            <TextBlock
+                                                VerticalAlignment="Center"
+                                                Text="{Binding Name}"
+                                                TextTrimming="CharacterEllipsis" />
+                                        </StackPanel>
+
+                                        <ToggleButton
+                                            Grid.Column="2"
+                                            Command="{Binding DataContext.ToggleSoundFavoriteCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                            CommandParameter="{Binding}"
+                                            IsChecked="{Binding IsFavorite, Mode=OneWay}"
+                                            Style="{StaticResource SoundBlobStar}"
+                                            ToolTip="Pin this sound to the front" />
+                                    </Grid>
+                                </Button>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </Grid>
+
+                <ItemsControl
+                    Margin="0,6,0,0"
+                    HorizontalAlignment="Center"
+                    ItemsSource="{Binding AlphabetJumps}"
+                    Visibility="{Binding ShowsAlphabetJumps, Converter={StaticResource BoolToVisibilityConverter}}">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <WrapPanel HorizontalAlignment="Center" />
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Button
+                                MinWidth="18"
+                                Height="18"
+                                Margin="1,0"
+                                Padding="3,0"
+                                Command="{Binding DataContext.JumpToAlphabetCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                CommandParameter="{Binding}"
+                                Content="{Binding Letter}"
+                                Style="{StaticResource VoicemodHeaderButton}"
+                                ToolTip="Jump to sounds starting with this letter" />
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+
+                <StackPanel
+                    Margin="0,6,0,0"
+                    HorizontalAlignment="Center"
+                    Orientation="Horizontal"
+                    Visibility="{Binding HasMultipleSoundPages, Converter={StaticResource BoolToVisibilityConverter}}">
+                    <Button
+                        Command="{Binding PreviousSoundPageCommand}"
+                        Content="‹"
+                        IsEnabled="{Binding CanGoToPreviousSoundPage}"
+                        Style="{StaticResource VoicemodHeaderButton}"
+                        ToolTip="Previous page" />
+                    <TextBlock
+                        Margin="6,0"
+                        VerticalAlignment="Center"
+                        Style="{StaticResource OptionHelpTextStyle}"
+                        Text="{Binding SoundPageText}" />
+                    <Button
+                        Command="{Binding NextSoundPageCommand}"
+                        Content="›"
+                        IsEnabled="{Binding CanGoToNextSoundPage}"
+                        Style="{StaticResource VoicemodHeaderButton}"
+                        ToolTip="Next page" />
+                </StackPanel>
+            </StackPanel>
+
+            <Border
+                Style="{StaticResource VoicemodSectionRule}"
+                Visibility="{Binding Settings.VoiceControlEnabled, Converter={StaticResource BoolToVisibilityConverter}}" />
+
+            <StackPanel Visibility="{Binding Settings.VoiceControlEnabled, Converter={StaticResource BoolToVisibilityConverter}}">
+                <Border
+                    Margin="0,0,0,6"
+                    Padding="8"
+                    Background="{StaticResource StatusWarningBackgroundBrush}"
+                    BorderBrush="{StaticResource StatusWarningBrush}"
+                    BorderThickness="1"
+                    CornerRadius="5"
+                    Visibility="{Binding VoiceChangerIsOff, Converter={StaticResource BoolToVisibilityConverter}}">
+                    <TextBlock
+                        FontFamily="{StaticResource FontPrimary}"
+                        FontSize="{StaticResource FontSizeCaption}"
+                        Foreground="{StaticResource StatusWarningBrush}"
+                        Text="Voicemod's own Voice Changer switch is off, so picking a voice here will not change how you sound."
+                        TextWrapping="Wrap" />
+                </Border>
+
+                <Grid Margin="0,0,0,6">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <TextBlock
+                        Grid.Column="0"
+                        VerticalAlignment="Center"
+                        Style="{StaticResource OptionSubsectionHeaderStyle}"
+                        Text="Voice" />
+                    <TextBlock
+                        Grid.Column="1"
+                        Margin="10,0,0,0"
+                        HorizontalAlignment="Right"
+                        VerticalAlignment="Center"
+                        Style="{StaticResource OptionHelpTextStyle}"
+                        Text="{Binding Display.CurrentVoiceName}"
+                        TextTrimming="CharacterEllipsis"
+                        ToolTip="Current voice" />
+                    <Image
+                        Grid.Column="2"
+                        Width="22"
+                        Height="22"
+                        Margin="7,0,0,0"
+                        VerticalAlignment="Center"
+                        RenderOptions.BitmapScalingMode="HighQuality"
+                        Source="{Binding SelectedVoiceArtwork}"
+                        Stretch="Uniform"
+                        ToolTip="{Binding SelectedVoice.FriendlyName}"
+                        Visibility="{Binding HasSelectedVoiceArtwork, Converter={StaticResource BoolToVisibilityConverter}}" />
+                </Grid>
+
+                <TextBlock
+                    Margin="0,0,0,6"
+                    Style="{StaticResource OptionHelpTextStyle}"
+                    Text="{Binding RotatingVoiceCountdownText}"
+                    TextWrapping="Wrap"
+                    Visibility="{Binding ShowsRotatingVoiceCountdown, Converter={StaticResource BoolToVisibilityConverter}}" />
+
+                <Grid Margin="0,0,0,5">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="2*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <TextBox
+                        Grid.Column="0"
+                        Margin="0,0,5,0"
+                        Text="{Binding VoiceSearchText, UpdateSourceTrigger=PropertyChanged, Delay=150}"
+                        ToolTip="Search voices by name or ID" />
+                    <ComboBox
+                        Grid.Column="1"
+                        Margin="0,0,5,0"
+                        ItemsSource="{Binding FilteredVoices}"
+                        SelectedItem="{Binding SelectedVoice, Mode=TwoWay}"
+                        Style="{StaticResource DarkComboBoxStyle}">
+                        <ComboBox.ItemTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding DisplayName}" TextTrimming="CharacterEllipsis" />
+                            </DataTemplate>
+                        </ComboBox.ItemTemplate>
+                    </ComboBox>
+                    <Button
+                        Grid.Column="2"
+                        Command="{Binding ApplyVoiceCommand}"
+                        Content="Apply"
+                        IsEnabled="{Binding CanControl}"
+                        Style="{StaticResource VoicemodCompactButton}" />
+                </Grid>
+
+                <WrapPanel>
+                    <Button
+                        Command="{Binding DisableVoiceCommand}"
+                        Content="No effect"
+                        IsEnabled="{Binding CanControl}"
+                        Style="{StaticResource VoicemodCompactButton}" />
+                    <ComboBox
+                        Width="130"
+                        Height="26"
+                        Margin="0,0,5,5"
+                        ItemsSource="{Binding RandomVoiceModes}"
+                        SelectedItem="{Binding SelectedRandomMode}"
+                        Style="{StaticResource DarkComboBoxStyle}">
+                        <ComboBox.ItemTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding Converter={StaticResource EnumDescriptionConverter}}" />
+                            </DataTemplate>
+                        </ComboBox.ItemTemplate>
+                    </ComboBox>
+                    <Button
+                        Command="{Binding SelectRandomVoiceCommand}"
+                        Content="Random"
+                        IsEnabled="{Binding CanControl}"
+                        Style="{StaticResource VoicemodCompactButton}" />
+                    <Button
+                        Command="{Binding ToggleVoiceChangerCommand}"
+                        Content="{Binding VoiceChangerButtonText}"
+                        IsEnabled="{Binding CanControl}"
+                        Style="{StaticResource VoicemodCompactButton}" />
+                    <Button
+                        Command="{Binding ToggleHearMyselfCommand}"
+                        Content="{Binding HearMyselfButtonText}"
+                        IsEnabled="{Binding CanControl}"
+                        Style="{StaticResource VoicemodCompactButton}" />
+                    <Button
+                        Command="{Binding ToggleBackgroundCommand}"
+                        Content="{Binding BackgroundButtonText}"
+                        IsEnabled="{Binding CanControl}"
+                        Style="{StaticResource VoicemodCompactButton}" />
+                </WrapPanel>
+
+                <TextBlock
+                    Margin="0,6,0,4"
+                    Style="{StaticResource OptionSubsectionHeaderStyle}"
+                    Text="Voice parameters"
+                    Visibility="{Binding HasParameterEditors, Converter={StaticResource BoolToVisibilityConverter}}" />
+
+                <ScrollViewer
+                    MaxHeight="180"
+                    VerticalScrollBarVisibility="Auto"
+                    Visibility="{Binding HasParameterEditors, Converter={StaticResource BoolToVisibilityConverter}}">
+                    <ItemsControl ItemsSource="{Binding ParameterEditors}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Grid Margin="0,3">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="140" />
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="50" />
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock
+                                        Grid.Column="0"
+                                        Margin="0,0,8,0"
+                                        VerticalAlignment="Center"
+                                        Foreground="{StaticResource TextPrimaryBrush}"
+                                        Text="{Binding Name}"
+                                        TextTrimming="CharacterEllipsis"
+                                        ToolTip="{Binding Name}" />
+                                    <Slider
+                                        Grid.Column="1"
+                                        Margin="0,0,8,0"
+                                        VerticalAlignment="Center"
+                                        IsEnabled="{Binding CanChange}"
+                                        Maximum="{Binding Maximum}"
+                                        Minimum="{Binding Minimum}"
+                                        Style="{StaticResource CustomSlider}"
+                                        Value="{Binding DraftValue, Mode=TwoWay}" />
+                                    <TextBlock
+                                        Grid.Column="2"
+                                        VerticalAlignment="Center"
+                                        Foreground="{StaticResource TextMutedBrush}"
+                                        Text="{Binding ValueText}" />
+                                    <Button
+                                        Grid.Column="3"
+                                        Command="{Binding DataContext.ApplyParameterCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                        CommandParameter="{Binding}"
+                                        Content="Apply"
+                                        Style="{StaticResource VoicemodHeaderButton}" />
+                                    <Button
+                                        Grid.Column="4"
+                                        Command="{Binding DataContext.ResetParameterCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                        CommandParameter="{Binding}"
+                                        Content="Reset"
+                                        Style="{StaticResource VoicemodHeaderButton}" />
+                                </Grid>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </ScrollViewer>
+            </StackPanel>
+
+            <Border
+                Style="{StaticResource VoicemodSectionRule}"
+                Visibility="{Binding Settings.MicControlEnabled, Converter={StaticResource BoolToVisibilityConverter}}" />
+
+            <StackPanel Visibility="{Binding Settings.MicControlEnabled, Converter={StaticResource BoolToVisibilityConverter}}">
+                <TextBlock
+                    Margin="0,0,0,5"
+                    Style="{StaticResource OptionSubsectionHeaderStyle}"
+                    Text="Mic" />
+                <WrapPanel>
+                    <Button
+                        Command="{Binding ToggleMicrophoneMuteCommand}"
+                        Content="{Binding MicrophoneMuteButtonText}"
+                        IsEnabled="{Binding CanControl}"
+                        Style="{StaticResource VoicemodCompactButton}" />
+                    <Button
+                        x:Name="BleepButton"
+                        MinWidth="150"
+                        AutomationProperties.HelpText="Hold this button while speaking to replace your voice with a bleep."
+                        AutomationProperties.Name="Hold to bleep"
+                        Content="{Binding BleepButtonText}"
+                        IsEnabled="{Binding CanControl}"
+                        LostKeyboardFocus="BleepButton_LostKeyboardFocus"
+                        LostMouseCapture="BleepButton_LostMouseCapture"
+                        PreviewKeyDown="BleepButton_PreviewKeyDown"
+                        PreviewKeyUp="BleepButton_PreviewKeyUp"
+                        PreviewMouseLeftButtonDown="BleepButton_PreviewMouseLeftButtonDown"
+                        PreviewMouseLeftButtonUp="BleepButton_PreviewMouseLeftButtonUp"
+                        Style="{StaticResource VoicemodCompactButton}"
+                        ToolTip="Press and hold. Releasing always sends the stop command." />
+                </WrapPanel>
+            </StackPanel>
+        </StackPanel>
+    </Border>
+</UserControl>

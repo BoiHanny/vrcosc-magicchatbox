@@ -11,10 +11,19 @@ public sealed record IntegrationModeGate(
     Func<IntegrationSettings, bool> IsVisibleInVr,
     Action<IntegrationSettings>? EnableInVr,
     Func<IntegrationSettings, bool> IsVisibleOnDesktop,
-    Action<IntegrationSettings>? EnableOnDesktop)
+    Action<IntegrationSettings>? EnableOnDesktop,
+    Func<IntegrationSettings, bool>? HasOutputOutsideTheChatbox = null)
 {
     public bool IsVisibleIn(IntegrationSettings settings, bool isVR)
         => isVR ? IsVisibleInVr(settings) : IsVisibleOnDesktop(settings);
+
+    /// <summary>
+    /// Whether the integration is doing anything at all right now. Not every integration writes to
+    /// the chatbox: one sending only avatar parameters over OSC is working exactly as intended with
+    /// both mode switches off, and telling that person to "turn on their Desktop switch" is wrong.
+    /// </summary>
+    public bool ProducesOutputIn(IntegrationSettings settings, bool isVR)
+        => IsVisibleIn(settings, isVR) || HasOutputOutsideTheChatbox?.Invoke(settings) == true;
 
     public bool CanEnableIn(bool isVR)
         => (isVR ? EnableInVr : EnableOnDesktop) is not null;
@@ -62,12 +71,22 @@ public static class IntegrationModeVisibility
         new(nameof(IntegrationSettings.IntgrHeartRate), "Heart Rate",
             s => s.IntgrHeartRate,
             s => s.IntgrHeartRate_VR, s => s.IntgrHeartRate_VR = true,
-            s => s.IntgrHeartRate_DESKTOP, s => s.IntgrHeartRate_DESKTOP = true),
+            s => s.IntgrHeartRate_DESKTOP, s => s.IntgrHeartRate_DESKTOP = true,
+            s => s.IntgrHeartRate_OSC),
 
         new(nameof(IntegrationSettings.IntgrSoundpad), "Soundpad",
             s => s.IntgrSoundpad,
             s => s.IntgrSoundpad_VR, s => s.IntgrSoundpad_VR = true,
             s => s.IntgrSoundpad_DESKTOP, s => s.IntgrSoundpad_DESKTOP = true),
+
+        // Voicemod is a control surface first: the soundboard, voices and switches all work with
+        // both mode chips off. Those chips only decide whether a played sound is also announced in
+        // the chatbox, so "enabled but not shown" was never true of this one.
+        new(nameof(IntegrationSettings.IntgrVoicemod), "Voicemod",
+            s => s.IntgrVoicemod,
+            s => s.IntgrVoicemod_VR, s => s.IntgrVoicemod_VR = true,
+            s => s.IntgrVoicemod_DESKTOP, s => s.IntgrVoicemod_DESKTOP = true,
+            _ => true),
 
         new(nameof(IntegrationSettings.IntgrSpotify), "Spotify",
             s => s.IntgrSpotify,
@@ -122,7 +141,7 @@ public static class IntegrationModeVisibility
             return Array.Empty<HiddenIntegration>();
 
         return Gates
-            .Where(gate => gate.IsMasterEnabled(settings) && !gate.IsVisibleIn(settings, isVR))
+            .Where(gate => gate.IsMasterEnabled(settings) && !gate.ProducesOutputIn(settings, isVR))
             .Select(gate => new HiddenIntegration(gate.DisplayName, gate.CanEnableIn(isVR)))
             .ToList();
     }
@@ -138,7 +157,7 @@ public static class IntegrationModeVisibility
         if (settings == null || !TryGetGate(masterPropertyName, out var gate))
             return false;
 
-        if (!gate.IsMasterEnabled(settings) || gate.IsVisibleIn(settings, isVR))
+        if (!gate.IsMasterEnabled(settings) || gate.ProducesOutputIn(settings, isVR))
             return false;
 
         hidden = new HiddenIntegration(gate.DisplayName, gate.CanEnableIn(isVR));

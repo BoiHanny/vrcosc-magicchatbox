@@ -1,4 +1,4 @@
-name: .NET Core Desktop Build and Release
+name: Build and Release
 
 on:
   push:
@@ -15,9 +15,8 @@ concurrency:
   cancel-in-progress: false
 
 env:
-  Solution_Name: vrcosc-magicchatbox.sln
-  Project_Path: vrcosc-magicchatbox\MagicChatbox.csproj
-  DOTNET_ROOT: C:\Program Files\dotnet
+  SOLUTION_PATH: vrcosc-magicchatbox.sln
+  PROJECT_PATH: vrcosc-magicchatbox\MagicChatbox.csproj
 
 jobs:
   build-and-release:
@@ -27,21 +26,21 @@ jobs:
       contents: write
 
     steps:
-    - name: Checkout Repository
+    - name: Check out the repository
       uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
       with:
         fetch-depth: 0
 
-    - name: Setup .NET Core
+    - name: Set up the .NET SDK
       uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
       with:
         dotnet-version: '10.0.x'
 
-    # Step 1: Extract version from the csproj
-    - name: Extract Version from csproj
+    # ---- Version and release tag ----
+    - name: Read the version from the project file
       shell: pwsh
       run: |
-        $csproj = "${{ env.Project_Path }}"
+        $csproj = "${{ env.PROJECT_PATH }}"
         $pattern = '<Version>(.*)</Version>'
         $content = Get-Content $csproj -Raw
         $match = [regex]::Match($content, $pattern)
@@ -54,8 +53,7 @@ jobs:
           exit 1
         }
 
-    # Step 2: Resolve the release tag for this run
-    - name: Resolve Release Tag
+    - name: Resolve the release tag
       id: resolve_release
       shell: pwsh
       run: |
@@ -84,8 +82,7 @@ jobs:
         "release_tag=$releaseTag" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
         "is_tag_release=$($isTagRelease.ToString().ToLowerInvariant())" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
 
-    # Step 3: Check if a release with this tag already exists
-    - name: Check if Release Exists
+    - name: Check whether the release already exists
       id: check_release
       uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
       with:
@@ -108,7 +105,7 @@ jobs:
             }
           }
 
-    - name: Ensure Release Tag Exists (Actions token)
+    - name: Create the release tag
       if: steps.resolve_release.outputs.is_tag_release != 'true' && steps.check_release.outputs.release_exists == 'false'
       id: ensure_tag_actions
       uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
@@ -151,7 +148,7 @@ jobs:
             }
           }
 
-    - name: Ensure Release Tag Exists (MY_PAT fallback)
+    - name: Create the release tag (fallback token)
       if: steps.resolve_release.outputs.is_tag_release != 'true' && steps.check_release.outputs.release_exists == 'false' && steps.ensure_tag_actions.outputs.tag_ready != 'true'
       id: ensure_tag_pat
       uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
@@ -194,7 +191,7 @@ jobs:
             }
           }
 
-    - name: Finalize Branch Release Path
+    - name: Decide whether this branch run publishes
       if: steps.resolve_release.outputs.is_tag_release != 'true' && steps.check_release.outputs.release_exists == 'false'
       id: finalize_branch_release
       env:
@@ -235,37 +232,198 @@ jobs:
         "tag_source=$tagSource" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
         "publish_now=$publishNow" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
 
-    # Step 4: If the release already exists for this tag, stop here
-    - name: Release Already Exists
+    - name: Stop early, the release already exists
       if: steps.resolve_release.outputs.is_tag_release == 'true' && steps.check_release.outputs.release_exists == 'true'
       run: |
         echo "Release ${{ steps.resolve_release.outputs.release_tag }} already exists. Skipping tagged release."
         exit 0
 
-    # Step 5: Restore Dependencies
-    - name: Restore Dependencies
+    # ---- Build ----
+    - name: Restore dependencies
       if: steps.resolve_release.outputs.is_tag_release != 'true' || steps.check_release.outputs.release_exists == 'false'
-      run: dotnet restore ${{ env.Solution_Name }} -r win-x64
+      run: dotnet restore ${{ env.SOLUTION_PATH }} -r win-x64
 
-    # Step 6: Publish application to a stable output folder
-    - name: Publish Application
+    - name: Publish the application
       if: steps.resolve_release.outputs.is_tag_release != 'true' || steps.check_release.outputs.release_exists == 'false'
+      id: publish_app
+      env:
+        VOICEMOD_CLIENT_KEY: ${{ secrets.VOICEMOD_CLIENT_KEY }}
       shell: pwsh
       run: |
+        $keyMissing = [string]::IsNullOrWhiteSpace($env:VOICEMOD_CLIENT_KEY)
+        $isTagRelease = '${{ steps.resolve_release.outputs.is_tag_release }}' -eq 'true'
+        $isRealRelease = $isTagRelease -or ($env:GITHUB_REF -eq 'refs/heads/master')
+
+        if ($keyMissing -and $isRealRelease) {
+          Write-Error "The VOICEMOD_CLIENT_KEY repository secret is required for tag and master release builds."
+          exit 1
+        }
+
+        if ($keyMissing) {
+          $warningMessage = "VOICEMOD_CLIENT_KEY is not set. This build will ship without an embedded Voicemod client key; users will need to supply their own in Options."
+          Write-Warning $warningMessage
+          Write-Host "::warning::$warningMessage"
+        }
+
         $publishDir = Join-Path $env:GITHUB_WORKSPACE 'publish-output'
         if (Test-Path -LiteralPath $publishDir) {
           Remove-Item -LiteralPath $publishDir -Recurse -Force
         }
 
-        dotnet publish "${{ env.Project_Path }}" `
-          --configuration Release `
-          --runtime win-x64 `
-          --self-contained false `
-          --no-restore `
-          --output $publishDir
+        $publishArgs = @(
+          "${{ env.PROJECT_PATH }}",
+          '--configuration',
+          'Release',
+          '--runtime',
+          'win-x64',
+          '--self-contained',
+          'false',
+          '--no-restore',
+          '--output',
+          $publishDir
+        )
 
-    # Step 7: Create ZIP of artifacts
-    - name: Create Zip File
+        if (-not $keyMissing) {
+          # Kept as a single array element so PowerShell hands dotnet.exe one argv entry;
+          # MSBuild special characters in the key (; % $ *) would still need %3B-style
+          # escaping if a future key ever contains them, since MSBuild parses -p: values itself.
+          $publishArgs += "-p:VoicemodClientKey=$env:VOICEMOD_CLIENT_KEY"
+        }
+
+        "key_embedded=$((-not $keyMissing).ToString().ToLowerInvariant())" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+
+        dotnet publish @publishArgs
+
+    - name: Verify the embedded Voicemod client key
+      if: (steps.resolve_release.outputs.is_tag_release != 'true' || steps.check_release.outputs.release_exists == 'false') && steps.publish_app.outputs.key_embedded == 'true'
+      env:
+        VOICEMOD_CLIENT_KEY: ${{ secrets.VOICEMOD_CLIENT_KEY }}
+      shell: pwsh
+      run: |
+        Add-Type -AssemblyName System.Reflection.Metadata
+
+        $publishDir = Join-Path $env:GITHUB_WORKSPACE 'publish-output'
+        $dllPath = Join-Path $publishDir 'MagicChatbox.dll'
+
+        if (-not (Test-Path -LiteralPath $dllPath)) {
+          Write-Error "Published assembly not found: $dllPath"
+          exit 1
+        }
+
+        $expectedLength = $env:VOICEMOD_CLIENT_KEY.Length
+        $foundValue = $null
+
+        $fs = [System.IO.File]::OpenRead($dllPath)
+        try {
+          $peReader = New-Object System.Reflection.PortableExecutable.PEReader($fs)
+          try {
+            $mdReader = [System.Reflection.Metadata.PEReaderExtensions]::GetMetadataReader($peReader)
+            $asmDef = $mdReader.GetAssemblyDefinition()
+
+            foreach ($caHandle in $asmDef.GetCustomAttributes()) {
+              $ca = $mdReader.GetCustomAttribute($caHandle)
+              $ctorHandle = $ca.Constructor
+              $typeName = $null
+
+              if ($ctorHandle.Kind -eq [System.Reflection.Metadata.HandleKind]::MemberReference) {
+                $memberRef = $mdReader.GetMemberReference([System.Reflection.Metadata.MemberReferenceHandle]$ctorHandle)
+                $parent = $memberRef.Parent
+                if ($parent.Kind -eq [System.Reflection.Metadata.HandleKind]::TypeReference) {
+                  $typeRef = $mdReader.GetTypeReference([System.Reflection.Metadata.TypeReferenceHandle]$parent)
+                  $typeName = $mdReader.GetString($typeRef.Name)
+                }
+              }
+              elseif ($ctorHandle.Kind -eq [System.Reflection.Metadata.HandleKind]::MethodDefinition) {
+                $methodDef = $mdReader.GetMethodDefinition([System.Reflection.Metadata.MethodDefinitionHandle]$ctorHandle)
+                $typeDef = $mdReader.GetTypeDefinition($methodDef.GetDeclaringType())
+                $typeName = $mdReader.GetString($typeDef.Name)
+              }
+
+              if ($typeName -ne 'AssemblyMetadataAttribute') {
+                continue
+              }
+
+              $blobReader = $mdReader.GetBlobReader($ca.Value)
+              $prolog = $blobReader.ReadUInt16()
+              if ($prolog -ne 1) {
+                continue
+              }
+
+              $attrKey = $blobReader.ReadSerializedString()
+              $attrValue = $blobReader.ReadSerializedString()
+
+              if ($attrKey -eq 'VoicemodClientKey') {
+                $foundValue = $attrValue
+                break
+              }
+            }
+          }
+          finally {
+            $peReader.Dispose()
+          }
+        }
+        finally {
+          $fs.Dispose()
+        }
+
+        if ([string]::IsNullOrEmpty($foundValue)) {
+          Write-Error "AssemblyMetadataAttribute 'VoicemodClientKey' was not found (or was empty) in the published MagicChatbox.dll."
+          exit 1
+        }
+
+        if ($foundValue.Length -ne $expectedLength) {
+          Write-Error "Embedded Voicemod client key length ($($foundValue.Length)) does not match the source secret length ($expectedLength)."
+          exit 1
+        }
+
+        Write-Host "Embedded Voicemod client key verified: found $($foundValue.Length) characters."
+
+    - name: Verify the published launcher
+      if: steps.resolve_release.outputs.is_tag_release != 'true' || steps.check_release.outputs.release_exists == 'false'
+      shell: pwsh
+      run: |
+        $publishDir = Join-Path $env:GITHUB_WORKSPACE 'publish-output'
+        $exePath = Join-Path $publishDir 'MagicChatbox.exe'
+
+        if (-not (Test-Path -LiteralPath $exePath)) {
+          Write-Error "Published launcher not found: $exePath"
+          exit 1
+        }
+
+        $bytes = [System.IO.File]::ReadAllBytes($exePath)
+        $peOffset = [BitConverter]::ToInt32($bytes, 0x3C)
+        $machine = [BitConverter]::ToUInt16($bytes, $peOffset + 4)
+        $magic = [BitConverter]::ToUInt16($bytes, $peOffset + 24)
+        $dataDirectories = $peOffset + 24 + $(if ($magic -eq 0x20B) { 112 } else { 96 })
+        $clrHeaderRva = [BitConverter]::ToUInt32($bytes, $dataDirectories + 14 * 8)
+
+        # The stock .NET apphost is a native x64 PE with no CLR header and no side-car .config.
+        # Anything else means a launcher stub replaced it after publish, which changes what
+        # ships to users without changing a line of our own code.
+        if ($machine -ne 0x8664) {
+          Write-Error "MagicChatbox.exe reports machine 0x$('{0:X4}' -f $machine) instead of x64 (0x8664)."
+          exit 1
+        }
+
+        if ($clrHeaderRva -ne 0) {
+          Write-Error "MagicChatbox.exe carries a CLR header, so it is a managed launcher stub rather than the .NET apphost."
+          exit 1
+        }
+
+        if (Test-Path -LiteralPath (Join-Path $publishDir 'MagicChatbox.exe.config')) {
+          Write-Error "MagicChatbox.exe.config was published. The .NET apphost does not use one."
+          exit 1
+        }
+
+        $strays = Get-ChildItem -LiteralPath $publishDir -Recurse -File -Include '*.pdb', 'MonoPosixHelper.dll', 'libMonoPosixHelper.dll'
+        if ($strays) {
+          Write-Error "Files that should never ship were published: $(($strays | ForEach-Object { $_.Name }) -join ', ')"
+          exit 1
+        }
+
+        Write-Host "Published launcher verified: native x64 .NET apphost, $($bytes.Length) bytes."
+
+    - name: Package the release archive
       if: steps.resolve_release.outputs.is_tag_release != 'true' || steps.check_release.outputs.release_exists == 'false'
       shell: pwsh
       run: |
@@ -279,12 +437,53 @@ jobs:
 
         Compress-Archive -Path $archiveSource -DestinationPath "MagicChatbox-${{ env.VERSION }}.zip" -Force
 
-    - name: Await Tag-Triggered Release Run
+    - name: Hand off to the tag-triggered run
       if: steps.resolve_release.outputs.is_tag_release != 'true' && steps.check_release.outputs.release_exists == 'false' && steps.finalize_branch_release.outputs.publish_now != 'true'
       run: echo "Created release tag ${{ steps.resolve_release.outputs.release_tag }} during the branch run. The tag-triggered workflow run will publish the release."
 
-    # Step 8: Upload & Scan with VirusTotal
-    - name: Check Optional VirusTotal Secret
+    # ---- Malware scan ----
+    - name: Scan the published output with Microsoft Defender
+      if: steps.check_release.outputs.release_exists == 'false' && (steps.resolve_release.outputs.is_tag_release == 'true' || steps.finalize_branch_release.outputs.publish_now == 'true')
+      continue-on-error: true
+      shell: pwsh
+      run: |
+        $publishDir = Join-Path $env:GITHUB_WORKSPACE 'publish-output'
+
+        # The copy under Program Files is the stale inbox build. The Platform directory holds the
+        # engine that is actually running, and its version is the number worth recording.
+        $platform = Get-ChildItem 'C:\ProgramData\Microsoft\Windows Defender\Platform' -Directory -ErrorAction SilentlyContinue |
+          Sort-Object Name -Descending |
+          Select-Object -First 1
+
+        $mpCmdRun = if ($platform) { Join-Path $platform.FullName 'MpCmdRun.exe' } else { 'C:\Program Files\Windows Defender\MpCmdRun.exe' }
+
+        if (-not (Test-Path -LiteralPath $mpCmdRun)) {
+          Write-Host "::warning::MpCmdRun.exe was not found on this runner. Skipping the Defender check."
+          exit 0
+        }
+
+        try {
+          $status = Get-MpComputerStatus -ErrorAction Stop
+          Write-Host "Defender engine $($status.AMEngineVersion), security intelligence $($status.AntivirusSignatureVersion)."
+        }
+        catch {
+          Write-Host "::warning::Defender status is unavailable on this runner."
+        }
+
+        & $mpCmdRun -Scan -ScanType 3 -File $publishDir -DisableRemediation
+        $scanExit = $LASTEXITCODE
+
+        # Reports whether the launcher is already a known good file. It will not be until a
+        # consistent publisher identity has had time to accumulate reputation.
+        & $mpCmdRun -TrustCheck -File (Join-Path $publishDir 'MagicChatbox.exe')
+
+        # Instrumentation, not a gate: runner definition state varies by image, and a stale-model
+        # false alarm must never be able to block a release on its own.
+        if ($scanExit -ne 0) {
+          Write-Host "::warning::Microsoft Defender reported a detection in publish-output (exit code $scanExit)."
+        }
+
+    - name: Check for a VirusTotal credential
       if: steps.check_release.outputs.release_exists == 'false' && (steps.resolve_release.outputs.is_tag_release == 'true' || steps.finalize_branch_release.outputs.publish_now == 'true')
       id: optional_secrets
       env:
@@ -294,7 +493,7 @@ jobs:
         $hasVirusTotalKey = -not [string]::IsNullOrWhiteSpace($env:VIRUSTOTAL_API_KEY)
         "has_virustotal_key=$($hasVirusTotalKey.ToString().ToLowerInvariant())" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
 
-    - name: Upload and Scan with VirusTotal
+    - name: Submit the archive to VirusTotal
       if: steps.check_release.outputs.release_exists == 'false' && (steps.resolve_release.outputs.is_tag_release == 'true' || steps.finalize_branch_release.outputs.publish_now == 'true') && steps.optional_secrets.outputs.has_virustotal_key == 'true'
       id: virustotal_scan
       env:
@@ -352,7 +551,7 @@ jobs:
         $analysisId = $response.data.id
         "scan_id=$analysisId" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
 
-    - name: Wait for VirusTotal Scan Report
+    - name: Wait for the VirusTotal report
       if: steps.check_release.outputs.release_exists == 'false' && (steps.resolve_release.outputs.is_tag_release == 'true' || steps.finalize_branch_release.outputs.publish_now == 'true') && steps.optional_secrets.outputs.has_virustotal_key == 'true'
       id: virustotal_report
       env:
@@ -414,8 +613,47 @@ jobs:
         $reportUrl = "https://www.virustotal.com/gui/file/$sha256/detection"
         "report_url=$reportUrl" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
 
-    # Step 9: Determine if this is a pre-release or final release
-    - name: Determine Release Type
+    - name: Submit the launcher to VirusTotal
+      if: steps.check_release.outputs.release_exists == 'false' && (steps.resolve_release.outputs.is_tag_release == 'true' || steps.finalize_branch_release.outputs.publish_now == 'true') && steps.optional_secrets.outputs.has_virustotal_key == 'true'
+      id: virustotal_launcher
+      continue-on-error: true
+      env:
+        VIRUSTOTAL_API_KEY: ${{ secrets.VIRUSTOTAL_API_KEY }}
+      shell: pwsh
+      run: |
+        $filePath = Join-Path $env:GITHUB_WORKSPACE 'publish-output\MagicChatbox.exe'
+
+        if (-not (Test-Path -LiteralPath $filePath)) {
+          Write-Error "File not found: $filePath"
+          exit 1
+        }
+
+        # Scanners score the extracted launcher, not the archive it arrived in, so the launcher
+        # needs a report of its own. The GUI URL is derived from the hash, so there is nothing
+        # to poll for — the link resolves once the analysis lands.
+        $fileInfo = Get-Item $filePath
+        $sha256 = (Get-FileHash -LiteralPath $filePath -Algorithm SHA256).Hash.ToLowerInvariant()
+
+        try {
+          Invoke-RestMethod `
+            -Uri "https://www.virustotal.com/api/v3/files" `
+            -Method Post `
+            -Headers @{
+              "x-apikey" = $env:VIRUSTOTAL_API_KEY
+            } `
+            -Form @{
+              "file" = $fileInfo
+            } `
+            -TimeoutSec 120 | Out-Null
+        }
+        catch {
+          Write-Host "::warning::Could not submit MagicChatbox.exe to VirusTotal: $($_.Exception.Message)"
+        }
+
+        "report_url=https://www.virustotal.com/gui/file/$sha256/detection" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+
+    # ---- Publish ----
+    - name: Determine the release type
       if: steps.check_release.outputs.release_exists == 'false' && (steps.resolve_release.outputs.is_tag_release == 'true' || steps.finalize_branch_release.outputs.publish_now == 'true')
       id: determine_release_type
       shell: pwsh
@@ -464,8 +702,258 @@ jobs:
           "release_name=${{ steps.resolve_release.outputs.release_tag }} (pre-release)" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
         }
 
-    # Step 10: Create GitHub Release and upload the asset in a single step
-    - name: Create Release
+    - name: Compose the release notes
+      if: steps.check_release.outputs.release_exists == 'false' && (steps.resolve_release.outputs.is_tag_release == 'true' || steps.finalize_branch_release.outputs.publish_now == 'true')
+      uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+      env:
+        APP_VERSION: ${{ env.VERSION }}
+        RELEASE_TAG: ${{ steps.resolve_release.outputs.release_tag }}
+        VIRUSTOTAL_URL: ${{ steps.virustotal_report.outputs.report_url }}
+        VIRUSTOTAL_EXE_URL: ${{ steps.virustotal_launcher.outputs.report_url }}
+        IS_PRERELEASE: ${{ steps.determine_release_type.outputs.pre_release }}
+      with:
+        script: |
+          const fs = require('fs');
+          const path = require('path');
+          const crypto = require('crypto');
+          const { execFileSync } = require('child_process');
+
+          const NL = String.fromCharCode(10);
+          const SEP = String.fromCharCode(31);
+
+          const version = process.env.APP_VERSION;
+          const tag = process.env.RELEASE_TAG;
+          const vtUrl = process.env.VIRUSTOTAL_URL || '';
+          const vtExeUrl = process.env.VIRUSTOTAL_EXE_URL || '';
+          const isPrerelease = process.env.IS_PRERELEASE === 'true';
+          const { owner, repo } = context.repo;
+          const slug = owner + '/' + repo;
+          const zipName = 'MagicChatbox-' + version + '.zip';
+          const downloadUrl = 'https://github.com/' + slug + '/releases/download/' + tag + '/' + zipName;
+
+          const git = (args) => execFileSync('git', args, { encoding: 'utf8' }).trim();
+
+          let sha256 = '';
+          try {
+            const bytes = fs.readFileSync(path.join(process.env.GITHUB_WORKSPACE, zipName));
+            sha256 = crypto.createHash('sha256').update(bytes).digest('hex').toUpperCase();
+          } catch (error) {
+            core.warning('Could not hash ' + zipName + ': ' + error.message);
+          }
+
+          // A tag does not say whether it was a pre-release; the branch it came from does.
+          // Ask the Releases API for the newest published release of the same kind, so that
+          // pre-releases compare against pre-releases and full releases against full ones.
+          let previousTag = '';
+          try {
+            const releases = await github.rest.repos.listReleases({ owner, repo, per_page: 100 });
+            const match = releases.data.find(
+              (r) => !r.draft && r.tag_name !== tag && Boolean(r.prerelease) === isPrerelease
+            );
+            if (match) previousTag = match.tag_name;
+          } catch (error) {
+            core.warning('Could not list releases: ' + error.message);
+          }
+
+          if (!previousTag) {
+            try {
+              const tags = git(['tag', '--list', 'v*', '--sort=-v:refname']).split(NL).map((t) => t.trim());
+              const here = tags.indexOf(tag);
+              previousTag = here >= 0 ? tags[here + 1] || '' : tags[0] || '';
+              if (previousTag) {
+                core.warning('No previous ' + (isPrerelease ? 'pre-release' : 'release') +
+                  ' found; comparing against the preceding tag ' + previousTag + ' instead.');
+              }
+            } catch (error) {
+              previousTag = '';
+            }
+          }
+
+          core.info('Comparing ' + (previousTag || '(no previous release)') + ' -> ' + tag +
+            ' as a ' + (isPrerelease ? 'pre-release' : 'full release') + '.');
+
+          let changelog = '';
+          try {
+            const range = previousTag ? previousTag + '..' + tag : tag;
+            const raw = git(['log', range, '--no-merges', '--date-order',
+              '--format=%h' + SEP + '%s' + SEP + '%an']);
+
+            const skip = /^(chore\s*:\s*)?(bump|update)\s+version|^version update|^update version|^version bump|^package (updates?|downgrades?)$|^update FUNDING/i;
+            const groups = [
+              { key: 'feat', title: '### New', items: [] },
+              { key: 'fix', title: '### Fixed', items: [] },
+              { key: 'perf', title: '### Performance', items: [] },
+              { key: 'other', title: '### Other changes', items: [] },
+            ];
+            const byKey = new Map(groups.map((g) => [g.key, g]));
+
+            for (const line of raw.split(NL).filter(Boolean)) {
+              const parts = line.split(SEP);
+              const sha = parts[0];
+              const subject = (parts[1] || '').trim();
+              const author = parts[2] || '';
+              if (!subject || skip.test(subject)) continue;
+
+              const match = /^(\w+)(?:\(([^)]+)\))?!?:\s*(.+)$/.exec(subject);
+              let key = 'other';
+              let scope = '';
+              let text = subject;
+
+              if (match) {
+                const type = match[1].toLowerCase();
+                if (byKey.has(type) && type !== 'other') key = type;
+                scope = match[2] || '';
+                text = match[3];
+              }
+
+              const link = '[`' + sha + '`](https://github.com/' + slug + '/commit/' + sha + ')';
+              const who = author && author !== owner ? ' by **' + author + '**' : '';
+              const prefix = scope ? '**' + scope + '** — ' : '';
+              byKey.get(key).items.push('- ' + prefix + text + who + ' (' + link + ')');
+            }
+
+            const sections = groups
+              .filter((g) => g.items.length)
+              .map((g) => g.title + NL + NL + g.items.join(NL));
+
+            if (sections.length) {
+              changelog = sections.join(NL + NL + '<br>' + NL + NL);
+              if (previousTag) {
+                changelog += NL + NL + '<br>' + NL + NL + '**Full changelog:** [`' + previousTag +
+                  '` → `' + tag + '`](https://github.com/' + slug + '/compare/' +
+                  previousTag + '...' + tag + ')';
+              }
+            }
+          } catch (error) {
+            core.warning('Could not build the changelog: ' + error.message);
+          }
+
+          if (!changelog) {
+            changelog = 'See the [commit history](https://github.com/' + slug + '/commits/' + tag +
+              ') for what changed.';
+          }
+
+          const badge = (label, color, logo) =>
+            'https://custom-icon-badges.demolab.com/badge/-' + label + '-' + color +
+            '?style=for-the-badge&logo=' + logo + '&logoColor=white';
+
+          const scanBadge = vtUrl
+            ? NL + '<a href="' + vtUrl + '"><img src="' + badge('VirusTotal%20scan', '1E5AA8', 'virustotal') +
+              '" alt="VirusTotal scan"></a>'
+            : '';
+
+          const kindNote = isPrerelease
+            ? NL + NL + '> [!NOTE]  ' + NL +
+              '> This is a **pre-release**. It is newer than the last stable build and may still have rough edges. The changes listed below are since the previous pre-release.'
+            : '';
+
+          const verifySection = sha256
+            ? [
+                '- SHA-256 of `' + zipName + '`:',
+                '',
+                '  ```',
+                '  ' + sha256,
+                '  ```',
+                '',
+                '<br>',
+                '',
+                '- Compare it against your download in PowerShell:',
+                '',
+                '  ```powershell',
+                '  Get-FileHash ./' + zipName + ' -Algorithm SHA256',
+                '  ```',
+              ].join(NL)
+            : '- A checksum could not be generated for this build.';
+
+          const body = `<div align="center">
+
+          <h1>MagicChatbox v${version}</h1>
+
+          <a href="${downloadUrl}"><img src="${badge('Download%20for%20Windows', '512BD4', 'download')}" alt="Download"></a>${scanBadge}
+
+          <img src="https://img.shields.io/github/downloads/${slug}/${tag}/total?color=AB3BFF&label=downloads%20of%20this%20version&style=flat-square" alt="Downloads of this version">
+
+          </div>${kindNote}
+
+          <br>
+
+          ---
+
+          ## \`What's new\`
+
+          ${changelog}
+
+          <br>
+
+          ---
+
+          ## \`Installing this version\`
+
+            1. **Download** \`${zipName}\` from the link above.
+            2. **[.NET 10 Desktop Runtime](https://dotnet.microsoft.com/en-us/download/dotnet/10.0)** — free, from Microsoft. On that page pick **Desktop Runtime → Windows x64**; the plain ".NET Runtime" is not enough. Install it before step 4 or MagicChatbox will not start.
+            3. **Extract the ZIP into a folder of its own.** Do not run it from inside the ZIP — the app needs to write its files next to itself.
+            4. Run **MagicChatbox.exe**.
+
+          <br>
+
+          > [!TIP]${'  '}
+          > Updates replace the files in place, so extracting over your existing folder keeps all of your settings.
+
+          <br>
+
+          > [!IMPORTANT]${'  '}
+          > **Please read the [Terms of Service](https://github.com/${slug}/blob/master/Security.md) before you download or use MagicChatbox.** It does not take long, and it covers how your privacy is handled as well as the rules for using the software.
+
+          <br>
+
+          ---
+
+          ## \`Windows says it is dangerous\`
+
+          - MagicChatbox is not signed with a Microsoft certificate, so SmartScreen warns about it — as it does for any unsigned app. Click **More info → Run anyway**.
+
+          <br>
+
+          - Some antivirus engines report a false positive. MagicChatbox is not a RAT, a Trojan or spyware. Every release is scanned with VirusTotal before it is published${vtUrl ? ', and the report is linked at the top of this page' : ''}.${vtExeUrl ? ' `MagicChatbox.exe` is [scanned separately](' + vtExeUrl + '), because scanners judge the extracted launcher rather than the archive.' : ''} The [full source](https://github.com/${slug}) is published for anyone to read.
+
+          <br>
+
+          > [!CAUTION]${'  '}
+          > Only download from the [official Releases page](https://github.com/${slug}/releases). Forks and re-uploads are not supervised by us and we cannot vouch for them.
+
+          <br>
+
+          ---
+
+          ## \`Verifying your download\`
+
+          ${verifySection}
+
+          <br>
+
+          ---
+
+          ## \`How do I get help?\`
+
+          - You can find help in our [Discord Server](https://discord.gg/ZaSFwBfhvG) by creating a ticket. Include your app version and the newest log file.
+
+          <br>
+
+          - There is a guide for nearly everything in the [wiki](https://github.com/${slug}/wiki), common questions in the [FAQ](https://github.com/${slug}/wiki/Frequently-Asked-Questions), and fixes in [Troubleshooting](https://github.com/${slug}/wiki/Troubleshooting).
+
+          <br>
+
+          - Found a bug? [Open an issue](https://github.com/${slug}/issues).
+
+          <br>
+
+          ---
+          `;
+
+          fs.writeFileSync(path.join(process.env.GITHUB_WORKSPACE, 'release-notes.md'), body);
+          core.summary.addRaw(body).write();
+
+    - name: Publish the GitHub release
       if: steps.check_release.outputs.release_exists == 'false' && (steps.resolve_release.outputs.is_tag_release == 'true' || steps.finalize_branch_release.outputs.publish_now == 'true')
       id: create_release
       uses: softprops/action-gh-release@3d0d9888cb7fd7b750713d6e236d1fcb99157228 # v3.0.2
@@ -477,66 +965,4 @@ jobs:
         draft: false
         prerelease: ${{ steps.determine_release_type.outputs.pre_release }}
         files: ./MagicChatbox-${{ env.VERSION }}.zip
-        body: |
-          <div align="center">
-            <h1>✨ MagicChatbox v${{ env.VERSION }} ✨</h1>
-            <img src="https://img.shields.io/github/downloads/BoiHanny/vrcosc-magicchatbox/v${{ env.VERSION }}/total?color=%23AB3BFF&label=Version%20downloads&logo=%20&style=plastic" alt="Version downloads">
-          </div>
-
-          > [!IMPORTANT]
-          > **We highly recommend reading our [Terms of Service](https://github.com/BoiHanny/vrcosc-magicchatbox/blob/master/Security.md) before you download or use MagicChatBox.**  
-          > It doesn't take long to get through the essential points, but it's important to understand how we value and protect your privacy, as well as the rules for using our software.
-
-          <div align="center">
-            <p>
-              <a href="https://github.com/BoiHanny/vrcosc-magicchatbox/releases/download/${{ steps.resolve_release.outputs.release_tag }}/MagicChatbox-${{ env.VERSION }}.zip">
-                <img src="https://custom-icon-badges.herokuapp.com/badge/-Download-%23512BD4?style=for-the-badge&logo=download&logoColor=white" alt="Download">
-              </a>
-              <a href="${{ steps.virustotal_report.outputs.report_url }}">
-                <img src="https://custom-icon-badges.herokuapp.com/badge/-Virus%20Scan%20Result-blue?style=for-the-badge&logo=virustotal&logoColor=white" alt="VirusTotal">
-              </a>
-            </p>
-          </div>
-
-          ---
-
-          <div align="center">
-            <h2>🚀 Download and Installation Guide 🚀</h2>
-            <p>Follow these simple steps to get started with MagicChatbox:</p>
-          </div>
-
-          1. **Download** the .zip file from the link above.
-          2. Make sure you have the [**.NET 10 Desktop Runtime**](https://dotnet.microsoft.com/en-us/download/dotnet/10.0) installed on your system.
-          3. **Right-click** the downloaded .zip file and select <strong>Extract All</strong>.
-          4. Open the extracted folder from your chosen location.
-          5. Run <code>MagicChatbox.exe</code> to launch the application.
-
-          ---
-
-          <div align="center">
-            <h2>🛡️ About VirusTotal Scan 🛡️</h2>
-            <p>We take your security seriously! Each release of MagicChatbox is scanned with VirusTotal to ensure it's free from harmful software.</p>
-            <p>However, please be aware that some antivirus engines might flag the application. This is due to the nature of certain components we use, such as:</p>
-            <ul>
-              <p>🔍 <strong>Window Activity</strong> - To show which windows you are currently focused on</p>
-              <p>🔗 <strong>MediaLink Components</strong> - For better multimedia integration</p>
-              <p>📊 <strong>Component Stats</strong> - For performance tracking</p>
-              <p>🌙 <strong>AFK Module</strong> - To detect when you are away from the keyboard</p>
-              <p>🎮 <strong>OSC Controller</strong> - To communicate with VRChat</p>
-            </ul>
-            <p>These features might trigger warnings from lesser-known scanners. Rest assured, we strive to keep our software as secure as possible and any flagged activity is closely monitored to maintain your safety.</p>
-            <p>For more details on the scan results, check the VirusTotal report linked above.</p>
-          </div>
-
-          ---
-
-          <div align="center">
-            <h2>📞 Need Help? We're Here for You! 📞</h2>
-            <p>Have any questions, suggestions, or feedback? Reach out to us through one of the following channels:</p>
-            <ul>
-              <p><strong>Our Discord:</strong> <a href="https://discord.gg/ZaSFwBfhvG">Join now!!!</a></p>
-              <p><strong>GitHub Issues:</strong> <a href="https://github.com/BoiHanny/vrcosc-magicchatbox/issues">Report a bug or submit a feature request</a></p>
-              <p><strong>Wiki:</strong> <a href="https://github.com/BoiHanny/vrcosc-magicchatbox/wiki">Help & more</a></p>
-            </ul>
-            <p>We're committed to providing the best possible experience for our users. Your feedback helps us make MagicChatbox even better. Thank you for your support!</p>
-          </div>
+        body_path: ${{ github.workspace }}/release-notes.md

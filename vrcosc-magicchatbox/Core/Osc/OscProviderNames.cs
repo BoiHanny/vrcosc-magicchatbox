@@ -22,6 +22,7 @@ public static class OscProviderNames
             ["Discord"] = "Discord",
             ["VrcRadar"] = "VRChat radar",
             ["Soundpad"] = "Soundpad",
+            ["Voicemod"] = "Voicemod",
             ["Spotify"] = "Spotify",
             ["MediaLink"] = "MediaLink",
             ["Lyrics"] = "Lyrics",

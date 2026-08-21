@@ -1,9 +1,12 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
+using vrcosc_magicchatbox.Core.Updates;
 
 namespace vrcosc_magicchatbox.ViewModels.State;
 
 public partial class AppUpdateState : ObservableObject
 {
+    public UpdateProgressState Progress { get; } = new();
+
     [ObservableProperty] private string _versionTxt = "Check for updates";
     [ObservableProperty] private string _versionTxtColor = "#FF8F80B9";
     [ObservableProperty] private bool _versionTxtUnderLine;
@@ -11,8 +14,11 @@ public partial class AppUpdateState : ObservableObject
     [ObservableProperty] private bool _canUpdateLabel;
     [ObservableProperty] private string _updateStatustxt = string.Empty;
     [ObservableProperty] private string _updateURL = string.Empty;
+    [ObservableProperty] private string _updateDigest = string.Empty;
     [ObservableProperty] private string _latestReleaseURL = string.Empty;
+    [ObservableProperty] private string _latestReleaseDigest = string.Empty;
     [ObservableProperty] private string _preReleaseURL = string.Empty;
+    [ObservableProperty] private string _preReleaseDigest = string.Empty;
     [ObservableProperty] private string _tagURL = string.Empty;
     [ObservableProperty] private string _appLocation = string.Empty;
     [ObservableProperty] private bool _rollBackUpdateAvailable;

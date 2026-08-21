@@ -159,6 +159,26 @@
         po:Freeze="True"
         Color="#FF6B0000" />
 
+    <!--
+        Tinted fills for "something needs your attention" banners. Every section that wanted one was
+        inlining its own alpha-over-accent hex, so the same message read a slightly different colour
+        depending on which page you were on. The alpha is deliberately low: these sit over the page
+        gradient, and the border plus the text already carry the accent - the fill only has to lift
+        the block off the background enough to read as one unit.
+    -->
+    <SolidColorBrush
+        x:Key="StatusWarningBackgroundBrush"
+        po:Freeze="True"
+        Color="#33FFC107" />
+    <SolidColorBrush
+        x:Key="StatusInfoBackgroundBrush"
+        po:Freeze="True"
+        Color="#2AA98CFF" />
+    <SolidColorBrush
+        x:Key="StatusSuccessBackgroundBrush"
+        po:Freeze="True"
+        Color="#2A4CAF50" />
+
     <Color x:Key="GradientDeepPurpleColor">#FF251153</Color>
     <Color x:Key="GradientNavyBlueColor">#FF10178C</Color>
     <Color x:Key="GradientTransparentDarkColor">#00240E54</Color>
@@ -493,10 +513,19 @@
         </Setter>
     </Style>
 
+    <!--
+        The two alignment setters are not cosmetic. Leaving them unset lets the framework's own
+        ComboBoxItem style supply them, and its values are FindAncestor bindings up to an
+        ItemsControl. Item containers are realized before they are attached, so that ancestor walk
+        fails and WPF logs a binding error per item, every time a dropdown is built. Setting the
+        values outright means the binding is never created.
+    -->
     <Style TargetType="{x:Type ComboBoxItem}">
         <Setter Property="Foreground" Value="#FFB9B5C1" />
         <Setter Property="Background" Value="Transparent" />
         <Setter Property="Padding" Value="8,5" />
+        <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+        <Setter Property="VerticalContentAlignment" Value="Center" />
         <Setter Property="SnapsToDevicePixels" Value="True" />
         <Setter Property="Template">
             <Setter.Value>
@@ -569,6 +598,7 @@
         <Setter Property="Padding" Value="10,7" />
         <Setter Property="Margin" Value="0,1" />
         <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+        <Setter Property="VerticalContentAlignment" Value="Center" />
         <Setter Property="SnapsToDevicePixels" Value="True" />
         <Setter Property="Template">
             <Setter.Value>
@@ -619,6 +649,60 @@
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="{x:Type TextBox}">
+                    <Border
+                        x:Name="border"
+                        Background="{TemplateBinding Background}"
+                        BorderBrush="{TemplateBinding BorderBrush}"
+                        BorderThickness="{TemplateBinding BorderThickness}"
+                        CornerRadius="5"
+                        SnapsToDevicePixels="True">
+                        <ScrollViewer
+                            x:Name="PART_ContentHost"
+                            Margin="{TemplateBinding Padding}"
+                            HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                            VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                            Focusable="False"
+                            HorizontalScrollBarVisibility="Hidden"
+                            VerticalScrollBarVisibility="Hidden" />
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="border" Property="BorderBrush" Value="#FF6B5CA0" />
+                        </Trigger>
+                        <Trigger Property="IsFocused" Value="True">
+                            <Setter TargetName="border" Property="BorderBrush" Value="#FF7C5CBF" />
+                            <Setter TargetName="border" Property="Background" Value="#FF352A52" />
+                            <Setter Property="Foreground" Value="White" />
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter TargetName="border" Property="Opacity" Value="0.5" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!--
+        A secret field has to read as the same control as the text field beside it, so this mirrors
+        the TextBox template exactly rather than inventing a second look. PasswordBox hosts its
+        content in the same PART_ContentHost slot, so only the target type differs.
+    -->
+    <Style TargetType="{x:Type PasswordBox}">
+        <Setter Property="Foreground" Value="#FFB9B5C1" />
+        <Setter Property="Background" Value="#FF2C2148" />
+        <Setter Property="BorderBrush" Value="#FF4A3580" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="Padding" Value="6,4" />
+        <Setter Property="MinHeight" Value="28" />
+        <Setter Property="FontFamily" Value="{StaticResource FontPrimary}" />
+        <Setter Property="CaretBrush" Value="#FF9B90D1" />
+        <Setter Property="SelectionBrush" Value="#552FD1C5" />
+        <Setter Property="PasswordChar" Value="●" />
+        <Setter Property="VerticalContentAlignment" Value="Center" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type PasswordBox}">
                     <Border
                         x:Name="border"
                         Background="{TemplateBinding Background}"
@@ -1422,6 +1506,17 @@
         Color="#33C3A9FF" />
 
     <!--
+        Outline for the expanded control panel a tile drops open underneath itself. Deeper than the
+        icon frame on purpose: the frame sits inside the tile and should recede, while this one has
+        to close a panel that hangs below the tile's own edge.
+    -->
+    <SolidColorBrush
+        x:Key="TilePanelBorderBrush"
+        po:Freeze="True"
+        Color="#FF3A1F73" />
+
+
+    <!--
         Integration tile title and description. These were 16 + 16 identical inline blocks in
         IntegrationsPage.xaml where title and description differed by size and colour only, with
         no weight separation at all - the gap that prompted this pass.
@@ -1595,6 +1690,135 @@
         Color="#FFEFE4FF" />
 
     <!--
+        One sound, as small as it can be and still be readable and hittable. A soundboard is a wall
+        of these, so everything that is not the name earns its pixels: the play glyph only appears
+        under the pointer, and the star only when the sound is actually pinned. Sizing follows the
+        deck chip family so a wall of these sits next to the route chips without looking foreign.
+    -->
+    <!--
+        The seat a sound's thumbnail sits in. Lighter than the blob so the slot reads as "picture
+        pending" before one arrives, which also means the space is already there and nothing shifts
+        when it does.
+    -->
+    <SolidColorBrush
+        x:Key="SoundThumbnailSeatBrush"
+        po:Freeze="True"
+        Color="#26FFFFFF" />
+
+    <Style x:Key="SoundBlobButton" TargetType="Button">
+        <Setter Property="Height" Value="26" />
+        <Setter Property="MaxWidth" Value="188" />
+        <Setter Property="Margin" Value="0,0,4,4" />
+        <Setter Property="Padding" Value="0" />
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="FontFamily" Value="{StaticResource FontPrimary}" />
+        <Setter Property="FontSize" Value="{StaticResource FontSizeMicro}" />
+        <Setter Property="Foreground" Value="{StaticResource DeckTextBrush}" />
+        <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+        <Setter Property="VerticalContentAlignment" Value="Stretch" />
+        <Setter Property="ToolTipService.ShowOnDisabled" Value="True" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border
+                        x:Name="face"
+                        Padding="{TemplateBinding Padding}"
+                        BorderBrush="{StaticResource DeckEdgeBrush}"
+                        BorderThickness="1"
+                        CornerRadius="9"
+                        SnapsToDevicePixels="True">
+                        <Border.Background>
+                            <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                                <GradientStop Offset="0" Color="#FF362B59" />
+                                <GradientStop Offset="1" Color="#FF2A2146" />
+                            </LinearGradientBrush>
+                        </Border.Background>
+                        <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="face" Property="BorderBrush" Value="{StaticResource DeckEdgeHoverBrush}" />
+                            <Setter TargetName="face" Property="Background">
+                                <Setter.Value>
+                                    <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                                        <GradientStop Offset="0" Color="#FF453770" />
+                                        <GradientStop Offset="1" Color="#FF362B59" />
+                                    </LinearGradientBrush>
+                                </Setter.Value>
+                            </Setter>
+                        </Trigger>
+                        <Trigger Property="IsPressed" Value="True">
+                            <Setter TargetName="face" Property="Background" Value="{StaticResource DeckSurfacePressedBrush}" />
+                            <Setter TargetName="face" Property="BorderBrush" Value="{StaticResource AccentTealBrush}" />
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter TargetName="face" Property="Opacity" Value="0.45" />
+                            <Setter Property="Cursor" Value="Arrow" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!--
+        Sits inside a blob. Nesting a ButtonBase is what keeps the two targets apart: the inner one
+        marks the mouse event handled, so starring a sound never also plays it.
+    -->
+    <Style x:Key="SoundBlobStarButton" TargetType="ToggleButton">
+        <Setter Property="Width" Value="20" />
+        <Setter Property="Height" Value="20" />
+        <Setter Property="Margin" Value="4,0,6,0" />
+        <Setter Property="VerticalAlignment" Value="Center" />
+        <Setter Property="Padding" Value="0" />
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="FontSize" Value="12" />
+        <Setter Property="Foreground" Value="{StaticResource DeckTextMutedBrush}" />
+        <Setter Property="Content" Value="★" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="ToggleButton">
+                    <Grid>
+                        <Border
+                            x:Name="starFace"
+                            Background="Transparent"
+                            BorderBrush="Transparent"
+                            BorderThickness="1"
+                            CornerRadius="10"
+                            SnapsToDevicePixels="True" />
+                        <ContentPresenter
+                            x:Name="starGlyph"
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Center"
+                            RenderTransformOrigin="0.5,0.5" />
+                    </Grid>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="starFace" Property="Background" Value="#26FFFFFF" />
+                            <Setter TargetName="starFace" Property="BorderBrush" Value="{StaticResource DeckEdgeHoverBrush}" />
+                            <Setter Property="Foreground" Value="{StaticResource DeckTextBrush}" />
+                        </Trigger>
+                        <!--  Pinned reads as a filled badge, not a slightly different glyph colour.  -->
+                        <Trigger Property="IsChecked" Value="True">
+                            <Setter TargetName="starFace" Property="Background" Value="{StaticResource FeatureOnFillBrush}" />
+                            <Setter TargetName="starFace" Property="BorderBrush" Value="{StaticResource FeatureOnEdgeBrush}" />
+                            <Setter Property="Foreground" Value="{StaticResource FeatureOnTextBrush}" />
+                        </Trigger>
+                        <!--  A transform is not a nameable trigger target, so replace it wholesale.  -->
+                        <Trigger Property="IsPressed" Value="True">
+                            <Setter TargetName="starGlyph" Property="RenderTransform">
+                                <Setter.Value>
+                                    <ScaleTransform ScaleX="0.82" ScaleY="0.82" />
+                                </Setter.Value>
+                            </Setter>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!--
         ============================================================================================
         THE CONTROL DECK. One height (22), one radius (6), one font. What a control DOES is carried
         by its fill, not its size: routes are solid when lit, features are tinted outlines, doors and
@@ -1642,8 +1866,14 @@
         </Setter>
     </Style>
 
+    <!--
+        MinWidth, not Width. The deck sits in an Auto column whose right edge is pinned by the switch
+        beside it, so the alignment that matters - every tile's mode chips on the same x - comes from
+        being right-anchored, not from a fixed width. Pinning the width as well only meant a tile with
+        one chip too many clipped its leftmost control instead of growing into the description slack.
+    -->
     <Style x:Key="TileControlDeck" TargetType="StackPanel">
-        <Setter Property="Width" Value="246" />
+        <Setter Property="MinWidth" Value="246" />
         <Setter Property="Orientation" Value="Vertical" />
         <Setter Property="HorizontalAlignment" Value="Right" />
         <Setter Property="VerticalAlignment" Value="Top" />

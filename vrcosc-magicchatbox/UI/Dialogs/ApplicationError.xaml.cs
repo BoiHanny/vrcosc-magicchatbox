@@ -2,6 +2,7 @@
 using System.IO;
 using System.Linq;
 using System.Net.Http;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Navigation;
@@ -21,6 +22,8 @@ namespace vrcosc_magicchatbox.UI.Dialogs
         private readonly IUiDispatcher _dispatcher;
         private readonly IVersionService _versionService;
         private readonly INavigationService _nav;
+        private readonly Exception _exception;
+        private readonly DateTimeOffset _occurredAt;
 
         public ApplicationError(
             Exception ex,
@@ -41,11 +44,34 @@ namespace vrcosc_magicchatbox.UI.Dialogs
             _versionService = versionService;
             _nav = nav;
             DataContext = this;
-            MainError.Text = ex.Message;
-            CallStack.Text = ex.StackTrace;
+
+            _exception = ex;
+            _occurredAt = DateTimeOffset.Now;
+
+            MainError.Text = string.IsNullOrWhiteSpace(ex.Message) ? "MagicChatbox hit an unexpected error." : ex.Message;
+            ErrorType.Text = ex.GetType().FullName ?? string.Empty;
+            CallStack.Text = string.IsNullOrWhiteSpace(ex.StackTrace) ? "(no stack trace was captured)" : ex.StackTrace;
+
+            UpdateState.PropertyChanged += OnUpdateStateChanged;
+            Closed += (_, _) => UpdateState.PropertyChanged -= OnUpdateStateChanged;
+            RefreshRecoveryHint();
+
             if (autoclose)
                 _ = AutoClose(autoCloseinMiliSeconds);
-            CheckUpdateBtnn_Click(null, null);
+
+            _ = ManualUpdateCheckAsync();
+        }
+
+        private void OnUpdateStateChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName is nameof(AppUpdateState.CanUpdate) or nameof(AppUpdateState.RollBackUpdateAvailable))
+                _dispatcher.BeginInvoke(RefreshRecoveryHint);
+        }
+
+        private void RefreshRecoveryHint()
+        {
+            bool nothingToRecoverWith = !UpdateState.CanUpdate && !UpdateState.RollBackUpdateAvailable;
+            NoRecoveryHint.Visibility = nothingToRecoverWith ? Visibility.Visible : Visibility.Collapsed;
         }
 
         private async Task AutoClose(int autoCloseinMiliSeconds)
@@ -95,29 +121,63 @@ namespace vrcosc_magicchatbox.UI.Dialogs
             CreateUpdateApp(true).SelectCustomZip();
         }
 
-        private void NewVersion_MouseUp(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        private void UpdateNow_Click(object sender, RoutedEventArgs e)
         {
-            if (UpdateState.CanUpdate)
-            {
-                UpdateState.CanUpdate = false;
-                UpdateState.CanUpdateLabel = false;
-                var updateApp = CreateUpdateApp(true);
-                Task.Run(() => updateApp.PrepareUpdate());
-            }
-            else
+            if (!UpdateState.CanUpdate)
             {
                 _nav.OpenUrl(Core.Constants.GitHubReleasesPageUrl);
+                return;
             }
+
+            UpdateState.CanUpdate = false;
+            UpdateState.CanUpdateLabel = false;
+            var updateApp = CreateUpdateApp(true);
+            Task.Run(() => updateApp.PrepareUpdate());
+        }
+
+        private void CopyDetails_Click(object sender, RoutedEventArgs e)
+        {
+            string report = Core.Diagnostics.CrashReport.Format(
+                UpdateState.AppVersion?.VersionNumber,
+                _exception.Message,
+                _exception.StackTrace,
+                ResolveCurrentLogPath(),
+                RuntimeInformation.OSDescription,
+                _occurredAt);
+
+            try
+            {
+                Clipboard.SetText(report);
+                CopyDetailsLabel.Text = "Copied";
+                _ = ResetCopyLabel();
+            }
+            catch (Exception ex)
+            {
+                Logging.WriteInfo($"Could not copy the crash details to the clipboard: {ex.Message}");
+                CopyDetailsLabel.Text = "Copy failed";
+                _ = ResetCopyLabel();
+            }
+        }
+
+        private async Task ResetCopyLabel()
+        {
+            await Task.Delay(2000);
+            CopyDetailsLabel.Text = "Copy details";
         }
 
         private async Task ManualUpdateCheckAsync()
         {
-            var updateCheckTask = _versionService.CheckForUpdateAndWait(true);
-            var delayTask = Task.Delay(Core.Constants.ManualUpdateCheckTimeout);
-            await Task.WhenAny(updateCheckTask, delayTask);
+            try
+            {
+                var updateCheckTask = _versionService.CheckForUpdateAndWait(true);
+                var delayTask = Task.Delay(Core.Constants.ManualUpdateCheckTimeout);
+                await Task.WhenAny(updateCheckTask, delayTask);
+            }
+            catch (Exception ex)
+            {
+                Logging.WriteInfo($"The update check from the error dialog failed: {ex.Message}");
+            }
         }
-
-        private void CheckUpdateBtnn_Click(object sender, RoutedEventArgs e) { ManualUpdateCheckAsync(); }
 
         private void rollback_Click(object sender, RoutedEventArgs e)
         {

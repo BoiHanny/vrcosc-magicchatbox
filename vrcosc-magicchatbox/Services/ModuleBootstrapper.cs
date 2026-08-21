@@ -1,4 +1,4 @@
-﻿using CommunityToolkit.Mvvm.Messaging;
+using CommunityToolkit.Mvvm.Messaging;
 using System;
 using System.Collections.Generic;
 using System.Net.Http;
@@ -9,11 +9,13 @@ using vrcosc_magicchatbox.Classes.Modules.Spotify;
 using vrcosc_magicchatbox.Classes.Modules.Vr;
 using vrcosc_magicchatbox.Classes.Modules.Lyrics;
 using vrcosc_magicchatbox.Classes.Modules.Twitch;
+using vrcosc_magicchatbox.Classes.Modules.Voicemod;
 using vrcosc_magicchatbox.Core.Configuration;
 using vrcosc_magicchatbox.Core.Privacy;
 using vrcosc_magicchatbox.Core.Services;
 using vrcosc_magicchatbox.Core.State;
 using vrcosc_magicchatbox.Core.Toast;
+using vrcosc_magicchatbox.Services.Voicemod;
 using vrcosc_magicchatbox.ViewModels.State;
 
 namespace vrcosc_magicchatbox.Services;
@@ -60,6 +62,11 @@ public class ModuleBootstrapper
     private readonly DiscordRichPresenceService _discordRichPresence;
     private readonly IPrivacyConsentService _consentService;
     private readonly IToastService _toast;
+    private readonly ISettingsProvider<VoicemodSettings> _voicemodSettingsProvider;
+    private readonly VoicemodDisplayState _voicemodDisplay;
+    private readonly IVoicemodClientKeyProvider _voicemodClientKeyProvider;
+    private readonly IVoicemodSocketFactory _voicemodSocketFactory;
+    private readonly IVoicemodArtworkCache _voicemodArtwork;
     private readonly TaskCompletionSource _startupComplete = new(TaskCreationOptions.RunContinuationsAsynchronously);
     private readonly object _teardownLock = new();
     private List<Action> _teardownActions = new();
@@ -135,7 +142,12 @@ public class ModuleBootstrapper
         Lazy<DiscordOAuthHandler> discordOAuth,
         DiscordRichPresenceService discordRichPresence,
         IPrivacyConsentService consentService,
-        IToastService toast)
+        IToastService toast,
+        ISettingsProvider<VoicemodSettings> voicemodSettingsProvider,
+        VoicemodDisplayState voicemodDisplay,
+        IVoicemodClientKeyProvider voicemodClientKeyProvider,
+        IVoicemodSocketFactory voicemodSocketFactory,
+        IVoicemodArtworkCache voicemodArtwork)
     {
         _host = host;
         _appState = appState;
@@ -175,6 +187,11 @@ public class ModuleBootstrapper
         _discordRichPresence = discordRichPresence;
         _consentService = consentService;
         _toast = toast;
+        _voicemodSettingsProvider = voicemodSettingsProvider;
+        _voicemodDisplay = voicemodDisplay;
+        _voicemodClientKeyProvider = voicemodClientKeyProvider;
+        _voicemodSocketFactory = voicemodSocketFactory;
+        _voicemodArtwork = voicemodArtwork;
     }
 
     public Task RegisterComponentStatsAsync(ComponentStatsModule statsModule)
@@ -228,6 +245,15 @@ public class ModuleBootstrapper
             integrationSettings,
             _consentService,
             _toast));
+        var voicemod = await CreateRuntimeModuleAsync("Voicemod", () => new VoicemodModule(
+            _integrationSettingsProvider,
+            _voicemodSettingsProvider,
+            _voicemodDisplay,
+            _voicemodClientKeyProvider,
+            _voicemodSocketFactory,
+            _dispatcher,
+            _consentService,
+            _voicemodArtwork));
         var twitch = await CreateRuntimeModuleAsync("Twitch", () => new TwitchModule(
             _twitchSettingsProvider,
             timeSettings,
@@ -317,6 +343,30 @@ public class ModuleBootstrapper
                 _host.RegisterModule(soundpad);
                 integrationSettings.PropertyChanged += soundpad.PropertyChangedHandler;
                 TrackSubscription(() => integrationSettings.PropertyChanged -= soundpad.PropertyChangedHandler);
+            }
+
+            if (voicemod != null)
+            {
+                _host.Voicemod = voicemod;
+                _host.RegisterModule(voicemod);
+                integrationSettings.PropertyChanged += voicemod.PropertyChangedHandler;
+                TrackSubscription(() => integrationSettings.PropertyChanged -= voicemod.PropertyChangedHandler);
+
+                if (integrationSettings.IntgrVoicemod)
+                {
+                    _ = Task.Run(async () =>
+                    {
+                        try
+                        {
+                            await _startupComplete.Task;
+                            await voicemod.StartAsync();
+                        }
+                        catch (Exception ex)
+                        {
+                            Logging.WriteInfo($"Voicemod auto-connect failed: {ex.Message}");
+                        }
+                    });
+                }
             }
 
             if (twitch != null)

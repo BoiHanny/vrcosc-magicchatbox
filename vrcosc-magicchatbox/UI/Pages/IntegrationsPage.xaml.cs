@@ -116,6 +116,7 @@ namespace vrcosc_magicchatbox.UI.Pages
                 { "Discord", DiscordItem },
                 { "VrcRadar", VrcRadarItem },
                 { "Soundpad", SoundpadItem },
+                { "Voicemod", VoicemodItem },
                 { "Spotify", SpotifyItem },
                 { "MediaLink", MediaLinkItem }
             };

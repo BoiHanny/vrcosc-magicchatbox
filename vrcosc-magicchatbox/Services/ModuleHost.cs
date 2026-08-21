@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using vrcosc_magicchatbox.Classes.DataAndSecurity;
 using vrcosc_magicchatbox.Classes.Modules;
+using vrcosc_magicchatbox.Classes.Modules.Voicemod;
 using vrcosc_magicchatbox.Core.Services;
 
 namespace vrcosc_magicchatbox.Services;
@@ -23,6 +24,7 @@ public partial class ModuleHost : ObservableObject, IModuleHost
     [ObservableProperty] private VrcLogModule _vrcRadar;
     [ObservableProperty] private PulsoidModule _pulsoid;
     [ObservableProperty] private SoundpadModule _soundpad;
+    [ObservableProperty] private VoicemodModule _voicemod;
     [ObservableProperty] private TrackerBatteryModule _trackerBattery;
     [ObservableProperty] private vrcosc_magicchatbox.Classes.Modules.Vr.VrPerformanceModule _vrPerformance;
     [ObservableProperty] private vrcosc_magicchatbox.Classes.Modules.Lyrics.LyricsModule _lyrics;

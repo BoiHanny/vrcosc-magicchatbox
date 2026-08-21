@@ -4,6 +4,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:controls="clr-namespace:vrcosc_magicchatbox.UI.Controls.Voicemod"
     xmlns:vm="clr-namespace:vrcosc_magicchatbox.ViewModels"
     xmlns:po="http://schemas.microsoft.com/winfx/2006/xaml/presentation/options"
     d:DataContext="{d:DesignInstance Type=vm:IntegrationsPageViewModel,
@@ -788,11 +789,17 @@
                             <Grid Margin="0,3,0,0" VerticalAlignment="Center">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="Auto" />
                                     <ColumnDefinition Width="*" />
                                 </Grid.ColumnDefinitions>
                                 <TextBlock Grid.Column="0" Style="{StaticResource TileTitleStyle}" Text="Pulsoid Heart Rate" />
+                                <!--
+                                    The badge sits straight after the title, ahead of the status, so
+                                    it is never the thing a narrow window trims away. The status line
+                                    takes the leftover column and ellipsises instead.
+                                -->
                                 <StackPanel
-                                    Grid.Column="1"
+                                    Grid.Column="2"
                                     HorizontalAlignment="Left"
                                     Orientation="Horizontal">
                                     <Border Visibility="{Binding Modules.Pulsoid.PulsoidAccessError, Converter={StaticResource InverseBoolToVisibilityConverter}, UpdateSourceTrigger=PropertyChanged}">
@@ -824,13 +831,22 @@
                                             Foreground="#ABA4B8"
                                             RenderOptions.BitmapScalingMode="NearestNeighbor"
                                             Text="{Binding Modules.Pulsoid.HeartRateLastUpdate, StringFormat='{}{0:T}'}"
+                                            TextTrimming="CharacterEllipsis"
                                             Visibility="{Binding IntegrationSettings.IntgrHeartRate, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}" />
                                     </Border>
-                                    <Border
+                                </StackPanel>
+
+                                <!--
+                                    Its own column, not the last child of the status strip. In a
+                                    horizontal StackPanel the trailing child is the one that loses
+                                    when the row runs out of width, which sliced this badge in half.
+                                -->
+                                <Border
+                                        Grid.Column="1"
                                         x:Name="MainDiscoundButton_grid"
                                         Width="auto"
                                         Height="20"
-                                        Margin="11,0,0,0"
+                                        Margin="11,0,2,0"
                                         CornerRadius="5"
                                         Cursor="Hand"
                                         MouseUp="MainDiscoundButton_grid_MouseUp">
@@ -935,7 +951,6 @@
                                         </Grid>
 
                                     </Border>
-                                </StackPanel>
                             </Grid>
 
                             <TextBlock Style="{StaticResource TileDescriptionStyle}" Text="Your pulse, live in the chatbox and on your avatar over OSC. Needs a Pulsoid BRO plan." />
@@ -1150,6 +1165,7 @@
                                 Style="{DynamicResource Switch}" />
                         </Grid>
                     </Border>
+
                 </Grid>
             </ListBoxItem>
             <ListBoxItem Name="VrPerformanceItem" Opacity="{Binding IntegrationDisplay.VrPerformanceOpacity}">
@@ -2734,6 +2750,164 @@
 
                 </Grid>
 
+            </ListBoxItem>
+
+            <ListBoxItem Name="VoicemodItem" Opacity="{Binding IntegrationDisplay.VoicemodOpacity}">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+
+                    <Border
+                        Grid.Row="0"
+                        Margin="5,0,5,5"
+                        Background="{StaticResource TileSurfaceBrush}"
+                        BorderBrush="#FF150C33"
+                        BorderThickness="1"
+                        CornerRadius="5">
+                        <Grid Margin="3">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="62" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+
+                            <Border
+                                Grid.Column="0"
+                                Width="3"
+                                Margin="-3,-3,0,-3"
+                                HorizontalAlignment="Left"
+                                CornerRadius="5,0,0,5"
+                                IsHitTestVisible="False">
+                                <Border.Style>
+                                    <Style TargetType="Border">
+                                        <Setter Property="Background" Value="#1AFFFFFF" />
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding IntegrationDisplay.LiveOutputKeys, Converter={StaticResource CollectionContainsConverter}, ConverterParameter=Voicemod}" Value="True">
+                                                <Setter Property="Background">
+                                                    <Setter.Value>
+                                                        <LinearGradientBrush StartPoint="0,1" EndPoint="0,0">
+                                                            <GradientStop Offset="0" Color="#3FE0D2" />
+                                                            <GradientStop Offset="1" Color="#B96BFF" />
+                                                        </LinearGradientBrush>
+                                                    </Setter.Value>
+                                                </Setter>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Border.Style>
+                            </Border>
+
+                            <Border
+                                Grid.Column="0"
+                                Width="50"
+                                Height="50"
+                                Margin="6,4,6,4"
+                                HorizontalAlignment="Left"
+                                VerticalAlignment="Center"
+                                Background="{StaticResource TileIconFrameBrush}"
+                                BorderBrush="{StaticResource TileIconFrameBorderBrush}"
+                                BorderThickness="1"
+                                CornerRadius="10"
+                                SnapsToDevicePixels="True">
+                                <Image
+                                    RenderOptions.BitmapScalingMode="HighQuality"
+                                    Margin="8"
+                                    HorizontalAlignment="Center"
+                                    VerticalAlignment="Center"
+                                    Source="/Img/Icons/Voicemod.png"
+                                    Stretch="Uniform" />
+                            </Border>
+
+                            <StackPanel
+                                Grid.Column="1"
+                                HorizontalAlignment="Stretch"
+                                VerticalAlignment="Center">
+                                <Grid VerticalAlignment="Center">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock
+                                        Grid.Column="0"
+                                        Style="{StaticResource TileTitleStyle}"
+                                        Text="Voicemod" />
+                                    <TextBlock
+                                        Grid.Column="1"
+                                        Margin="7,0,0,0"
+                                        VerticalAlignment="Center"
+                                        FontFamily="/Fonts/#Comfortaa"
+                                        FontSize="12"
+                                        Foreground="#ABA4B8"
+                                        RenderOptions.BitmapScalingMode="NearestNeighbor"
+                                        Text="{Binding Voicemod.Display.StatusText}"
+                                        TextTrimming="CharacterEllipsis" />
+                                </Grid>
+                                <TextBlock
+                                    Style="{StaticResource TileDescriptionStyle}"
+                                    Text="Every voice and sound in Voicemod, driven from here. Pin the ones you use and they stay one click away." />
+                            </StackPanel>
+
+                            <StackPanel Grid.Column="2" Style="{StaticResource TileControlDeck}">
+                                <StackPanel Style="{StaticResource DeckOutputRow}">
+                                    <ToggleButton
+                                        Content="VOICE"
+                                        IsChecked="{Binding Voicemod.Settings.VoiceControlEnabled, Mode=TwoWay}"
+                                        Style="{StaticResource FeatureChip}"
+                                        ToolTip="Voice changer controls: pick a voice, tune its parameters, hear yourself, background effects." />
+                                    <ToggleButton
+                                        Content="SOUNDS"
+                                        IsChecked="{Binding Voicemod.Settings.SoundboardControlEnabled, Mode=TwoWay}"
+                                        Style="{StaticResource FeatureChip}"
+                                        ToolTip="Soundboard controls: browse boards, play and stop sounds." />
+                                    <ToggleButton
+                                        Content="MIC"
+                                        IsChecked="{Binding Voicemod.Settings.MicControlEnabled, Mode=TwoWay}"
+                                        Style="{StaticResource FeatureChip}"
+                                        ToolTip="Microphone mute and hold-to-bleep." />
+                                    <ToggleButton IsChecked="{Binding IntegrationSettings.IntgrVoicemod_DESKTOP, Mode=TwoWay}" Style="{StaticResource RouteChipDesktop}" />
+                                    <ToggleButton IsChecked="{Binding IntegrationSettings.IntgrVoicemod_VR, Mode=TwoWay}" Style="{StaticResource RouteChipVr}" />
+                                </StackPanel>
+                                <StackPanel Style="{StaticResource DeckChromeRow}">
+                                    <Button
+                                        AutomationProperties.Name="Hide this tile"
+                                        Click="HideTile_Click"
+                                        Style="{StaticResource TileHideButton}"
+                                        ToolTip="Hide this tile from the list. The integration stays switched on." />
+                                    <Button
+                                        Command="{Binding ActivateSettingCommand}"
+                                        CommandParameter="Settings_Voicemod"
+                                        Style="{StaticResource TileDoorButton}"
+                                        ToolTip="Open Voicemod options and controls." />
+                                </StackPanel>
+                            </StackPanel>
+
+                            <CheckBox
+                                Name="Voicemod_switch"
+                                Grid.Column="3"
+                                Margin="5,0,5,0"
+                                HorizontalAlignment="Center"
+                                VerticalAlignment="Center"
+                                Click="Update_Click"
+                                IsChecked="{Binding IntegrationSettings.IntgrVoicemod, Mode=TwoWay}"
+                                Style="{DynamicResource Switch}" />
+                        </Grid>
+                    </Border>
+
+                    <Border
+                        Grid.Row="1"
+                        Margin="5,0,5,5"
+                        Padding="7,6"
+                        Background="{StaticResource SurfaceButtonDarkBrush}"
+                        BorderBrush="{StaticResource TilePanelBorderBrush}"
+                        BorderThickness="1"
+                        CornerRadius="6"
+                        Visibility="{Binding IntegrationSettings.IntgrVoicemod, Converter={StaticResource BoolToVisibilityConverter}}">
+                        <controls:VoicemodControlPanel ViewModel="{Binding Voicemod}" />
+                    </Border>
+                </Grid>
             </ListBoxItem>
 
             <ListBoxItem Name="SpotifyItem" Opacity="{Binding IntegrationDisplay.SpotifyOpacity}">

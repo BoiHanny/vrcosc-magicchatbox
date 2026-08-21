@@ -147,6 +147,7 @@ public partial class OptionsPage : UserControl
             case "OptionsDeferredChunk5":
                 Realize(OptionsWrapper_VrPerformance, new VrPerformanceSection(), nameof(OptionsPageViewModel.VrPerformanceSection));
                 Realize(OptionsWrapper_TrackerBattery, new TrackerBatterySection(), nameof(OptionsPageViewModel.TrackerBatterySection));
+                Realize(OptionsWrapper_Voicemod, new VoicemodSection(), nameof(OptionsPageViewModel.VoicemodSection));
                 Realize(OptionsWrapper_OpenAI, new OpenAISection(), nameof(OptionsPageViewModel.OpenAISection));
                 break;
             case "OptionsDeferredChunk6":
@@ -206,6 +207,7 @@ public partial class OptionsPage : UserControl
             ["Settings_Discord"] = OptionsWrapper_Discord,
             ["Settings_Spotify"] = OptionsWrapper_Spotify,
             ["Settings_OpenAI"] = OptionsWrapper_OpenAI,
+            ["Settings_Voicemod"] = OptionsWrapper_Voicemod,
             ["Settings_ComponentStats"] = OptionsWrapper_ComponentStats,
             ["Settings_NetworkStatistics"] = OptionsWrapper_NetworkStatistics,
             ["Settings_Chatting"] = OptionsWrapper_Chatting,

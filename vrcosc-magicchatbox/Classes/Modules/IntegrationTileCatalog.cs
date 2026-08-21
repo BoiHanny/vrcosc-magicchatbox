@@ -58,6 +58,9 @@ public static class IntegrationTileCatalog
         new("Soundpad", "SoundpadItem", "Soundpad",
             nameof(IntegrationSettings.IntgrSoundpad), false, (i, _) => i.IntgrSoundpad),
 
+        new("Voicemod", "VoicemodItem", "Voicemod",
+            nameof(IntegrationSettings.IntgrVoicemod), false, (i, _) => i.IntgrVoicemod),
+
         new("Spotify", "SpotifyItem", "Spotify",
             nameof(IntegrationSettings.IntgrSpotify), false, (i, _) => i.IntgrSpotify),
 

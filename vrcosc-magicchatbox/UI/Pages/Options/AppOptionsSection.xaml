@@ -442,7 +442,7 @@
                                     Margin="0,-2,5,0"
                                     VerticalAlignment="Center"
                                     FontSize="{StaticResource FontSizeBody}"
-                                    Text="{Binding UpdateState.RollBackVersion, StringFormat='Go back to {0}', UpdateSourceTrigger=PropertyChanged}" />
+                                    Text="{Binding UpdateState.RollBackVersion, Converter={StaticResource VersionDisplayConverter}, ConverterParameter='Go back to {0}', UpdateSourceTrigger=PropertyChanged}" />
                             </StackPanel>
                         </DataTemplate>
                     </Button.ContentTemplate>

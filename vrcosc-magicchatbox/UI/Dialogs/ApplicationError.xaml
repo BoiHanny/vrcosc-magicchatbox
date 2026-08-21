@@ -6,441 +6,488 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:local="clr-namespace:vrcosc_magicchatbox.UI.Dialogs"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    xmlns:sys="clr-namespace:System;assembly=mscorlib"
-    Title="Application Error"
-    Width="700"
-    Height="auto"
-    Background="{StaticResource SurfaceDarkBrush}"
+    Title="MagicChatbox stopped"
+    Width="620"
+    MaxHeight="780"
+    Background="Transparent"
     FontFamily="{DynamicResource FontPrimary}"
-    Icon="/Img/MagicOSC_icon.png"
+    Icon="pack://application:,,,/MagicChatbox;component/Img/MagicOSC_icon.png"
     ResizeMode="NoResize"
     SizeToContent="Height"
     WindowStartupLocation="CenterScreen"
+    WindowStyle="None"
     mc:Ignorable="d">
 
     <Window.Resources>
-        <conv:InverseBoolToVisibilityConverter x:Key="InverseBoolToVisibilityConverter" />
-        <conv:InverseBoolToHiddenConverter x:Key="InverseBoolToHiddenConverter" />
+        <BooleanToVisibilityConverter x:Key="BoolVis" />
+        <conv:VersionDisplayConverter x:Key="VersionDisplay" />
+
+        <Style x:Key="DialogGhostButton" TargetType="Button">
+            <Setter Property="Height" Value="30" />
+            <Setter Property="Padding" Value="12,0" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="FontFamily" Value="/Fonts/#Albert Sans" />
+            <Setter Property="FontSize" Value="12.5" />
+            <Setter Property="Foreground" Value="#FFB5ABC9" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border
+                            x:Name="bg"
+                            Padding="{TemplateBinding Padding}"
+                            Background="Transparent"
+                            BorderBrush="#33FFFFFF"
+                            BorderThickness="1"
+                            CornerRadius="6">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="bg" Property="Background" Value="#1AFFFFFF" />
+                                <Setter Property="Foreground" Value="White" />
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="bg" Property="Background" Value="#0DFFFFFF" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style
+            x:Key="DialogPrimaryButton"
+            BasedOn="{StaticResource DialogGhostButton}"
+            TargetType="Button">
+            <Setter Property="Height" Value="34" />
+            <Setter Property="Padding" Value="16,0" />
+            <Setter Property="FontSize" Value="13" />
+            <Setter Property="Foreground" Value="White" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border
+                            x:Name="bg"
+                            Padding="{TemplateBinding Padding}"
+                            BorderBrush="#FF6E4FB5"
+                            BorderThickness="1"
+                            CornerRadius="7">
+                            <Border.Background>
+                                <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                                    <GradientStop Offset="0" Color="#FF3A1F73" />
+                                    <GradientStop Offset="1" Color="#FF4B2A8F" />
+                                </LinearGradientBrush>
+                            </Border.Background>
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="bg" Property="BorderBrush" Value="#FFC3A9FF" />
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="bg" Property="Background" Value="#FF2D1265" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="DialogIconButton" TargetType="Button">
+            <Setter Property="Width" Value="28" />
+            <Setter Property="Height" Value="28" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border
+                            x:Name="bg"
+                            Background="Transparent"
+                            CornerRadius="6">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="bg" Property="Background" Value="#22FFFFFF" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
     </Window.Resources>
 
     <WindowChrome.WindowChrome>
         <WindowChrome
-            CaptionHeight="55"
+            CaptionHeight="52"
             CornerRadius="0"
-            GlassFrameThickness="1"
-            ResizeBorderThickness="8"
+            GlassFrameThickness="0"
+            ResizeBorderThickness="0"
             UseAeroCaptionButtons="False" />
     </WindowChrome.WindowChrome>
 
-    <Grid>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="35" />
-            <RowDefinition Height="auto" />
-        </Grid.RowDefinitions>
+    <Border
+        Margin="12"
+        BorderBrush="#FF4A3E78"
+        BorderThickness="1"
+        CornerRadius="14">
+        <Border.Background>
+            <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                <GradientStop Offset="0" Color="#FF1C1245" />
+                <GradientStop Offset="1" Color="#FF251660" />
+            </LinearGradientBrush>
+        </Border.Background>
+        <Border.Effect>
+            <DropShadowEffect
+                BlurRadius="28"
+                Direction="270"
+                Opacity="0.7"
+                ShadowDepth="8"
+                Color="#FF0B0620" />
+        </Border.Effect>
 
-        <Border Grid.Row="0">
-            <Border.Background>
-                <LinearGradientBrush StartPoint="0,1" EndPoint="0.5,1">
-                    <LinearGradientBrush.RelativeTransform>
-                        <TransformGroup>
-                            <ScaleTransform CenterX="0.5" CenterY="0.5" />
-                            <SkewTransform AngleX="-10" CenterX="0.5" CenterY="0.5" />
-                            <RotateTransform CenterX="0.5" CenterY="0.5" />
-                            <TranslateTransform />
-                        </TransformGroup>
-                    </LinearGradientBrush.RelativeTransform>
-                    <GradientStop Offset="1" Color="{StaticResource GradientNavyBlueColor}" />
-                    <GradientStop Color="#FF540E0E" />
-                    <GradientStop Offset="0.469" Color="#FF0F46A0" />
-                </LinearGradientBrush>
-            </Border.Background>
-        </Border>
-        <Grid x:Name="Drag_area" Grid.Row="0">
-            <StackPanel
-                Margin="5,5"
-                HorizontalAlignment="Right"
-                Orientation="Horizontal"
-                WindowChrome.IsHitTestVisibleInChrome="True">
-                <StackPanel
-                    Margin="0,0,10,0"
-                    HorizontalAlignment="Center"
-                    Orientation="Horizontal">
-                    <StackPanel.Background>
-                        <LinearGradientBrush MappingMode="Absolute">
-                            <LinearGradientBrush.RelativeTransform>
-                                <TransformGroup>
-                                    <ScaleTransform CenterX="0.5" CenterY="0.5" />
-                                    <SkewTransform CenterX="0.5" CenterY="0.5" />
-                                    <RotateTransform Angle="-20.323" CenterX="0.5" CenterY="0.5" />
-                                    <TranslateTransform />
-                                </TransformGroup>
-                            </LinearGradientBrush.RelativeTransform>
-                            <GradientStop Offset="0.5" Color="{StaticResource SurfaceDarkColor}" />
-                            <GradientStop Offset="0.742" />
-                            <GradientStop Offset="0.039" Color="{StaticResource GradientTransparentDarkColor}" />
-                        </LinearGradientBrush>
-                    </StackPanel.Background>
-                    <Button
-                        x:Name="CheckUpdateBtnn"
-                        Margin="2,3,0,2"
-                        Padding="0"
-                        HorizontalAlignment="Left"
-                        VerticalAlignment="Top"
-                        Click="CheckUpdateBtnn_Click"
-                        Style="{StaticResource CircleButton}">
-                        <Image
-                            Width="10"
-                            Height="10"
-                            RenderOptions.BitmapScalingMode="Linear"
-                            Source="/Img/Icons/Load_ico.png" />
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
 
-                    </Button>
-                    <TextBlock
-                        Margin="5,1,0,0"
-                        VerticalAlignment="Center"
-                        FontFamily="/Fonts/#Albert Sans"
-                        FontSize="12"
-                        Foreground="{StaticResource TextLabelLightBrush}"
-                        RenderOptions.BitmapScalingMode="NearestNeighbor"
-                        Text="{Binding UpdateState.AppVersion.VersionNumber}">
-                        <TextBlock.Effect>
-                            <DropShadowEffect
-                                BlurRadius="15"
-                                Opacity="0.9"
-                                ShadowDepth="0"
-                                Color="{Binding UpdateState.VersionTxtColor}" />
-                        </TextBlock.Effect>
+            <!--  Header  -->
+            <Grid Grid.Row="0" Height="52">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
 
-                    </TextBlock>
-                    <TextBlock
-                        Name="NewVersion"
-                        Margin="5,0,0,0"
-                        VerticalAlignment="Center"
-                        Cursor="Hand"
-                        FontFamily="/Fonts/#Albert Sans"
-                        FontSize="12"
-                        Foreground="{Binding UpdateState.VersionTxtColor}"
-                        MouseUp="NewVersion_MouseUp"
-                        RenderOptions.BitmapScalingMode="NearestNeighbor"
-                        Text="{Binding UpdateState.VersionTxt}">
-                        <TextBlock.Style>
-                            <Style TargetType="{x:Type TextBlock}">
-                                <Style.Triggers>
-                                    <DataTrigger Binding="{Binding UpdateState.VersionTxtUnderLine}" Value="True">
-                                        <Setter Property="TextDecorations" Value="Underline" />
-                                    </DataTrigger>
-                                </Style.Triggers>
-                            </Style>
-                        </TextBlock.Style>
-
-                        <TextBlock.Effect>
-                            <DropShadowEffect
-                                BlurRadius="15"
-                                Opacity="0.7"
-                                ShadowDepth="0"
-                                Color="{Binding UpdateState.VersionTxtColor}" />
-                        </TextBlock.Effect>
-                    </TextBlock>
-                </StackPanel>
-                <Button
-                    x:Name="Discord"
-                    Width="auto"
-                    Margin="2,0"
-                    Padding="2"
-                    Click="Discord_Click"
-                    Style="{DynamicResource LINK_Button_style}"
-                    WindowChrome.IsHitTestVisibleInChrome="True">
-                    <StackPanel Orientation="Horizontal">
-                        <Image
-                            Width="15"
-                            RenderOptions.BitmapScalingMode="NearestNeighbor"
-                            Source="/Img/Icons/Discord.png" />
-                    </StackPanel>
-                </Button>
-                <Button
-                    x:Name="Github"
-                    Width="auto"
-                    Margin="2,0"
-                    Padding="1"
-                    Click="Github_Click"
-                    Style="{DynamicResource LINK_Button_style}"
-                    WindowChrome.IsHitTestVisibleInChrome="True">
-                    <StackPanel Orientation="Horizontal">
-                        <Image
-                            Width="15"
-                            RenderOptions.BitmapScalingMode="NearestNeighbor"
-                            Source="/Img/Icons/GitHub.png" />
-                    </StackPanel>
-                </Button>
-            </StackPanel>
-            <StackPanel Orientation="Horizontal">
-                <Image
-                    Width="20"
-                    Height="20"
-                    Margin="2"
-                    RenderOptions.BitmapScalingMode="HighQuality"
-                    Source="/Img/Icons/MagicChatbox_ico.png" />
-                <TextBlock
-                    Margin="6,1,0,0"
-                    HorizontalAlignment="Center"
+                <Border
+                    Width="4"
+                    Height="22"
+                    Margin="18,0,12,0"
                     VerticalAlignment="Center"
-                    FontFamily="/Fonts/#Albert Sans"
-                    FontSize="14"
-                    Foreground="#FFFFBBA5"
-                    RenderOptions.BitmapScalingMode="NearestNeighbor"
-                    Text="Something went wrong...">
-                    <TextBlock.Effect>
-                        <DropShadowEffect
-                            BlurRadius="5"
-                            Direction="315"
-                            Opacity="1"
-                            ShadowDepth="0"
-                            Color="{StaticResource GradientNavyBlueColor}" />
-                    </TextBlock.Effect>
-                </TextBlock>
+                    Background="{StaticResource StatusErrorBrush}"
+                    CornerRadius="2" />
 
-            </StackPanel>
+                <TextBlock
+                    Grid.Column="1"
+                    VerticalAlignment="Center"
+                    FontFamily="/Fonts/#Comfortaa"
+                    FontSize="15"
+                    FontWeight="SemiBold"
+                    Foreground="White"
+                    Text="MagicChatbox ran into a problem" />
 
-        </Grid>
+                <StackPanel
+                    Grid.Column="2"
+                    Margin="0,0,12,0"
+                    VerticalAlignment="Center"
+                    Orientation="Horizontal"
+                    WindowChrome.IsHitTestVisibleInChrome="True">
 
-        <StackPanel Grid.Row="1" MaxHeight="1000">
-            <StackPanel.Background>
-                <LinearGradientBrush StartPoint="0.5,0" EndPoint="0.5,1">
-                    <GradientStop Color="#FF5B3737" />
-                    <GradientStop Offset="1" Color="#FF41375B" />
-                </LinearGradientBrush>
-            </StackPanel.Background>
+                    <Border
+                        Margin="0,0,10,0"
+                        Padding="8,3"
+                        Background="#22FFFFFF"
+                        CornerRadius="10">
+                        <TextBlock
+                            FontFamily="/Fonts/#Albert Sans"
+                            FontSize="11.5"
+                            Foreground="#FFB5ABC9"
+                            Text="{Binding UpdateState.AppVersion.VersionNumber, StringFormat=v{0}}" />
+                    </Border>
 
-            <TextBlock
-                x:Name="MainError"
-                Margin="10,18,10,0"
-                HorizontalAlignment="Center"
-                VerticalAlignment="Top"
-                FontFamily="/Fonts/#Comfortaa"
-                FontSize="25"
-                FontWeight="SemiBold"
-                Foreground="Yellow"
-                LineHeight="15"
-                RenderOptions.BitmapScalingMode="NearestNeighbor"
-                Text="Main Error"
-                TextAlignment="Center"
-                TextWrapping="Wrap">
-                <TextBlock.Effect>
-                    <DropShadowEffect
-                        BlurRadius="5"
-                        Direction="315"
-                        Opacity="1"
-                        ShadowDepth="0"
-                        Color="{StaticResource GradientNavyBlueColor}" />
-                </TextBlock.Effect>
-            </TextBlock>
+                    <Button
+                        x:Name="Discord"
+                        Margin="1,0"
+                        Click="Discord_Click"
+                        Style="{StaticResource DialogIconButton}"
+                        ToolTip="Join the Discord"
+                        WindowChrome.IsHitTestVisibleInChrome="True">
+                        <Image
+                            Width="15"
+                            Height="15"
+                            RenderOptions.BitmapScalingMode="HighQuality"
+                            Source="pack://application:,,,/MagicChatbox;component/Img/Icons/Discord.png" />
+                    </Button>
 
+                    <Button
+                        x:Name="Github"
+                        Margin="1,0"
+                        Click="Github_Click"
+                        Style="{StaticResource DialogIconButton}"
+                        ToolTip="Open a GitHub issue"
+                        WindowChrome.IsHitTestVisibleInChrome="True">
+                        <Image
+                            Width="15"
+                            Height="15"
+                            RenderOptions.BitmapScalingMode="HighQuality"
+                            Source="pack://application:,,,/MagicChatbox;component/Img/Icons/GitHub.png" />
+                    </Button>
+
+                    <Button
+                        x:Name="Close"
+                        Margin="6,0,0,0"
+                        Click="Close_Click"
+                        Style="{StaticResource DialogIconButton}"
+                        ToolTip="Close"
+                        WindowChrome.IsHitTestVisibleInChrome="True">
+                        <TextBlock
+                            FontSize="12"
+                            Foreground="#FFB5ABC9"
+                            Text="✕" />
+                    </Button>
+                </StackPanel>
+            </Grid>
 
             <Border
-                Margin="18,14,18,10"
-                Padding="12,10"
-                Background="#33FFC107"
-                BorderBrush="{StaticResource StatusWarningBrush}"
-                BorderThickness="1"
-                CornerRadius="8">
-                <TextBlock
-                    FontFamily="/Fonts/#Albert Sans"
-                    FontSize="13"
-                    Foreground="LightYellow"
-                    TextWrapping="Wrap">
-                    <Run Text="Before reporting this crash, include the app version, this error message, and the selected log file. The " />
-                    <Run FontWeight="Bold" Text="Select current log" />
-                    <Run Text=" button opens the most relevant log in Explorer so it is easy to attach." />
-                </TextBlock>
-            </Border>
+                Grid.Row="0"
+                VerticalAlignment="Bottom"
+                BorderBrush="#22FFFFFF"
+                BorderThickness="0,0,0,1" />
 
-            <TextBlock
-                x:Name="CallStack"
-                Margin="15,0"
-                HorizontalAlignment="Center"
-                VerticalAlignment="Top"
-                FontFamily="/Fonts/#Albert Sans"
-                FontSize="15"
-                FontWeight="Light"
-                Foreground="LightYellow"
-                RenderOptions.BitmapScalingMode="NearestNeighbor"
-                Text="Callstack"
-                TextWrapping="Wrap">
-                <TextBlock.Effect>
-                    <DropShadowEffect
-                        BlurRadius="5"
-                        Direction="315"
-                        Opacity="1"
-                        ShadowDepth="0"
-                        Color="{StaticResource GradientNavyBlueColor}" />
-                </TextBlock.Effect>
-            </TextBlock>
+            <!--  Body  -->
+            <ScrollViewer
+                Grid.Row="1"
+                HorizontalScrollBarVisibility="Disabled"
+                VerticalScrollBarVisibility="Auto">
+                <StackPanel Margin="22,18,22,4">
 
+                    <TextBlock
+                        x:Name="MainError"
+                        FontFamily="/Fonts/#Albert Sans"
+                        FontSize="16"
+                        Foreground="White"
+                        LineHeight="23"
+                        Text="Main Error"
+                        TextWrapping="Wrap" />
 
-            <StackPanel HorizontalAlignment="Center" Orientation="Horizontal">
-                <Button
-                    x:Name="rollback"
-                    Height="30"
-                    Margin="0,15,2,15"
-                    Padding="5"
-                    VerticalAlignment="Top"
-                    Click="rollback_Click"
-                    Opacity="0.7"
-                    Style="{StaticResource UpdatedGreenButtonStyle}"
-                    Visibility="{Binding UpdateState.RollBackUpdateAvailable, Converter={StaticResource InverseBoolToHiddenConverter}}">
-                    <Button.ContentTemplate>
-                        <DataTemplate>
+                    <TextBlock
+                        x:Name="ErrorType"
+                        Margin="0,6,0,0"
+                        FontFamily="/Fonts/#Albert Sans"
+                        FontSize="12"
+                        Foreground="#FF8E85A6"
+                        Text=""
+                        TextWrapping="Wrap" />
+
+                    <!--  Technical details  -->
+                    <Grid Margin="0,18,0,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+
+                        <ToggleButton
+                            x:Name="DetailsToggle"
+                            Grid.Column="0"
+                            Cursor="Hand"
+                            Foreground="#FFB5ABC9">
+                            <ToggleButton.Template>
+                                <ControlTemplate TargetType="ToggleButton">
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock
+                                            x:Name="chevron"
+                                            Margin="0,0,6,0"
+                                            VerticalAlignment="Center"
+                                            FontFamily="/Fonts/#Albert Sans"
+                                            FontSize="10"
+                                            Foreground="{TemplateBinding Foreground}"
+                                            Text="▶" />
+                                        <TextBlock
+                                            VerticalAlignment="Center"
+                                            FontFamily="/Fonts/#Comfortaa"
+                                            FontSize="11.5"
+                                            Foreground="{TemplateBinding Foreground}"
+                                            Text="Technical details" />
+                                    </StackPanel>
+                                    <ControlTemplate.Triggers>
+                                        <Trigger Property="IsChecked" Value="True">
+                                            <Setter TargetName="chevron" Property="Text" Value="▼" />
+                                        </Trigger>
+                                        <Trigger Property="IsMouseOver" Value="True">
+                                            <Setter Property="Foreground" Value="White" />
+                                        </Trigger>
+                                    </ControlTemplate.Triggers>
+                                </ControlTemplate>
+                            </ToggleButton.Template>
+                        </ToggleButton>
+
+                        <Button
+                            x:Name="CopyDetails"
+                            Grid.Column="2"
+                            Height="26"
+                            Padding="10,0"
+                            Click="CopyDetails_Click"
+                            Style="{StaticResource DialogGhostButton}"
+                            ToolTip="Copy the version, message, stack trace and log path">
+                            <TextBlock x:Name="CopyDetailsLabel" Text="Copy details" />
+                        </Button>
+                    </Grid>
+
+                    <Border
+                        Margin="0,10,0,0"
+                        Background="#33110A2E"
+                        BorderBrush="#33FFFFFF"
+                        BorderThickness="1"
+                        CornerRadius="8"
+                        Visibility="{Binding IsChecked, ElementName=DetailsToggle, Converter={StaticResource BoolVis}}">
+                        <ScrollViewer
+                            MaxHeight="220"
+                            Padding="12,10"
+                            HorizontalScrollBarVisibility="Auto"
+                            VerticalScrollBarVisibility="Auto">
+                            <TextBlock
+                                x:Name="CallStack"
+                                FontFamily="Cascadia Mono, Consolas, Courier New"
+                                FontSize="11.5"
+                                Foreground="#FF9E95B8"
+                                LineHeight="17"
+                                Text="Callstack"
+                                TextWrapping="NoWrap" />
+                        </ScrollViewer>
+                    </Border>
+
+                    <!--  Recovery  -->
+                    <TextBlock
+                        Margin="0,22,0,0"
+                        FontFamily="/Fonts/#Comfortaa"
+                        FontSize="10.5"
+                        Foreground="#FF8E85A6"
+                        Text="RECOVER" />
+
+                    <WrapPanel Margin="0,10,0,0" Orientation="Horizontal">
+                        <Button
+                            x:Name="rollback"
+                            Margin="0,0,8,8"
+                            Click="rollback_Click"
+                            Style="{StaticResource DialogPrimaryButton}"
+                            ToolTip="Put the previous version back. Your current one is kept, so this can be undone."
+                            Visibility="{Binding UpdateState.RollBackUpdateAvailable, Converter={StaticResource BoolVis}}">
                             <StackPanel Orientation="Horizontal">
-                                <Image
-                                    Height="18"
-                                    Margin="0,0,4,0"
-                                    RenderOptions.BitmapScalingMode="HighQuality"
-                                    Source="/Img/Icons/downgrade.png" />
+                                <TextBlock
+                                    Margin="0,0,7,0"
+                                    VerticalAlignment="Center"
+                                    Text="↓" />
                                 <TextBlock
                                     x:Name="RollBackVersion"
-                                    Margin="0,-2,5,0"
                                     VerticalAlignment="Center"
-                                    FontSize="15"
-                                    Text="{Binding UpdateState.RollBackVersion, StringFormat='Rollback to {0}', UpdateSourceTrigger=PropertyChanged}" />
+                                    Text="{Binding UpdateState.RollBackVersion, Converter={StaticResource VersionDisplay}, ConverterParameter='Go back to {0}'}" />
+                            </StackPanel>
+                        </Button>
 
+                        <Button
+                            x:Name="UpdateNow"
+                            Margin="0,0,8,8"
+                            Click="UpdateNow_Click"
+                            Style="{StaticResource DialogPrimaryButton}"
+                            ToolTip="Download and install the newest release"
+                            Visibility="{Binding UpdateState.CanUpdate, Converter={StaticResource BoolVis}}">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock
+                                    Margin="0,0,7,0"
+                                    VerticalAlignment="Center"
+                                    Text="↑" />
+                                <TextBlock VerticalAlignment="Center" Text="{Binding UpdateState.VersionTxt}" />
+                            </StackPanel>
+                        </Button>
 
-                            </StackPanel>
-                        </DataTemplate>
-                    </Button.ContentTemplate>
-                </Button>
-                <Button
-                    x:Name="Update"
-                    Height="30"
-                    Margin="0,15,2,15"
-                    Padding="5"
-                    VerticalAlignment="Top"
-                    Click="Update_Click"
-                    Opacity="0.7"
-                    Style="{StaticResource UpdatedGreenButtonStyle}">
-                    <Button.ContentTemplate>
-                        <DataTemplate>
-                            <StackPanel Orientation="Horizontal">
-                                <Image
-                                    Height="18"
-                                    Margin="0,0,4,0"
-                                    RenderOptions.BitmapScalingMode="HighQuality"
-                                    Source="/Img/Icons/Upload.png" />
-                                <TextBlock
-                                    Margin="0,-2,5,0"
-                                    VerticalAlignment="Center"
-                                    FontSize="15"
-                                    Text="Update with ZIP" />
-                            </StackPanel>
-                        </DataTemplate>
-                    </Button.ContentTemplate>
-                </Button>
-                <Button
-                    Height="30"
-                    Margin="0,15,2,15"
-                    Padding="5"
-                    VerticalAlignment="Top"
-                    Click="OpenCurrentLog_Click"
-                    Style="{StaticResource Status_Button_style}">
-                    <Button.ContentTemplate>
-                        <DataTemplate>
-                            <StackPanel Orientation="Horizontal">
-                                <Image
-                                    Height="18"
-                                    Margin="0,0,4,0"
-                                    RenderOptions.BitmapScalingMode="HighQuality"
-                                    Source="/Img/Icons/Log.png" />
-                                <TextBlock
-                                    Margin="0,-2,5,0"
-                                    VerticalAlignment="Center"
-                                    FontSize="15"
-                                    Text="Select current log" />
-                            </StackPanel>
-                        </DataTemplate>
-                    </Button.ContentTemplate>
-                </Button>
-                <Button
-                    Height="30"
-                    Margin="0,15,2,15"
-                    Padding="5"
-                    VerticalAlignment="Top"
-                    Click="OpenLogFolder_Click"
-                    Style="{StaticResource Status_Button_style}">
-                    <Button.ContentTemplate>
-                        <DataTemplate>
-                            <StackPanel Orientation="Horizontal">
-                                <Image
-                                    Height="18"
-                                    Margin="0,0,4,0"
-                                    RenderOptions.BitmapScalingMode="HighQuality"
-                                    Source="/Img/Icons/Log.png" />
-                                <TextBlock
-                                    Margin="0,-2,5,0"
-                                    VerticalAlignment="Center"
-                                    FontSize="15"
-                                    Text="Open log folder" />
-                            </StackPanel>
-                        </DataTemplate>
-                    </Button.ContentTemplate>
-                </Button>
-                <Button
-                    x:Name="Close"
-                    Height="30"
-                    Margin="0,15,0,15"
-                    Padding="5"
-                    VerticalAlignment="Top"
-                    Click="Close_Click"
-                    Style="{StaticResource Status_Button_style}">
-                    <Button.ContentTemplate>
-                        <DataTemplate>
-                            <StackPanel Orientation="Horizontal">
-                                <Image
-                                    Height="22"
-                                    Margin="0,-2,4,0"
-                                    Source="/Img/Icons/Cross_ico.png" />
-                                <TextBlock
-                                    Margin="0,-2,5,0"
-                                    VerticalAlignment="Center"
-                                    FontSize="15"
-                                    Text="Close" />
-                            </StackPanel>
-                        </DataTemplate>
-                    </Button.ContentTemplate>
-                </Button>
+                        <Button
+                            x:Name="Update"
+                            Margin="0,0,8,8"
+                            Click="Update_Click"
+                            Style="{StaticResource DialogGhostButton}"
+                            ToolTip="Install a release you downloaded yourself">
+                            <TextBlock Text="Install from a ZIP" />
+                        </Button>
+                    </WrapPanel>
 
-            </StackPanel>
+                    <TextBlock
+                        x:Name="NoRecoveryHint"
+                        Margin="0,0,0,4"
+                        FontFamily="/Fonts/#Albert Sans"
+                        FontSize="11.5"
+                        Foreground="#FF8E85A6"
+                        Text="You are on the newest version and there is no earlier one to go back to."
+                        TextWrapping="Wrap"
+                        Visibility="Collapsed" />
 
+                    <!--  Diagnostics  -->
+                    <TextBlock
+                        Margin="0,14,0,0"
+                        FontFamily="/Fonts/#Comfortaa"
+                        FontSize="10.5"
+                        Foreground="#FF8E85A6"
+                        Text="REPORT THIS" />
+
+                    <WrapPanel Margin="0,10,0,0" Orientation="Horizontal">
+                        <Button
+                            Margin="0,0,8,8"
+                            Click="OpenCurrentLog_Click"
+                            Style="{StaticResource DialogGhostButton}"
+                            ToolTip="Reveal the most relevant log file in Explorer">
+                            <TextBlock Text="Select current log" />
+                        </Button>
+                        <Button
+                            Margin="0,0,8,8"
+                            Click="OpenLogFolder_Click"
+                            Style="{StaticResource DialogGhostButton}">
+                            <TextBlock Text="Open log folder" />
+                        </Button>
+                    </WrapPanel>
+
+                </StackPanel>
+            </ScrollViewer>
+
+            <!--  Footer  -->
             <Border
-                Margin="18,0,18,18"
-                Padding="12,10"
-                Background="#251DB954"
-                BorderBrush="{StaticResource AccentTealBrush}"
-                BorderThickness="1"
-                CornerRadius="8">
-                <TextBlock
-                    FontFamily="/Fonts/#Albert Sans"
-                    FontSize="13"
-                    Foreground="{StaticResource TextPrimaryBrush}"
-                    TextWrapping="Wrap">
-                    <Run Text="Need help fast? Join our " />
-                    <Hyperlink
-                        Foreground="{StaticResource AccentTealBrush}"
-                        NavigateUri="https://discord.gg/ZaSFwBfhvG"
-                        RequestNavigate="SupportLink_RequestNavigate">
-                        <Run Text="Discord server" />
-                    </Hyperlink>
-                    <Run Text=". Want a tracked bug report? Open a " />
-                    <Hyperlink
-                        Foreground="{StaticResource AccentTealBrush}"
-                        NavigateUri="https://github.com/BoiHanny/vrcosc-magicchatbox/issues/new/choose"
-                        RequestNavigate="SupportLink_RequestNavigate">
-                        <Run Text="GitHub issue" />
-                    </Hyperlink>
-                    <Run Text=" and attach the selected log." />
-                </TextBlock>
+                Grid.Row="2"
+                Padding="22,14"
+                Background="#26110A2E"
+                BorderBrush="#22FFFFFF"
+                BorderThickness="0,1,0,0"
+                CornerRadius="0,0,13,13">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+
+                    <TextBlock
+                        VerticalAlignment="Center"
+                        FontFamily="/Fonts/#Albert Sans"
+                        FontSize="12"
+                        Foreground="#FF8E85A6"
+                        LineHeight="17"
+                        TextWrapping="Wrap">
+                        <Run Text="Paste the copied details into" />
+                        <Hyperlink
+                            Foreground="{StaticResource AccentLightPurpleBrush}"
+                            NavigateUri="https://discord.gg/ZaSFwBfhvG"
+                            RequestNavigate="SupportLink_RequestNavigate">
+                            <Run Text="Discord" />
+                        </Hyperlink>
+                        <Run Text="or a" />
+                        <Hyperlink
+                            Foreground="{StaticResource AccentLightPurpleBrush}"
+                            NavigateUri="https://github.com/BoiHanny/vrcosc-magicchatbox/issues/new/choose"
+                            RequestNavigate="SupportLink_RequestNavigate">
+                            <Run Text="GitHub issue" />
+                        </Hyperlink>
+                        <Run Text="and attach the log." />
+                    </TextBlock>
+
+                    <Button
+                        Grid.Column="1"
+                        Margin="12,0,0,0"
+                        Click="Close_Click"
+                        Style="{StaticResource DialogGhostButton}">
+                        <TextBlock Text="Close" />
+                    </Button>
+                </Grid>
             </Border>
 
-        </StackPanel>
-
-
-    </Grid>
+        </Grid>
+    </Border>
 </Window>

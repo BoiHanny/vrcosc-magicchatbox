@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Threading.Tasks;
 using vrcosc_magicchatbox.Classes.DataAndSecurity;
 using vrcosc_magicchatbox.Classes.Modules;
@@ -23,6 +23,7 @@ public sealed class StatePersistenceCoordinator : IStatePersistenceCoordinator
     private readonly ISettingsProvider<TimeSettings> _timeSettingsProvider;
     private readonly ISettingsProvider<TtsSettings> _ttsSettingsProvider;
     private readonly ISettingsProvider<AppSettings> _appSettingsProvider;
+    private readonly ISettingsProvider<Classes.Modules.Voicemod.VoicemodSettings> _voicemodSettingsProvider;
     private readonly IntegrationDisplayState _integrationDisplay;
     private readonly TrackerDisplayState _trackerDisplay;
     private readonly Lazy<IModuleHost> _modules;
@@ -45,6 +46,7 @@ public sealed class StatePersistenceCoordinator : IStatePersistenceCoordinator
         ISettingsProvider<TimeSettings> timeSettingsProvider,
         ISettingsProvider<TtsSettings> ttsSettingsProvider,
         ISettingsProvider<AppSettings> appSettingsProvider,
+        ISettingsProvider<Classes.Modules.Voicemod.VoicemodSettings> voicemodSettingsProvider,
         IntegrationDisplayState integrationDisplay,
         TrackerDisplayState trackerDisplay,
         Lazy<IModuleHost> modules,
@@ -66,6 +68,7 @@ public sealed class StatePersistenceCoordinator : IStatePersistenceCoordinator
         _timeSettingsProvider = timeSettingsProvider;
         _ttsSettingsProvider = ttsSettingsProvider;
         _appSettingsProvider = appSettingsProvider;
+        _voicemodSettingsProvider = voicemodSettingsProvider;
         _integrationDisplay = integrationDisplay;
         _trackerDisplay = trackerDisplay;
         _modules = modules;
@@ -113,6 +116,7 @@ public sealed class StatePersistenceCoordinator : IStatePersistenceCoordinator
         SafeRun("WindowActivity", () => _windowActivity.SaveSettings());
         SafeRun("Weather", () => _weatherSvc.SaveSettings());
 
+        SafeRun("VoicemodSettings", () => _voicemodSettingsProvider.FlushPendingSave());
         SafeRun("MediaLinkSettings", () => _mediaLinkSettingsProvider.FlushPendingSave());
         SafeRun("OscSettings", () => _oscSettingsProvider.FlushPendingSave());
         SafeRun("ChatSettings", () => _chatSettingsProvider.FlushPendingSave());

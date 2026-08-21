@@ -1,0 +1,318 @@
+<UserControl
+    x:Class="vrcosc_magicchatbox.UI.Controls.UpdateProgressCard"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:conv="clr-namespace:vrcosc_magicchatbox.Classes"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:updates="clr-namespace:vrcosc_magicchatbox.Core.Updates"
+    FontFamily="{DynamicResource FontPrimary}"
+    IsHitTestVisible="True"
+    mc:Ignorable="d">
+
+    <UserControl.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolVis" />
+        <conv:UpdateStepStatusToBrushConverter x:Key="StepBrush" />
+
+        <Style x:Key="UpdateProgressBar" TargetType="ProgressBar">
+            <Setter Property="Height" Value="6" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ProgressBar">
+                        <Border
+                            Background="#33130B33"
+                            CornerRadius="3"
+                            SnapsToDevicePixels="True">
+                            <Grid ClipToBounds="True">
+                                <Border x:Name="PART_Track" />
+                                <Border
+                                    x:Name="PART_Indicator"
+                                    HorizontalAlignment="Left"
+                                    CornerRadius="3">
+                                    <Border.Background>
+                                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                                            <GradientStop Offset="0" Color="#6E4FB5" />
+                                            <GradientStop Offset="1" Color="#C3A9FF" />
+                                        </LinearGradientBrush>
+                                    </Border.Background>
+                                </Border>
+
+                                <!--
+                                    Without this, an unknown-length step paints the whole track and reads
+                                    as "finished" rather than "still working".
+                                -->
+                                <Border
+                                    x:Name="Sweep"
+                                    Width="96"
+                                    HorizontalAlignment="Left"
+                                    CornerRadius="3"
+                                    Visibility="Collapsed">
+                                    <Border.Background>
+                                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                                            <GradientStop Offset="0" Color="#006E4FB5" />
+                                            <GradientStop Offset="0.5" Color="#FFC3A9FF" />
+                                            <GradientStop Offset="1" Color="#006E4FB5" />
+                                        </LinearGradientBrush>
+                                    </Border.Background>
+                                    <Border.RenderTransform>
+                                        <TranslateTransform X="-96" />
+                                    </Border.RenderTransform>
+                                </Border>
+                            </Grid>
+                        </Border>
+
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsIndeterminate" Value="True">
+                                <Setter TargetName="PART_Indicator" Property="Visibility" Value="Collapsed" />
+                                <Setter TargetName="Sweep" Property="Visibility" Value="Visible" />
+                                <Trigger.EnterActions>
+                                    <BeginStoryboard Name="SweepStory">
+                                        <Storyboard RepeatBehavior="Forever">
+                                            <DoubleAnimation
+                                                Storyboard.TargetName="Sweep"
+                                                Storyboard.TargetProperty="(UIElement.RenderTransform).(TranslateTransform.X)"
+                                                From="-96"
+                                                To="300"
+                                                Duration="0:0:1.2" />
+                                        </Storyboard>
+                                    </BeginStoryboard>
+                                </Trigger.EnterActions>
+                                <Trigger.ExitActions>
+                                    <StopStoryboard BeginStoryboardName="SweepStory" />
+                                </Trigger.ExitActions>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </UserControl.Resources>
+
+    <Border
+        x:Name="CardRoot"
+        Width="320"
+        Margin="0,0,0,8"
+        Padding="16,14,16,14"
+        VerticalAlignment="Top"
+        BorderThickness="1"
+        ClipToBounds="True"
+        CornerRadius="12"
+        Visibility="{Binding IsActive, Converter={StaticResource BoolVis}}">
+
+        <Border.Background>
+            <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                <GradientStop Offset="0" Color="#FF1C1245" />
+                <GradientStop Offset="1" Color="#FF251660" />
+            </LinearGradientBrush>
+        </Border.Background>
+
+        <Border.BorderBrush>
+            <SolidColorBrush Color="#FF4A3E78" />
+        </Border.BorderBrush>
+
+        <Border.Effect>
+            <DropShadowEffect
+                BlurRadius="22"
+                Direction="270"
+                Opacity="0.65"
+                ShadowDepth="6"
+                Color="#FF180E42" />
+        </Border.Effect>
+
+        <Border.RenderTransform>
+            <TranslateTransform X="0" />
+        </Border.RenderTransform>
+
+        <Border.Style>
+            <Style TargetType="Border">
+                <Style.Triggers>
+                    <!--
+                        Driven by IsActive rather than Loaded. The card is created once with the window
+                        and merely toggles visibility, so a Loaded trigger would play the entrance while
+                        the card was still collapsed and never play again.
+                    -->
+                    <DataTrigger Binding="{Binding IsActive}" Value="True">
+                        <DataTrigger.EnterActions>
+                            <BeginStoryboard>
+                                <Storyboard>
+                                    <DoubleAnimation
+                                        Storyboard.TargetProperty="Opacity"
+                                        From="0"
+                                        To="1"
+                                        Duration="0:0:0.25">
+                                        <DoubleAnimation.EasingFunction>
+                                            <CubicEase EasingMode="EaseOut" />
+                                        </DoubleAnimation.EasingFunction>
+                                    </DoubleAnimation>
+                                    <DoubleAnimation
+                                        Storyboard.TargetProperty="(UIElement.RenderTransform).(TranslateTransform.X)"
+                                        From="360"
+                                        To="0"
+                                        Duration="0:0:0.25">
+                                        <DoubleAnimation.EasingFunction>
+                                            <CubicEase EasingMode="EaseOut" />
+                                        </DoubleAnimation.EasingFunction>
+                                    </DoubleAnimation>
+                                </Storyboard>
+                            </BeginStoryboard>
+                        </DataTrigger.EnterActions>
+                        <DataTrigger.ExitActions>
+                            <BeginStoryboard>
+                                <Storyboard>
+                                    <DoubleAnimation
+                                        Storyboard.TargetProperty="Opacity"
+                                        To="0"
+                                        Duration="0:0:0.18" />
+                                </Storyboard>
+                            </BeginStoryboard>
+                        </DataTrigger.ExitActions>
+                    </DataTrigger>
+                </Style.Triggers>
+            </Style>
+        </Border.Style>
+
+        <StackPanel>
+
+            <Grid Margin="0,0,0,10">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+
+                <TextBlock
+                    Margin="0,0,8,0"
+                    VerticalAlignment="Center"
+                    FontFamily="/Fonts/#Albert Sans"
+                    FontSize="13"
+                    Foreground="#FFC3A9FF"
+                    Text="⭳" />
+
+                <TextBlock
+                    Grid.Column="1"
+                    VerticalAlignment="Center"
+                    FontFamily="/Fonts/#Comfortaa"
+                    FontSize="12.5"
+                    FontWeight="SemiBold"
+                    Foreground="White"
+                    Text="{Binding Headline}"
+                    TextTrimming="CharacterEllipsis" />
+
+                <TextBlock
+                    Grid.Column="2"
+                    VerticalAlignment="Center"
+                    FontFamily="/Fonts/#Albert Sans"
+                    FontSize="11"
+                    Foreground="#FFB5ABC9"
+                    Text="{Binding Percent, StringFormat={}{0:0}%}">
+                    <TextBlock.Style>
+                        <Style TargetType="TextBlock">
+                            <Setter Property="Visibility" Value="Visible" />
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding IsIndeterminate}" Value="True">
+                                    <Setter Property="Visibility" Value="Collapsed" />
+                                </DataTrigger>
+                                <DataTrigger Binding="{Binding CanDismiss}" Value="True">
+                                    <Setter Property="Visibility" Value="Collapsed" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </TextBlock.Style>
+                </TextBlock>
+
+                <Button
+                    Grid.Column="2"
+                    Width="20"
+                    Height="20"
+                    VerticalAlignment="Center"
+                    Command="{Binding ResetCommand}"
+                    Cursor="Hand"
+                    Visibility="{Binding CanDismiss, Converter={StaticResource BoolVis}}">
+                    <Button.Template>
+                        <ControlTemplate TargetType="Button">
+                            <Border
+                                x:Name="bg"
+                                Background="Transparent"
+                                CornerRadius="4">
+                                <TextBlock
+                                    x:Name="txt"
+                                    HorizontalAlignment="Center"
+                                    VerticalAlignment="Center"
+                                    FontSize="10"
+                                    Foreground="#FFB5ABC9"
+                                    Text="✕" />
+                            </Border>
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter TargetName="txt" Property="Foreground" Value="White" />
+                                    <Setter TargetName="bg" Property="Background" Value="#22FFFFFF" />
+                                </Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Button.Template>
+                </Button>
+            </Grid>
+
+            <ProgressBar
+                Maximum="100"
+                Minimum="0"
+                Style="{StaticResource UpdateProgressBar}"
+                IsIndeterminate="{Binding IsIndeterminate}"
+                Value="{Binding Percent, Mode=OneWay}" />
+
+            <TextBlock
+                Margin="0,8,0,0"
+                FontFamily="/Fonts/#Albert Sans"
+                FontSize="11"
+                Foreground="#FFB5ABC9"
+                LineHeight="16"
+                Text="{Binding Detail}"
+                TextWrapping="Wrap" />
+
+            <Border
+                Margin="0,12,0,0"
+                Padding="0,10,0,0"
+                BorderBrush="#33FFFFFF"
+                BorderThickness="0,1,0,0">
+                <ItemsControl ItemsSource="{Binding Steps}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate DataType="{x:Type updates:UpdateStepViewModel}">
+                            <Grid Margin="0,0,0,6">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="18" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+
+                                <TextBlock
+                                    VerticalAlignment="Top"
+                                    FontFamily="/Fonts/#Albert Sans"
+                                    FontSize="11"
+                                    Foreground="{Binding Status, Converter={StaticResource StepBrush}}"
+                                    Text="{Binding Glyph}" />
+
+                                <StackPanel Grid.Column="1">
+                                    <TextBlock
+                                        FontFamily="/Fonts/#Albert Sans"
+                                        FontSize="11"
+                                        Foreground="{Binding Status, Converter={StaticResource StepBrush}}"
+                                        Text="{Binding Label}" />
+
+                                    <TextBlock
+                                        Margin="0,1,0,0"
+                                        FontFamily="/Fonts/#Albert Sans"
+                                        FontSize="10.5"
+                                        Foreground="#FF8E85A6"
+                                        LineHeight="14"
+                                        Text="{Binding Detail}"
+                                        TextWrapping="Wrap"
+                                        Visibility="{Binding HasDetail, Converter={StaticResource BoolVis}}" />
+                                </StackPanel>
+                            </Grid>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </Border>
+
+        </StackPanel>
+    </Border>
+</UserControl>

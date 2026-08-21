@@ -11,6 +11,7 @@ using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using vrcosc_magicchatbox.Core.State;
+using vrcosc_magicchatbox.Core.Updates;
 using vrcosc_magicchatbox.ViewModels.State;
 
 namespace vrcosc_magicchatbox.Classes.DataAndSecurity;
@@ -18,6 +19,7 @@ namespace vrcosc_magicchatbox.Classes.DataAndSecurity;
 public class UpdateApp
 {
     private static readonly SemaphoreSlim PrepareUpdateGate = new(1, 1);
+    private static int _legacyWorkspacesChecked;
     private const string ExecutableName = "MagicChatbox.exe";
     private const int UpdateLocationMetadataVersion = 2;
     private string backupPath;
@@ -57,20 +59,42 @@ public class UpdateApp
         CopyDirectoryContents(source, target);
     }
 
-    private void CopyDirectoryContents(DirectoryInfo source, DirectoryInfo target)
+    private void CopyDirectoryContents(DirectoryInfo source, DirectoryInfo target, Action? fileCopied = null)
     {
         Directory.CreateDirectory(target.FullName);
 
         foreach (FileInfo fileInfo in source.GetFiles())
         {
             fileInfo.CopyTo(Path.Combine(target.FullName, fileInfo.Name), true);
+            fileCopied?.Invoke();
         }
 
         foreach (DirectoryInfo subDirectory in source.GetDirectories())
         {
             DirectoryInfo nextTargetSubDir = new(Path.Combine(target.FullName, subDirectory.Name));
-            CopyDirectoryContents(subDirectory, nextTargetSubDir);
+            CopyDirectoryContents(subDirectory, nextTargetSubDir, fileCopied);
         }
+    }
+
+    private void CopyDirectoryWithProgress(string sourcePath, string targetPath, string verb)
+    {
+        int total = Directory.Exists(sourcePath)
+            ? Directory.GetFiles(sourcePath, "*", System.IO.SearchOption.AllDirectories).Length
+            : 0;
+
+        int copied = 0;
+        var clock = Stopwatch.StartNew();
+        var throttle = new ProgressThrottle();
+
+        CopyDirectoryContents(new DirectoryInfo(sourcePath), new DirectoryInfo(targetPath), () =>
+        {
+            copied++;
+            double percent = UpdateProgressState.PercentOf(copied, total);
+            if (throttle.ShouldReport(clock.Elapsed, percent))
+            {
+                ReportProgress(percent, $"{verb} {copied} of {total} files");
+            }
+        });
     }
 
     private static void NormalizeAttributes(DirectoryInfo directory)
@@ -221,12 +245,144 @@ public class UpdateApp
         SaveUpdateLocation(backupDirectory);
     }
 
+    public string DataDirectory => dataPath;
+
+    private UpdateProgressState Progress => _updateState.Progress;
+
+    private void OnUi(Action action)
+    {
+        if (_dispatcher.CheckAccess())
+        {
+            action();
+        }
+        else
+        {
+            _dispatcher.BeginInvoke(action);
+        }
+    }
+
+    private void BeginProgress(string headline) => OnUi(() => Progress.Begin(headline));
+
+    private void SetStep(UpdateStepKind kind, UpdateStepStatus status, string detail = "") =>
+        OnUi(() => Progress.SetStep(kind, status, detail));
+
+    private void ReportProgress(double percent, string detail) =>
+        OnUi(() => Progress.Report(percent, detail));
+
+    private void ReportIndeterminate(string detail) =>
+        OnUi(() => Progress.ReportIndeterminate(detail));
+
+    private void FailProgress(string detail) => OnUi(() => Progress.Fail(detail));
+
+    private static string GetWorkspaceRoot() =>
+        Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+            "Vrcosc-MagicChatbox",
+            "update");
+
     private void ResetUpdateWorkspacePaths()
     {
-        tempPath = Path.Combine(Path.GetTempPath(), "vrcosc_magicchatbox_update");
+        tempPath = GetWorkspaceRoot();
         unzipPath = Path.Combine(tempPath, "update_unzip");
         maintenanceRunnerPath = Path.Combine(tempPath, "maintenance_runner");
         magicChatboxExePath = Path.Combine(unzipPath, ExecutableName);
+    }
+
+    private static void RemoveLegacyWorkspaces()
+    {
+        if (Interlocked.Exchange(ref _legacyWorkspacesChecked, 1) != 0)
+        {
+            return;
+        }
+
+        string[] legacyPaths =
+        [
+            Path.Combine(Path.GetTempPath(), "vrcosc_magicchatbox_update"),
+            Path.Combine(Path.GetTempPath(), "vrcosc_magicchatbox_custom_update")
+        ];
+
+        foreach (string legacyPath in legacyPaths)
+        {
+            try
+            {
+                if (Directory.Exists(legacyPath))
+                {
+                    Directory.Delete(legacyPath, true);
+                    Logging.WriteInfo($"Removed legacy update workspace: {legacyPath}");
+                }
+            }
+            catch (Exception ex) when (ex is IOException || ex is UnauthorizedAccessException)
+            {
+                Logging.WriteInfo($"Could not remove legacy update workspace {legacyPath}: {ex.Message}");
+            }
+        }
+    }
+
+    private DigestVerificationResult VerifyDownloadedPackage(string zipPath)
+    {
+        SetStep(UpdateStepKind.Verify, UpdateStepStatus.Running, "Hashing the download");
+        ReportIndeterminate("Checking the download against the checksum GitHub published");
+
+        var clock = Stopwatch.StartNew();
+        var throttle = new ProgressThrottle();
+
+        DigestVerificationResult verification = ReleaseAssetDigest.Verify(
+            _updateState.UpdateDigest,
+            zipPath,
+            (hashed, total) =>
+            {
+                double percent = UpdateProgressState.PercentOf(hashed, total);
+                if (throttle.ShouldReport(clock.Elapsed, percent))
+                {
+                    ReportProgress(percent, $"Verifying {UpdateProgressState.DescribeBytes(hashed)} of {UpdateProgressState.DescribeBytes(total)}");
+                }
+            });
+
+        switch (verification.Status)
+        {
+            case DigestVerificationStatus.Match:
+                Logging.WriteInfo($"Update package verified against the published SHA-256 ({verification.Expected}).");
+                SetStep(
+                    UpdateStepKind.Verify,
+                    UpdateStepStatus.Done,
+                    $"Valid package from the developer · {ShortHash(verification.Actual)}");
+                break;
+
+            case DigestVerificationStatus.NotPublished:
+                Logging.WriteInfo("No SHA-256 was published for this release asset, so the package could not be verified.");
+                SetStep(
+                    UpdateStepKind.Verify,
+                    UpdateStepStatus.Warning,
+                    "No checksum published for this release");
+                break;
+
+            case DigestVerificationStatus.Mismatch:
+                TryDeleteFile(zipPath);
+                SetStep(UpdateStepKind.Verify, UpdateStepStatus.Failed, "Checksum did not match");
+                throw new InvalidOperationException(
+                    "The downloaded update did not match the checksum published for it. " +
+                    $"Expected {verification.Expected}, got {verification.Actual}. The download was discarded.");
+        }
+
+        return verification;
+    }
+
+    private static string ShortHash(string? sha256) =>
+        string.IsNullOrWhiteSpace(sha256) ? string.Empty : sha256.Length >= 12 ? sha256[..12] : sha256;
+
+    private static void TryDeleteFile(string path)
+    {
+        try
+        {
+            if (File.Exists(path))
+            {
+                File.Delete(path);
+            }
+        }
+        catch (Exception ex) when (ex is IOException || ex is UnauthorizedAccessException)
+        {
+            Logging.WriteInfo($"Could not delete {path}: {ex.Message}");
+        }
     }
 
     private async Task DownloadAndExtractUpdate(string zipPath)
@@ -250,15 +406,67 @@ public class UpdateApp
             File.Delete(zipPath);
         }
 
+        UpdateStatus("Downloading update");
+        SetStep(UpdateStepKind.Download, UpdateStepStatus.Running);
+
+        long? expectedBytes = response.Content.Headers.ContentLength;
+        var downloadClock = Stopwatch.StartNew();
+        var downloadThrottle = new ProgressThrottle();
+        long received = 0;
+
         await using (var fs = new FileStream(zipPath, FileMode.CreateNew, FileAccess.Write, FileShare.None))
+        await using (var source = await response.Content.ReadAsStreamAsync())
         {
-            await response.Content.CopyToAsync(fs);
+            byte[] buffer = new byte[81920];
+            int read;
+
+            while ((read = await source.ReadAsync(buffer)) > 0)
+            {
+                await fs.WriteAsync(buffer.AsMemory(0, read));
+                received += read;
+
+                double percent = UpdateProgressState.PercentOf(received, expectedBytes);
+                if (downloadThrottle.ShouldReport(downloadClock.Elapsed, percent))
+                {
+                    string detail = UpdateProgressState.DescribeTransfer(received, expectedBytes, downloadClock.Elapsed);
+                    if (expectedBytes is > 0)
+                    {
+                        ReportProgress(percent, detail);
+                    }
+                    else
+                    {
+                        ReportIndeterminate(detail);
+                    }
+                }
+            }
+
             await fs.FlushAsync();
         }
+
+        if (expectedBytes is > 0 && received != expectedBytes)
+        {
+            TryDeleteFile(zipPath);
+            SetStep(UpdateStepKind.Download, UpdateStepStatus.Failed, "Download was cut short");
+            throw new IOException(
+                $"The download ended early: expected {expectedBytes} bytes, received {received}.");
+        }
+
+        SetStep(UpdateStepKind.Download, UpdateStepStatus.Done, UpdateProgressState.DescribeBytes(received));
+
+        UpdateStatus("Verifying download");
+        DigestVerificationResult verification = VerifyDownloadedPackage(zipPath);
+
+        UpdateStatus("Unpacking update");
+        SetStep(UpdateStepKind.Unpack, UpdateStepStatus.Running);
 
         string targetFullPath = Path.GetFullPath(unzipPath);
         using (ZipArchive archive = ZipFile.OpenRead(zipPath))
         {
+            int entryCount = archive.Entries.Count;
+            int extracted = 0;
+            var unpackClock = Stopwatch.StartNew();
+            var unpackThrottle = new ProgressThrottle();
+
             foreach (ZipArchiveEntry entry in archive.Entries)
             {
                 string destinationPath = Path.GetFullPath(Path.Combine(unzipPath, entry.FullName));
@@ -280,8 +488,25 @@ public class UpdateApp
                         Directory.CreateDirectory(directory);
                     entry.ExtractToFile(destinationPath, true);
                 }
+
+                extracted++;
+                double percent = UpdateProgressState.PercentOf(extracted, entryCount);
+                if (unpackThrottle.ShouldReport(unpackClock.Elapsed, percent))
+                {
+                    ReportProgress(percent, $"Unpacked {extracted} of {entryCount} files");
+                }
             }
+
+            SetStep(UpdateStepKind.Unpack, UpdateStepStatus.Done, $"{entryCount} files");
         }
+
+        TryDeleteFile(zipPath);
+
+        UpdateHandoff.Write(dataPath, new UpdateHandoffInfo(
+            _updateState.LatestReleaseVersion?.VersionNumber ?? string.Empty,
+            verification.Status,
+            verification.Actual ?? string.Empty,
+            IsRollback: false));
     }
 
 
@@ -375,6 +600,7 @@ public class UpdateApp
         }
 
         SetDefaultPaths();
+        RemoveLegacyWorkspaces();
 
         if (!createNewAppLocation && File.Exists(jsonFilePath))
         {
@@ -530,19 +756,29 @@ public class UpdateApp
     public bool CheckIfBackupExists()
     {
         string jsonFilePath = Path.Combine(dataPath, "app_location.json");
-        if (File.Exists(jsonFilePath))
+        if (!File.Exists(jsonFilePath))
         {
-            if (Directory.Exists(backupPath))
-            {
-                string exePath = Path.Combine(backupPath, ExecutableName);
-                if (File.Exists(exePath))
-                {
-                    _updateState.RollBackVersion = GetApplicationVersion(exePath);
-                    return true;
-                }
-            }
+            return false;
         }
-        return false;
+
+        BackupCheck check = BackupManifest.Verify(backupPath, ExecutableName);
+        if (check.Integrity is BackupIntegrity.Missing or BackupIntegrity.Incomplete)
+        {
+            if (check.Integrity == BackupIntegrity.Incomplete)
+            {
+                Logging.WriteInfo($"Hiding the rollback option: {check.Description}");
+            }
+
+            return false;
+        }
+
+        Version backupVersion = GetApplicationVersion(Path.Combine(backupPath, ExecutableName));
+        if (backupVersion != null)
+        {
+            _updateState.RollBackVersion = backupVersion;
+        }
+
+        return true;
     }
 
     public void ClearBackUp()
@@ -566,12 +802,24 @@ public class UpdateApp
 
     public Version GetApplicationVersion(string exePath)
     {
-
-        FileVersionInfo fileInfo = FileVersionInfo.GetVersionInfo(exePath);
-        if (Version.TryParse(fileInfo.FileVersion, out Version version))
+        try
         {
-            return version;
+            if (!File.Exists(exePath))
+            {
+                return null;
+            }
+
+            FileVersionInfo fileInfo = FileVersionInfo.GetVersionInfo(exePath);
+            if (Version.TryParse(fileInfo.FileVersion, out Version version))
+            {
+                return version;
+            }
         }
+        catch (Exception ex) when (ex is IOException || ex is UnauthorizedAccessException)
+        {
+            Logging.WriteInfo($"Could not read the version of {exePath}: {ex.Message}");
+        }
+
         return null;
     }
 
@@ -590,12 +838,21 @@ public class UpdateApp
 
             bool useCustomZip = !string.IsNullOrEmpty(customZipPath);
 
+            string targetVersion = useCustomZip
+                ? "a hand-picked package"
+                : _updateState.LatestReleaseVersion?.VersionNumber ?? "the latest release";
+
+            BeginProgress(useCustomZip ? "Installing a custom package" : $"Updating to {targetVersion}");
+
             UpdateStatus("Preparing backup directory");
+            ReportIndeterminate("Backing up the current version so you can go back");
             ClearAndRecreateDirectory(backupPath, "Prepare backup directory");
             Logging.WriteInfo($"Prepared backup directory at: {backupPath}");
 
             UpdateStatus("Creating backup");
-            CopyDirectory(new DirectoryInfo(currentAppPath), new DirectoryInfo(backupPath));
+            CopyDirectoryWithProgress(currentAppPath, backupPath, "Backed up");
+            BackupManifest.Write(backupPath, _updateState.AppVersion?.VersionNumber, DateTimeOffset.UtcNow);
+            Logging.WriteInfo("Wrote the backup manifest.");
 
             SaveUpdateLocation(backupPath);
             Logging.WriteInfo("Saved update location with backupPath.");
@@ -612,8 +869,20 @@ public class UpdateApp
             else
             {
                 UpdateStatus("Extracting custom ZIP");
+                SetStep(UpdateStepKind.Download, UpdateStepStatus.Done, "Local file");
+                SetStep(UpdateStepKind.Verify, UpdateStepStatus.Warning, "Hand-picked package, nothing to check it against");
+                SetStep(UpdateStepKind.Unpack, UpdateStepStatus.Running);
                 ExtractCustomZip(customZipPath);
+                SetStep(UpdateStepKind.Unpack, UpdateStepStatus.Done);
+                UpdateHandoff.Write(dataPath, new UpdateHandoffInfo(
+                    string.Empty,
+                    DigestVerificationStatus.NotPublished,
+                    string.Empty,
+                    IsRollback: false));
             }
+
+            SetStep(UpdateStepKind.Install, UpdateStepStatus.Running, "Restarting to swap the files");
+            ReportIndeterminate("Restarting to finish the install");
 
             string launchDirectory = ResolveApplicationDirectory(unzipPath);
             magicChatboxExePath = Path.Combine(launchDirectory, ExecutableName);
@@ -623,6 +892,7 @@ public class UpdateApp
         catch (Exception ex)
         {
             UpdateStatus("Update failed.");
+            FailProgress(ex.Message);
             _dispatcher.BeginInvoke(() =>
             {
                 _updateState.CanUpdate = true;
@@ -656,6 +926,24 @@ public class UpdateApp
                 return;
             }
 
+            UpdateStatus("Checking the backup", startUp, 35);
+            BackupCheck check = BackupManifest.Verify(rollbackSourcePath, ExecutableName);
+            Logging.WriteInfo($"Rollback backup check: {check.Integrity} - {check.Description}");
+
+            if (check.Integrity is BackupIntegrity.Missing or BackupIntegrity.Incomplete)
+            {
+                UpdateStatus($"{check.Description} Rollback cannot proceed.", startUp);
+                Logging.WriteException(
+                    new Exception($"Rollback stopped before touching your installation. {check.Description}"),
+                    MSGBox: true,
+                    autoclose: true);
+                Thread.Sleep(Core.Constants.UpdateSleepDelayMs);
+                return;
+            }
+
+            string currentVersion = GetApplicationVersion(Path.Combine(currentAppPath, ExecutableName))?.ToString()
+                ?? _updateState.AppVersion?.VersionNumber;
+
             string rollbackRecoveryPath = Path.Combine(dataPath, "rollback_recovery");
             UpdateStatus("Backing up current version", startUp, 60);
             try
@@ -682,12 +970,33 @@ public class UpdateApp
                 UpdateStatus("Preserving rollback path", startUp, 95);
                 ClearAndRecreateDirectory(backupPath, "Refresh backup directory after rollback");
                 CopyDirectory(new DirectoryInfo(rollbackRecoveryPath), new DirectoryInfo(backupPath));
+                BackupManifest.Write(backupPath, currentVersion, DateTimeOffset.UtcNow);
                 SaveUpdateLocation(backupPath);
                 backupRefreshSucceeded = true;
             }
             catch (Exception ex) when (ex is UnauthorizedAccessException || ex is IOException)
             {
-                HandleAccessIssues(admin, "-rollbackadmin");
+                if (!admin && TryRelaunchElevated("-rollbackadmin"))
+                {
+                    return;
+                }
+
+                UpdateStatus("Rollback failed, putting the version you were on back", startUp, 80);
+
+                string failureMessage = DescribeUpdateFailure(ex).Replace("Update failed:", "Rollback failed:");
+                if (TryRestoreFrom(rollbackRecoveryPath, "Restore the version rollback started from"))
+                {
+                    Logging.WriteException(
+                        new Exception($"{failureMessage} The version you were on has been put back."),
+                        MSGBox: true,
+                        autoclose: true);
+                    StartNewApplication();
+                }
+                else
+                {
+                    Logging.WriteException(new Exception(failureMessage), MSGBox: true, autoclose: true);
+                }
+
                 return;
             }
             finally
@@ -745,6 +1054,12 @@ public class UpdateApp
     {
         if (CheckIfBackupExists())
         {
+            UpdateHandoff.Write(dataPath, new UpdateHandoffInfo(
+                BackupManifest.ReadVersion(backupPath) ?? _updateState.RollBackVersion?.ToString() ?? string.Empty,
+                DigestVerificationStatus.NotPublished,
+                string.Empty,
+                IsRollback: true));
+
             StartMaintenanceRunner("-rollback");
             return;
         }
@@ -758,7 +1073,7 @@ public class UpdateApp
 
         if (useCustomZip)
         {
-            unzipPath = Path.Combine(Path.GetTempPath(), "vrcosc_magicchatbox_custom_update");
+            unzipPath = Path.Combine(GetWorkspaceRoot(), "custom_unzip");
             magicChatboxExePath = Path.Combine(unzipPath, ExecutableName);
             ResetExtractionWorkspace();
             ExtractCustomZip(customZipPath);
@@ -801,27 +1116,29 @@ public class UpdateApp
         StartNewApplication();
     }
 
-    private bool TryRestoreFromBackup()
+    private bool TryRestoreFromBackup() => TryRestoreFrom(backupPath, "Restore previous version");
+
+    private bool TryRestoreFrom(string sourcePath, string operationName)
     {
         try
         {
             string installRoot = Path.GetFullPath(currentAppPath).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
-            string backupRoot = Path.GetFullPath(backupPath).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
-            if (backupRoot.Equals(installRoot, StringComparison.OrdinalIgnoreCase) ||
-                backupRoot.StartsWith(installRoot + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase))
+            string sourceRoot = Path.GetFullPath(sourcePath).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+            if (sourceRoot.Equals(installRoot, StringComparison.OrdinalIgnoreCase) ||
+                sourceRoot.StartsWith(installRoot + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase))
             {
                 return false;
             }
 
-            if (!Directory.Exists(backupPath) || !File.Exists(Path.Combine(backupPath, ExecutableName)))
+            if (!Directory.Exists(sourcePath) || !File.Exists(Path.Combine(sourcePath, ExecutableName)))
             {
                 return false;
             }
 
             ExecuteWithRetry(() => ClearDirectoryContents(currentAppPath), "Clear installation for restore");
             ExecuteWithRetry(
-                () => CopyDirectoryContents(new DirectoryInfo(backupPath), new DirectoryInfo(currentAppPath)),
-                "Restore previous version");
+                () => CopyDirectoryContents(new DirectoryInfo(sourcePath), new DirectoryInfo(currentAppPath)),
+                operationName);
             magicChatboxExePath = Path.Combine(currentAppPath, ExecutableName);
             return true;
         }

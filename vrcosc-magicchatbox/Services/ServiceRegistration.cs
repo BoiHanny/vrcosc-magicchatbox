@@ -10,6 +10,7 @@ using System.Threading;
 using vrcosc_magicchatbox.Classes.DataAndSecurity;
 using vrcosc_magicchatbox.Classes.Modules;
 using vrcosc_magicchatbox.Classes.Modules.Spotify;
+using vrcosc_magicchatbox.Classes.Modules.Voicemod;
 using vrcosc_magicchatbox.Core;
 using vrcosc_magicchatbox.Core.Configuration;
 using vrcosc_magicchatbox.Core.Osc;
@@ -21,6 +22,7 @@ using vrcosc_magicchatbox.Core.Toast;
 using vrcosc_magicchatbox.ViewModels;
 using vrcosc_magicchatbox.ViewModels.Sections;
 using vrcosc_magicchatbox.ViewModels.State;
+using vrcosc_magicchatbox.Services.Voicemod;
 
 namespace vrcosc_magicchatbox.Services;
 
@@ -104,6 +106,7 @@ public static class ServiceRegistration
         services.AddSingleton<OpenAIDisplayState>();
         services.AddSingleton<MediaLinkDisplayState>();
         services.AddSingleton<SpotifyDisplayState>();
+        services.AddSingleton<VoicemodDisplayState>();
         services.AddSingleton<TrackerDisplayState>();
         services.AddSingleton<PulsoidDisplayState>();
         services.AddSingleton<WindowActivityDisplayState>(sp =>
@@ -112,6 +115,20 @@ public static class ServiceRegistration
             new WeatherOverrideState(sp.GetRequiredService<IWeatherService>()));
         services.AddSingleton<EmojiService>(sp =>
             new EmojiService(sp.GetRequiredService<ISettingsProvider<AppSettings>>().Value));
+        services.AddSingleton<IVoicemodClientKeyProvider, VoicemodClientKeyProvider>();
+        services.AddSingleton<IVoicemodSocketFactory, ClientWebSocketFactory>();
+        services.AddSingleton<IVoicemodArtworkCache, VoicemodArtworkCache>();
+        services.AddSingleton<VoicemodSectionViewModel>(sp => new VoicemodSectionViewModel(
+            new Lazy<IModuleHost>(() => sp.GetRequiredService<IModuleHost>()),
+            sp.GetRequiredService<IVoicemodClientKeyProvider>(),
+            sp.GetRequiredService<VoicemodDisplayState>(),
+            sp.GetRequiredService<ISettingsProvider<IntegrationSettings>>(),
+            sp.GetRequiredService<ISettingsProvider<AppSettings>>(),
+            sp.GetRequiredService<ISettingsProvider<VoicemodSettings>>(),
+            sp.GetRequiredService<IPrivacyConsentService>(),
+            sp.GetRequiredService<IMenuNavigationService>(),
+            sp.GetRequiredService<IToastService>(),
+            sp.GetRequiredService<IVoicemodArtworkCache>()));
 
         services.AddSingleton<ViewModel>(sp => new ViewModel(
             sp.GetRequiredService<AppUpdateState>(),
@@ -190,6 +207,7 @@ public static class ServiceRegistration
             sp.GetRequiredService<SpotifyDisplayState>(),
             sp.GetRequiredService<LyricsDisplayState>(),
             new Lazy<LyricsSectionViewModel>(() => sp.GetRequiredService<LyricsSectionViewModel>()),
+            sp.GetRequiredService<VoicemodSectionViewModel>(),
             sp.GetRequiredService<TrackerDisplayState>(),
             sp.GetRequiredService<IAppState>(),
             sp.GetRequiredService<IMenuNavigationService>(),
@@ -347,7 +365,8 @@ public static class ServiceRegistration
             sp.GetRequiredService<AppOptionsSectionViewModel>(),
             sp.GetRequiredService<EggDevSectionViewModel>(),
             sp.GetRequiredService<PrivacySectionViewModel>(),
-            sp.GetRequiredService<VrcRadarSectionViewModel>()));
+            sp.GetRequiredService<VrcRadarSectionViewModel>(),
+            sp.GetRequiredService<VoicemodSectionViewModel>()));
 
         services.AddSingleton<IMenuNavigationService>(sp =>
         {
@@ -395,6 +414,7 @@ public static class ServiceRegistration
             sp.GetRequiredService<ISettingsProvider<TimeSettings>>(),
             sp.GetRequiredService<ISettingsProvider<TtsSettings>>(),
             sp.GetRequiredService<ISettingsProvider<AppSettings>>(),
+            sp.GetRequiredService<ISettingsProvider<VoicemodSettings>>(),
             sp.GetRequiredService<IntegrationDisplayState>(),
             sp.GetRequiredService<TrackerDisplayState>(),
             new Lazy<IModuleHost>(() => sp.GetRequiredService<IModuleHost>()),
@@ -660,6 +680,10 @@ public static class ServiceRegistration
             new Lazy<IModuleHost>(() => sp.GetRequiredService<IModuleHost>()),
             sp.GetRequiredService<ISettingsProvider<IntegrationSettings>>(),
             sp.GetRequiredService<ISettingsProvider<AppSettings>>()));
+        services.AddSingleton<IOscProvider>(sp => new VoicemodOscProvider(
+            sp.GetRequiredService<ISettingsProvider<IntegrationSettings>>(),
+            sp.GetRequiredService<ISettingsProvider<VoicemodSettings>>(),
+            sp.GetRequiredService<VoicemodDisplayState>()));
         services.AddSingleton<IOscProvider>(sp => new MediaLinkOscProvider(
             sp.GetRequiredService<ISettingsProvider<IntegrationSettings>>(),
             sp.GetRequiredService<ISettingsProvider<MediaLinkSettings>>(),

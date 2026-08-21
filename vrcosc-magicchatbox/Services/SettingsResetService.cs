@@ -32,7 +32,9 @@ public sealed class SettingsResetService : ISettingsResetService
         "OrganizationID",
         "OrganizationIDEncrypted",
         "TokenExpiresAtUtcTicks",
-        "HasRpcScope"
+        "HasRpcScope",
+        "LocalClientKey",
+        "LocalClientKeyEncrypted"
     };
 
     public int ResetAll<T>(ISettingsProvider<T> provider, bool preserveCredentials = true) where T : class, new()

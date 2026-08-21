@@ -150,7 +150,7 @@ for the full list of values you can hook up.
 
 <table>
 <tr><td width="60">1️⃣</td><td><a href="https://github.com/BoiHanny/vrcosc-magicchatbox/releases"><b>Download</b></a> the official ZIP from Releases</td></tr>
-<tr><td>2️⃣</td><td><a href="https://dotnet.microsoft.com/en-us/download/dotnet/10.0"><b>Install .NET 10.0</b></a> from Microsoft</td></tr>
+<tr><td>2️⃣</td><td><a href="https://dotnet.microsoft.com/en-us/download/dotnet/10.0"><b>Install the .NET 10 Desktop Runtime (Windows x64)</b></a> from Microsoft — pick <b>Desktop Runtime</b>, the plain ".NET Runtime" is not enough</td></tr>
 <tr><td>3️⃣</td><td>Extract the ZIP into a folder</td></tr>
 <tr><td>4️⃣</td><td>Run <b>MagicChatBox.exe</b></td></tr>
 <tr><td>5️⃣</td><td>You're good to go!</td></tr>
@@ -176,7 +176,7 @@ for the full list of values you can hook up.
 Every name below links to a full guide covering all of its settings.
 
 <details open>
-<summary><h3>🎵 &nbsp;Music &nbsp;<sub><i>— four ways to show what you're listening to</i></sub></h3></summary>
+<summary><h3>🎵 &nbsp;Audio &nbsp;<sub><i>— what you're listening to, and what you're playing</i></sub></h3></summary>
 
 | Integration | What it does |
 | :------------ | :------------ |
@@ -184,6 +184,7 @@ Every name below links to a full guide covering all of its settings.
 | **[Spotify](https://github.com/BoiHanny/vrcosc-magicchatbox/wiki/Spotify)** | Connects to Spotify directly for liked tracks, explicit flags, shuffle, repeat, device, volume and queue, with a template you write yourself. |
 | **[Lyrics](https://github.com/BoiHanny/vrcosc-magicchatbox/wiki/Lyrics)** | Synced lyrics that follow the music, line by line, from LRCLIB or your own `.lrc` files. |
 | **[Soundpad](https://github.com/BoiHanny/vrcosc-magicchatbox/wiki/Soundpad)** | Shows the sound you just played through Soundpad. |
+| **[Voicemod](https://github.com/BoiHanny/vrcosc-magicchatbox/wiki/Voicemod)** | Your Voicemod soundboard on the Integrations page — fire a sound, switch voice, mute or hold-to-bleep without leaving VR, and show the room what you played. |
 
 </details>
 
@@ -282,6 +283,7 @@ for one specific thing at a time, not blanket access.**
 | 🎯 **VR Performance** | VR Performance |
 | 📶 **Network Statistics** | Network Statistics |
 | 🔊 **Soundpad Bridge** | Soundpad |
+| 🎙️ **Voicemod Control** | Voicemod |
 | 📡 **VRChat Log Reader** | VRChat Radar |
 | 🌐 **Internet Access** | Spotify · Twitch · TikTok · Heart Rate · Lyrics · Weather |
 
@@ -291,7 +293,7 @@ for one specific thing at a time, not blanket access.**
 
 | 🏠 Stays local | 🌐 Uses the network |
 | :------------ | :------------ |
-| Hardware sensors · Window titles · VRChat log<br>Media state · VR device batteries · Soundpad | Spotify · Twitch · TikTok<br>Pulsoid · Lyrics · Weather |
+| Hardware sensors · Window titles · VRChat log<br>Media state · VR device batteries · Soundpad · Voicemod | Spotify · Twitch · TikTok<br>Pulsoid · Lyrics · Weather |
 
 </div>
 
@@ -332,6 +334,25 @@ and nothing is sent anywhere else.
 | 👥 **[Staff](information/Staff.md)** | Meet the team behind MagicChatBox |
 | ⭐ **[Rating](information/Rating.md)** | Our user ratings |
 | 💜 **[Funding](information/Funding.md)** | Our community's advocates |
+
+### Building with Voicemod Control
+
+Voicemod's Control API needs a client key, which you request from Voicemod through
+[their form](https://control-api.voicemod.net/getting-started/). There are two ways to supply one.
+
+**In the app.** Open **Options → Voicemod → Client key**, paste the key and save it. It is stored with
+Windows DPAPI for your Windows user only, and it takes priority over any key baked into the build. This
+is the path for anyone running a build from source, and it needs no rebuild.
+
+**At build time.** Pass the key as an MSBuild property so it is embedded as assembly metadata:
+
+```
+dotnet publish vrcosc-magicchatbox\MagicChatbox.csproj -c Release -r win-x64 --self-contained false -p:VoicemodClientKey=YOUR_KEY
+```
+
+Official releases do this from a repository secret named `VOICEMOD_CLIENT_KEY`, so the key never
+reaches source control. Builds without a key still work — Voicemod control simply reports that no key
+is configured until one is saved in Options.
 
 ---
 

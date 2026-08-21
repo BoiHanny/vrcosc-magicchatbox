@@ -216,6 +216,16 @@
             <controls:OptionGroupHeader Title="AI and voice" />
 
             <ContentControl
+                x:Name="OptionsWrapper_Voicemod"
+                Style="{StaticResource OptionSectionWithResetStyle}"
+                Tag="voicemod">
+                <StackPanel>
+                    <TextBlock Style="{StaticResource OptionSectionPlaceholderTitle}" Text="Voicemod" />
+                    <TextBlock Style="{StaticResource OptionSectionPlaceholderStatus}" Text="Loading…" />
+                </StackPanel>
+            </ContentControl>
+
+            <ContentControl
                 x:Name="OptionsWrapper_OpenAI"
                 Style="{StaticResource OptionSectionWithResetStyle}"
                 Tag="openai">

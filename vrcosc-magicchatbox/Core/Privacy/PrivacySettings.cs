@@ -45,4 +45,8 @@ public partial class PrivacySettings : VersionedSettings
     [ObservableProperty] private ConsentState _vrPerformanceConsent = ConsentState.Unknown;
     [ObservableProperty] private int _vrPerformanceConsentVersion = 0;
     [ObservableProperty] private DateTime? _vrPerformanceDecidedAt;
+
+    [ObservableProperty] private ConsentState _voicemodControlConsent = ConsentState.Unknown;
+    [ObservableProperty] private int _voicemodControlConsentVersion = 0;
+    [ObservableProperty] private DateTime? _voicemodControlDecidedAt;
 }

@@ -1657,28 +1657,46 @@
                                 <Trigger Property="IsMouseOver" Value="true">
                                     <Setter TargetName="GridRoot" Property="Background" Value="{StaticResource ScrollTrackHoverBrush}" />
                                     <Setter TargetName="Thumb" Property="Background" Value="{StaticResource ScrollThumbHoverBrush}" />
-                                    <Setter TargetName="Thumb" Property="Padding" Value="1,6" />
                                 </Trigger>
                                 <Trigger SourceName="Thumb" Property="IsDragging" Value="true">
                                     <Setter TargetName="Thumb" Property="Background" Value="{StaticResource AccentRampVerticalBrush}" />
-                                    <Setter TargetName="Thumb" Property="Padding" Value="1,6" />
                                 </Trigger>
+
+                                <!--
+                                    The thumb's padding is what makes it a hairline, so it has to
+                                    follow the orientation: thin across the rail, generous along it.
+                                    Applied per orientation rather than inside the hover triggers,
+                                    which previously assumed vertical and squashed a horizontal bar
+                                    out of existence.
+                                -->
+                                <MultiTrigger>
+                                    <MultiTrigger.Conditions>
+                                        <Condition Property="Orientation" Value="Vertical" />
+                                        <Condition Property="IsMouseOver" Value="true" />
+                                    </MultiTrigger.Conditions>
+                                    <Setter TargetName="Thumb" Property="Padding" Value="1,6" />
+                                </MultiTrigger>
+                                <MultiTrigger>
+                                    <MultiTrigger.Conditions>
+                                        <Condition Property="Orientation" Value="Horizontal" />
+                                        <Condition Property="IsMouseOver" Value="true" />
+                                    </MultiTrigger.Conditions>
+                                    <Setter TargetName="Thumb" Property="Padding" Value="6,1" />
+                                </MultiTrigger>
                                 <Trigger Property="IsEnabled" Value="false">
                                     <Setter TargetName="Thumb" Property="Visibility" Value="Collapsed" />
                                 </Trigger>
+                                <!--
+                                    Rotating the root AND the track cancels out and collapses the
+                                    thumb to a dot. Track already flips its own axis from the
+                                    ScrollBar's Orientation, so the horizontal case only needs the
+                                    sizing swapped and the reversal undone - no transforms at all.
+                                -->
                                 <Trigger Property="Orientation" Value="Horizontal">
-                                    <Setter TargetName="GridRoot" Property="LayoutTransform">
-                                        <Setter.Value>
-                                            <RotateTransform Angle="-90" />
-                                        </Setter.Value>
-                                    </Setter>
-                                    <Setter TargetName="PART_Track" Property="LayoutTransform">
-                                        <Setter.Value>
-                                            <RotateTransform Angle="-90" />
-                                        </Setter.Value>
-                                    </Setter>
                                     <Setter TargetName="GridRoot" Property="Width" Value="Auto" />
                                     <Setter TargetName="GridRoot" Property="Height" Value="8" />
+                                    <Setter TargetName="PART_Track" Property="IsDirectionReversed" Value="false" />
+                                    <Setter TargetName="Thumb" Property="Padding" Value="6,2" />
                                     <Setter Property="Width" Value="Auto" />
                                     <Setter Property="Height" Value="8" />
                                     <Setter TargetName="PageDown" Property="Command" Value="ScrollBar.PageLeftCommand" />
