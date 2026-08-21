@@ -4,15 +4,14 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using vrcosc_magicchatbox.ViewModels.Sections;
 
-namespace vrcosc_magicchatbox.UI.Controls;
+namespace vrcosc_magicchatbox.UI.Controls.Voicemod;
 
 public partial class VoicemodControlPanel : UserControl
 {
     public static readonly DependencyProperty ViewModelProperty = DependencyProperty.Register(
         nameof(ViewModel),
         typeof(VoicemodSectionViewModel),
-        typeof(VoicemodControlPanel),
-        new PropertyMetadata(null, OnViewModelChanged));
+        typeof(VoicemodControlPanel));
 
     private bool _bleepHeld;
     private Window? _ownerWindow;
@@ -28,6 +27,15 @@ public partial class VoicemodControlPanel : UserControl
         InitializeComponent();
         Loaded += OnLoaded;
         Unloaded += OnUnloaded;
+    }
+
+    private void BoardStrip_PreviewMouseWheel(object sender, MouseWheelEventArgs e)
+    {
+        if (sender is not ScrollViewer strip)
+            return;
+
+        strip.ScrollToHorizontalOffset(strip.HorizontalOffset - e.Delta);
+        e.Handled = true;
     }
 
     private void BleepButton_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
@@ -117,17 +125,4 @@ public partial class VoicemodControlPanel : UserControl
         _ownerWindow = null;
     }
 
-    private static void OnViewModelChanged(
-        DependencyObject dependencyObject,
-        DependencyPropertyChangedEventArgs e)
-    {
-        if (dependencyObject is VoicemodControlPanel panel)
-        {
-            panel.DataContext = e.NewValue;
-            panel.PanelContent.DataContext = e.NewValue;
-            panel.VoiceAndSwitchCards.DataContext = e.NewValue;
-            panel.SoundboardCard.DataContext = e.NewValue;
-            panel.ParametersCard.DataContext = e.NewValue;
-        }
-    }
 }

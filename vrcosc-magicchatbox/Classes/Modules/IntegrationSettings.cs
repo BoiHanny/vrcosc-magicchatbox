@@ -63,6 +63,9 @@ public partial class IntegrationSettings : VersionedSettings
     [ObservableProperty] private bool _intgrSoundpad_VR = false;
     [ObservableProperty] private bool _intgrSoundpad_DESKTOP = true;
 
+    [ObservableProperty] private bool _intgrVoicemod_VR = true;
+    [ObservableProperty] private bool _intgrVoicemod_DESKTOP = true;
+
     [ObservableProperty] private bool _intgrTwitch_VR = true;
     [ObservableProperty] private bool _intgrTwitch_DESKTOP = true;
 

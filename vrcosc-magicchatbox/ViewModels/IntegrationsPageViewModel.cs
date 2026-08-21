@@ -274,9 +274,6 @@ public partial class IntegrationsPageViewModel : ObservableObject
         if (e.PropertyName is nameof(IntegrationSettings.IntgrSpotify) or nameof(IntegrationSettings.IntgrScanMediaLink))
             HandleSpotifyMediaLinkCoexistence();
 
-        if (e.PropertyName == nameof(IntegrationSettings.IntgrVoicemod) && IntegrationSettings.IntgrVoicemod)
-            Voicemod.IsExpanded = true;
-
         if (e.PropertyName == nameof(IntegrationSettings.HiddenStripCollapsed))
         {
             RaiseHiddenStateChanged();

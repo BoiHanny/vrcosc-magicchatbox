@@ -7,6 +7,22 @@ namespace MagicChatbox.Tests.ViewModels.State;
 public sealed class VoicemodDisplayStateTests
 {
     [Fact]
+    public void SoundPlayback_CapturesTheSoundNameUntilItIsCleared()
+    {
+        var display = new VoicemodDisplayState();
+
+        display.RecordSoundPlayback("  air horn  ");
+
+        Assert.Equal("air horn", display.LastPlayedSoundName);
+        Assert.NotEqual(default, display.LastSoundPlaybackStartedUtc);
+
+        display.ClearSoundPlayback();
+
+        Assert.Empty(display.LastPlayedSoundName);
+        Assert.Equal(default, display.LastSoundPlaybackStartedUtc);
+    }
+
+    [Fact]
     public void ParameterRevision_ChangesForFullAndIncrementalServerUpdates()
     {
         var display = new VoicemodDisplayState();

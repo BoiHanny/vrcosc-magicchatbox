@@ -4,7 +4,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    xmlns:controls="clr-namespace:vrcosc_magicchatbox.UI.Controls"
+    xmlns:controls="clr-namespace:vrcosc_magicchatbox.UI.Controls.Voicemod"
     xmlns:vm="clr-namespace:vrcosc_magicchatbox.ViewModels"
     xmlns:po="http://schemas.microsoft.com/winfx/2006/xaml/presentation/options"
     d:DataContext="{d:DesignInstance Type=vm:IntegrationsPageViewModel,
@@ -789,11 +789,17 @@
                             <Grid Margin="0,3,0,0" VerticalAlignment="Center">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="Auto" />
                                     <ColumnDefinition Width="*" />
                                 </Grid.ColumnDefinitions>
                                 <TextBlock Grid.Column="0" Style="{StaticResource TileTitleStyle}" Text="Pulsoid Heart Rate" />
+                                <!--
+                                    The badge sits straight after the title, ahead of the status, so
+                                    it is never the thing a narrow window trims away. The status line
+                                    takes the leftover column and ellipsises instead.
+                                -->
                                 <StackPanel
-                                    Grid.Column="1"
+                                    Grid.Column="2"
                                     HorizontalAlignment="Left"
                                     Orientation="Horizontal">
                                     <Border Visibility="{Binding Modules.Pulsoid.PulsoidAccessError, Converter={StaticResource InverseBoolToVisibilityConverter}, UpdateSourceTrigger=PropertyChanged}">
@@ -825,13 +831,22 @@
                                             Foreground="#ABA4B8"
                                             RenderOptions.BitmapScalingMode="NearestNeighbor"
                                             Text="{Binding Modules.Pulsoid.HeartRateLastUpdate, StringFormat='{}{0:T}'}"
+                                            TextTrimming="CharacterEllipsis"
                                             Visibility="{Binding IntegrationSettings.IntgrHeartRate, Converter={StaticResource InverseBoolToHiddenConverter}, UpdateSourceTrigger=PropertyChanged}" />
                                     </Border>
-                                    <Border
+                                </StackPanel>
+
+                                <!--
+                                    Its own column, not the last child of the status strip. In a
+                                    horizontal StackPanel the trailing child is the one that loses
+                                    when the row runs out of width, which sliced this badge in half.
+                                -->
+                                <Border
+                                        Grid.Column="1"
                                         x:Name="MainDiscoundButton_grid"
                                         Width="auto"
                                         Height="20"
-                                        Margin="11,0,0,0"
+                                        Margin="11,0,2,0"
                                         CornerRadius="5"
                                         Cursor="Hand"
                                         MouseUp="MainDiscoundButton_grid_MouseUp">
@@ -936,7 +951,6 @@
                                         </Grid>
 
                                     </Border>
-                                </StackPanel>
                             </Grid>
 
                             <TextBlock Style="{StaticResource TileDescriptionStyle}" Text="Your pulse, live in the chatbox and on your avatar over OSC. Needs a Pulsoid BRO plan." />
@@ -1151,6 +1165,7 @@
                                 Style="{DynamicResource Switch}" />
                         </Grid>
                     </Border>
+
                 </Grid>
             </ListBoxItem>
             <ListBoxItem Name="VrPerformanceItem" Opacity="{Binding IntegrationDisplay.VrPerformanceOpacity}">
@@ -2770,7 +2785,7 @@
                                     <Style TargetType="Border">
                                         <Setter Property="Background" Value="#1AFFFFFF" />
                                         <Style.Triggers>
-                                            <DataTrigger Binding="{Binding Voicemod.Display.IsConnected}" Value="True">
+                                            <DataTrigger Binding="{Binding IntegrationDisplay.LiveOutputKeys, Converter={StaticResource CollectionContainsConverter}, ConverterParameter=Voicemod}" Value="True">
                                                 <Setter Property="Background">
                                                     <Setter.Value>
                                                         <LinearGradientBrush StartPoint="0,1" EndPoint="0,0">
@@ -2797,30 +2812,64 @@
                                 BorderThickness="1"
                                 CornerRadius="10"
                                 SnapsToDevicePixels="True">
-                                <TextBlock
+                                <Image
+                                    RenderOptions.BitmapScalingMode="HighQuality"
+                                    Margin="8"
                                     HorizontalAlignment="Center"
                                     VerticalAlignment="Center"
-                                    FontFamily="Segoe UI Emoji"
-                                    FontSize="25"
-                                    Text="🎙️" />
+                                    Source="/Img/Icons/Voicemod.png"
+                                    Stretch="Uniform" />
                             </Border>
 
                             <StackPanel
                                 Grid.Column="1"
                                 HorizontalAlignment="Stretch"
                                 VerticalAlignment="Center">
-                                <TextBlock Style="{StaticResource TileTitleStyle}" Text="Voicemod" />
-                                <TextBlock Style="{StaticResource TileDescriptionStyle}" Text="Choose voices, run the soundboard, tune effects, mute, monitor, and hold-to-bleep without leaving MagicChatbox." />
+                                <Grid VerticalAlignment="Center">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock
+                                        Grid.Column="0"
+                                        Style="{StaticResource TileTitleStyle}"
+                                        Text="Voicemod" />
+                                    <TextBlock
+                                        Grid.Column="1"
+                                        Margin="7,0,0,0"
+                                        VerticalAlignment="Center"
+                                        FontFamily="/Fonts/#Comfortaa"
+                                        FontSize="12"
+                                        Foreground="#ABA4B8"
+                                        RenderOptions.BitmapScalingMode="NearestNeighbor"
+                                        Text="{Binding Voicemod.Display.StatusText}"
+                                        TextTrimming="CharacterEllipsis" />
+                                </Grid>
                                 <TextBlock
-                                    Margin="0,3,0,0"
-                                    FontFamily="{StaticResource FontPrimary}"
-                                    FontSize="{StaticResource FontSizeMicro}"
-                                    Foreground="{StaticResource TextMutedBrush}"
-                                    Text="{Binding Voicemod.Display.StatusText}"
-                                    TextTrimming="CharacterEllipsis" />
+                                    Style="{StaticResource TileDescriptionStyle}"
+                                    Text="Every voice and sound in Voicemod, driven from here. Pin the ones you use and they stay one click away." />
                             </StackPanel>
 
                             <StackPanel Grid.Column="2" Style="{StaticResource TileControlDeck}">
+                                <StackPanel Style="{StaticResource DeckOutputRow}">
+                                    <ToggleButton
+                                        Content="VOICE"
+                                        IsChecked="{Binding Voicemod.Settings.VoiceControlEnabled, Mode=TwoWay}"
+                                        Style="{StaticResource FeatureChip}"
+                                        ToolTip="Voice changer controls: pick a voice, tune its parameters, hear yourself, background effects." />
+                                    <ToggleButton
+                                        Content="SOUNDS"
+                                        IsChecked="{Binding Voicemod.Settings.SoundboardControlEnabled, Mode=TwoWay}"
+                                        Style="{StaticResource FeatureChip}"
+                                        ToolTip="Soundboard controls: browse boards, play and stop sounds." />
+                                    <ToggleButton
+                                        Content="MIC"
+                                        IsChecked="{Binding Voicemod.Settings.MicControlEnabled, Mode=TwoWay}"
+                                        Style="{StaticResource FeatureChip}"
+                                        ToolTip="Microphone mute and hold-to-bleep." />
+                                    <ToggleButton IsChecked="{Binding IntegrationSettings.IntgrVoicemod_DESKTOP, Mode=TwoWay}" Style="{StaticResource RouteChipDesktop}" />
+                                    <ToggleButton IsChecked="{Binding IntegrationSettings.IntgrVoicemod_VR, Mode=TwoWay}" Style="{StaticResource RouteChipVr}" />
+                                </StackPanel>
                                 <StackPanel Style="{StaticResource DeckChromeRow}">
                                     <Button
                                         AutomationProperties.Name="Hide this tile"
@@ -2828,10 +2877,10 @@
                                         Style="{StaticResource TileHideButton}"
                                         ToolTip="Hide this tile from the list. The integration stays switched on." />
                                     <Button
-                                        Command="{Binding Voicemod.ToggleExpandedCommand}"
-                                        Content="{Binding Voicemod.PanelButtonText}"
+                                        Command="{Binding ActivateSettingCommand}"
+                                        CommandParameter="Settings_Voicemod"
                                         Style="{StaticResource TileDoorButton}"
-                                        ToolTip="Open the full Voicemod controller." />
+                                        ToolTip="Open Voicemod options and controls." />
                                 </StackPanel>
                             </StackPanel>
 
@@ -2847,11 +2896,17 @@
                         </Grid>
                     </Border>
 
-                    <Grid
+                    <Border
                         Grid.Row="1"
-                        Visibility="{Binding Voicemod.IsExpanded, Converter={StaticResource BoolToVisibilityConverter}}">
+                        Margin="5,0,5,5"
+                        Padding="7,6"
+                        Background="{StaticResource SurfaceButtonDarkBrush}"
+                        BorderBrush="{StaticResource TilePanelBorderBrush}"
+                        BorderThickness="1"
+                        CornerRadius="6"
+                        Visibility="{Binding IntegrationSettings.IntgrVoicemod, Converter={StaticResource BoolToVisibilityConverter}}">
                         <controls:VoicemodControlPanel ViewModel="{Binding Voicemod}" />
-                    </Grid>
+                    </Border>
                 </Grid>
             </ListBoxItem>
 
