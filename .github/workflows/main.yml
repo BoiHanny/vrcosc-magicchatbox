@@ -577,6 +577,255 @@ jobs:
           "release_name=${{ steps.resolve_release.outputs.release_tag }} (pre-release)" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
         }
 
+    - name: Compose the release notes
+      if: steps.check_release.outputs.release_exists == 'false' && (steps.resolve_release.outputs.is_tag_release == 'true' || steps.finalize_branch_release.outputs.publish_now == 'true')
+      uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+      env:
+        APP_VERSION: ${{ env.VERSION }}
+        RELEASE_TAG: ${{ steps.resolve_release.outputs.release_tag }}
+        VIRUSTOTAL_URL: ${{ steps.virustotal_report.outputs.report_url }}
+        IS_PRERELEASE: ${{ steps.determine_release_type.outputs.pre_release }}
+      with:
+        script: |
+          const fs = require('fs');
+          const path = require('path');
+          const crypto = require('crypto');
+          const { execFileSync } = require('child_process');
+
+          const NL = String.fromCharCode(10);
+          const SEP = String.fromCharCode(31);
+
+          const version = process.env.APP_VERSION;
+          const tag = process.env.RELEASE_TAG;
+          const vtUrl = process.env.VIRUSTOTAL_URL || '';
+          const isPrerelease = process.env.IS_PRERELEASE === 'true';
+          const { owner, repo } = context.repo;
+          const slug = owner + '/' + repo;
+          const zipName = 'MagicChatbox-' + version + '.zip';
+          const downloadUrl = 'https://github.com/' + slug + '/releases/download/' + tag + '/' + zipName;
+
+          const git = (args) => execFileSync('git', args, { encoding: 'utf8' }).trim();
+
+          let sha256 = '';
+          try {
+            const bytes = fs.readFileSync(path.join(process.env.GITHUB_WORKSPACE, zipName));
+            sha256 = crypto.createHash('sha256').update(bytes).digest('hex').toUpperCase();
+          } catch (error) {
+            core.warning('Could not hash ' + zipName + ': ' + error.message);
+          }
+
+          // A tag does not say whether it was a pre-release; the branch it came from does.
+          // Ask the Releases API for the newest published release of the same kind, so that
+          // pre-releases compare against pre-releases and full releases against full ones.
+          let previousTag = '';
+          try {
+            const releases = await github.rest.repos.listReleases({ owner, repo, per_page: 100 });
+            const match = releases.data.find(
+              (r) => !r.draft && r.tag_name !== tag && Boolean(r.prerelease) === isPrerelease
+            );
+            if (match) previousTag = match.tag_name;
+          } catch (error) {
+            core.warning('Could not list releases: ' + error.message);
+          }
+
+          if (!previousTag) {
+            try {
+              const tags = git(['tag', '--list', 'v*', '--sort=-v:refname']).split(NL).map((t) => t.trim());
+              const here = tags.indexOf(tag);
+              previousTag = here >= 0 ? tags[here + 1] || '' : tags[0] || '';
+              if (previousTag) {
+                core.warning('No previous ' + (isPrerelease ? 'pre-release' : 'release') +
+                  ' found; comparing against the preceding tag ' + previousTag + ' instead.');
+              }
+            } catch (error) {
+              previousTag = '';
+            }
+          }
+
+          core.info('Comparing ' + (previousTag || '(no previous release)') + ' -> ' + tag +
+            ' as a ' + (isPrerelease ? 'pre-release' : 'full release') + '.');
+
+          let changelog = '';
+          try {
+            const range = previousTag ? previousTag + '..' + tag : tag;
+            const raw = git(['log', range, '--no-merges', '--date-order',
+              '--format=%h' + SEP + '%s' + SEP + '%an']);
+
+            const skip = /^(chore\s*:\s*)?(bump|update)\s+version|^version update|^update version|^version bump|^package (updates?|downgrades?)$|^update FUNDING/i;
+            const groups = [
+              { key: 'feat', title: '### New', items: [] },
+              { key: 'fix', title: '### Fixed', items: [] },
+              { key: 'perf', title: '### Performance', items: [] },
+              { key: 'other', title: '### Other changes', items: [] },
+            ];
+            const byKey = new Map(groups.map((g) => [g.key, g]));
+
+            for (const line of raw.split(NL).filter(Boolean)) {
+              const parts = line.split(SEP);
+              const sha = parts[0];
+              const subject = (parts[1] || '').trim();
+              const author = parts[2] || '';
+              if (!subject || skip.test(subject)) continue;
+
+              const match = /^(\w+)(?:\(([^)]+)\))?!?:\s*(.+)$/.exec(subject);
+              let key = 'other';
+              let scope = '';
+              let text = subject;
+
+              if (match) {
+                const type = match[1].toLowerCase();
+                if (byKey.has(type) && type !== 'other') key = type;
+                scope = match[2] || '';
+                text = match[3];
+              }
+
+              const link = '[`' + sha + '`](https://github.com/' + slug + '/commit/' + sha + ')';
+              const who = author && author !== owner ? ' by **' + author + '**' : '';
+              const prefix = scope ? '**' + scope + '** — ' : '';
+              byKey.get(key).items.push('- ' + prefix + text + who + ' (' + link + ')');
+            }
+
+            const sections = groups
+              .filter((g) => g.items.length)
+              .map((g) => g.title + NL + NL + g.items.join(NL));
+
+            if (sections.length) {
+              changelog = sections.join(NL + NL + '<br>' + NL + NL);
+              if (previousTag) {
+                changelog += NL + NL + '<br>' + NL + NL + '**Full changelog:** [`' + previousTag +
+                  '` → `' + tag + '`](https://github.com/' + slug + '/compare/' +
+                  previousTag + '...' + tag + ')';
+              }
+            }
+          } catch (error) {
+            core.warning('Could not build the changelog: ' + error.message);
+          }
+
+          if (!changelog) {
+            changelog = 'See the [commit history](https://github.com/' + slug + '/commits/' + tag +
+              ') for what changed.';
+          }
+
+          const badge = (label, color, logo) =>
+            'https://custom-icon-badges.demolab.com/badge/-' + label + '-' + color +
+            '?style=for-the-badge&logo=' + logo + '&logoColor=white';
+
+          const scanBadge = vtUrl
+            ? NL + '<a href="' + vtUrl + '"><img src="' + badge('VirusTotal%20scan', '1E5AA8', 'virustotal') +
+              '" alt="VirusTotal scan"></a>'
+            : '';
+
+          const kindNote = isPrerelease
+            ? NL + NL + '> [!NOTE]  ' + NL +
+              '> This is a **pre-release**. It is newer than the last stable build and may still have rough edges. The changes listed below are since the previous pre-release.'
+            : '';
+
+          const verifySection = sha256
+            ? [
+                '- SHA-256 of `' + zipName + '`:',
+                '',
+                '  ```',
+                '  ' + sha256,
+                '  ```',
+                '',
+                '<br>',
+                '',
+                '- Compare it against your download in PowerShell:',
+                '',
+                '  ```powershell',
+                '  Get-FileHash ./' + zipName + ' -Algorithm SHA256',
+                '  ```',
+              ].join(NL)
+            : '- A checksum could not be generated for this build.';
+
+          const body = `<div align="center">
+
+          <h1>MagicChatbox v${version}</h1>
+
+          <a href="${downloadUrl}"><img src="${badge('Download%20for%20Windows', '512BD4', 'download')}" alt="Download"></a>${scanBadge}
+
+          <img src="https://img.shields.io/github/downloads/${slug}/${tag}/total?color=AB3BFF&label=downloads%20of%20this%20version&style=flat-square" alt="Downloads of this version">
+
+          </div>${kindNote}
+
+          <br>
+
+          ---
+
+          ## \`What's new\`
+
+          ${changelog}
+
+          <br>
+
+          ---
+
+          ## \`Installing this version\`
+
+            1. **Download** \`${zipName}\` from the link above.
+            2. **[.NET 10 Desktop Runtime](https://dotnet.microsoft.com/en-us/download/dotnet/10.0)** — free, from Microsoft. If you skip this, MagicChatbox will offer to fetch it for you on first launch.
+            3. **Extract the ZIP into a folder of its own.** Do not run it from inside the ZIP — the app needs to write its files next to itself.
+            4. Run **MagicChatbox.exe**.
+
+          <br>
+
+          > [!TIP]${'  '}
+          > Updates replace the files in place, so extracting over your existing folder keeps all of your settings.
+
+          <br>
+
+          > [!IMPORTANT]${'  '}
+          > **Please read the [Terms of Service](https://github.com/${slug}/blob/master/Security.md) before you download or use MagicChatbox.** It does not take long, and it covers how your privacy is handled as well as the rules for using the software.
+
+          <br>
+
+          ---
+
+          ## \`Windows says it is dangerous\`
+
+          - MagicChatbox is not signed with a Microsoft certificate, so SmartScreen warns about it — as it does for any unsigned app. Click **More info → Run anyway**.
+
+          <br>
+
+          - Some antivirus engines report a false positive. MagicChatbox is not a RAT, a Trojan or spyware. Every release is scanned with VirusTotal before it is published${vtUrl ? ', and the report is linked at the top of this page' : ''}. The [full source](https://github.com/${slug}) is published for anyone to read.
+
+          <br>
+
+          > [!CAUTION]${'  '}
+          > Only download from the [official Releases page](https://github.com/${slug}/releases). Forks and re-uploads are not supervised by us and we cannot vouch for them.
+
+          <br>
+
+          ---
+
+          ## \`Verifying your download\`
+
+          ${verifySection}
+
+          <br>
+
+          ---
+
+          ## \`How do I get help?\`
+
+          - You can find help in our [Discord Server](https://discord.gg/ZaSFwBfhvG) by creating a ticket. Include your app version and the newest log file.
+
+          <br>
+
+          - There is a guide for nearly everything in the [wiki](https://github.com/${slug}/wiki), common questions in the [FAQ](https://github.com/${slug}/wiki/Frequently-Asked-Questions), and fixes in [Troubleshooting](https://github.com/${slug}/wiki/Troubleshooting).
+
+          <br>
+
+          - Found a bug? [Open an issue](https://github.com/${slug}/issues).
+
+          <br>
+
+          ---
+          `;
+
+          fs.writeFileSync(path.join(process.env.GITHUB_WORKSPACE, 'release-notes.md'), body);
+          core.summary.addRaw(body).write();
+
     - name: Publish the GitHub release
       if: steps.check_release.outputs.release_exists == 'false' && (steps.resolve_release.outputs.is_tag_release == 'true' || steps.finalize_branch_release.outputs.publish_now == 'true')
       id: create_release
@@ -589,66 +838,4 @@ jobs:
         draft: false
         prerelease: ${{ steps.determine_release_type.outputs.pre_release }}
         files: ./MagicChatbox-${{ env.VERSION }}.zip
-        body: |
-          <div align="center">
-            <h1>✨ MagicChatbox v${{ env.VERSION }} ✨</h1>
-            <img src="https://img.shields.io/github/downloads/BoiHanny/vrcosc-magicchatbox/v${{ env.VERSION }}/total?color=%23AB3BFF&label=Version%20downloads&logo=%20&style=plastic" alt="Version downloads">
-          </div>
-
-          > [!IMPORTANT]
-          > **We highly recommend reading our [Terms of Service](https://github.com/BoiHanny/vrcosc-magicchatbox/blob/master/Security.md) before you download or use MagicChatBox.**  
-          > It doesn't take long to get through the essential points, but it's important to understand how we value and protect your privacy, as well as the rules for using our software.
-
-          <div align="center">
-            <p>
-              <a href="https://github.com/BoiHanny/vrcosc-magicchatbox/releases/download/${{ steps.resolve_release.outputs.release_tag }}/MagicChatbox-${{ env.VERSION }}.zip">
-                <img src="https://custom-icon-badges.herokuapp.com/badge/-Download-%23512BD4?style=for-the-badge&logo=download&logoColor=white" alt="Download">
-              </a>
-              <a href="${{ steps.virustotal_report.outputs.report_url }}">
-                <img src="https://custom-icon-badges.herokuapp.com/badge/-Virus%20Scan%20Result-blue?style=for-the-badge&logo=virustotal&logoColor=white" alt="VirusTotal">
-              </a>
-            </p>
-          </div>
-
-          ---
-
-          <div align="center">
-            <h2>🚀 Download and Installation Guide 🚀</h2>
-            <p>Follow these simple steps to get started with MagicChatbox:</p>
-          </div>
-
-          1. **Download** the .zip file from the link above.
-          2. Make sure you have the [**.NET 10 Desktop Runtime**](https://dotnet.microsoft.com/en-us/download/dotnet/10.0) installed on your system.
-          3. **Right-click** the downloaded .zip file and select <strong>Extract All</strong>.
-          4. Open the extracted folder from your chosen location.
-          5. Run <code>MagicChatbox.exe</code> to launch the application.
-
-          ---
-
-          <div align="center">
-            <h2>🛡️ About VirusTotal Scan 🛡️</h2>
-            <p>We take your security seriously! Each release of MagicChatbox is scanned with VirusTotal to ensure it's free from harmful software.</p>
-            <p>However, please be aware that some antivirus engines might flag the application. This is due to the nature of certain components we use, such as:</p>
-            <ul>
-              <p>🔍 <strong>Window Activity</strong> - To show which windows you are currently focused on</p>
-              <p>🔗 <strong>MediaLink Components</strong> - For better multimedia integration</p>
-              <p>📊 <strong>Component Stats</strong> - For performance tracking</p>
-              <p>🌙 <strong>AFK Module</strong> - To detect when you are away from the keyboard</p>
-              <p>🎮 <strong>OSC Controller</strong> - To communicate with VRChat</p>
-            </ul>
-            <p>These features might trigger warnings from lesser-known scanners. Rest assured, we strive to keep our software as secure as possible and any flagged activity is closely monitored to maintain your safety.</p>
-            <p>For more details on the scan results, check the VirusTotal report linked above.</p>
-          </div>
-
-          ---
-
-          <div align="center">
-            <h2>📞 Need Help? We're Here for You! 📞</h2>
-            <p>Have any questions, suggestions, or feedback? Reach out to us through one of the following channels:</p>
-            <ul>
-              <p><strong>Our Discord:</strong> <a href="https://discord.gg/ZaSFwBfhvG">Join now!!!</a></p>
-              <p><strong>GitHub Issues:</strong> <a href="https://github.com/BoiHanny/vrcosc-magicchatbox/issues">Report a bug or submit a feature request</a></p>
-              <p><strong>Wiki:</strong> <a href="https://github.com/BoiHanny/vrcosc-magicchatbox/wiki">Help & more</a></p>
-            </ul>
-            <p>We're committed to providing the best possible experience for our users. Your feedback helps us make MagicChatbox even better. Thank you for your support!</p>
-          </div>
+        body_path: ${{ github.workspace }}/release-notes.md
