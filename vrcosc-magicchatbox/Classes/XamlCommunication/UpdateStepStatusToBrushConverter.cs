@@ -4,7 +4,7 @@ using System.Windows.Data;
 using System.Windows.Media;
 using vrcosc_magicchatbox.Core.Updates;
 
-namespace vrcosc_magicchatbox.Classes.XamlCommunication;
+namespace vrcosc_magicchatbox.Classes;
 
 public class UpdateStepStatusToBrushConverter : IValueConverter
 {
