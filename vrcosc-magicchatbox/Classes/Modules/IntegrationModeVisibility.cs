@@ -12,7 +12,8 @@ public sealed record IntegrationModeGate(
     Action<IntegrationSettings>? EnableInVr,
     Func<IntegrationSettings, bool> IsVisibleOnDesktop,
     Action<IntegrationSettings>? EnableOnDesktop,
-    Func<IntegrationSettings, bool>? HasOutputOutsideTheChatbox = null)
+    Func<IntegrationSettings, bool>? HasOutputOutsideTheChatbox = null,
+    Func<IntegrationSettings, bool, bool>? IsRelevantIn = null)
 {
     public bool IsVisibleIn(IntegrationSettings settings, bool isVR)
         => isVR ? IsVisibleInVr(settings) : IsVisibleOnDesktop(settings);
@@ -24,6 +25,14 @@ public sealed record IntegrationModeGate(
     /// </summary>
     public bool ProducesOutputIn(IntegrationSettings settings, bool isVR)
         => IsVisibleIn(settings, isVR) || HasOutputOutsideTheChatbox?.Invoke(settings) == true;
+
+    /// <summary>
+    /// Whether the mode switch is worth mentioning at all. An integration that renders alongside
+    /// another one produces nothing while that other one is absent, so pointing at its switch would
+    /// send someone to flip something that changes nothing.
+    /// </summary>
+    public bool MattersIn(IntegrationSettings settings, bool isVR)
+        => IsRelevantIn?.Invoke(settings, isVR) != false;
 
     public bool CanEnableIn(bool isVR)
         => (isVR ? EnableInVr : EnableOnDesktop) is not null;
@@ -126,7 +135,10 @@ public static class IntegrationModeVisibility
         new(nameof(IntegrationSettings.IntgrLyrics), "Lyrics",
             s => s.IntgrLyrics,
             s => s.IntgrLyrics_VR, s => s.IntgrLyrics_VR = true,
-            s => s.IntgrLyrics_DESKTOP, s => s.IntgrLyrics_DESKTOP = true),
+            s => s.IntgrLyrics_DESKTOP, s => s.IntgrLyrics_DESKTOP = true,
+            IsRelevantIn: (s, isVR) =>
+                (s.IntgrScanMediaLink && (isVR ? s.IntgrMediaLink_VR : s.IntgrMediaLink_DESKTOP))
+                || (s.IntgrSpotify && (isVR ? s.IntgrSpotify_VR : s.IntgrSpotify_DESKTOP))),
     };
 
     private static readonly Dictionary<string, IntegrationModeGate> GatesByMaster =
@@ -141,7 +153,9 @@ public static class IntegrationModeVisibility
             return Array.Empty<HiddenIntegration>();
 
         return Gates
-            .Where(gate => gate.IsMasterEnabled(settings) && !gate.ProducesOutputIn(settings, isVR))
+            .Where(gate => gate.IsMasterEnabled(settings)
+                && gate.MattersIn(settings, isVR)
+                && !gate.ProducesOutputIn(settings, isVR))
             .Select(gate => new HiddenIntegration(gate.DisplayName, gate.CanEnableIn(isVR)))
             .ToList();
     }
@@ -157,7 +171,9 @@ public static class IntegrationModeVisibility
         if (settings == null || !TryGetGate(masterPropertyName, out var gate))
             return false;
 
-        if (!gate.IsMasterEnabled(settings) || gate.ProducesOutputIn(settings, isVR))
+        if (!gate.IsMasterEnabled(settings)
+            || !gate.MattersIn(settings, isVR)
+            || gate.ProducesOutputIn(settings, isVR))
             return false;
 
         hidden = new HiddenIntegration(gate.DisplayName, gate.CanEnableIn(isVR));

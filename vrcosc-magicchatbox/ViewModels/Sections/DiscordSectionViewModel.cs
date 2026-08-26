@@ -172,6 +172,7 @@ public partial class DiscordSectionViewModel : ObservableObject
             discord.Settings.AccessToken = result.AccessToken;
             discord.Settings.HasRpcScope = hasRpcScope;
             discord.Settings.RefreshToken = string.Empty;
+            discord.Settings.RefreshTokenEncrypted = string.Empty;
             discord.Settings.TokenExpiresAtUtcTicks = 0;
             discord.SaveSettings();
             HasSavedToken = true;
@@ -203,6 +204,12 @@ public partial class DiscordSectionViewModel : ObservableObject
             await discord.StopAsync();
             discord.Settings.AccessToken = string.Empty;
             discord.Settings.RefreshToken = string.Empty;
+
+            // Clear the stored ciphertext directly as well: when the plaintext is already
+            // empty (a stored token that no longer decrypts on this machine) the assignments
+            // above are no-ops, and the unusable ciphertext would survive the disconnect.
+            discord.Settings.AccessTokenEncrypted = string.Empty;
+            discord.Settings.RefreshTokenEncrypted = string.Empty;
             discord.Settings.TokenExpiresAtUtcTicks = 0;
             discord.Settings.HasRpcScope = false;
             discord.SaveSettings();

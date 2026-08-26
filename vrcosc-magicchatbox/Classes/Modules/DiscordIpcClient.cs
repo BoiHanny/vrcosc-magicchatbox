@@ -17,7 +17,6 @@ public sealed class DiscordIpcClient : IDisposable
 
     private NamedPipeClientStream? _pipe;
     private CancellationTokenSource? _readCts;
-    private CancellationTokenSource? _reconnectCts;
     private Task? _readTask;
     private volatile bool _disposed;
     private volatile bool _intentionalDisconnect;
@@ -147,7 +146,6 @@ public sealed class DiscordIpcClient : IDisposable
     public void Disconnect()
     {
         _intentionalDisconnect = true;
-        _reconnectCts?.Cancel();
         _readCts?.Cancel();
         ClosePipe();
     }
@@ -158,7 +156,6 @@ public sealed class DiscordIpcClient : IDisposable
         _disposed = true;
         Disconnect();
         _readCts?.Dispose();
-        _reconnectCts?.Dispose();
     }
 
     private async Task WriteFrameAsync(int opcode, JObject payload)

@@ -21,8 +21,8 @@ namespace vrcosc_magicchatbox.Classes.Modules
 {
     public partial class SpeechToTextLanguage : ObservableObject
     {
-        public string Code { get; set; }
-        public string Language { get; set; }
+        public string Code { get; set; } = string.Empty;
+        public string Language { get; set; } = string.Empty;
     }
 
     public partial class WhisperModuleSettings : ObservableObject
@@ -51,13 +51,13 @@ namespace vrcosc_magicchatbox.Classes.Modules
         private int selectedDeviceIndex = -1;
 
         [ObservableProperty]
-        private SpeechToTextLanguage selectedSpeechToTextLanguage;
+        private SpeechToTextLanguage? selectedSpeechToTextLanguage;
 
         [ObservableProperty]
         private int silenceAutoTurnOffDuration = 3000;
 
         [ObservableProperty]
-        private List<SpeechToTextLanguage> speechToTextLanguages;
+        private List<SpeechToTextLanguage> speechToTextLanguages = new();
 
         [ObservableProperty]
         private bool translateToCustomLanguage = false;
@@ -289,7 +289,7 @@ namespace vrcosc_magicchatbox.Classes.Modules
         private TimeSpan speakingDuration;
         private DateTime speakingStartedTimestamp;
 
-        private WaveInEvent waveIn;
+        private WaveIn? waveIn;
 
         [ObservableProperty]
         private WhisperModuleSettings settings;
@@ -302,9 +302,9 @@ namespace vrcosc_magicchatbox.Classes.Modules
         public Task StopAsync(CancellationToken ct = default) { Dispose(); return Task.CompletedTask; }
         public void SaveSettings() => Settings?.SaveSettings();
 
-        public event Action<string> TranscriptionReceived;
+        public event Action<string>? TranscriptionReceived;
 
-        public event Action SentChatMessage;
+        public event Action? SentChatMessage;
 
         public WhisperModule(IMenuNavigationService navService, ITranscriptionService transcription, IUiDispatcher dispatcher, IMessenger messenger, IToastService? toast = null)
         {
@@ -384,7 +384,7 @@ namespace vrcosc_magicchatbox.Classes.Modules
                     return;
                 }
 
-                waveIn = new WaveInEvent
+                waveIn = new WaveIn
                 {
                     DeviceNumber = Settings.SelectedDeviceIndex,
                     WaveFormat = new WaveFormat(16000, 16, 1),                    BufferMilliseconds = 350                };
@@ -399,7 +399,7 @@ namespace vrcosc_magicchatbox.Classes.Modules
             }
         }
 
-        private void OnDataAvailable(object sender, WaveInEventArgs e)
+        private void OnDataAvailable(object? sender, WaveInEventArgs e)
         {
             float maxAmplitude = CalculateMaxAmplitude(e.Buffer, e.BytesRecorded);
             bool isLoudEnough = maxAmplitude > Settings.NoiseGateThreshold;
@@ -415,7 +415,7 @@ namespace vrcosc_magicchatbox.Classes.Modules
             }
         }
 
-        private void OnRecordingStopped(object sender, StoppedEventArgs e)
+        private void OnRecordingStopped(object? sender, StoppedEventArgs e)
         {
             if (e.Exception != null)
             {
@@ -451,7 +451,7 @@ namespace vrcosc_magicchatbox.Classes.Modules
                 _transcriptionCancellationTokenSource.Dispose();
                 _transcriptionCancellationTokenSource = new CancellationTokenSource();
 
-                string transcription = await TranscribeAudioAsync(localCopyStream, _transcriptionCancellationTokenSource.Token);
+                string? transcription = await TranscribeAudioAsync(localCopyStream, _transcriptionCancellationTokenSource.Token);
                 if (!string.IsNullOrEmpty(transcription))
                 {
                     TranscriptionReceived?.Invoke(transcription);
@@ -489,7 +489,7 @@ namespace vrcosc_magicchatbox.Classes.Modules
             }
         }
 
-        private void Settings_PropertyChanged(object sender, PropertyChangedEventArgs e)
+        private void Settings_PropertyChanged(object? sender, PropertyChangedEventArgs e)
         {
             if (e.PropertyName == nameof(Settings.SelectedDeviceIndex))
             {
@@ -500,12 +500,13 @@ namespace vrcosc_magicchatbox.Classes.Modules
             }
         }
 
-        private async Task<string> TranscribeAudioAsync(Stream waveFileStream, CancellationToken cancellationToken)
+        private async Task<string?> TranscribeAudioAsync(Stream waveFileStream, CancellationToken cancellationToken)
         {
             try
             {
                 using var wavMemory = new MemoryStream();
-                using (var writer = new WaveFileWriter(wavMemory, waveIn.WaveFormat))
+                // A recording session must be active for audio to have reached here, so waveIn is populated.
+                using (var writer = new WaveFileWriter(wavMemory, waveIn!.WaveFormat))
                 {
                     await waveFileStream.CopyToAsync(writer, 81920, cancellationToken);
                     await writer.FlushAsync(cancellationToken);
@@ -514,7 +515,7 @@ namespace vrcosc_magicchatbox.Classes.Modules
                 byte[] wavBytes = wavMemory.ToArray();
 
                 string modelName = GetModelDescription(Settings.SpeechToTextModel);
-                string languageCode = Settings.TranslateToCustomLanguage
+                string? languageCode = Settings.TranslateToCustomLanguage
                     ? Settings.SelectedSpeechToTextLanguage?.Code
                     : null;
 

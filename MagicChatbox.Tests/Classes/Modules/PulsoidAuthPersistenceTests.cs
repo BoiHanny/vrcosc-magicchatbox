@@ -17,7 +17,7 @@ internal sealed class UnprotectablePulsoidSettings : PulsoidModuleSettings
 {
     protected override bool TryProtectToken(string plaintext, out string ciphertext)
     {
-        ciphertext = null;
+        ciphertext = string.Empty;
         return false;
     }
 }

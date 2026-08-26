@@ -49,7 +49,8 @@ namespace vrcosc_magicchatbox.ViewModels.Models
         }
 
         private bool _TimeoutRestore = false;
-        private MediaSession session;
+        // Every construction site sets Session via an object initializer right after `new`, so this is never read null.
+        private MediaSession session = null!;
 
         private string _albumArtist = "Album-Artist";
         public string AlbumArtist
@@ -132,7 +133,7 @@ namespace vrcosc_magicchatbox.ViewModels.Models
             }
         }
 
-        public event PropertyChangedEventHandler PropertyChanged;
+        public event PropertyChangedEventHandler? PropertyChanged;
 
         private void SaveOrDeleteSettings()
         {
@@ -227,7 +228,8 @@ namespace vrcosc_magicchatbox.ViewModels.Models
             }
         }
 
-        public string FriendlyAppName { get; private set; }
+        // Derived from Session in the Session setter, which every construction site calls right after `new`.
+        public string FriendlyAppName { get; private set; } = null!;
 
         public bool IsActive
         {
@@ -474,7 +476,7 @@ namespace vrcosc_magicchatbox.ViewModels.Models
 
         public bool KeepSaved { get; set; }
 
-        public string SessionId { get; set; }
+        public string? SessionId { get; set; }
 
         public bool ShowArtist { get; set; }
 

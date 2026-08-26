@@ -22,7 +22,7 @@ public class NetworkStatisticsModule : INotifyPropertyChanged, IModule
 {
     private readonly IAppState _appState;
 
-    private NetworkInterface _activeNetworkInterface;
+    private NetworkInterface? _activeNetworkInterface;
 
     private CancellationTokenSource _cancellationTokenSource = new CancellationTokenSource();
 
@@ -40,7 +40,7 @@ public class NetworkStatisticsModule : INotifyPropertyChanged, IModule
     private long _previousBytesSent;
     private double _totalDownloadedMB;
     private double _totalUploadedMB;
-    private Timer _updateTimer;
+    private Timer? _updateTimer;
 
     private readonly ISettingsProvider<NetworkStatsSettings> _settingsProvider;
     public NetworkStatsSettings Settings => _settingsProvider.Value;
@@ -107,7 +107,7 @@ public class NetworkStatisticsModule : INotifyPropertyChanged, IModule
         }
     }
 
-    public event PropertyChangedEventHandler PropertyChanged;
+    public event PropertyChangedEventHandler? PropertyChanged;
 
     private string Measure(double amount, string unit)
         => new SegmentWriter()
@@ -142,7 +142,7 @@ public class NetworkStatisticsModule : INotifyPropertyChanged, IModule
         return Measure(speedMbps, "Mbps");
     }
 
-    private Task<NetworkInterface> GetActiveNetworkInterfaceAsync(CancellationToken cancellationToken)
+    private Task<NetworkInterface?> GetActiveNetworkInterfaceAsync(CancellationToken cancellationToken)
     {
         var networkInterfaces = NetworkInterface.GetAllNetworkInterfaces()
             .Where(ni =>
@@ -215,7 +215,7 @@ public class NetworkStatisticsModule : INotifyPropertyChanged, IModule
 
                 if (UseInterfaceMaxSpeed)
                 {
-                    var speedInMbps = _activeNetworkInterface.Speed / 1e6;
+                    var speedInMbps = networkInterface.Speed / 1e6;
                     MaxDownloadSpeedMbps = speedInMbps;
                     MaxUploadSpeedMbps = speedInMbps;
                 }
@@ -225,7 +225,7 @@ public class NetworkStatisticsModule : INotifyPropertyChanged, IModule
                     MaxUploadSpeedMbps = 0;
                 }
 
-                var stats = GetTotalBytes(_activeNetworkInterface);
+                var stats = GetTotalBytes(networkInterface);
                 _previousBytesReceived = stats.BytesReceived;
                 _previousBytesSent = stats.BytesSent;
 
@@ -269,7 +269,7 @@ public class NetworkStatisticsModule : INotifyPropertyChanged, IModule
         }
     }
 
-    private bool IsRelevantPropertyChange(string propertyName)
+    private bool IsRelevantPropertyChange(string? propertyName)
     {
         return propertyName == nameof(_integrationSettings.IntgrNetworkStatistics) ||
                propertyName == nameof(_appState.IsVRRunning) ||
@@ -277,7 +277,7 @@ public class NetworkStatisticsModule : INotifyPropertyChanged, IModule
                propertyName == nameof(_integrationSettings.IntgrNetworkStatistics_DESKTOP);
     }
 
-    private void OnTimedEvent(object state)
+    private void OnTimedEvent(object? state)
     {
         try
         {
@@ -297,6 +297,8 @@ public class NetworkStatisticsModule : INotifyPropertyChanged, IModule
                     return;
             }
 
+            var activeNetworkInterface = _activeNetworkInterface;
+
             if (UseInterfaceMaxSpeed != Settings.UseInterfaceMaxSpeed)
             {
                 UseInterfaceMaxSpeed = Settings.UseInterfaceMaxSpeed;
@@ -304,7 +306,7 @@ public class NetworkStatisticsModule : INotifyPropertyChanged, IModule
                 MaxUploadSpeedMbps = 0;
             }
 
-            var stats = GetTotalBytes(_activeNetworkInterface);
+            var stats = GetTotalBytes(activeNetworkInterface);
 
             var bytesReceivedDiff = stats.BytesReceived - _previousBytesReceived;
             var bytesSentDiff = stats.BytesSent - _previousBytesSent;
@@ -329,11 +331,11 @@ public class NetworkStatisticsModule : INotifyPropertyChanged, IModule
             }
 
             var maxDownloadSpeed = UseInterfaceMaxSpeed
-                ? _activeNetworkInterface.Speed / 1e6
+                ? activeNetworkInterface.Speed / 1e6
                 : MaxDownloadSpeedMbps;
 
             var maxUploadSpeed = UseInterfaceMaxSpeed
-                ? _activeNetworkInterface.Speed / 1e6
+                ? activeNetworkInterface.Speed / 1e6
                 : MaxUploadSpeedMbps;
 
             var utilization = maxDownloadSpeed > 0
@@ -357,7 +359,7 @@ public class NetworkStatisticsModule : INotifyPropertyChanged, IModule
         }
     }
 
-    private void PropertyChangedHandler(object sender, PropertyChangedEventArgs e)
+    private void PropertyChangedHandler(object? sender, PropertyChangedEventArgs e)
     {
         if (IsRelevantPropertyChange(e.PropertyName))
         {
@@ -379,7 +381,7 @@ public class NetworkStatisticsModule : INotifyPropertyChanged, IModule
                 (!_appState.IsVRRunning && _integrationSettings.IntgrNetworkStatistics_DESKTOP));
     }
 
-    protected void OnPropertyChanged([CallerMemberName] string propertyName = null)
+    protected void OnPropertyChanged([CallerMemberName] string? propertyName = null)
     {
         if (!_dispatcher.CheckAccess())
         {
@@ -394,7 +396,7 @@ public class NetworkStatisticsModule : INotifyPropertyChanged, IModule
         }
     }
 
-    protected bool SetProperty<T>(ref T storage, T value, [CallerMemberName] string propertyName = null)
+    protected bool SetProperty<T>(ref T storage, T value, [CallerMemberName] string? propertyName = null)
     {
         if (EqualityComparer<T>.Default.Equals(storage, value))
             return false;
@@ -553,7 +555,8 @@ public class NetworkStatisticsModule : INotifyPropertyChanged, IModule
             _interval = value;
             if (_isMonitoring)
             {
-                _updateTimer.Change(TimeSpan.Zero, TimeSpan.FromMilliseconds(_interval));
+                // _updateTimer is always set while _isMonitoring is true (see StartModule/StopModule).
+                _updateTimer!.Change(TimeSpan.Zero, TimeSpan.FromMilliseconds(_interval));
             }
         }
     }

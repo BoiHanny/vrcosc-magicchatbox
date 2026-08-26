@@ -17,6 +17,7 @@
 
             <DropShadowEffect
                 x:Key="TextBlockShadowEffect"
+                po:Freeze="True"
                 BlurRadius="10"
                 Opacity="1"
                 RenderingBias="Performance"
@@ -1731,15 +1732,22 @@
                                     Content="{TemplateBinding Content}"
                                     ContentStringFormat="{TemplateBinding ContentStringFormat}"
                                     ContentTemplate="{TemplateBinding ContentTemplate}" />
-                                <Button
-                                    Margin="0,4,8,0"
+                                <!--  Spans the section header exactly - every section starts with a
+                                      5px top margin and a 30px header toggle - so the button can
+                                      centre against the title rather than hang from the top edge.  -->
+                                <Grid
+                                    Height="30"
+                                    Margin="0,5,8,0"
                                     HorizontalAlignment="Right"
                                     VerticalAlignment="Top"
-                                    Panel.ZIndex="1"
-                                    Command="{Binding DataContext.ResetSectionCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                                    CommandParameter="{Binding Tag, RelativeSource={RelativeSource TemplatedParent}}"
-                                    Content="Reset"
-                                    Style="{StaticResource SectionResetButtonStyle}" />
+                                    Panel.ZIndex="1">
+                                    <Button
+                                        VerticalAlignment="Center"
+                                        Command="{Binding DataContext.ResetSectionCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                        CommandParameter="{Binding Tag, RelativeSource={RelativeSource TemplatedParent}}"
+                                        Content="Reset"
+                                        Style="{StaticResource SectionResetButtonStyle}" />
+                                </Grid>
                             </Grid>
                         </ControlTemplate>
                     </Setter.Value>

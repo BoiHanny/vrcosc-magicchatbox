@@ -61,10 +61,10 @@ public partial class IntelliChatModuleSettings : VersionedSettings
     private List<SupportedIntelliChatLanguage> selectedSupportedLanguages = new List<SupportedIntelliChatLanguage>();
 
     [ObservableProperty]
-    private SupportedIntelliChatLanguage selectedTranslateLanguage;
+    private SupportedIntelliChatLanguage? selectedTranslateLanguage;
 
     [ObservableProperty]
-    private IntelliChatWritingStyle selectedWritingStyle;
+    private IntelliChatWritingStyle? selectedWritingStyle;
 
     [ObservableProperty]
     private List<SupportedIntelliChatLanguage> supportedLanguages = new List<SupportedIntelliChatLanguage>();

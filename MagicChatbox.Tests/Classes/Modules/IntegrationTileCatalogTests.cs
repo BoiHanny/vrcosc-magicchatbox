@@ -173,7 +173,7 @@ public class IntegrationTileCatalogTests
             .Where(p => p.CanRead && p.GetIndexParameters().Length == 0)
             .OrderBy(p => p.Name, StringComparer.Ordinal))
         {
-            object value;
+            object? value;
             try { value = prop.GetValue(settings); }
             catch { continue; }
 

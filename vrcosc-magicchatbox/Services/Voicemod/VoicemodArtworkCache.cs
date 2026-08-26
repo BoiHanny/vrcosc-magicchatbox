@@ -32,6 +32,9 @@ public sealed class VoicemodArtworkCache : IVoicemodArtworkCache
 
     private const int MaximumBytes = 512 * 1024;
 
+    /// <summary>Covers the largest seat the artwork gets (33px) at 200% DPI, with headroom.</summary>
+    private const int DecodeWidth = 96;
+
     private readonly ConcurrentDictionary<string, ImageSource> _images = new(StringComparer.OrdinalIgnoreCase);
 
     // Insertion order, so a full cache can drop its oldest entry instead of refusing every new one.
@@ -108,6 +111,10 @@ public sealed class VoicemodArtworkCache : IVoicemodArtworkCache
             bitmap.BeginInit();
             bitmap.CacheOption = BitmapCacheOption.OnLoad;
             bitmap.StreamSource = stream;
+
+            // These are shown at ~33px. Without a decode size the full-resolution pixel buffer is what
+            // stays resident, once per cached sound.
+            bitmap.DecodePixelWidth = DecodeWidth;
             bitmap.EndInit();
             bitmap.Freeze();
             image = bitmap;

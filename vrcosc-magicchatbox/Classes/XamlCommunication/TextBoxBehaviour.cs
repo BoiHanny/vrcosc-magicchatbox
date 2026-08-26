@@ -37,7 +37,7 @@ namespace vrcosc_magicchatbox.Classes
         {
             if (e.Key == Key.Escape || e.Key == Key.Enter)
             {
-                var textBox = sender as TextBox;
+                if (sender is not TextBox textBox) return;
                 var item = textBox.DataContext as StatusItem;
                 if (item == null) return;
 

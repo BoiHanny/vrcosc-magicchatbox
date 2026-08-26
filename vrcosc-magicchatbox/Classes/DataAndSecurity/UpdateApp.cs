@@ -22,13 +22,13 @@ public class UpdateApp
     private static int _legacyWorkspacesChecked;
     private const string ExecutableName = "MagicChatbox.exe";
     private const int UpdateLocationMetadataVersion = 2;
-    private string backupPath;
-    private string currentAppPath;
+    private string backupPath = string.Empty;
+    private string currentAppPath = string.Empty;
     private readonly string dataPath;
-    private string maintenanceRunnerPath;
-    private string magicChatboxExePath;
-    private string tempPath;
-    private string unzipPath;
+    private string maintenanceRunnerPath = string.Empty;
+    private string magicChatboxExePath = string.Empty;
+    private string tempPath = string.Empty;
+    private string unzipPath = string.Empty;
     private readonly AppUpdateState _updateState;
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly IUiDispatcher _dispatcher;
@@ -274,6 +274,8 @@ public class UpdateApp
 
     private void FailProgress(string detail) => OnUi(() => Progress.Fail(detail));
 
+    private void CompleteProgress(string detail) => OnUi(() => Progress.Complete(detail));
+
     private static string GetWorkspaceRoot() =>
         Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
@@ -318,7 +320,7 @@ public class UpdateApp
         }
     }
 
-    private DigestVerificationResult VerifyDownloadedPackage(string zipPath)
+    private DigestVerificationResult VerifyDownloadedPackage(string zipPath, bool requireDigest)
     {
         SetStep(UpdateStepKind.Verify, UpdateStepStatus.Running, "Hashing the download");
         ReportIndeterminate("Checking the download against the checksum GitHub published");
@@ -350,6 +352,18 @@ public class UpdateApp
 
             case DigestVerificationStatus.NotPublished:
                 Logging.WriteInfo("No SHA-256 was published for this release asset, so the package could not be verified.");
+
+                // Nobody is watching an unattended install land, so an unverifiable package is
+                // refused outright rather than downgraded to a warning the user never reads.
+                if (requireDigest)
+                {
+                    TryDeleteFile(zipPath);
+                    SetStep(UpdateStepKind.Verify, UpdateStepStatus.Failed, "No checksum published for this release");
+                    throw new InvalidOperationException(
+                        "This release did not publish a checksum, so it cannot be installed without supervision. " +
+                        "Install it from the update button instead.");
+                }
+
                 SetStep(
                     UpdateStepKind.Verify,
                     UpdateStepStatus.Warning,
@@ -385,7 +399,7 @@ public class UpdateApp
         }
     }
 
-    private async Task DownloadAndExtractUpdate(string zipPath)
+    private async Task<DigestVerificationResult> DownloadAndExtractUpdate(string zipPath, bool requireDigest)
     {
         string updateUrl = _updateState.UpdateURL;
         if (string.IsNullOrWhiteSpace(updateUrl) ||
@@ -454,7 +468,7 @@ public class UpdateApp
         SetStep(UpdateStepKind.Download, UpdateStepStatus.Done, UpdateProgressState.DescribeBytes(received));
 
         UpdateStatus("Verifying download");
-        DigestVerificationResult verification = VerifyDownloadedPackage(zipPath);
+        DigestVerificationResult verification = VerifyDownloadedPackage(zipPath, requireDigest);
 
         UpdateStatus("Unpacking update");
         SetStep(UpdateStepKind.Unpack, UpdateStepStatus.Running);
@@ -483,7 +497,7 @@ public class UpdateApp
                 }
                 else
                 {
-                    string directory = Path.GetDirectoryName(destinationPath);
+                    string? directory = Path.GetDirectoryName(destinationPath);
                     if (!string.IsNullOrEmpty(directory))
                         Directory.CreateDirectory(directory);
                     entry.ExtractToFile(destinationPath, true);
@@ -503,10 +517,150 @@ public class UpdateApp
         TryDeleteFile(zipPath);
 
         UpdateHandoff.Write(dataPath, new UpdateHandoffInfo(
-            _updateState.LatestReleaseVersion?.VersionNumber ?? string.Empty,
+            TargetVersion(),
             verification.Status,
             verification.Actual ?? string.Empty,
             IsRollback: false));
+
+        return verification;
+    }
+
+    /// <summary>
+    /// Hands a package that was staged earlier to the maintenance runner. Applying an update
+    /// always replaces the running installation, so this only ever happens at a cold start,
+    /// before the window is up and before anything is connected.
+    /// </summary>
+    public bool TryStartStagedInstall()
+    {
+        PendingUpdateInfo? pending = PendingUpdate.Read(dataPath);
+        if (pending == null)
+            return false;
+
+        try
+        {
+            if (string.IsNullOrWhiteSpace(pending.StagedPath) ||
+                !File.Exists(Path.Combine(pending.StagedPath, ExecutableName)))
+            {
+                Logging.WriteInfo("The staged update is missing its files; discarding it.");
+                PendingUpdate.Clear(dataPath);
+                return false;
+            }
+
+            if (Version.TryParse(_updateState.AppVersion?.VersionNumber, out Version? running) &&
+                Version.TryParse(pending.Version, out Version? staged) &&
+                staged <= running)
+            {
+                Logging.WriteInfo($"The staged update ({pending.Version}) is not newer than {running}; discarding it.");
+                PendingUpdate.Clear(dataPath);
+                return false;
+            }
+
+            magicChatboxExePath = Path.Combine(pending.StagedPath, ExecutableName);
+            SaveUpdateLocation(backupPath);
+
+            // Cleared before the handoff rather than after it: a package that fails to apply
+            // must not be retried on every launch from here on.
+            PendingUpdate.Clear(dataPath);
+
+            Logging.WriteInfo($"Installing the update staged for {pending.Version}.");
+            StartMaintenanceRunner("-update");
+            return true;
+        }
+        catch (Exception ex)
+        {
+            Logging.WriteException(ex, MSGBox: false);
+            PendingUpdate.Clear(dataPath);
+            return false;
+        }
+    }
+
+    public void DiscardStagedUpdate()
+    {
+        PendingUpdate.Clear(dataPath);
+
+        try
+        {
+            if (Directory.Exists(unzipPath))
+            {
+                ClearDirectoryContents(unzipPath);
+                Directory.Delete(unzipPath, true);
+            }
+        }
+        catch (Exception ex) when (ex is IOException || ex is UnauthorizedAccessException)
+        {
+            Logging.WriteInfo($"Could not clean up the staged update: {ex.Message}");
+        }
+    }
+
+    private string TargetVersionOrDefault()
+    {
+        string version = TargetVersion();
+        return string.IsNullOrWhiteSpace(version) ? "the latest release" : version;
+    }
+
+    private void EnsureRoomForUpdate()
+    {
+        long installSize = MeasureDirectory(currentAppPath);
+        if (installSize <= 0)
+            return;
+
+        // The download, the unpacked copy and the maintenance runner all live in the workspace
+        // at once, and the backup is a full second copy of the installation.
+        RequireFreeSpace(tempPath, installSize * 3);
+        RequireFreeSpace(backupPath, installSize);
+    }
+
+    private static long MeasureDirectory(string path)
+    {
+        try
+        {
+            if (!Directory.Exists(path))
+                return 0;
+
+            return new DirectoryInfo(path)
+                .EnumerateFiles("*", System.IO.SearchOption.AllDirectories)
+                .Sum(file => file.Length);
+        }
+        catch (Exception ex) when (ex is IOException || ex is UnauthorizedAccessException)
+        {
+            return 0;
+        }
+    }
+
+    private static void RequireFreeSpace(string path, long requiredBytes)
+    {
+        long available;
+
+        try
+        {
+            string? root = Path.GetPathRoot(Path.GetFullPath(path));
+            if (string.IsNullOrWhiteSpace(root))
+                return;
+
+            available = new DriveInfo(root).AvailableFreeSpace;
+        }
+        catch (Exception ex) when (ex is ArgumentException || ex is IOException || ex is UnauthorizedAccessException)
+        {
+            return;
+        }
+
+        if (available >= requiredBytes)
+            return;
+
+        throw new IOException(
+            $"Not enough free space on {Path.GetPathRoot(Path.GetFullPath(path))} to install the update. " +
+            $"{UpdateProgressState.DescribeBytes(requiredBytes)} is needed and " +
+            $"{UpdateProgressState.DescribeBytes(available)} is free.");
+    }
+
+    private string TargetVersion()
+    {
+        if (!string.IsNullOrWhiteSpace(_updateState.UpdateVersion))
+            return _updateState.UpdateVersion;
+
+        return _updateState.PendingUpdateChannel == UpdateChannel.PreRelease
+            ? _updateState.PreReleaseVersion?.VersionNumber ?? string.Empty
+            : _updateState.LatestReleaseVersion?.VersionNumber ?? string.Empty;
     }
 
 
@@ -531,7 +685,7 @@ public class UpdateApp
                 }
                 else
                 {
-                    string directory = Path.GetDirectoryName(destinationPath);
+                    string? directory = Path.GetDirectoryName(destinationPath);
                     if (!string.IsNullOrEmpty(directory))
                         Directory.CreateDirectory(directory);
                     entry.ExtractToFile(destinationPath, true);
@@ -665,7 +819,7 @@ public class UpdateApp
     }
 
 
-    private void SaveUpdateLocation(string backupPath = null)
+    private void SaveUpdateLocation(string? backupPath = null)
     {
         Directory.CreateDirectory(dataPath);
 
@@ -772,7 +926,7 @@ public class UpdateApp
             return false;
         }
 
-        Version backupVersion = GetApplicationVersion(Path.Combine(backupPath, ExecutableName));
+        Version? backupVersion = GetApplicationVersion(Path.Combine(backupPath, ExecutableName));
         if (backupVersion != null)
         {
             _updateState.RollBackVersion = backupVersion;
@@ -800,7 +954,7 @@ public class UpdateApp
         }
     }
 
-    public Version GetApplicationVersion(string exePath)
+    public Version? GetApplicationVersion(string exePath)
     {
         try
         {
@@ -810,7 +964,7 @@ public class UpdateApp
             }
 
             FileVersionInfo fileInfo = FileVersionInfo.GetVersionInfo(exePath);
-            if (Version.TryParse(fileInfo.FileVersion, out Version version))
+            if (Version.TryParse(fileInfo.FileVersion, out Version? version))
             {
                 return version;
             }
@@ -823,7 +977,7 @@ public class UpdateApp
         return null;
     }
 
-    public async Task PrepareUpdate(string customZipPath = null)
+    public async Task PrepareUpdate(string? customZipPath = null, bool unattended = false)
     {
         bool gateAcquired = false;
         try
@@ -840,9 +994,11 @@ public class UpdateApp
 
             string targetVersion = useCustomZip
                 ? "a hand-picked package"
-                : _updateState.LatestReleaseVersion?.VersionNumber ?? "the latest release";
+                : TargetVersionOrDefault();
 
             BeginProgress(useCustomZip ? "Installing a custom package" : $"Updating to {targetVersion}");
+
+            EnsureRoomForUpdate();
 
             UpdateStatus("Preparing backup directory");
             ReportIndeterminate("Backing up the current version so you can go back");
@@ -860,11 +1016,13 @@ public class UpdateApp
             UpdateStatus("Preparing update workspace");
             ResetExtractionWorkspace();
 
-            if (!useCustomZip)
+            DigestVerificationResult verification = default;
+
+            if (string.IsNullOrEmpty(customZipPath))
             {
                 UpdateStatus("Requesting update");
                 string zipPath = Path.Combine(tempPath, "update.zip");
-                await DownloadAndExtractUpdate(zipPath);
+                verification = await DownloadAndExtractUpdate(zipPath, requireDigest: unattended);
             }
             else
             {
@@ -881,12 +1039,32 @@ public class UpdateApp
                     IsRollback: false));
             }
 
-            SetStep(UpdateStepKind.Install, UpdateStepStatus.Running, "Restarting to swap the files");
-            ReportIndeterminate("Restarting to finish the install");
-
             string launchDirectory = ResolveApplicationDirectory(unzipPath);
             magicChatboxExePath = Path.Combine(launchDirectory, ExecutableName);
             SaveUpdateLocation(backupPath);
+
+            if (unattended)
+            {
+                PendingUpdate.Write(dataPath, new PendingUpdateInfo(
+                    TargetVersion(),
+                    _updateState.PendingUpdateChannel ?? UpdateChannel.Stable,
+                    launchDirectory,
+                    verification.Actual ?? string.Empty,
+                    DateTimeOffset.UtcNow));
+
+                SetStep(UpdateStepKind.Install, UpdateStepStatus.Pending, "Waiting for the next restart");
+
+                // Complete, not just a progress report: the card can only be dismissed once it has
+                // finished or failed, and staging in the background is finished as far as this session
+                // goes. Reporting progress and returning left the card on screen with a dead close
+                // button for the rest of the session.
+                CompleteProgress("Ready to install the next time MagicChatbox starts");
+                Logging.WriteInfo($"Staged {TargetVersion()} for install on the next start.");
+                return;
+            }
+
+            SetStep(UpdateStepKind.Install, UpdateStepStatus.Running, "Restarting to swap the files");
+            ReportIndeterminate("Restarting to finish the install");
             StartMaintenanceRunner("-update");
         }
         catch (Exception ex)
@@ -897,7 +1075,11 @@ public class UpdateApp
             {
                 _updateState.CanUpdate = true;
                 _updateState.CanUpdateLabel = true;
-                Logging.WriteException(ex, MSGBox: true);
+
+                // An update nobody asked for must not interrupt with a modal error. The progress card
+                // already shows the failure, and the caller toasts. A hand-started update keeps the
+                // dialog, because someone is waiting on the answer.
+                Logging.WriteException(ex, MSGBox: !unattended);
             });
         }
         finally
@@ -941,7 +1123,7 @@ public class UpdateApp
                 return;
             }
 
-            string currentVersion = GetApplicationVersion(Path.Combine(currentAppPath, ExecutableName))?.ToString()
+            string? currentVersion = GetApplicationVersion(Path.Combine(currentAppPath, ExecutableName))?.ToString()
                 ?? _updateState.AppVersion?.VersionNumber;
 
             string rollbackRecoveryPath = Path.Combine(dataPath, "rollback_recovery");
@@ -1067,11 +1249,9 @@ public class UpdateApp
         Logging.WriteException(new Exception("No rollback backup was found."), MSGBox: true);
     }
 
-    public void UpdateApplication(bool admin = false, string customZipPath = null)
+    public void UpdateApplication(bool admin = false, string? customZipPath = null)
     {
-        bool useCustomZip = !string.IsNullOrEmpty(customZipPath);
-
-        if (useCustomZip)
+        if (!string.IsNullOrEmpty(customZipPath))
         {
             unzipPath = Path.Combine(GetWorkspaceRoot(), "custom_unzip");
             magicChatboxExePath = Path.Combine(unzipPath, ExecutableName);
@@ -1174,7 +1354,7 @@ public class UpdateApp
         return $"Update failed: {reason}";
     }
 
-    public void UpdateStatus(string message, StartUp startUp = null, double proc = 50)
+    public void UpdateStatus(string message, StartUp? startUp = null, double proc = 50)
     {
         _dispatcher.BeginInvoke(() =>
         {

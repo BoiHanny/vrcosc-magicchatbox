@@ -15,6 +15,8 @@ public partial class AppUpdateState : ObservableObject
     [ObservableProperty] private string _updateStatustxt = string.Empty;
     [ObservableProperty] private string _updateURL = string.Empty;
     [ObservableProperty] private string _updateDigest = string.Empty;
+    [ObservableProperty] private string _updateVersion = string.Empty;
+    [ObservableProperty] private UpdateChannel? _pendingUpdateChannel;
     [ObservableProperty] private string _latestReleaseURL = string.Empty;
     [ObservableProperty] private string _latestReleaseDigest = string.Empty;
     [ObservableProperty] private string _preReleaseURL = string.Empty;
@@ -24,29 +26,29 @@ public partial class AppUpdateState : ObservableObject
     [ObservableProperty] private bool _rollBackUpdateAvailable;
     [ObservableProperty] private System.Version _rollBackVersion = new(0, 0, 0, 0);
 
-    private Models.Version _appVersion;
-    public Models.Version AppVersion
+    private Models.Version? _appVersion;
+    public Models.Version? AppVersion
     {
         get => _appVersion;
         set => SetProperty(ref _appVersion, value);
     }
 
-    private Models.Version _gitHubVersion;
-    public Models.Version GitHubVersion
+    private Models.Version? _gitHubVersion;
+    public Models.Version? GitHubVersion
     {
         get => _gitHubVersion;
         set => SetProperty(ref _gitHubVersion, value);
     }
 
-    private Models.Version _preReleaseVersion;
-    public Models.Version PreReleaseVersion
+    private Models.Version? _preReleaseVersion;
+    public Models.Version? PreReleaseVersion
     {
         get => _preReleaseVersion;
         set => SetProperty(ref _preReleaseVersion, value);
     }
 
-    private Models.Version _latestReleaseVersion;
-    public Models.Version LatestReleaseVersion
+    private Models.Version? _latestReleaseVersion;
+    public Models.Version? LatestReleaseVersion
     {
         get => _latestReleaseVersion;
         set => SetProperty(ref _latestReleaseVersion, value);

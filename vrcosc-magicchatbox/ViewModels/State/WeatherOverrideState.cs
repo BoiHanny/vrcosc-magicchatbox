@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Linq;
 using System.Text;
@@ -14,9 +15,9 @@ namespace vrcosc_magicchatbox.ViewModels.State;
 
 public partial class WeatherOverrideState : ObservableObject
 {
-    private ObservableCollection<WeatherConditionOverrideItem> _items;
+    private ObservableCollection<WeatherConditionOverrideItem>? _items;
     private bool _isUpdating;
-    private WeatherSettings _settings;
+    private WeatherSettings? _settings;
     private readonly IWeatherService _weatherService;
 
     public WeatherOverrideState(IWeatherService weatherService)
@@ -30,9 +31,9 @@ public partial class WeatherOverrideState : ObservableObject
         _settings.PropertyChanged += OnSettingsPropertyChanged;
     }
 
-    private void OnSettingsPropertyChanged(object sender, PropertyChangedEventArgs e)
+    private void OnSettingsPropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
-        if (e.PropertyName == nameof(WeatherSettings.WeatherConditionOverrides) && !_isUpdating && _items != null)
+        if (e.PropertyName == nameof(WeatherSettings.WeatherConditionOverrides) && !_isUpdating && _items != null && _settings != null)
         {
             ApplyOverridesToItems(_settings.WeatherConditionOverrides);
         }
@@ -47,6 +48,7 @@ public partial class WeatherOverrideState : ObservableObject
         }
     }
 
+    [MemberNotNull(nameof(_items))]
     private void EnsureItems()
     {
         if (_items != null) return;
@@ -70,13 +72,13 @@ public partial class WeatherOverrideState : ObservableObject
         var defaultIconMap = _weatherService.GetDefaultConditionIconMap();
         foreach (var entry in defaultMap.OrderBy(pair => pair.Key))
         {
-            defaultIconMap.TryGetValue(entry.Key, out string icon);
+            defaultIconMap.TryGetValue(entry.Key, out string? icon);
             items.Add(new WeatherConditionOverrideItem(entry.Key, icon, entry.Value));
         }
         return items;
     }
 
-    private void OnItemPropertyChanged(object sender, PropertyChangedEventArgs e)
+    private void OnItemPropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
         if (e.PropertyName != nameof(WeatherConditionOverrideItem.CustomText) &&
             e.PropertyName != nameof(WeatherConditionOverrideItem.CustomIcon))
@@ -116,7 +118,7 @@ public partial class WeatherOverrideState : ObservableObject
         _isUpdating = false;
     }
 
-    private static string BuildOverridesString(IEnumerable<WeatherConditionOverrideItem> items)
+    private static string BuildOverridesString(IEnumerable<WeatherConditionOverrideItem>? items)
     {
         if (items == null) return string.Empty;
 

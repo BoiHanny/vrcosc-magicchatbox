@@ -218,7 +218,12 @@ public class ChatEditStateTests
         ChatStateManager.FadeOlderMessages(messages);
 
         var values = messages
-            .Select(m => double.Parse(m.Opacity, CultureInfo.InvariantCulture))
+            .Select(m =>
+            {
+                string? opacity = m.Opacity;
+                Assert.NotNull(opacity);
+                return double.Parse(opacity, CultureInfo.InvariantCulture);
+            })
             .ToList();
 
         Assert.Equal(1.0, values[^1]);
@@ -233,7 +238,9 @@ public class ChatEditStateTests
 
         ChatStateManager.FadeOlderMessages(only);
 
-        Assert.Equal(1.0, double.Parse(only[0].Opacity, CultureInfo.InvariantCulture));
+        string? opacity = only[0].Opacity;
+        Assert.NotNull(opacity);
+        Assert.Equal(1.0, double.Parse(opacity, CultureInfo.InvariantCulture));
     }
 
     [Fact]

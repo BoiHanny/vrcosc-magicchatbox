@@ -21,7 +21,7 @@ namespace MagicChatbox.Tests.Services;
 public class EmojiServiceConcurrencyTests
 {
     [Fact]
-    public void Reading_an_icon_survives_the_collection_being_rewritten_underneath_it()
+    public async Task Reading_an_icon_survives_the_collection_being_rewritten_underneath_it()
     {
         var settings = new AppSettings { EnableEmojiShuffle = true, EnableEmojiShuffleInChats = true };
         settings.EmojiCollection.Add("a");
@@ -64,7 +64,7 @@ public class EmojiServiceConcurrencyTests
             });
         }
 
-        Task.WaitAll([writer, .. readers]);
+        await Task.WhenAll([writer, .. readers]);
 
         Assert.True(failures.Count == 0, "concurrent access threw: " + string.Join(" | ", failures));
     }

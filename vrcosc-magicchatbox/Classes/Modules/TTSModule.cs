@@ -132,7 +132,12 @@ public class TTSModule
 
             using var mp3Stream = new MemoryStream(audioData);
             using var mp3Reader = new Mp3FileReader(mp3Stream);
-            using var wasapiOut = new WasapiOut(device, AudioClientShareMode.Shared, false, 100);
+            using var wasapiOut = new WasapiPlayerBuilder()
+                .WithDevice(device)
+                .WithSharedMode()
+                .WithPollingSync()
+                .WithLatency(100)
+                .Build();
 
             wasapiOut.Init(mp3Reader);
             wasapiOut.Volume = _ttsSettings.TtsVolume;
@@ -142,7 +147,7 @@ public class TTSModule
 
             TimeSpan playbackBudget = mp3Reader.TotalTime + PlaybackGrace;
 
-            _oscSender.ToggleVoice();
+            _ = _oscSender.ToggleVoice();
             try
             {
                 await Task.Delay(175).ConfigureAwait(false);
@@ -164,7 +169,7 @@ public class TTSModule
             }
             finally
             {
-                _oscSender.ToggleVoice();
+                _ = _oscSender.ToggleVoice();
             }
         }
         catch (Exception ex)

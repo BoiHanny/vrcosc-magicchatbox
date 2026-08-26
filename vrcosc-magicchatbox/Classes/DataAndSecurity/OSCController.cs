@@ -21,7 +21,7 @@ public sealed class OSCController
         _oscPresenter = oscPresenter;
     }
 
-    internal void ClearChat(ChatItem lastsendchat = null) => _chatMgr.ClearChat(lastsendchat);
+    internal void ClearChat(ChatItem? lastsendchat = null) => _chatMgr.ClearChat(lastsendchat);
 
     public bool CreateChat(bool createItem, string? messageText = null) => _chatMgr.CreateChat(createItem, messageText);
 

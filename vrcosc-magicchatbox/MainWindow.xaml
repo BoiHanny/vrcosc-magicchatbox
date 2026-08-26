@@ -506,13 +506,26 @@
                                 </LinearGradientBrush>
                             </Border.Background>
                             <StackPanel>
+                                <!--
+                                    One grid for both rows, so the check button and the tick share a
+                                    column and cannot drift apart. Its own row rather than beside the
+                                    version, because the panel is about 200px wide and squeezing all
+                                    three onto one line clipped the word INSTALLED.
+                                -->
                                 <Grid>
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="*" />
                                         <ColumnDefinition Width="Auto" />
                                     </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="Auto" />
+                                    </Grid.RowDefinitions>
 
-                                    <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                                    <StackPanel
+                                        Grid.Row="0"
+                                        Grid.Column="0"
+                                        VerticalAlignment="Center">
                                         <TextBlock
                                             FontFamily="/Fonts/#Albert Sans"
                                             FontSize="{StaticResource FontSizeMicro}"
@@ -529,8 +542,11 @@
 
                                     <Button
                                         x:Name="CheckUpdateBtnn"
+                                        Grid.Row="0"
                                         Grid.Column="1"
+                                        Margin="8,0,0,0"
                                         Padding="0"
+                                        HorizontalAlignment="Center"
                                         VerticalAlignment="Center"
                                         Command="{Binding CheckUpdateCommand}"
                                         Style="{StaticResource CircleButton}"
@@ -541,6 +557,26 @@
                                             RenderOptions.BitmapScalingMode="Linear"
                                             Source="/Img/Icons/Load_ico.png" />
                                     </Button>
+
+                                    <!--
+                                        Spanning both columns puts the tick on the same right edge as
+                                        the button above it, and makes the whole row the click target
+                                        rather than a 14px square.
+                                    -->
+                                    <CheckBox
+                                        x:Name="AutoUpdateToggle"
+                                        Grid.Row="1"
+                                        Grid.Column="0"
+                                        Grid.ColumnSpan="2"
+                                        Margin="0,2,3,-5"
+                                        HorizontalAlignment="Stretch"
+                                        FontFamily="/Fonts/#Albert Sans"
+                                        Foreground="#FF9186B5"
+                                        IsChecked="{Binding AppSettingsInstance.StableUpdateMode, Converter={StaticResource AutoUpdateModeConverter}, Mode=TwoWay}"
+                                        Style="{StaticResource CompactCheckBox}"
+                                        ToolTip="Install stable updates on their own. Untick it and MagicChatbox will tell you about them instead.">
+                                        Auto update
+                                    </CheckBox>
                                 </Grid>
 
                                 <Border
@@ -1016,6 +1052,10 @@
                         </StackPanel>
 
 
+                        <!--
+                            Keeping the window in front lives on the Options page; this spot is worth
+                            more to the switch you want before putting a headset on.
+                        -->
                         <StackPanel
                             Margin="0,8,0,2"
                             HorizontalAlignment="Right"
@@ -1025,12 +1065,13 @@
                                 FontFamily="/Fonts/#Albert Sans"
                                 FontSize="12"
                                 Foreground="{StaticResource TextSecondaryBrush}"
-                                Text="TopMost" />
+                                Text="Auto start in VR" />
                             <CheckBox
                                 Margin="4,0,0,0"
                                 FontSize="12"
-                                IsChecked="{Binding AppSettingsInstance.Topmost, Mode=TwoWay}"
-                                Style="{DynamicResource SettingsCheckbox}" />
+                                IsChecked="{Binding AppSettingsInstance.StartWithSteamVr, Mode=TwoWay}"
+                                Style="{DynamicResource SettingsCheckbox}"
+                                ToolTip="Start MagicChatbox with SteamVR and open it straight to the tray." />
                         </StackPanel>
                         <StackPanel
                             Margin="0,2"

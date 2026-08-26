@@ -296,7 +296,7 @@ public partial class PulsoidModuleSettings : VersionedSettings
     protected virtual bool TryProtectToken(string plaintext, out string ciphertext)
     {
         string source = plaintext;
-        string destination = null;
+        string destination = string.Empty;
         bool ok = EncryptionMethods.TryProcessToken(ref source, ref destination, isEncryption: true);
         ciphertext = destination;
         return ok;
@@ -305,7 +305,7 @@ public partial class PulsoidModuleSettings : VersionedSettings
     protected virtual bool TryUnprotectToken(string ciphertext, out string plaintext)
     {
         string source = ciphertext;
-        string destination = null;
+        string destination = string.Empty;
         bool ok = EncryptionMethods.TryProcessToken(ref source, ref destination, isEncryption: false);
         plaintext = destination;
         return ok;

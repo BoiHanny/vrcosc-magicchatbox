@@ -403,12 +403,14 @@ public partial class IntelliChatModule : ObservableObject, IModule, IRecipient<I
 
     public void EnsureValidSelections()
     {
-        var selectedStyle = Settings.SelectedWritingStyle != null
-            ? Settings.SupportedWritingStyles.FirstOrDefault(style => style.ID == Settings.SelectedWritingStyle.ID)
+        var currentStyle = Settings.SelectedWritingStyle;
+        var selectedStyle = currentStyle != null
+            ? Settings.SupportedWritingStyles.FirstOrDefault(style => style.ID == currentStyle.ID)
             : null;
 
-        var selectedTranslateLanguage = Settings.SelectedTranslateLanguage != null
-            ? Settings.SupportedLanguages.FirstOrDefault(lang => lang.ID == Settings.SelectedTranslateLanguage.ID)
+        var currentTranslateLanguage = Settings.SelectedTranslateLanguage;
+        var selectedTranslateLanguage = currentTranslateLanguage != null
+            ? Settings.SupportedLanguages.FirstOrDefault(lang => lang.ID == currentTranslateLanguage.ID)
             : null;
         Settings.SelectedWritingStyle = selectedStyle ?? Settings.SupportedWritingStyles.FirstOrDefault(style => style.IsBuiltIn);
         Settings.SelectedTranslateLanguage = selectedTranslateLanguage ?? Settings.SupportedLanguages.Where(lang => lang.Language.Equals("English", StringComparison.OrdinalIgnoreCase)).FirstOrDefault();
@@ -462,7 +464,7 @@ public partial class IntelliChatModule : ObservableObject, IModule, IRecipient<I
             Settings.IntelliChatUILabel = true;
             Settings.IntelliChatUILabelTxt = isNextWordPrediction ? "Predicting next word..." : "Generating completion...";
 
-            var writingStyle = Settings.SelectedWritingStyle;
+            var writingStyle = Settings.SelectedWritingStyle!;
             var promptMessage = isNextWordPrediction ? "Predict the next chat message word." : $"Complete the following chat message, max {Core.Constants.MaxChatMessageLength} characters.";
             var messages = new List<ChatMessage>
     {
@@ -595,7 +597,7 @@ public partial class IntelliChatModule : ObservableObject, IModule, IRecipient<I
             }
         }
 
-        return null;
+        return string.Empty;
     }
 
     public static string GetModelType(IntelliGPTModel model)
@@ -747,7 +749,7 @@ public partial class IntelliChatModule : ObservableObject, IModule, IRecipient<I
         }
     }
 
-    public async Task PerformBeautifySentenceAsync(string text, IntelliChatWritingStyle intelliChatWritingStyle = null)
+    public async Task PerformBeautifySentenceAsync(string text, IntelliChatWritingStyle? intelliChatWritingStyle = null)
     {
         if (!_chatService.IsClientAvailable)
         {
@@ -767,7 +769,7 @@ public partial class IntelliChatModule : ObservableObject, IModule, IRecipient<I
             Settings.IntelliChatUILabel = true;
             Settings.IntelliChatUILabelTxt = "Waiting for OpenAI to respond";
 
-            intelliChatWritingStyle = intelliChatWritingStyle ?? Settings.SelectedWritingStyle;
+            intelliChatWritingStyle = intelliChatWritingStyle ?? Settings.SelectedWritingStyle!;
 
             var messages = new List<ChatMessage>
     {
@@ -807,7 +809,7 @@ public partial class IntelliChatModule : ObservableObject, IModule, IRecipient<I
         }
     }
 
-    public async Task PerformLanguageTranslationAsync(string text, SupportedIntelliChatLanguage supportedIntelliChatLanguage = null)
+    public async Task PerformLanguageTranslationAsync(string text, SupportedIntelliChatLanguage? supportedIntelliChatLanguage = null)
     {
         if (!_chatService.IsClientAvailable)
         {
@@ -823,7 +825,7 @@ public partial class IntelliChatModule : ObservableObject, IModule, IRecipient<I
         {
             if (!await ModerationCheckPassedAsync(text)) return;
 
-            SupportedIntelliChatLanguage intelliChatLanguage = supportedIntelliChatLanguage ?? Settings.SelectedTranslateLanguage;
+            SupportedIntelliChatLanguage intelliChatLanguage = supportedIntelliChatLanguage ?? Settings.SelectedTranslateLanguage!;
 
             var messages = new List<ChatMessage>
     {
@@ -888,7 +890,7 @@ public partial class IntelliChatModule : ObservableObject, IModule, IRecipient<I
             Settings.IntelliChatUILabel = true;
             Settings.IntelliChatUILabelTxt = "Waiting for OpenAI to respond";
 
-            IntelliChatWritingStyle intelliChatWritingStyle = Settings.SelectedWritingStyle;
+            IntelliChatWritingStyle intelliChatWritingStyle = Settings.SelectedWritingStyle!;
 
             var messages = new List<ChatMessage>
     {

@@ -39,7 +39,7 @@ public sealed class SoundpadOscProvider : IOscProvider
     {
         if (!_intgr.IntgrSoundpad) return null;
 
-        string playingSong = _modules.Value.Soundpad?.GetPlayingSong();
+        string playingSong = _modules.Value.Soundpad?.GetPlayingSong() ?? string.Empty;
         if (string.IsNullOrEmpty(playingSong)) return null;
 
         string text = BuildSegment(playingSong, _app.PrefixIconSoundpad, context.RemainingCharsIf(string.Empty));

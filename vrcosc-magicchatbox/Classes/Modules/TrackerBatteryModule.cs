@@ -139,7 +139,6 @@ namespace vrcosc_magicchatbox.Classes.Modules
         private readonly IPrivacyConsentService _consentService;
         private readonly IOpenVrSessionService _session;
         private readonly IToastService? _toast;
-        private volatile bool _trackerErrorShown;
 
         public TrackerBatteryModule(
             ISettingsProvider<TrackerBatterySettings> settingsProvider,
@@ -263,7 +262,6 @@ namespace vrcosc_magicchatbox.Classes.Modules
                 return;
             }
 
-            _trackerErrorShown = false;
             var currentSerialNumbers = new HashSet<string>();
             IReadOnlyList<TrackerDevice> knownDevices = DeviceSnapshot;
 
@@ -290,7 +288,7 @@ namespace vrcosc_magicchatbox.Classes.Modules
 
                 currentSerialNumbers.Add(serial);
 
-                TrackerDevice device = knownDevices
+                TrackerDevice? device = knownDevices
                     .FirstOrDefault(d => string.Equals(d.SerialNumber, serial, StringComparison.OrdinalIgnoreCase));
 
                 if (device == null)
@@ -537,7 +535,7 @@ namespace vrcosc_magicchatbox.Classes.Modules
         {
             var error = ETrackedPropertyError.TrackedProp_Success;
             _stringBuilder.Clear();
-            _vrSystem.GetStringTrackedDeviceProperty(
+            _vrSystem?.GetStringTrackedDeviceProperty(
                 deviceIndex,
                 prop,
                 _stringBuilder,
@@ -596,7 +594,7 @@ namespace vrcosc_magicchatbox.Classes.Modules
                 return "Headset";
             }
 
-            var role = _vrSystem.GetControllerRoleForTrackedDeviceIndex(deviceIndex);
+            var role = _vrSystem?.GetControllerRoleForTrackedDeviceIndex(deviceIndex);
             if (role == ETrackedControllerRole.LeftHand)
             {
                 return "Left Hand";
@@ -650,7 +648,7 @@ namespace vrcosc_magicchatbox.Classes.Modules
             }
         }
 
-        private static void NormalizeLegacyIcon(TrackerDevice device, string deviceKind)
+        private static void NormalizeLegacyIcon(TrackerDevice device, string? deviceKind)
         {
             if (device == null)
             {
@@ -676,7 +674,7 @@ namespace vrcosc_magicchatbox.Classes.Modules
             device.CustomIcon = defaultIcon ?? string.Empty;
         }
 
-        private static string GetDefaultIcon(string deviceKind)
+        private static string GetDefaultIcon(string? deviceKind)
         {
             if (DefaultIconsByKind.TryGetValue(deviceKind ?? string.Empty, out var icon))
             {

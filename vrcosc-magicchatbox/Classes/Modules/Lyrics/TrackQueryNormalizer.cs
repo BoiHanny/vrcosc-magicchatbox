@@ -3,28 +3,30 @@ using System.Text.RegularExpressions;
 
 namespace vrcosc_magicchatbox.Classes.Modules.Lyrics;
 
-public static class TrackQueryNormalizer
+public static partial class TrackQueryNormalizer
 {
-    private static readonly Regex NoiseSuffix = new(
+    [GeneratedRegex(
         @"[\(\[\{]\s*(official\s*(music\s*)?(video|audio|visualizer|lyric[s]?\s*video)?|" +
         @"lyric[s]?|audio|video|visualizer|mv|m/v|hd|hq|4k|8k|remaster(ed)?(\s*\d{4})?|" +
         @"full\s*version|full\s*album|color\s*coded|eng\s*sub|sub\s*espa[nñ]ol|" +
         @"free\s*download|out\s*now|explicit|clean|extended|radio\s*edit)\s*[^\)\]\}]*[\)\]\}]",
-        RegexOptions.Compiled | RegexOptions.IgnoreCase);
+        RegexOptions.IgnoreCase)]
+    private static partial Regex NoiseSuffix();
 
-    private static readonly Regex TopicSuffix =
-        new(@"\s*-\s*topic\s*$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+    [GeneratedRegex(@"\s*-\s*topic\s*$", RegexOptions.IgnoreCase)]
+    private static partial Regex TopicSuffix();
 
-    private static readonly Regex FeaturingSuffix =
-        new(@"\s*[\(\[]\s*(feat|ft|featuring)\b[^\)\]]*[\)\]]", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+    [GeneratedRegex(@"\s*[\(\[]\s*(feat|ft|featuring)\b[^\)\]]*[\)\]]", RegexOptions.IgnoreCase)]
+    private static partial Regex FeaturingSuffix();
 
-    private static readonly Regex TrailingSeparators =
-        new(@"[\s\-–—_|,;:/\\]+$", RegexOptions.Compiled);
+    [GeneratedRegex(@"[\s\-–—_|,;:/\\]+$")]
+    private static partial Regex TrailingSeparators();
 
-    private static readonly Regex LeadingSeparators =
-        new(@"^[\s\-–—_|,;:/\\]+", RegexOptions.Compiled);
+    [GeneratedRegex(@"^[\s\-–—_|,;:/\\]+")]
+    private static partial Regex LeadingSeparators();
 
-    private static readonly Regex MultipleSpaces = new(@"\s{2,}", RegexOptions.Compiled);
+    [GeneratedRegex(@"\s{2,}")]
+    private static partial Regex MultipleSpaces();
 
     public static LyricsQuery Normalize(string? title, string? artist, string? album, TimeSpan duration)
     {
@@ -53,8 +55,8 @@ public static class TrackQueryNormalizer
             return string.Empty;
 
         string working = NormalizeWidth(title);
-        working = NoiseSuffix.Replace(working, " ");
-        working = FeaturingSuffix.Replace(working, " ");
+        working = NoiseSuffix().Replace(working, " ");
+        working = FeaturingSuffix().Replace(working, " ");
 
         return Tidy(working);
     }
@@ -65,8 +67,8 @@ public static class TrackQueryNormalizer
             return string.Empty;
 
         string working = NormalizeWidth(artist);
-        working = TopicSuffix.Replace(working, string.Empty);
-        working = NoiseSuffix.Replace(working, " ");
+        working = TopicSuffix().Replace(working, string.Empty);
+        working = NoiseSuffix().Replace(working, " ");
 
         return Tidy(working);
     }
@@ -95,9 +97,9 @@ public static class TrackQueryNormalizer
 
     private static string Tidy(string text)
     {
-        string working = MultipleSpaces.Replace(text, " ");
-        working = LeadingSeparators.Replace(working, string.Empty);
-        working = TrailingSeparators.Replace(working, string.Empty);
+        string working = MultipleSpaces().Replace(text, " ");
+        working = LeadingSeparators().Replace(working, string.Empty);
+        working = TrailingSeparators().Replace(working, string.Empty);
         return working.Trim();
     }
 }

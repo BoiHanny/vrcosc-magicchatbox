@@ -22,7 +22,7 @@ public partial class ComponentStatsViewModel : ObservableObject
     public void UpdateComponentStat(StatsComponentType type, string newValue)
         => _module.UpdateStatValue(type, newValue);
 
-    public string GetComponentStatValue(StatsComponentType type)
+    public string? GetComponentStatValue(StatsComponentType type)
         => _module.GetStatValue(type);
 
     public void SetComponentStatMaxValue(StatsComponentType type, string maxValue)
@@ -76,13 +76,13 @@ public partial class ComponentStatsViewModel : ObservableObject
         set { _module.SetShowSmallName(StatsComponentType.CPU, value); OnPropertyChanged(); }
     }
 
-    public string CPUCustomHardwareName
+    public string? CPUCustomHardwareName
     {
         get => _module.GetCustomHardwareName(StatsComponentType.CPU);
         set { _module.SetCustomHardwareName(StatsComponentType.CPU, value); OnPropertyChanged(); }
     }
 
-    public string CPUHardwareName => _module.GetHardwareName(StatsComponentType.CPU);
+    public string? CPUHardwareName => _module.GetHardwareName(StatsComponentType.CPU);
 
     public bool GPU_EnableHardwareTitle
     {
@@ -108,13 +108,13 @@ public partial class ComponentStatsViewModel : ObservableObject
         set { _module.SetShowSmallName(StatsComponentType.GPU, value); OnPropertyChanged(); }
     }
 
-    public string GPUCustomHardwareName
+    public string? GPUCustomHardwareName
     {
         get => _module.GetCustomHardwareName(StatsComponentType.GPU);
         set { _module.SetCustomHardwareName(StatsComponentType.GPU, value); OnPropertyChanged(); }
     }
 
-    public string GPUHardwareName => _module.GetHardwareName(StatsComponentType.GPU);
+    public string? GPUHardwareName => _module.GetHardwareName(StatsComponentType.GPU);
 
     public bool isCPUAvailable
     {
@@ -247,13 +247,13 @@ public partial class ComponentStatsViewModel : ObservableObject
         set { _module.SetShowSmallName(StatsComponentType.RAM, value); OnPropertyChanged(); }
     }
 
-    public string RAMCustomHardwareName
+    public string? RAMCustomHardwareName
     {
         get => _module.GetCustomHardwareName(StatsComponentType.RAM);
         set { _module.SetCustomHardwareName(StatsComponentType.RAM, value); OnPropertyChanged(); }
     }
 
-    public string RAMHardwareName => _module.GetHardwareName(StatsComponentType.RAM);
+    public string? RAMHardwareName => _module.GetHardwareName(StatsComponentType.RAM);
 
     public bool isVRAMAvailable
     {
@@ -319,13 +319,13 @@ public partial class ComponentStatsViewModel : ObservableObject
         set { _module.SetShowSmallName(StatsComponentType.VRAM, value); OnPropertyChanged(); }
     }
 
-    public string VRAMCustomHardwareName
+    public string? VRAMCustomHardwareName
     {
         get => _module.GetCustomHardwareName(StatsComponentType.VRAM);
         set { _module.SetCustomHardwareName(StatsComponentType.VRAM, value); OnPropertyChanged(); }
     }
 
-    public string VRAMHardwareName => _module.GetHardwareName(StatsComponentType.VRAM);
+    public string? VRAMHardwareName => _module.GetHardwareName(StatsComponentType.VRAM);
 
     public void RefreshAllProperties()
     {

@@ -1,3 +1,7 @@
+using System;
+using System.Net.Http;
+using System.Reflection;
+using TwitchLib.Api.Core.Exceptions;
 using vrcosc_magicchatbox.Classes.Modules;
 using Xunit;
 
@@ -85,5 +89,32 @@ public sealed class TwitchOutputTests
         settings.OfflineMessage = "offline";
 
         Assert.Equal("offline", Build(settings, isLive: false));
+    }
+
+    [Fact]
+    public void TwitchLibs_expired_token_exception_is_treated_as_unauthorized()
+    {
+        using var response = new HttpResponseMessage();
+        var exception = new TokenExpiredException("expired", response);
+        MethodInfo? classifier = typeof(TwitchModule).GetMethod(
+            "IsUnauthorized",
+            BindingFlags.Static | BindingFlags.NonPublic);
+
+        Assert.NotNull(classifier);
+        Assert.True((bool)classifier!.Invoke(null, new object[] { exception })!);
+    }
+
+    [Fact]
+    public void Wrapped_expired_token_messages_are_treated_as_unauthorized()
+    {
+        var exception = new InvalidOperationException(
+            "outer",
+            new Exception("Your request was blocked due to an expired token."));
+        MethodInfo? classifier = typeof(TwitchModule).GetMethod(
+            "IsUnauthorized",
+            BindingFlags.Static | BindingFlags.NonPublic);
+
+        Assert.NotNull(classifier);
+        Assert.True((bool)classifier!.Invoke(null, new object[] { exception })!);
     }
 }

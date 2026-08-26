@@ -15,9 +15,10 @@ using vrcosc_magicchatbox.Services.Hardware;
 
 namespace vrcosc_magicchatbox.Services;
 
-public sealed class HardwareMonitorService : IHardwareMonitorService
+public sealed partial class HardwareMonitorService : IHardwareMonitorService
 {
     private readonly object _lock = new();
+    private readonly object _nvidiaSmiQueryLock = new();
     private readonly LhmGpuSensorProvider _vendorGpu = new();
     private IReadOnlyList<string>? _gpuCache;
     private IReadOnlyList<GpuInfo>? _gpuInfoCache;
@@ -64,12 +65,15 @@ public sealed class HardwareMonitorService : IHardwareMonitorService
         "VideoProcessing",
         "Copy",
     };
-    private static readonly Regex GpuCounterLuidRegex = new(
+    [GeneratedRegex(
         @"luid_0x(?<high>[0-9a-f]+)_0x(?<low>[0-9a-f]+)",
-        RegexOptions.IgnoreCase | RegexOptions.CultureInvariant | RegexOptions.Compiled);
-    private static readonly Regex GpuEngineCounterRegex = new(
+        RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)]
+    private static partial Regex GpuCounterLuidRegex();
+
+    [GeneratedRegex(
         @"luid_0x(?<high>[0-9a-f]+)_0x(?<low>[0-9a-f]+)_phys_(?<phys>\d+)_eng_(?<engine>\d+)_engtype_(?<type>.+)$",
-        RegexOptions.IgnoreCase | RegexOptions.CultureInvariant | RegexOptions.Compiled);
+        RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)]
+    private static partial Regex GpuEngineCounterRegex();
     private static readonly Guid DxgiFactory1Guid = new("770aae78-f26f-4dba-a829-253c83d1b387");
     private const int DxgiErrorNotFound = unchecked((int)0x887A0002);
     private const uint DxgiAdapterFlagSoftware = 2;
@@ -977,7 +981,7 @@ public sealed class HardwareMonitorService : IHardwareMonitorService
 
     private static bool TryParseGpuEngineCounter(string instanceName, out string? luidToken, out string engineKey, out string engineType)
     {
-        var match = GpuEngineCounterRegex.Match(instanceName);
+        var match = GpuEngineCounterRegex().Match(instanceName);
         if (!match.Success)
         {
             luidToken = null;
@@ -994,7 +998,7 @@ public sealed class HardwareMonitorService : IHardwareMonitorService
 
     private static string? TryParseLuidToken(string instanceName)
     {
-        var match = GpuCounterLuidRegex.Match(instanceName);
+        var match = GpuCounterLuidRegex().Match(instanceName);
         return match.Success
             ? NormalizeLuidToken(match.Groups["high"].Value, match.Groups["low"].Value)
             : null;
@@ -1061,35 +1065,38 @@ public sealed class HardwareMonitorService : IHardwareMonitorService
         if (!HasNvidiaAdapter())
             return Array.Empty<NvidiaSmiSample>();
 
-        lock (_lock)
+        lock (_nvidiaSmiQueryLock)
         {
-            if (_nvidiaSmiCache != null &&
-                DateTime.UtcNow - _nvidiaSmiCapturedAtUtc < NvidiaSmiSampleTtl)
+            lock (_lock)
             {
-                return _nvidiaSmiCache;
-            }
+                if (_nvidiaSmiCache != null &&
+                    DateTime.UtcNow - _nvidiaSmiCapturedAtUtc < NvidiaSmiSampleTtl)
+                {
+                    return _nvidiaSmiCache;
+                }
 
-            if (_nvidiaSmiUnavailable)
-                return Array.Empty<NvidiaSmiSample>();
-
-            if (_nvidiaSmiRetryAfterUtc != default)
-            {
-                if (DateTime.UtcNow < _nvidiaSmiRetryAfterUtc)
+                if (_nvidiaSmiUnavailable)
                     return Array.Empty<NvidiaSmiSample>();
 
-                _nvidiaSmiRetryAfterUtc = default;
-                _nvidiaSmiFailures = 0;
+                if (_nvidiaSmiRetryAfterUtc != default)
+                {
+                    if (DateTime.UtcNow < _nvidiaSmiRetryAfterUtc)
+                        return Array.Empty<NvidiaSmiSample>();
+
+                    _nvidiaSmiRetryAfterUtc = default;
+                    _nvidiaSmiFailures = 0;
+                }
             }
-        }
 
-        IReadOnlyList<NvidiaSmiSample> samples = QueryNvidiaSmiAsync().GetAwaiter().GetResult();
-        lock (_lock)
-        {
-            _nvidiaSmiCache = samples;
-            _nvidiaSmiCapturedAtUtc = DateTime.UtcNow;
-        }
+            IReadOnlyList<NvidiaSmiSample> samples = QueryNvidiaSmiAsync().GetAwaiter().GetResult();
+            lock (_lock)
+            {
+                _nvidiaSmiCache = samples;
+                _nvidiaSmiCapturedAtUtc = DateTime.UtcNow;
+            }
 
-        return samples;
+            return samples;
+        }
     }
 
     private async Task<IReadOnlyList<NvidiaSmiSample>> QueryNvidiaSmiAsync()

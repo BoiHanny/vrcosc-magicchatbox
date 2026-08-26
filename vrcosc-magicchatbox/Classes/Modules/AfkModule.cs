@@ -18,7 +18,7 @@ namespace vrcosc_magicchatbox.Classes.Modules;
 
 public partial class AfkModuleSettings : ObservableObject
 {
-    public event EventHandler SettingsChanged;
+    public event EventHandler? SettingsChanged;
 
     public AfkModuleSettings()
     {
@@ -48,7 +48,7 @@ public partial class AfkModuleSettings : ObservableObject
     }
 
     private const string SettingsFileName = "AfkModuleSettings.json";
-    internal string _settingsPath;
+    internal string _settingsPath = string.Empty;
 
     [ObservableProperty]
     private int afkTimeout = 120;
@@ -172,7 +172,7 @@ public partial class AfkModule : ObservableObject, IModule
     private TimeSettings TS => _ts;
     private readonly IPrivacyConsentService _consentService;
 
-    private Timer _afkTimer;
+    private Timer? _afkTimer;
     private DateTime lastActionTime;
     private bool overrideAfkStarted = false;
     private bool _disposed;
@@ -183,10 +183,10 @@ public partial class AfkModule : ObservableObject, IModule
     public string FriendlyTimeoutTime => FormatDuration(TimeSpan.FromSeconds(Settings.AfkTimeout), Settings.UseSmallLettersForDuration);
 
     [ObservableProperty]
-    private string remainingTimeUntilAFK;
+    private string? remainingTimeUntilAFK;
 
     [ObservableProperty]
-    private string timeCurrentlyAFK;
+    private string? timeCurrentlyAFK;
 
     [ObservableProperty]
     private bool vRModeLabelActive;
@@ -194,7 +194,7 @@ public partial class AfkModule : ObservableObject, IModule
     [ObservableProperty]
     private bool overrideButtonVisible;
 
-    public event EventHandler<EventArgs> AfkDetected;
+    public event EventHandler<EventArgs>? AfkDetected;
 
     [ObservableProperty]
     private AfkModuleSettings settings;
@@ -228,7 +228,7 @@ public partial class AfkModule : ObservableObject, IModule
         InitializeAfkDetection();
     }
 
-    private void ViewModel_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
+    private void ViewModel_PropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
     {
         if (e.PropertyName == "IsVRRunning")
         {
@@ -236,7 +236,7 @@ public partial class AfkModule : ObservableObject, IModule
         }
     }
 
-    private void Settings_SettingsChanged(object sender, EventArgs e)
+    private void Settings_SettingsChanged(object? sender, EventArgs e)
     {
         OnPropertyChanged(nameof(FriendlyTimeoutTime));
         HandleAfkDetectionToggle();

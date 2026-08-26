@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Reflection;
 using Newtonsoft.Json;
 using vrcosc_magicchatbox.Classes.Modules;
 using vrcosc_magicchatbox.Core.Configuration;
@@ -188,5 +189,41 @@ public sealed class JsonSettingsProviderTests : IDisposable
 
         Assert.Equal(before, File.ReadAllText(SettingsFile));
         provider.Dispose();
+    }
+
+    [Fact]
+    public void Save_failure_notification_rearms_after_a_successful_write()
+    {
+        var provider = new JsonSettingsProvider<PulsoidModuleSettings>(_env);
+        provider.Value.CurrentHeartRateTitle = "Original";
+        provider.FlushPendingSave();
+
+        provider.Value.CurrentHeartRateTitle = "First blocked write";
+        using (new FileStream(SettingsFile, FileMode.Open, FileAccess.Read, FileShare.None))
+            provider.FlushPendingSave();
+
+        Assert.True(SaveFailureWasLogged(provider));
+
+        provider.Value.CurrentHeartRateTitle = "Recovered";
+        provider.FlushPendingSave();
+
+        Assert.False(SaveFailureWasLogged(provider));
+
+        provider.Value.CurrentHeartRateTitle = "Second blocked write";
+        using (new FileStream(SettingsFile, FileMode.Open, FileAccess.Read, FileShare.None))
+            provider.FlushPendingSave();
+
+        Assert.True(SaveFailureWasLogged(provider));
+        provider.Dispose();
+    }
+
+    private static bool SaveFailureWasLogged(JsonSettingsProvider<PulsoidModuleSettings> provider)
+    {
+        FieldInfo? field = typeof(JsonSettingsProvider<PulsoidModuleSettings>).GetField(
+            "_saveFailureLogged",
+            BindingFlags.Instance | BindingFlags.NonPublic);
+
+        Assert.NotNull(field);
+        return (bool)field!.GetValue(provider)!;
     }
 }

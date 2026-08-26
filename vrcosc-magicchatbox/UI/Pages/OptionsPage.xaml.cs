@@ -8,7 +8,11 @@ using System.Windows.Data;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
 using System.Windows.Threading;
+using Microsoft.Extensions.DependencyInjection;
+using vrcosc_magicchatbox.Classes.Modules;
+using vrcosc_magicchatbox.Core.Configuration;
 using vrcosc_magicchatbox.Services;
+using vrcosc_magicchatbox.UI.Controls;
 using vrcosc_magicchatbox.UI.Pages.Options;
 using vrcosc_magicchatbox.ViewModels;
 
@@ -16,20 +20,7 @@ namespace vrcosc_magicchatbox.UI.Pages;
 
 public partial class OptionsPage : UserControl
 {
-    private static readonly string[] DeferredChunkKeys =
-    {
-        "OptionsDeferredChunk1",
-        "OptionsDeferredChunk2",
-        "OptionsDeferredChunk3",
-        "OptionsDeferredChunk4",
-        "OptionsDeferredChunk5",
-        "OptionsDeferredChunk6",
-        "OptionsDeferredChunk7",
-    };
-
-    private static readonly TimeSpan ChunkTickBudget = TimeSpan.FromMilliseconds(6);
-
-    private readonly Queue<string> _pendingChunkKeys = new(DeferredChunkKeys);
+    private const string ScrollMemoryKey = "options";
 
     private PrivacySection? PrivacySectionControl;
     private TtsOptionsSection? TtsOptionsSectionControl;
@@ -38,11 +29,12 @@ public partial class OptionsPage : UserControl
 
     private OptionsPageViewModel? _attachedVm;
 
-    private bool _chunkQueued;
+    private SectionRealizer? _realizer;
 
     public OptionsPage()
     {
         InitializeComponent();
+        BuildSectionRealizer();
 
         AddHandler(System.Windows.Controls.Primitives.ToggleButton.CheckedEvent,
             new RoutedEventHandler(OnSettingToggled));
@@ -62,10 +54,16 @@ public partial class OptionsPage : UserControl
             _attachedVm = vm;
         }
 
-        QueueNextChunk();
+        _realizer?.Start();
+        ScrollMemory.Restore(MainScroll, ScrollMemoryKey, () => _realizer?.RealizeVisible());
     }
 
-    private void OnUnloaded(object sender, RoutedEventArgs e) => DetachViewModel();
+    private void OnUnloaded(object sender, RoutedEventArgs e)
+    {
+        ScrollMemory.Detach(MainScroll);
+        _realizer?.Stop();
+        DetachViewModel();
+    }
 
     private void DetachViewModel()
     {
@@ -88,108 +86,46 @@ public partial class OptionsPage : UserControl
         }
     }
 
-    private void QueueNextChunk()
+    /// <summary>
+    /// Registers all 23 sections in layout order. Nothing is constructed here: the realizer builds each
+    /// section only when it approaches the viewport, which is what keeps a visit to Options cheap.
+    /// </summary>
+    private void BuildSectionRealizer()
     {
-        if (_chunkQueued || _pendingChunkKeys.Count == 0)
-            return;
+        // Falls back to a throwaway map when the container is not up, so the page still builds.
+        var heights = App.Services?.GetService<ISettingsProvider<AppSettings>>()?.Value.OptionsSectionHeights
+            ?? new Dictionary<string, double>();
 
-        _chunkQueued = true;
-        Dispatcher.BeginInvoke(DispatcherPriority.Input, new Action(LoadNextChunk));
+        _realizer = new SectionRealizer(MainScroll, heights);
+
+        // Chatting, Status and MediaLink stay declared inline in the XAML: they are the first thing on
+        // screen, so deferring them would only trade build cost for a visible placeholder.
+        _realizer.Add("spotify", OptionsWrapper_Spotify, () => new SpotifySection(), nameof(OptionsPageViewModel.SpotifySection));
+        _realizer.Add("lyrics", OptionsWrapper_Lyrics, () => new LyricsSection(), nameof(OptionsPageViewModel.LyricsSection));
+        _realizer.Add("twitch", OptionsWrapper_Twitch, () => new TwitchSection(), nameof(OptionsPageViewModel.TwitchSection));
+        _realizer.Add("tiktoklive", OptionsWrapper_TikTokLive, () => new TikTokLiveSection(), nameof(OptionsPageViewModel.TikTokLiveSection));
+        _realizer.Add("discord", OptionsWrapper_Discord, () => new DiscordSection(), nameof(OptionsPageViewModel.DiscordSection));
+        _realizer.Add("vrcradar", OptionsWrapper_VrcRadar, () => new VrcRadarSection(), nameof(OptionsPageViewModel.VrcRadarSection));
+        _realizer.Add("time", OptionsWrapper_Time, () => new TimeOptionsSection(), nameof(OptionsPageViewModel.TimeOptionsSection));
+        _realizer.Add("weather", OptionsWrapper_Weather, () => new WeatherSection(), nameof(OptionsPageViewModel.WeatherSection));
+        _realizer.Add("pulsoid", OptionsWrapper_Pulsoid, () => new PulsoidSection(), nameof(OptionsPageViewModel.PulsoidSection));
+        _realizer.Add("componentstats", OptionsWrapper_ComponentStats, () => new ComponentStatsSection(), nameof(OptionsPageViewModel.ComponentStatsSection));
+        _realizer.Add("networkstatistics", OptionsWrapper_NetworkStatistics, () => new NetworkStatisticsSection(), nameof(OptionsPageViewModel.NetworkStatisticsSection));
+        _realizer.Add("windowactivity", OptionsWrapper_WindowActivity, () => new WindowActivitySection(), nameof(OptionsPageViewModel.WindowActivitySection));
+        _realizer.Add("vrperformance", OptionsWrapper_VrPerformance, () => new VrPerformanceSection(), nameof(OptionsPageViewModel.VrPerformanceSection));
+        _realizer.Add("trackerbattery", OptionsWrapper_TrackerBattery, () => new TrackerBatterySection(), nameof(OptionsPageViewModel.TrackerBatterySection));
+        _realizer.Add("voicemod", OptionsWrapper_Voicemod, () => new VoicemodSection(), nameof(OptionsPageViewModel.VoicemodSection));
+        _realizer.Add("openai", OptionsWrapper_OpenAI, () => new OpenAISection(), nameof(OptionsPageViewModel.OpenAISection));
+        _realizer.Add("tts", OptionsWrapper_Tts, () => TtsOptionsSectionControl = new TtsOptionsSection(), nameof(OptionsPageViewModel.TtsSection));
+        _realizer.Add("appoptions", OptionsWrapper_AppOptions, () => new AppOptionsSection(), nameof(OptionsPageViewModel.AppOptionsSection));
+        _realizer.Add("privacy", OptionsWrapper_Privacy, () => PrivacySectionControl = new PrivacySection(), nameof(OptionsPageViewModel.PrivacySection));
+        _realizer.Add("eggdev", OptionsWrapper_EggDev, () => new EggDevSection(), nameof(OptionsPageViewModel.EggDevSection));
     }
 
-    private void LoadNextChunk()
-    {
-        _chunkQueued = false;
+    private void EnsureSectionsRealized() => _realizer?.RealizeAll();
 
-        if (_pendingChunkKeys.Count == 0 || !IsLoaded)
-            return;
-
-        var tick = Stopwatch.StartNew();
-        do
-        {
-            LoadChunk(_pendingChunkKeys.Dequeue());
-        }
-        while (_pendingChunkKeys.Count > 0 && tick.Elapsed < ChunkTickBudget);
-
-        QueueNextChunk();
-    }
-
-    private void EnsureSectionsRealized()
-    {
-        while (_pendingChunkKeys.Count > 0)
-            LoadChunk(_pendingChunkKeys.Dequeue());
-    }
-
-    private void LoadChunk(string key)
-    {
-        switch (key)
-        {
-            case "OptionsDeferredChunk1":
-                Realize(OptionsWrapper_Spotify, new SpotifySection(), nameof(OptionsPageViewModel.SpotifySection));
-                Realize(OptionsWrapper_Lyrics, new LyricsSection(), nameof(OptionsPageViewModel.LyricsSection));
-                Realize(OptionsWrapper_Twitch, new TwitchSection(), nameof(OptionsPageViewModel.TwitchSection));
-                break;
-            case "OptionsDeferredChunk2":
-                Realize(OptionsWrapper_TikTokLive, new TikTokLiveSection(), nameof(OptionsPageViewModel.TikTokLiveSection));
-                Realize(OptionsWrapper_Discord, new DiscordSection(), nameof(OptionsPageViewModel.DiscordSection));
-                Realize(OptionsWrapper_VrcRadar, new VrcRadarSection(), nameof(OptionsPageViewModel.VrcRadarSection));
-                break;
-            case "OptionsDeferredChunk3":
-                Realize(OptionsWrapper_Time, new TimeOptionsSection(), nameof(OptionsPageViewModel.TimeOptionsSection));
-                Realize(OptionsWrapper_Weather, new WeatherSection(), nameof(OptionsPageViewModel.WeatherSection));
-                Realize(OptionsWrapper_Pulsoid, new PulsoidSection(), nameof(OptionsPageViewModel.PulsoidSection));
-                break;
-            case "OptionsDeferredChunk4":
-                Realize(OptionsWrapper_ComponentStats, new ComponentStatsSection(), nameof(OptionsPageViewModel.ComponentStatsSection));
-                Realize(OptionsWrapper_NetworkStatistics, new NetworkStatisticsSection(), nameof(OptionsPageViewModel.NetworkStatisticsSection));
-                Realize(OptionsWrapper_WindowActivity, new WindowActivitySection(), nameof(OptionsPageViewModel.WindowActivitySection));
-                break;
-            case "OptionsDeferredChunk5":
-                Realize(OptionsWrapper_VrPerformance, new VrPerformanceSection(), nameof(OptionsPageViewModel.VrPerformanceSection));
-                Realize(OptionsWrapper_TrackerBattery, new TrackerBatterySection(), nameof(OptionsPageViewModel.TrackerBatterySection));
-                Realize(OptionsWrapper_Voicemod, new VoicemodSection(), nameof(OptionsPageViewModel.VoicemodSection));
-                Realize(OptionsWrapper_OpenAI, new OpenAISection(), nameof(OptionsPageViewModel.OpenAISection));
-                break;
-            case "OptionsDeferredChunk6":
-                TtsOptionsSectionControl = new TtsOptionsSection();
-                Realize(OptionsWrapper_Tts, TtsOptionsSectionControl, nameof(OptionsPageViewModel.TtsSection));
-                Realize(OptionsWrapper_AppOptions, new AppOptionsSection(), nameof(OptionsPageViewModel.AppOptionsSection));
-                PrivacySectionControl = new PrivacySection();
-                Realize(OptionsWrapper_Privacy, PrivacySectionControl, nameof(OptionsPageViewModel.PrivacySection));
-                break;
-            case "OptionsDeferredChunk7":
-                Realize(OptionsWrapper_EggDev, new EggDevSection(), nameof(OptionsPageViewModel.EggDevSection));
-                break;
-        }
-    }
-
-    private static void Realize(ContentControl wrapper, FrameworkElement content, string vmPropertyPath)
-    {
-        content.SetBinding(DataContextProperty, new Binding(vmPropertyPath));
-        wrapper.Content = content;
-        PlayChunkEntrance(content);
-    }
-
-    private static void PlayChunkEntrance(FrameworkElement chunk)
-    {
-        var slide = new TranslateTransform();
-        chunk.RenderTransform = slide;
-
-        var ease = new CubicEase { EasingMode = EasingMode.EaseOut };
-        var duration = new Duration(TimeSpan.FromMilliseconds(160));
-
-        chunk.BeginAnimation(OpacityProperty, new DoubleAnimation(0.0, 1.0, duration)
-        {
-            FillBehavior = FillBehavior.Stop,
-            EasingFunction = ease,
-        });
-
-        slide.BeginAnimation(TranslateTransform.YProperty, new DoubleAnimation(14.0, 0.0, duration)
-        {
-            FillBehavior = FillBehavior.Stop,
-            EasingFunction = ease,
-        });
-    }
+    /// <summary>Forces every section to exist so a scripted run has something to click.</summary>
+    internal void RealizeAllSectionsForDiagnostics() => EnsureSectionsRealized();
 
     private void EnsureSectionMap()
     {

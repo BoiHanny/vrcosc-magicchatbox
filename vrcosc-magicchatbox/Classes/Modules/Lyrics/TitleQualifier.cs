@@ -4,15 +4,13 @@ using System.Text.RegularExpressions;
 
 namespace vrcosc_magicchatbox.Classes.Modules.Lyrics;
 
-public static class TitleQualifier
+public static partial class TitleQualifier
 {
-    private static readonly Regex BracketTail = new(
-        @"\s*[\(\[]([^\(\)\[\]]*)[\)\]]\s*$",
-        RegexOptions.CultureInvariant | RegexOptions.Compiled);
+    [GeneratedRegex(@"\s*[\(\[]([^\(\)\[\]]*)[\)\]]\s*$", RegexOptions.CultureInvariant)]
+    private static partial Regex BracketTail();
 
-    private static readonly Regex DashTail = new(
-        @"\s+[-–—]\s+(.+)$",
-        RegexOptions.CultureInvariant | RegexOptions.Compiled);
+    [GeneratedRegex(@"\s+[-–—]\s+(.+)$", RegexOptions.CultureInvariant)]
+    private static partial Regex DashTail();
 
     public static (string Base, string Qualifier) Split(string? title)
     {
@@ -24,7 +22,7 @@ public static class TitleQualifier
 
         while (true)
         {
-            Match bracket = BracketTail.Match(working);
+            Match bracket = BracketTail().Match(working);
             if (!bracket.Success)
                 break;
 
@@ -37,7 +35,7 @@ public static class TitleQualifier
             working = remainder;
         }
 
-        Match dash = DashTail.Match(working);
+        Match dash = DashTail().Match(working);
         if (dash.Success)
         {
             string remainder = working[..dash.Index].Trim();

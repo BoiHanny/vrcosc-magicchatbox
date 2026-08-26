@@ -8,6 +8,6 @@ public interface IAudioService
     bool PopulateOutputDevices();
 
     void InvalidateOutputDeviceCache();
-    List<Voice> ReadTikTokTTSVoices();
+    List<Voice>? ReadTikTokTTSVoices();
     void EnsureLogDirectoryExists(string filePath);
 }

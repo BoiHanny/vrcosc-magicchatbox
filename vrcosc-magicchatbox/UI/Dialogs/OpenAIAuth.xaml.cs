@@ -105,7 +105,7 @@ namespace vrcosc_magicchatbox.UI.Dialogs
         {
             _openAISettings.AccessToken = OpenAIToken.Password;
             _openAISettings.OrganizationID = OrganizationID.Password;
-            _openAIModule.InitializeClient(_openAISettings.AccessToken, _openAISettings.OrganizationID);
+            _ = _openAIModule.InitializeClient(_openAISettings.AccessToken, _openAISettings.OrganizationID);
             this.Close();
         }
 

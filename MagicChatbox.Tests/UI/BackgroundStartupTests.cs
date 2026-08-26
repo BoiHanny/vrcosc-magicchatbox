@@ -45,7 +45,9 @@ public class BackgroundStartupTests
         string startup = AppStartupSource();
 
         int trayInit = startup.IndexOf("ITrayIconService>().Initialize(mainWindow)", StringComparison.Ordinal);
-        int hiddenBranch = startup.IndexOf("if (vm.AppSettingsInstance.StartInBackground)", StringComparison.Ordinal);
+        int hiddenBranch = Regex.Match(startup, HiddenBranchPattern) is { Success: true } branch
+            ? branch.Index
+            : -1;
 
         Assert.True(trayInit >= 0, "the tray icon is no longer initialized during startup");
         Assert.True(hiddenBranch >= 0, "the start-hidden branch was not found");
@@ -54,6 +56,12 @@ public class BackgroundStartupTests
             "the tray icon is created after the window is hidden, leaving no way back into the app if a later step fails");
     }
 
+    /// <summary>
+    /// Matches the start-hidden branch while tolerating extra reasons to take it, so that adding
+    /// another way in does not read as the branch having disappeared.
+    /// </summary>
+    private const string HiddenBranchPattern = @"if \(vm\.AppSettingsInstance\.StartInBackground[^)]*\)";
+
     /// <summary>Source of the <c>StartInBackground</c> branch, up to its <c>else</c>.</summary>
     private static string BackgroundBranch()
     {
@@ -61,7 +69,7 @@ public class BackgroundStartupTests
 
         var match = Regex.Match(
             startup,
-            @"if \(vm\.AppSettingsInstance\.StartInBackground\)\s*\{(?<body>.*?)\}\s*else",
+            HiddenBranchPattern + @"\s*\{(?<body>.*?)\}\s*else",
             RegexOptions.Singleline);
 
         Assert.True(match.Success, "the start-hidden branch was not found in App.xaml.cs");

@@ -169,8 +169,8 @@ public class MediaLinkModule : vrcosc_magicchatbox.Services.IMediaLinkService
         if (left == null || right == null)
             return false;
 
-        string leftId = left.Session?.Id;
-        string rightId = right.Session?.Id;
+        string? leftId = left.Session?.Id;
+        string? rightId = right.Session?.Id;
 
         return !string.IsNullOrEmpty(leftId) &&
                string.Equals(leftId, rightId, StringComparison.Ordinal);
@@ -546,7 +546,7 @@ public class MediaLinkModule : vrcosc_magicchatbox.Services.IMediaLinkService
         }
     }
 
-    private void ViewModel_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
+    private void ViewModel_PropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
     {
         if (e.PropertyName == "IntgrScanMediaLink" ||
             e.PropertyName == "IntgrMediaLink_VR" ||
@@ -827,7 +827,7 @@ public class MediaLinkModule : vrcosc_magicchatbox.Services.IMediaLinkService
     public void SessionRestore(MediaSessionInfo session)
     {
         MediaSessionSettings savedSettings = new MediaSessionSettings();
-        MediaSessionSettings matchingSettings;
+        MediaSessionSettings? matchingSettings;
 
         lock (MediaSessionSettings.SavedSessionsLock)
         {
@@ -895,14 +895,14 @@ public class MediaLinkModule : vrcosc_magicchatbox.Services.IMediaLinkService
         private bool timePreSuffixOnTheInside = true;
         private string timeSuffix = string.Empty;
 
-        public event PropertyChangedEventHandler PropertyChanged;
+        public event PropertyChangedEventHandler? PropertyChanged;
 
-        protected void OnPropertyChanged([CallerMemberName] string propertyName = null)
+        protected void OnPropertyChanged([CallerMemberName] string? propertyName = null)
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 
-        protected bool SetProperty<T>(ref T storage, T value, [CallerMemberName] string propertyName = null)
+        protected bool SetProperty<T>(ref T storage, T value, [CallerMemberName] string? propertyName = null)
         {
             if (Equals(storage, value)) return false;
             storage = value;

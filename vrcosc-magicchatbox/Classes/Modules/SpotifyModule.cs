@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Text.Json;
 using System.Threading;
@@ -21,6 +22,14 @@ namespace vrcosc_magicchatbox.Classes.Modules;
 
 public sealed partial class SpotifyModule : ObservableObject, IModule
 {
+    private sealed class SpotifyTokenRefreshTransientException : HttpRequestException
+    {
+        public SpotifyTokenRefreshTransientException(HttpStatusCode? statusCode)
+            : base("Spotify token refresh was temporarily unavailable. Retrying shortly.", null, statusCode)
+        {
+        }
+    }
+
     private static readonly TimeSpan TokenRefreshSkew = TimeSpan.FromMinutes(1);
     private static readonly TimeSpan RefreshTimeout = TimeSpan.FromSeconds(12);
     private static readonly TimeSpan ControlTimeout = TimeSpan.FromSeconds(8);
@@ -451,6 +460,11 @@ public sealed partial class SpotifyModule : ObservableObject, IModule
                 return;
             }
 
+            if (string.IsNullOrWhiteSpace(token))
+            {
+                return;
+            }
+
             bool liked = false;
             string? trackId = playback.Value?.Track?.Id;
             if (Settings.ShowLiked && !string.IsNullOrWhiteSpace(trackId))
@@ -510,9 +524,13 @@ public sealed partial class SpotifyModule : ObservableObject, IModule
         catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException or OperationCanceledException or JsonException or InvalidOperationException)
         {
             Logging.WriteException(ex, MSGBox: false);
-            string message = ex is JsonException or InvalidOperationException
-                ? "Spotify returned an unexpected response. Retrying shortly."
-                : "Spotify refresh timed out.";
+            string message = ex switch
+            {
+                SpotifyTokenRefreshTransientException => ex.Message,
+                JsonException or InvalidOperationException =>
+                    "Spotify returned an unexpected response. Retrying shortly.",
+                _ => "Spotify refresh timed out.",
+            };
             await HandleTransientFailureAsync(message).ConfigureAwait(false);
         }
         finally
@@ -688,9 +706,14 @@ public sealed partial class SpotifyModule : ObservableObject, IModule
                 return null;
             }
 
-            var token = await _oauth.RefreshTokenAsync(Settings.ClientId, Settings.RefreshToken, cancellationToken).ConfigureAwait(false);
-            if (token == null)
+            SpotifyTokenRefreshOutcome refresh = await _oauth
+                .RefreshTokenAsync(Settings.ClientId, Settings.RefreshToken, cancellationToken)
+                .ConfigureAwait(false);
+            if (!refresh.Succeeded)
             {
+                if (refresh.FailureReason == SpotifyTokenRefreshFailureReason.Transient)
+                    throw new SpotifyTokenRefreshTransientException(refresh.StatusCode);
+
                 await _dispatcher.InvokeAsync(() =>
                 {
                     _display.NeedsReconnect = true;
@@ -700,6 +723,7 @@ public sealed partial class SpotifyModule : ObservableObject, IModule
                 return null;
             }
 
+            SpotifyTokenResult token = refresh.Token!;
             Settings.AccessToken = token.AccessToken;
             if (!string.IsNullOrWhiteSpace(token.RefreshToken))
                 Settings.RefreshToken = token.RefreshToken;

@@ -77,7 +77,7 @@ namespace vrcosc_magicchatbox.UI.Pages
                 NewChattingTxt.CaretIndex = NewChattingTxt.Text.Length;
             }, DispatcherPriority.Input);
 
-        private void ButtonChattingTxt_Click(object sender, RoutedEventArgs e)
+        private void ButtonChattingTxt_Click(object? sender, RoutedEventArgs? e)
             => VM.SendChat();
 
         private void CancelEditChatbutton_Click(object sender, RoutedEventArgs e)

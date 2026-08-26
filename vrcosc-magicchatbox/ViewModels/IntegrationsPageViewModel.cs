@@ -29,6 +29,7 @@ public partial class IntegrationsPageViewModel : ObservableObject
     private readonly Lazy<IModuleHost> _moduleHost;
     private readonly Lazy<OSCController> _osc;
     private readonly ISettingsProvider<IntegrationSettings> _integrationSettingsProvider;
+    private readonly AppSettings _appSettings;
     private readonly ISettingsProvider<SpotifySettings> _spotifySettingsProvider;
     private readonly IMenuNavigationService _menuNav;
     private readonly INavigationService _nav;
@@ -100,6 +101,7 @@ public partial class IntegrationsPageViewModel : ObservableObject
         Lazy<IModuleHost> moduleHost,
         Lazy<OSCController> osc,
         ISettingsProvider<IntegrationSettings> integrationSettingsProvider,
+        ISettingsProvider<AppSettings> appSettingsProvider,
         ISettingsProvider<MediaLinkSettings> mediaLinkSettingsProvider,
         ISettingsProvider<SpotifySettings> spotifySettingsProvider,
         ISettingsProvider<WeatherSettings> weatherSettingsProvider,
@@ -124,6 +126,7 @@ public partial class IntegrationsPageViewModel : ObservableObject
         _moduleHost = moduleHost;
         _osc = osc;
         _integrationSettingsProvider = integrationSettingsProvider;
+        _appSettings = appSettingsProvider.Value;
         _spotifySettingsProvider = spotifySettingsProvider;
         _componentStats = componentStats;
         _scanLoop = scanLoop;
@@ -310,6 +313,13 @@ public partial class IntegrationsPageViewModel : ObservableObject
         if (!propertyName.StartsWith("Intgr", StringComparison.Ordinal))
             return;
 
+        if (!_appSettings.ShowHiddenIntegrationWarning)
+        {
+            OnPropertyChanged(nameof(ModeVisibilityWarning));
+            OnPropertyChanged(nameof(HasModeVisibilityWarning));
+            return;
+        }
+
         if (IntegrationModeVisibility.TryDescribeHiddenMode(
                 IntegrationSettings, propertyName, AppState.IsVRRunning, out var hidden))
         {
@@ -341,7 +351,9 @@ public partial class IntegrationsPageViewModel : ObservableObject
     }
 
     public string? ModeVisibilityWarning
-        => IntegrationModeVisibility.BuildWarning(IntegrationSettings, AppState.IsVRRunning);
+        => _appSettings.ShowHiddenIntegrationWarning
+            ? IntegrationModeVisibility.BuildWarning(IntegrationSettings, AppState.IsVRRunning)
+            : null;
 
     public bool HasModeVisibilityWarning => ModeVisibilityWarning != null;
 

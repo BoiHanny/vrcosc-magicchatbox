@@ -30,10 +30,10 @@ namespace vrcosc_magicchatbox.ViewModels.Models
         private string _msg = "";
 
         private string _MsgReplace = "";
-        private string _opacity;
+        private string? _opacity;
 
 
-        private string _Opacity_backup;
+        private string? _Opacity_backup;
 
         public ChatItem(ChatStatusDisplayState chatStatus)
         {
@@ -194,7 +194,7 @@ namespace vrcosc_magicchatbox.ViewModels.Models
         }
 
 
-        public string Opacity
+        public string? Opacity
         {
             get { return _opacity; }
             set
@@ -207,7 +207,7 @@ namespace vrcosc_magicchatbox.ViewModels.Models
             }
         }
 
-        public string Opacity_backup
+        public string? Opacity_backup
         {
             get { return _Opacity_backup; }
             set

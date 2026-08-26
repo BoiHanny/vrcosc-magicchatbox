@@ -467,6 +467,8 @@ public partial class VoicemodSectionViewModel : ObservableObject
             : VoicemodSoundSort.Recent;
         _settingsProvider.Save();
         OnPropertyChanged(nameof(SoundSortButtonText));
+        // Reset the page silently: the property's changed hook rebuilds the current page from the
+        // still-unsorted list, which RebuildSounds() below then immediately rebuilds again.
         _soundPageIndex = 0;
         OnPropertyChanged(nameof(SoundPageIndex));
         RebuildSounds();
@@ -742,6 +744,8 @@ public partial class VoicemodSectionViewModel : ObservableObject
         {
             case nameof(VoicemodSettings.SoundsPerPage):
                 OnPropertyChanged(nameof(SoundsPerPage));
+                // Silent for the same reason as CycleSoundSort: the changed hook would rebuild the
+                // page against the page size still in effect.
                 _soundPageIndex = 0;
                 OnPropertyChanged(nameof(SoundPageIndex));
                 RebuildSounds();

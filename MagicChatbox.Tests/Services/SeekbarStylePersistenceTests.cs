@@ -38,7 +38,8 @@ public class SeekbarStylePersistenceTests : IDisposable
 
         service.AddNewSeekbarStyle();
 
-        MediaLinkStyle added = state.SelectedMediaLinkSeekbarStyle;
+        MediaLinkStyle? added = state.SelectedMediaLinkSeekbarStyle;
+        Assert.NotNull(added);
         Assert.False(added.SystemDefault);
         Assert.True(added.ID >= 100);
 
@@ -53,7 +54,8 @@ public class SeekbarStylePersistenceTests : IDisposable
         using var service = Service(state);
 
         service.AddNewSeekbarStyle();
-        MediaLinkStyle mine = state.SelectedMediaLinkSeekbarStyle;
+        MediaLinkStyle? mine = state.SelectedMediaLinkSeekbarStyle;
+        Assert.NotNull(mine);
 
         mine.FilledCharacter = "#";
         mine.NonFilledCharacter = "-";

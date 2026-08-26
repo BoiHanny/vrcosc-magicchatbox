@@ -28,8 +28,8 @@ public sealed class OpenVrSessionService : IOpenVrSessionService
     private static readonly TimeSpan AttachRetryInterval = TimeSpan.FromSeconds(5);
 
     private readonly IOpenVrRuntime _runtime;
-    private readonly IAppState _appState;
-    private readonly IPrivacyConsentService _consent;
+    private readonly IAppState? _appState;
+    private readonly IPrivacyConsentService? _consent;
     private readonly Func<DateTime> _utcNow;
     private readonly Func<bool> _isUiThread;
     private readonly object _lock = new();
@@ -45,8 +45,8 @@ public sealed class OpenVrSessionService : IOpenVrSessionService
 
     public OpenVrSessionService(
         IOpenVrRuntime runtime,
-        IAppState appState,
-        IPrivacyConsentService consent,
+        IAppState? appState,
+        IPrivacyConsentService? consent,
         Func<DateTime>? utcNow = null,
         Func<bool>? isUiThread = null)
     {

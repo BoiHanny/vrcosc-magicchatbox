@@ -226,7 +226,7 @@
                     </Button>
 
                     <Button
-                        x:Name="Close"
+                        x:Name="CloseButton"
                         Margin="6,0,0,0"
                         Click="Close_Click"
                         Style="{StaticResource DialogIconButton}"

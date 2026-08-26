@@ -30,7 +30,7 @@ public sealed class AppHistoryService : IAppHistoryService
         {
             string appHistoryPath = Path.Combine(_env.DataPath, "AppHistory.json");
             string appHistoryLegacy = Path.Combine(_env.DataPath, "AppHistory.xml");
-            string appHistoryFile = File.Exists(appHistoryPath) ? appHistoryPath
+            string? appHistoryFile = File.Exists(appHistoryPath) ? appHistoryPath
                                   : File.Exists(appHistoryLegacy) ? appHistoryLegacy : null;
 
             if (appHistoryFile != null)

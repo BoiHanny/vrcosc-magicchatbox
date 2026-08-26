@@ -78,8 +78,8 @@ public sealed partial class MediaLinkDisplayState : ObservableObject
         }
     }
 
-    private MediaLinkStyle _selectedMediaLinkSeekbarStyle;
-    public MediaLinkStyle SelectedMediaLinkSeekbarStyle
+    private MediaLinkStyle? _selectedMediaLinkSeekbarStyle;
+    public MediaLinkStyle? SelectedMediaLinkSeekbarStyle
     {
         get => _selectedMediaLinkSeekbarStyle;
         set

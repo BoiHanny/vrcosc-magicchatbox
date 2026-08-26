@@ -24,10 +24,21 @@ namespace vrcosc_magicchatbox.Classes.Modules;
 
 public sealed partial class TikTokLiveModule : ObservableObject, IModule
 {
-    private static readonly Regex TikTokUserNameRegex = new("^[A-Za-z0-9._]{2,24}$", RegexOptions.Compiled | RegexOptions.CultureInvariant);
-    private static readonly Regex FollowerCountRegex = new("\"followerCount\"\\s*:\\s*(?<value>\\d+)", RegexOptions.Compiled | RegexOptions.CultureInvariant);
-    private static readonly Regex NicknameRegex = new("\"nickname\"\\s*:\\s*\"(?<value>(?:\\\\.|[^\"])*)\"", RegexOptions.Compiled | RegexOptions.CultureInvariant);
-    private static readonly Regex UniqueIdRegex = new("\"uniqueId\"\\s*:\\s*\"(?<value>(?:\\\\.|[^\"])*)\"", RegexOptions.Compiled | RegexOptions.CultureInvariant);
+    [GeneratedRegex("^[A-Za-z0-9._]{2,24}$", RegexOptions.CultureInvariant)]
+    private static partial Regex TikTokUserNameRegex();
+
+    [GeneratedRegex("\"followerCount\"\\s*:\\s*(?<value>\\d+)", RegexOptions.CultureInvariant)]
+    private static partial Regex FollowerCountRegex();
+
+    // TikTok's own status code for "user does not exist", carried in the page it still serves as 200.
+    [GeneratedRegex("\"statusCode\"\\s*:\\s*10221", RegexOptions.CultureInvariant)]
+    private static partial Regex ProfileNotFoundRegex();
+
+    [GeneratedRegex("\"nickname\"\\s*:\\s*\"(?<value>(?:\\\\.|[^\"])*)\"", RegexOptions.CultureInvariant)]
+    private static partial Regex NicknameRegex();
+
+    [GeneratedRegex("\"uniqueId\"\\s*:\\s*\"(?<value>(?:\\\\.|[^\"])*)\"", RegexOptions.CultureInvariant)]
+    private static partial Regex UniqueIdRegex();
 
     private const int CommentPreviewLength = TikTokLiveOutput.CommentPreviewLength;
     private const int UserPreviewLength = TikTokLiveOutput.UserPreviewLength;
@@ -726,10 +737,26 @@ public sealed partial class TikTokLiveModule : ObservableObject, IModule
         if (!TryParseProfileSnapshot(html, profileUserName, out TikTokProfileSnapshot profile))
         {
             Logging.WriteInfo($"TikTok profile parser could not find followerCount for @{profileUserName}.");
-            throw new InvalidOperationException("Follower count was not available on the public profile page.");
+            throw new InvalidOperationException(DescribeMissingProfile(html, profileUserName));
         }
 
         return profile;
+    }
+
+    /// <summary>
+    /// TikTok answers 200 for a missing account and for a bot check alike, so the page itself is the
+    /// only thing that says which happened - and telling them apart is the difference between "fix
+    /// your spelling" and "wait and try again".
+    /// </summary>
+    private static string DescribeMissingProfile(string html, string profileUserName)
+    {
+        if (ProfileNotFoundRegex().IsMatch(html))
+            return $"No TikTok account called @{profileUserName}. Check the spelling.";
+
+        if (!html.Contains("__UNIVERSAL_DATA_FOR_REHYDRATION__", StringComparison.Ordinal))
+            return "TikTok returned a check page instead of the profile. It is rate-limiting this network; try again in a few minutes.";
+
+        return "TikTok did not include a follower count on this profile.";
     }
 
     private void WireClientEvents(TikTokLiveClient client, int sessionId, TaskCompletionSource<bool> disconnectedTcs)
@@ -1354,7 +1381,7 @@ public sealed partial class TikTokLiveModule : ObservableObject, IModule
         if (separatorIndex >= 0)
             text = text[..separatorIndex];
 
-        return TikTokUserNameRegex.IsMatch(text) ? text : string.Empty;
+        return TikTokUserNameRegex().IsMatch(text) ? text : string.Empty;
     }
 
     private static string ExtractUserName(User? user)
@@ -1435,18 +1462,18 @@ public sealed partial class TikTokLiveModule : ObservableObject, IModule
     private static bool TryParseProfileSnapshot(string html, string requestedUserName, out TikTokProfileSnapshot profile)
     {
         profile = default;
-        Match followerMatch = FollowerCountRegex.Match(html);
+        Match followerMatch = FollowerCountRegex().Match(html);
         if (!followerMatch.Success
             || !long.TryParse(followerMatch.Groups["value"].Value, NumberStyles.None, CultureInfo.InvariantCulture, out long followerCount))
         {
             return false;
         }
 
-        string uniqueId = ReadJsonString(UniqueIdRegex.Match(html).Groups["value"].Value);
+        string uniqueId = ReadJsonString(UniqueIdRegex().Match(html).Groups["value"].Value);
         if (string.IsNullOrWhiteSpace(uniqueId))
             uniqueId = requestedUserName;
 
-        string displayName = ReadJsonString(NicknameRegex.Match(html).Groups["value"].Value);
+        string displayName = ReadJsonString(NicknameRegex().Match(html).Groups["value"].Value);
         if (string.IsNullOrWhiteSpace(displayName))
             displayName = uniqueId;
 
@@ -1514,7 +1541,7 @@ public sealed partial class TikTokLiveModule : ObservableObject, IModule
         string OutputPreview);
 }
 
-public static class TikTokLiveOutput
+public static partial class TikTokLiveOutput
 {
     public const int UserPreviewLength = 24;
 
@@ -1522,7 +1549,8 @@ public static class TikTokLiveOutput
 
     public const int GiftNameLength = 24;
 
-    private static readonly Regex MultiSpaceRegex = new("[ \t]{2,}", RegexOptions.Compiled);
+    [GeneratedRegex("[ \t]{2,}")]
+    private static partial Regex MultiSpaceRegex();
 
     public static string Count(long value, bool compact)
     {
@@ -1559,7 +1587,7 @@ public static class TikTokLiveOutput
             rendered = rendered.Replace($"{{{token.Key}}}", token.Value ?? string.Empty, StringComparison.OrdinalIgnoreCase);
 
         rendered = rendered.Replace("\\n", "\n", StringComparison.Ordinal);
-        rendered = MultiSpaceRegex.Replace(rendered, " ");
+        rendered = MultiSpaceRegex().Replace(rendered, " ");
         return rendered.Trim();
     }
 

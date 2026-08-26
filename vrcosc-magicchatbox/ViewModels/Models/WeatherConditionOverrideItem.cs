@@ -7,7 +7,7 @@ namespace vrcosc_magicchatbox.ViewModels.Models
         private string _customIcon = string.Empty;
         private string _customText = string.Empty;
 
-        public WeatherConditionOverrideItem(int code, string defaultIcon, string defaultText)
+        public WeatherConditionOverrideItem(int code, string? defaultIcon, string defaultText)
         {
             Code = code;
             DefaultIcon = defaultIcon ?? string.Empty;
@@ -53,7 +53,7 @@ namespace vrcosc_magicchatbox.ViewModels.Models
             }
         }
 
-        public event PropertyChangedEventHandler PropertyChanged;
+        public event PropertyChangedEventHandler? PropertyChanged;
 
         private void NotifyPropertyChanged(string propertyName)
         {

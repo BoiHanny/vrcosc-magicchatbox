@@ -19,7 +19,7 @@ namespace vrcosc_magicchatbox.Classes.Modules;
 
 public partial class PulsoidModule : ObservableObject, IModule
 {
-    private CancellationTokenSource _cts;
+    private CancellationTokenSource? _cts;
     private bool _disposed;
     private readonly IAppState _appState;
     private readonly IUiDispatcher _dispatcher;
@@ -84,7 +84,7 @@ public partial class PulsoidModule : ObservableObject, IModule
 
     [ObservableProperty]
     private bool pulsoidDeviceOnline = false;
-    public PulsoidStatisticsResponse PulsoidStatistics;
+    public PulsoidStatisticsResponse? PulsoidStatistics;
 
     private readonly ISettingsProvider<PulsoidModuleSettings> _settingsProvider;
     public PulsoidModuleSettings Settings => _settingsProvider.Value;
@@ -410,17 +410,21 @@ public partial class PulsoidModule : ObservableObject, IModule
         OscSender.SendOscParam("/avatar/parameters/MCB_Heartrate_TrendUp", trendUp);
         OscSender.SendOscParam("/avatar/parameters/MCB_Heartrate_TrendDown", trendDown);
 
+        var stats = PulsoidStatistics;
+        if (stats == null)
+            return;
+
         if (!Settings.SentMCBHeartrateInfoLegacy)
         {
-            OscSender.SendOscParam("/avatar/parameters/MCB_Heartrate_Min", PulsoidStatistics.minimum_beats_per_minute);
-            OscSender.SendOscParam("/avatar/parameters/MCB_Heartrate_Max", PulsoidStatistics.maximum_beats_per_minute);
-            OscSender.SendOscParam("/avatar/parameters/MCB_Heartrate_Avg", PulsoidStatistics.average_beats_per_minute);
+            OscSender.SendOscParam("/avatar/parameters/MCB_Heartrate_Min", stats.minimum_beats_per_minute);
+            OscSender.SendOscParam("/avatar/parameters/MCB_Heartrate_Max", stats.maximum_beats_per_minute);
+            OscSender.SendOscParam("/avatar/parameters/MCB_Heartrate_Avg", stats.average_beats_per_minute);
         }
         else
         {
-            SendHeartRateDigits("/avatar/parameters/MCB_Heartrate_Min", PulsoidStatistics.minimum_beats_per_minute);
-            SendHeartRateDigits("/avatar/parameters/MCB_Heartrate_Max", PulsoidStatistics.maximum_beats_per_minute);
-            SendHeartRateDigits("/avatar/parameters/MCB_Heartrate_Avg", PulsoidStatistics.average_beats_per_minute);
+            SendHeartRateDigits("/avatar/parameters/MCB_Heartrate_Min", stats.minimum_beats_per_minute);
+            SendHeartRateDigits("/avatar/parameters/MCB_Heartrate_Max", stats.maximum_beats_per_minute);
+            SendHeartRateDigits("/avatar/parameters/MCB_Heartrate_Avg", stats.average_beats_per_minute);
         }
     }
 
@@ -678,7 +682,7 @@ public partial class PulsoidModule : ObservableObject, IModule
         PulsoidModuleSettings settings,
         int heartRate,
         bool deviceOnline,
-        PulsoidStatisticsResponse stats)
+        PulsoidStatisticsResponse? stats)
     {
         if (settings.EnableHeartRateOfflineCheck && !deviceOnline)
             return string.Empty;
@@ -814,7 +818,7 @@ public partial class PulsoidModule : ObservableObject, IModule
         return value;
     }
 
-    public bool IsRelevantPropertyChange(string propertyName)
+    public bool IsRelevantPropertyChange(string? propertyName)
     {
         return propertyName == nameof(_integrationSettings.IntgrHeartRate) ||
                propertyName == nameof(_appState.IsVRRunning) ||
@@ -1032,16 +1036,9 @@ public partial class PulsoidModule : ObservableObject, IModule
     };
 
         var selectedSymbol = Settings.SelectedPulsoidTrendSymbol?.CombinedTrendSymbol;
-        var symbolExists = selectedSymbol != null && Settings.PulsoidTrendSymbols.Any(s => s.CombinedTrendSymbol == selectedSymbol);
+        var matchingSymbol = Settings.PulsoidTrendSymbols.FirstOrDefault(s => s.CombinedTrendSymbol == selectedSymbol);
 
-        if (symbolExists)
-        {
-            Settings.SelectedPulsoidTrendSymbol = Settings.PulsoidTrendSymbols.FirstOrDefault(s => s.CombinedTrendSymbol == selectedSymbol);
-        }
-        else
-        {
-            Settings.SelectedPulsoidTrendSymbol = Settings.PulsoidTrendSymbols.FirstOrDefault();
-        }
+        Settings.SelectedPulsoidTrendSymbol = matchingSymbol ?? Settings.PulsoidTrendSymbols[0];
     }
 
     public bool ShouldStartMonitoring()

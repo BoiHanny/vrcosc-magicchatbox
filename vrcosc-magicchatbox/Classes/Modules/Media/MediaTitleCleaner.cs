@@ -6,35 +6,39 @@ using vrcosc_magicchatbox.Classes.Modules.Lyrics;
 
 namespace vrcosc_magicchatbox.Classes.Modules.Media;
 
-public static class MediaTitleCleaner
+public static partial class MediaTitleCleaner
 {
     private const string NoiseToken =
         @"(?:official|music|lyric[s]?|video|audio|visualiser|visualizer|m/?v|hd|hq|uhd|full|[48]k|" +
         @"colou?r|coded|eng|sub|espa[nñ]ol|free|download|out|now|\d{4})";
 
-    private static readonly Regex ProductionNoise = new(
+    [GeneratedRegex(
         $@"[\(\[\{{]\s*{NoiseToken}(?:[\s\-–—/&,\.]+{NoiseToken})*\s*[\)\]\}}]",
-        RegexOptions.IgnoreCase | RegexOptions.CultureInvariant | RegexOptions.Compiled);
+        RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)]
+    private static partial Regex ProductionNoise();
 
     private const string FeatureWord = @"\b(?:featuring|feat|ft)\b\.?";
 
-    private static readonly Regex FeaturedTail = new(
+    [GeneratedRegex(
         $@"\s*[\(\[]\s*{FeatureWord}[^\)\]]*[\)\]]",
-        RegexOptions.IgnoreCase | RegexOptions.CultureInvariant | RegexOptions.Compiled);
+        RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)]
+    private static partial Regex FeaturedTail();
 
-    private static readonly Regex BareFeaturedTail = new(
+    [GeneratedRegex(
         $@"\s+{FeatureWord}\s+.*$",
-        RegexOptions.IgnoreCase | RegexOptions.CultureInvariant | RegexOptions.Compiled);
+        RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)]
+    private static partial Regex BareFeaturedTail();
 
-    private static readonly Regex MultipleSpaces = new(@"\s{2,}", RegexOptions.Compiled);
+    [GeneratedRegex(@"\s{2,}")]
+    private static partial Regex MultipleSpaces();
 
-    private static readonly Regex EdgeSeparators = new(
-        @"^[\s\-–—_|,;:/\\]+|[\s\-–—_|,;:/\\]+$",
-        RegexOptions.Compiled);
+    [GeneratedRegex(@"^[\s\-–—_|,;:/\\]+|[\s\-–—_|,;:/\\]+$")]
+    private static partial Regex EdgeSeparators();
 
-    private static readonly Regex ArtistDecoration = new(
+    [GeneratedRegex(
         @"(?:vevo|official|topic|music|channel)$",
-        RegexOptions.IgnoreCase | RegexOptions.CultureInvariant | RegexOptions.Compiled);
+        RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)]
+    private static partial Regex ArtistDecoration();
 
     private static readonly string[] TitleArtistDividers = [" - ", " – ", " — ", " | ", " • ", ": "];
 
@@ -44,7 +48,7 @@ public static class MediaTitleCleaner
             return string.Empty;
 
         string working = TrackQueryNormalizer.NormalizeWidth(title);
-        working = ProductionNoise.Replace(working, " ");
+        working = ProductionNoise().Replace(working, " ");
         working = Tidy(working);
 
         return StripArtistEcho(working, artist);
@@ -55,8 +59,8 @@ public static class MediaTitleCleaner
         if (string.IsNullOrWhiteSpace(title))
             return string.Empty;
 
-        string working = FeaturedTail.Replace(title, " ");
-        working = BareFeaturedTail.Replace(working, string.Empty);
+        string working = FeaturedTail().Replace(title, " ");
+        working = BareFeaturedTail().Replace(working, string.Empty);
         return Tidy(working);
     }
 
@@ -100,12 +104,12 @@ public static class MediaTitleCleaner
     {
         string letters = new(value.Where(char.IsLetterOrDigit).ToArray());
         letters = letters.ToLowerInvariant();
-        return ArtistDecoration.Replace(letters, string.Empty);
+        return ArtistDecoration().Replace(letters, string.Empty);
     }
 
     private static string Tidy(string text)
     {
-        string working = MultipleSpaces.Replace(text, " ");
-        return EdgeSeparators.Replace(working, string.Empty).Trim();
+        string working = MultipleSpaces().Replace(text, " ");
+        return EdgeSeparators().Replace(working, string.Empty).Trim();
     }
 }

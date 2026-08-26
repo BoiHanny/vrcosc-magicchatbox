@@ -545,16 +545,23 @@
                         Color="black" />
                 </Border.Effect>
             </Border>
-            <ScrollViewer
-                Grid.Row="5"
-                MaxHeight="600"
-                CanContentScroll="True"
-                VerticalScrollBarVisibility="Auto">
+                <!--  The scroll viewer lives inside the template: an ItemsControl wrapped in an outer one
+                      hands its panel an infinite height, so every row realizes and virtualization does nothing.  -->
                 <ItemsControl
+                    Grid.Row="5"
+                    MaxHeight="600"
                     HorizontalAlignment="Stretch"
+                    ScrollViewer.CanContentScroll="True"
                     VirtualizingPanel.IsVirtualizing="True"
                     VirtualizingPanel.VirtualizationMode="Recycling"
                     ItemsSource="{Binding WindowActivity.ScannedAppsView, UpdateSourceTrigger=PropertyChanged, NotifyOnTargetUpdated=True}">
+                <ItemsControl.Template>
+                    <ControlTemplate TargetType="ItemsControl">
+                        <ScrollViewer CanContentScroll="True" VerticalScrollBarVisibility="Auto">
+                            <ItemsPresenter />
+                        </ScrollViewer>
+                    </ControlTemplate>
+                </ItemsControl.Template>
                 <ItemsControl.ItemsPanel>
                     <ItemsPanelTemplate>
                         <VirtualizingStackPanel VirtualizingPanel.IsVirtualizing="True" VirtualizingPanel.VirtualizationMode="Recycling" />
@@ -702,7 +709,6 @@
                     </DataTemplate>
                 </ItemsControl.ItemTemplate>
                 </ItemsControl>
-            </ScrollViewer>
         </Grid>
 
     </Grid>

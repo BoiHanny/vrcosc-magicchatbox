@@ -155,9 +155,9 @@ namespace vrcosc_magicchatbox.UI.Pages
             IntegrationsList.EndInit();
         }
 
-        private void OnTileLayoutChanged(object sender, EventArgs e) => ApplyIntegrationOrder();
+        private void OnTileLayoutChanged(object? sender, EventArgs e) => ApplyIntegrationOrder();
 
-        private void OnTileShown(object sender, string key)
+        private void OnTileShown(object? sender, string key)
         {
             if (!IntegrationTileCatalog.TryGet(key, out var tile)) return;
 
@@ -196,10 +196,10 @@ namespace vrcosc_magicchatbox.UI.Pages
                 _integrationSortOrder.CollectionChanged += IntegrationSortOrder_CollectionChanged;
         }
 
-        private void IntegrationSortOrder_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
+        private void IntegrationSortOrder_CollectionChanged(object? sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
             => ApplyIntegrationOrder();
 
-        private void IntegrationDisplay_PropertyChanged(object sender, PropertyChangedEventArgs e)
+        private void IntegrationDisplay_PropertyChanged(object? sender, PropertyChangedEventArgs e)
         {
             if (e.PropertyName == nameof(IntegrationDisplayState.IntegrationSortOrder))
             {

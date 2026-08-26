@@ -1,107 +1,261 @@
-<Window
+﻿<Window
     x:Class="vrcosc_magicchatbox.UI.Dialogs.ConfirmationDialog"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     Title="Confirm"
-    Width="520"
-    Background="{StaticResource SurfaceCardBrush}"
+    Width="480"
+    AllowsTransparency="True"
+    Background="Transparent"
     FontFamily="{DynamicResource FontPrimary}"
+    Icon="pack://application:,,,/MagicChatbox;component/Img/MagicOSC_icon.png"
     ResizeMode="NoResize"
     SizeToContent="Height"
     WindowStyle="None">
 
+    <Window.Resources>
+        <Style x:Key="DialogGhostButton" TargetType="Button">
+            <Setter Property="Height" Value="34" />
+            <Setter Property="MinWidth" Value="96" />
+            <Setter Property="Padding" Value="18,0" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="FontFamily" Value="{StaticResource FontPrimary}" />
+            <Setter Property="FontSize" Value="{StaticResource FontSizeSecondary}" />
+            <Setter Property="Foreground" Value="{StaticResource TextSoftPurpleBrush}" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border
+                            x:Name="bg"
+                            Padding="{TemplateBinding Padding}"
+                            Background="Transparent"
+                            BorderBrush="#33FFFFFF"
+                            BorderThickness="1"
+                            CornerRadius="6">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="bg" Property="Background" Value="#1AFFFFFF" />
+                                <Setter Property="Foreground" Value="White" />
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="bg" Property="Background" Value="#0DFFFFFF" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style
+            x:Key="DialogPrimaryButton"
+            BasedOn="{StaticResource DialogGhostButton}"
+            TargetType="Button">
+            <Setter Property="Foreground" Value="White" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border
+                            x:Name="bg"
+                            Padding="{TemplateBinding Padding}"
+                            BorderBrush="#FF6E4FB5"
+                            BorderThickness="1"
+                            CornerRadius="7">
+                            <Border.Background>
+                                <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                                    <GradientStop Offset="0" Color="#FF3A1F73" />
+                                    <GradientStop Offset="1" Color="#FF4B2A8F" />
+                                </LinearGradientBrush>
+                            </Border.Background>
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="bg" Property="BorderBrush" Value="{StaticResource AccentLightPurpleBrush}" />
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="bg" Property="Background" Value="{StaticResource SurfacePrimaryBrush}" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style
+            x:Key="DialogDangerButton"
+            BasedOn="{StaticResource DialogPrimaryButton}"
+            TargetType="Button">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border
+                            x:Name="bg"
+                            Padding="{TemplateBinding Padding}"
+                            Background="{StaticResource StatusErrorDarkerBrush}"
+                            BorderBrush="{StaticResource StatusErrorBrush}"
+                            BorderThickness="1"
+                            CornerRadius="7">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="bg" Property="BorderBrush" Value="{StaticResource TextDangerRedBrush}" />
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="bg" Property="Background" Value="{StaticResource StatusErrorDarkBrush}" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="DialogIconButton" TargetType="Button">
+            <Setter Property="Width" Value="28" />
+            <Setter Property="Height" Value="28" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border
+                            x:Name="bg"
+                            Background="Transparent"
+                            CornerRadius="6">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="bg" Property="Background" Value="#22FFFFFF" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Window.Resources>
+
     <WindowChrome.WindowChrome>
         <WindowChrome
-            CaptionHeight="35"
+            CaptionHeight="52"
             CornerRadius="0"
-            GlassFrameThickness="1"
-            ResizeBorderThickness="8"
+            GlassFrameThickness="0"
+            ResizeBorderThickness="0"
             UseAeroCaptionButtons="False" />
     </WindowChrome.WindowChrome>
 
-    <Grid>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="35" />
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="62" />
-        </Grid.RowDefinitions>
+    <Border
+        Margin="12"
+        BorderBrush="#FF4A3E78"
+        BorderThickness="1"
+        CornerRadius="14"
+        FocusManager.FocusedElement="{Binding ElementName=CancelButton}">
+        <Border.Background>
+            <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                <GradientStop Offset="0" Color="#FF1C1245" />
+                <GradientStop Offset="1" Color="#FF251660" />
+            </LinearGradientBrush>
+        </Border.Background>
+        <Border.Effect>
+            <DropShadowEffect
+                BlurRadius="28"
+                Direction="270"
+                Opacity="0.7"
+                ShadowDepth="8"
+                Color="#FF0B0620" />
+        </Border.Effect>
 
-        <Border Grid.Row="0">
-            <Border.Background>
-                <LinearGradientBrush StartPoint="0,1" EndPoint="1,0">
-                    <GradientStop Color="{StaticResource SurfaceDarkColor}" />
-                    <GradientStop Offset="0.55" Color="{StaticResource SurfacePrimaryColor}" />
-                    <GradientStop Offset="1" Color="{StaticResource AccentDeepPurpleColor}" />
-                </LinearGradientBrush>
-            </Border.Background>
-        </Border>
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
 
-        <Grid
-            x:Name="DragArea"
-            Grid.Row="0"
-            MouseLeftButtonDown="DragArea_MouseLeftButtonDown">
-            <StackPanel Orientation="Horizontal">
-                <Image Margin="5" Source="/Img/MagicOSC_icon.png" />
+            <Grid Grid.Row="0" Height="52">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+
+                <Border
+                    x:Name="SeverityRail"
+                    Width="4"
+                    Height="22"
+                    Margin="18,0,12,0"
+                    VerticalAlignment="Center"
+                    Background="{StaticResource StatusErrorBrush}"
+                    CornerRadius="2" />
+
                 <TextBlock
                     x:Name="TitleTextBlock"
-                    Margin="6,1,0,0"
+                    Grid.Column="1"
                     VerticalAlignment="Center"
-                    FontFamily="/Fonts/#Albert Sans"
-                    FontSize="14"
-                    Foreground="White" />
-            </StackPanel>
-        </Grid>
+                    FontFamily="{StaticResource FontSecondary}"
+                    FontSize="{StaticResource FontSizeBody}"
+                    FontWeight="SemiBold"
+                    Foreground="White"
+                    TextTrimming="CharacterEllipsis" />
 
-        <Button
-            Grid.Row="0"
-            Width="40"
-            Height="35"
-            HorizontalAlignment="Right"
-            VerticalAlignment="Top"
-            Click="Cancel_Click"
-            Cursor="Hand"
-            Style="{DynamicResource CloseButtonStyle}"
-            WindowChrome.IsHitTestVisibleInChrome="True">
-            <Image Height="15" Source="/img/icons/Close_ico.png" />
-        </Button>
-
-        <StackPanel Grid.Row="1" Margin="22,18,22,10">
-            <TextBlock
-                x:Name="MessageTextBlock"
-                FontFamily="/Fonts/#Albert Sans"
-                FontSize="14"
-                Foreground="{StaticResource TextPrimaryBrush}"
-                TextWrapping="Wrap" />
-            <TextBlock
-                x:Name="HintTextBlock"
-                Margin="0,10,0,0"
-                FontFamily="/Fonts/#Albert Sans"
-                FontSize="12"
-                Foreground="{StaticResource TextMutedBrush}"
-                TextWrapping="Wrap" />
-        </StackPanel>
-
-        <Grid Grid.Row="2" Background="{StaticResource SurfaceDarkBrush}">
-            <StackPanel
-                Margin="0,0,18,0"
-                HorizontalAlignment="Right"
-                VerticalAlignment="Center"
-                Orientation="Horizontal">
                 <Button
-                    Width="110"
-                    Height="34"
-                    Margin="0,0,8,0"
+                    Grid.Column="2"
+                    Margin="0,0,12,0"
+                    VerticalAlignment="Center"
+                    AutomationProperties.Name="Close"
                     Click="Cancel_Click"
-                    Content="Cancel"
-                    Style="{StaticResource Status_Button_style}" />
-                <Button
-                    x:Name="ConfirmButton"
-                    Width="130"
-                    Height="34"
-                    Click="Confirm_Click"
-                    Content="Confirm"
-                    Style="{StaticResource Status_Button_style}" />
+                    Style="{StaticResource DialogIconButton}"
+                    ToolTip="Close"
+                    WindowChrome.IsHitTestVisibleInChrome="True">
+                    <TextBlock
+                        FontSize="{StaticResource FontSizeCaption}"
+                        Foreground="{StaticResource TextSoftPurpleBrush}"
+                        Text="&#x2715;" />
+                </Button>
+            </Grid>
+
+            <Border
+                Grid.Row="0"
+                VerticalAlignment="Bottom"
+                BorderBrush="#22FFFFFF"
+                BorderThickness="0,0,0,1" />
+
+            <StackPanel Grid.Row="1" Margin="22,18,22,20">
+                <TextBlock
+                    x:Name="MessageTextBlock"
+                    FontSize="{StaticResource FontSizeSubheading}"
+                    Foreground="White"
+                    LineHeight="23"
+                    TextWrapping="Wrap" />
+                <TextBlock
+                    x:Name="HintTextBlock"
+                    Margin="0,8,0,0"
+                    FontSize="{StaticResource FontSizeCaption}"
+                    Foreground="{StaticResource TextMutedBrush}"
+                    LineHeight="17"
+                    TextWrapping="Wrap" />
             </StackPanel>
+
+            <Border
+                Grid.Row="2"
+                Padding="22,14"
+                Background="#26110A2E"
+                BorderBrush="#22FFFFFF"
+                BorderThickness="0,1,0,0"
+                CornerRadius="0,0,13,13">
+                <StackPanel HorizontalAlignment="Right" Orientation="Horizontal">
+                    <Button
+                        x:Name="CancelButton"
+                        Margin="0,0,8,0"
+                        Content="Cancel"
+                        IsCancel="True"
+                        Style="{StaticResource DialogGhostButton}" />
+                    <Button
+                        x:Name="ConfirmButton"
+                        Click="Confirm_Click"
+                        Style="{StaticResource DialogDangerButton}" />
+                </StackPanel>
+            </Border>
         </Grid>
-    </Grid>
+    </Border>
 </Window>

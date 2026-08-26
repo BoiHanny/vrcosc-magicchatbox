@@ -153,11 +153,11 @@ public partial class PulsoidSectionViewModel : ObservableObject
             if (pulsoid == null) return;
 
             await pulsoid.DisconnectSession();
-            string state = Convert.ToBase64String(Guid.NewGuid().ToByteArray());
+            string state = Guid.NewGuid().ToString("N");
             const string clientId = Core.Constants.PulsoidClientId;
             const string redirectUri = Core.Constants.PulsoidOAuthRedirectUri;
             const string scope = Core.Constants.PulsoidOAuthScope;
-            var authEndpoint = $"{Core.Constants.PulsoidOAuthEndpoint}?response_type=token&client_id={clientId}&redirect_uri={Uri.EscapeDataString(redirectUri)}&scope={scope}&state={state}";
+            var authEndpoint = $"{Core.Constants.PulsoidOAuthEndpoint}?response_type=token&client_id={clientId}&redirect_uri={Uri.EscapeDataString(redirectUri)}&scope={scope}&state={Uri.EscapeDataString(state)}";
 
             var oAuth = PulsoidOAuth;
             try
@@ -171,7 +171,7 @@ public partial class PulsoidSectionViewModel : ObservableObject
                 return;
             }
 
-            string fragmentString = await oAuth.AuthenticateUserAsync(authEndpoint);
+            string? fragmentString = await oAuth.AuthenticateUserAsync(authEndpoint, state);
 
             if (string.IsNullOrEmpty(fragmentString))
             {
@@ -180,7 +180,7 @@ public partial class PulsoidSectionViewModel : ObservableObject
             }
 
             var fragment = PulsoidOAuthHandler.ParseQueryString(fragmentString);
-            if (fragment.TryGetValue("access_token", out string accessToken) && !string.IsNullOrEmpty(accessToken))
+            if (fragment.TryGetValue("access_token", out string? accessToken) && !string.IsNullOrEmpty(accessToken))
             {
                 var validation = await oAuth.ValidateTokenAsync(accessToken);
                 if (validation == PulsoidTokenValidation.Invalid)

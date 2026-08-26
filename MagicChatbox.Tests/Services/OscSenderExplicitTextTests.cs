@@ -2,6 +2,7 @@ using System;
 using System.ComponentModel;
 using System.Net;
 using System.Net.Sockets;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using vrcosc_magicchatbox.Classes.Modules;
@@ -15,6 +16,15 @@ namespace MagicChatbox.Tests.Services;
 
 public class OscSenderExplicitTextTests : IDisposable
 {
+    private sealed class ManualTimeProvider : TimeProvider
+    {
+        private DateTimeOffset _utcNow = new(2026, 1, 1, 0, 0, 0, TimeSpan.Zero);
+
+        public override DateTimeOffset GetUtcNow() => _utcNow;
+
+        public void Advance(TimeSpan duration) => _utcNow = _utcNow.Add(duration);
+    }
+
     private sealed class StubSettingsProvider<T> : ISettingsProvider<T> where T : class, new()
     {
         public T Value { get; } = new T();
@@ -128,5 +138,39 @@ public class OscSenderExplicitTextTests : IDisposable
 
         Assert.True(await _sender.SendOSCMessage(false, force: true));
         await ReceiveTextAsync();
+    }
+
+    [Fact]
+    public async Task Failed_hostnames_are_retried_after_the_cooldown()
+    {
+        var clock = new ManualTimeProvider();
+        var oscSettings = new StubSettingsProvider<OscSettings>();
+        oscSettings.Value.OscIP = "does-not-exist.invalid";
+        oscSettings.Value.OscPortOut = 9000;
+        var ttsSettings = new StubSettingsProvider<TtsSettings>();
+        using var sender = new OscSenderService(
+            oscSettings,
+            new StubSettingsProvider<AppSettings>(),
+            ttsSettings,
+            new FakeAppState(),
+            new ChatStatusDisplayState(),
+            new OscDisplayState(),
+            new TtsAudioDisplayState(ttsSettings),
+            clock);
+        FieldInfo? retryAfterField = typeof(OscSenderService).GetField(
+            "_lastFailedEndpointRetryAfterUtc",
+            BindingFlags.Instance | BindingFlags.NonPublic);
+
+        Assert.NotNull(retryAfterField);
+        Assert.False(await sender.SendOSCMessage(false, force: true, explicitText: "first"));
+        var firstRetryAfter = (DateTimeOffset)retryAfterField!.GetValue(sender)!;
+
+        Assert.False(await sender.SendOSCMessage(false, force: true, explicitText: "blocked"));
+        Assert.Equal(firstRetryAfter, retryAfterField.GetValue(sender));
+
+        clock.Advance(TimeSpan.FromSeconds(31));
+        Assert.False(await sender.SendOSCMessage(false, force: true, explicitText: "retried"));
+
+        Assert.True((DateTimeOffset)retryAfterField.GetValue(sender)! > firstRetryAfter);
     }
 }

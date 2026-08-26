@@ -21,7 +21,7 @@ namespace vrcosc_magicchatbox.ViewModels.Models
         private string _originalModelName = string.Empty;
         private string _deviceKind = string.Empty;
 
-        public event PropertyChangedEventHandler PropertyChanged;
+        public event PropertyChangedEventHandler? PropertyChanged;
 
         public string SerialNumber
         {

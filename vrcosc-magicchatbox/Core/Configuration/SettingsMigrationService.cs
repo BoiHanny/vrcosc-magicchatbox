@@ -46,7 +46,7 @@ public static class SettingsMigrationService
             return;
         }
 
-        XmlNode root = xmlDoc.SelectSingleNode("Settings");
+        XmlNode? root = xmlDoc.SelectSingleNode("Settings");
         if (root == null)
             return;
 
@@ -104,7 +104,7 @@ public static class SettingsMigrationService
 
         foreach (var entry in map)
         {
-            string xmlValue = GetXmlValue(root, entry.XmlCategory, entry.XmlKey);
+            string? xmlValue = GetXmlValue(root, entry.XmlCategory, entry.XmlKey);
             if (xmlValue == null) continue;
 
             try
@@ -112,11 +112,11 @@ public static class SettingsMigrationService
                 var prop = typeof(T).GetProperty(entry.JsonPropertyName);
                 if (prop == null || !prop.CanRead || !prop.CanWrite) continue;
 
-                object current = prop.GetValue(settings);
-                object defaultVal = prop.GetValue(defaults);
+                object? current = prop.GetValue(settings);
+                object? defaultVal = prop.GetValue(defaults);
                 if (!IsDefaultValue(current, defaultVal)) continue;
 
-                object converted = ConvertValue(xmlValue, prop.PropertyType);
+                object? converted = ConvertValue(xmlValue, prop.PropertyType);
                 if (converted == null) continue;
 
                 prop.SetValue(settings, converted);
@@ -195,14 +195,14 @@ public static class SettingsMigrationService
         }
     }
 
-    private static string GetXmlValue(XmlNode root, string category, string key)
+    private static string? GetXmlValue(XmlNode root, string category, string key)
     {
-        XmlNode catNode = root.SelectSingleNode(category);
-        XmlNode valNode = catNode?.SelectSingleNode(key);
+        XmlNode? catNode = root.SelectSingleNode(category);
+        XmlNode? valNode = catNode?.SelectSingleNode(key);
         return valNode?.InnerText;
     }
 
-    private static bool IsDefaultValue(object current, object defaultVal)
+    private static bool IsDefaultValue(object? current, object? defaultVal)
     {
         if (current == null && defaultVal == null) return true;
         if (current == null || defaultVal == null) return false;
@@ -239,28 +239,28 @@ public static class SettingsMigrationService
             _ => JsonConvert.SerializeObject(value, Newtonsoft.Json.Formatting.None)
         };
 
-    private static object ConvertValue(string value, Type targetType)
+    private static object? ConvertValue(string value, Type targetType)
     {
         if (targetType == typeof(string)) return value;
-        if (targetType == typeof(bool)) return bool.TryParse(value, out var b) ? b : (object)null;
-        if (targetType == typeof(int)) return int.TryParse(value, out var i) ? i : (object)null;
-        if (targetType == typeof(long)) return long.TryParse(value, out var l) ? l : (object)null;
-        if (targetType == typeof(uint)) return uint.TryParse(value, out var u) ? u : (object)null;
-        if (targetType == typeof(byte)) return byte.TryParse(value, out var by) ? by : (object)null;
+        if (targetType == typeof(bool)) return bool.TryParse(value, out var b) ? b : (object?)null;
+        if (targetType == typeof(int)) return int.TryParse(value, out var i) ? i : (object?)null;
+        if (targetType == typeof(long)) return long.TryParse(value, out var l) ? l : (object?)null;
+        if (targetType == typeof(uint)) return uint.TryParse(value, out var u) ? u : (object?)null;
+        if (targetType == typeof(byte)) return byte.TryParse(value, out var by) ? by : (object?)null;
         if (targetType == typeof(double))
         {
             if (double.TryParse(value, NumberStyles.Float, CultureInfo.InvariantCulture, out var dInv))
                 return dInv;
-            return double.TryParse(value, out var dSys) ? dSys : (object)null;
+            return double.TryParse(value, out var dSys) ? dSys : (object?)null;
         }
         if (targetType == typeof(float))
         {
             if (float.TryParse(value, NumberStyles.Float, CultureInfo.InvariantCulture, out var fInv))
                 return fInv;
-            return float.TryParse(value, out var fSys) ? fSys : (object)null;
+            return float.TryParse(value, out var fSys) ? fSys : (object?)null;
         }
         if (targetType == typeof(DateTime))
-            return DateTime.TryParse(value, out var dt) ? dt : (object)null;
+            return DateTime.TryParse(value, out var dt) ? dt : (object?)null;
         if (targetType.IsEnum)
             return Enum.TryParse(targetType, value, ignoreCase: true, out var e) ? e : null;
 
@@ -401,6 +401,8 @@ public static class SettingsMigrationService
         new("System",        "CountOculusSystemAsVR",          "CountOculusSystemAsVR"),
         new("Window",        "Topmost",                        "Topmost"),
         new("Update",        "JoinedAlphaChannel",             "JoinedAlphaChannel"),
+        new("Update",        "StableUpdateMode",               "StableUpdateMode"),
+        new("Update",        "PreReleaseUpdateMode",           "PreReleaseUpdateMode"),
         new("Update",        "CheckUpdateOnStartup",           "CheckUpdateOnStartup"),
         new("DEV",           "BlankEgg",                       "BlankEgg"),
         new("StatusSetting", "SwitchStatusInterval",           "SwitchStatusInterval"),

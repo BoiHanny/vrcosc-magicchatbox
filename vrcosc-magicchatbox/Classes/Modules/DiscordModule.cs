@@ -28,7 +28,6 @@ public partial class DiscordModule : ObservableObject, IModule
     private Timer? _channelRefreshTimer;
     private const int ChannelRefreshIntervalMs = 30_000;
     private CancellationTokenSource? _reconnectCts;
-    private const int MaxAutoReconnectAttempts = 5;
 
     private const int MaxChannelChars = 24;
     private const int MinChannelChars = 12;
@@ -136,15 +135,11 @@ public partial class DiscordModule : ObservableObject, IModule
 
         _ = Task.Run(async () =>
         {
-            for (int attempt = 1; attempt <= MaxAutoReconnectAttempts; attempt++)
+            int attempt = 1;
+            TimeSpan delay = Core.Constants.DiscordReconnectMinDelay;
+            while (!ct.IsCancellationRequested && !_disposed)
             {
-                if (ct.IsCancellationRequested || _disposed) return;
-
-                var delay = TimeSpan.FromSeconds(Math.Min(
-                    Core.Constants.DiscordReconnectMinDelay.TotalSeconds * Math.Pow(2, attempt - 1),
-                    Core.Constants.DiscordReconnectMaxDelay.TotalSeconds));
-
-                Logging.WriteInfo($"Discord IPC reconnect attempt {attempt}/{MaxAutoReconnectAttempts} in {delay.TotalSeconds:0.#}s");
+                Logging.WriteInfo($"Discord IPC reconnect attempt {attempt} in {delay.TotalSeconds:0.#}s");
 
                 try
                 {
@@ -165,9 +160,12 @@ public partial class DiscordModule : ObservableObject, IModule
                 {
                     Logging.WriteInfo($"Discord IPC reconnect failed: {ex.Message}");
                 }
-            }
 
-            Logging.WriteInfo("Discord IPC: Reconnect attempts exhausted. Waiting for the Discord integration to be toggled.");
+                attempt++;
+                delay = TimeSpan.FromSeconds(Math.Min(
+                    delay.TotalSeconds * 2,
+                    Core.Constants.DiscordReconnectMaxDelay.TotalSeconds));
+            }
         }, ct);
     }
 

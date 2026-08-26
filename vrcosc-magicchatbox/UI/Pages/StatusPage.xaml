@@ -398,6 +398,7 @@
                                                         FontSize="13"
                                                         Foreground="WhiteSmoke"
                                                         KeyDown="RenameGroupTextBox_KeyDown"
+                                                        MaxLength="50"
                                                         Tag="{Binding}"
                                                         Text="{Binding RenameBuffer, UpdateSourceTrigger=PropertyChanged}"
                                                         Visibility="{Binding IsRenaming, Converter={StaticResource BoolToVisibilityConverter}}">
@@ -475,6 +476,7 @@
                                         FontSize="12"
                                         Foreground="WhiteSmoke"
                                         KeyDown="NewGroupTextBox_KeyDown"
+                                        MaxLength="50"
                                         Text="{Binding NewGroupName, UpdateSourceTrigger=PropertyChanged}" />
                                     <Button
                                         Width="30"

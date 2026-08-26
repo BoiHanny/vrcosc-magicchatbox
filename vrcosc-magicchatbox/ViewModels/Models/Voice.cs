@@ -2,8 +2,8 @@
 {
     public class Voice
     {
-        public string DisplayName { get; set; }
-        public string ApiName { get; set; }
+        public string DisplayName { get; set; } = string.Empty;
+        public string ApiName { get; set; } = string.Empty;
 
     }
 }

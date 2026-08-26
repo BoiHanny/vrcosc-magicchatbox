@@ -153,14 +153,17 @@ public sealed class SpotifyOAuthHandler : IDisposable
         }
     }
 
-    public async Task<SpotifyTokenResult?> RefreshTokenAsync(
+    public async Task<SpotifyTokenRefreshOutcome> RefreshTokenAsync(
         string clientId,
         string refreshToken,
         CancellationToken cancellationToken = default)
     {
         string normalizedClientId = clientId?.Trim() ?? string.Empty;
         if (string.IsNullOrWhiteSpace(normalizedClientId) || string.IsNullOrWhiteSpace(refreshToken))
-            return null;
+        {
+            return SpotifyTokenRefreshOutcome.Failure(
+                SpotifyTokenRefreshFailureReason.ReauthenticationRequired);
+        }
 
         var content = new FormUrlEncodedContent(new Dictionary<string, string>
         {
@@ -178,10 +181,24 @@ public sealed class SpotifyOAuthHandler : IDisposable
             var (error, description) = SpotifyAuthOutcome.ParseErrorBody(body);
             Logging.WriteInfo(
                 $"Spotify token refresh failed ({(int)response.StatusCode} {response.StatusCode}): {error} {description}".TrimEnd());
-            return null;
+            bool transient = response.StatusCode == HttpStatusCode.RequestTimeout ||
+                             response.StatusCode == HttpStatusCode.TooManyRequests ||
+                             (int)response.StatusCode >= 500 ||
+                             string.Equals(error, "temporarily_unavailable", StringComparison.OrdinalIgnoreCase) ||
+                             string.Equals(error, "server_error", StringComparison.OrdinalIgnoreCase);
+            return SpotifyTokenRefreshOutcome.Failure(
+                transient
+                    ? SpotifyTokenRefreshFailureReason.Transient
+                    : SpotifyTokenRefreshFailureReason.ReauthenticationRequired,
+                response.StatusCode,
+                error,
+                description);
         }
 
-        return ParseTokenResponse(body);
+        SpotifyTokenResult? token = ParseTokenResponse(body);
+        return token == null
+            ? SpotifyTokenRefreshOutcome.Failure(SpotifyTokenRefreshFailureReason.Transient)
+            : SpotifyTokenRefreshOutcome.Success(token);
     }
 
     private async Task<SpotifyAuthOutcome> ExchangeCodeAsync(string clientId, string code, string verifier)

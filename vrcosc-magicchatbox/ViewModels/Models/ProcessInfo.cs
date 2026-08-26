@@ -5,13 +5,13 @@ namespace vrcosc_magicchatbox.ViewModels
     public class ProcessInfo : INotifyPropertyChanged
     {
         private bool _applyCustomAppName;
-        private string _customAppName;
+        private string _customAppName = string.Empty;
         private int _focusCount;
         private bool _isPrivateApp;
 
 
         private string? _lastTitle = "";
-        private string _processName;
+        private string _processName = string.Empty;
 
 
         private bool _ShowTitle = false;
@@ -20,7 +20,7 @@ namespace vrcosc_magicchatbox.ViewModels
         private string _customRegex = string.Empty;
         private string _contentFilter = string.Empty;
         private int _contentFilterMode;
-        public event PropertyChangedEventHandler PropertyChanged;
+        public event PropertyChangedEventHandler? PropertyChanged;
 
         private void NotifyPropertyChanged(string propertyName)
         { PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName)); }

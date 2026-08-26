@@ -37,6 +37,8 @@ public sealed class SettingsResetService : ISettingsResetService
         "LocalClientKeyEncrypted"
     };
 
+    private const string EncryptedSuffix = "Encrypted";
+
     public int ResetAll<T>(ISettingsProvider<T> provider, bool preserveCredentials = true) where T : class, new()
     {
         var propertyNames = typeof(T)
@@ -59,6 +61,7 @@ public sealed class SettingsResetService : ISettingsResetService
 
         var current = provider.Value;
         var defaults = new T();
+        var written = new HashSet<string>(StringComparer.Ordinal);
         int resetCount = 0;
 
         foreach (var propertyName in propertyNames.Distinct(StringComparer.Ordinal))
@@ -73,19 +76,25 @@ public sealed class SettingsResetService : ISettingsResetService
             if (!CanResetProperty(property, preserveCredentials))
                 continue;
 
+            var target = ResolveWriteTarget<T>(property);
+            if (!written.Add(target.Name))
+                continue;
+
             try
             {
-                var defaultValue = property.GetValue(defaults);
-                property.SetValue(current, defaultValue);
+                var defaultValue = target.GetValue(defaults);
+                target.SetValue(current, defaultValue);
                 resetCount++;
             }
             catch (Exception ex)
             {
-                Logging.WriteInfo($"[SettingsReset] Failed to reset {typeof(T).Name}.{property.Name}: {ex.Message}");
+                Logging.WriteInfo($"[SettingsReset] Failed to reset {typeof(T).Name}.{target.Name}: {ex.Message}");
             }
         }
 
-        provider.Save();
+        // Flush rather than save: the writes above armed the debounced auto-save, and letting that
+        // fire afterwards would persist whatever a listener wrote back while reacting to the reset.
+        provider.FlushPendingSave();
         Logging.WriteInfo($"[SettingsReset] Reset {resetCount} setting(s) on {typeof(T).Name}.");
         return resetCount;
     }
@@ -104,12 +113,37 @@ public sealed class SettingsResetService : ISettingsResetService
         if (IsJsonIgnoredNonCredential(property))
             return false;
 
-        return !preserveCredentials || !CredentialPropertyNames.Contains(property.Name);
+        return !preserveCredentials || !IsPreservedCredential(property.Name);
     }
 
     private static bool IsJsonIgnoredNonCredential(PropertyInfo property)
     {
         return property.GetCustomAttribute<JsonIgnoreAttribute>() != null
-            && !CredentialPropertyNames.Contains(property.Name);
+            && !IsPreservedCredential(property.Name);
+    }
+
+    // Half of an encrypted pair cannot be protected on its own: the two halves share one stored value
+    // and each setter rewrites the other, so clearing either one also clears the one being protected.
+    private static bool IsPreservedCredential(string propertyName)
+        => CredentialPropertyNames.Contains(propertyName)
+            || CredentialPropertyNames.Contains(TwinPropertyName(propertyName));
+
+    private static string TwinPropertyName(string propertyName)
+        => propertyName.EndsWith(EncryptedSuffix, StringComparison.OrdinalIgnoreCase)
+            ? propertyName[..^EncryptedSuffix.Length]
+            : propertyName + EncryptedSuffix;
+
+    // For the same reason, an encrypted half is reset through its plaintext twin: writing the
+    // encrypted half directly blanks the plaintext one instead of restoring its default.
+    private static PropertyInfo ResolveWriteTarget<T>(PropertyInfo property)
+    {
+        if (!property.Name.EndsWith(EncryptedSuffix, StringComparison.Ordinal))
+            return property;
+
+        var plaintext = typeof(T).GetProperty(
+            property.Name[..^EncryptedSuffix.Length],
+            BindingFlags.Public | BindingFlags.Instance);
+
+        return plaintext is { CanRead: true, CanWrite: true } ? plaintext : property;
     }
 }

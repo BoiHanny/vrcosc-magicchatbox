@@ -13,6 +13,7 @@ using vrcosc_magicchatbox.Classes.Modules;
 using vrcosc_magicchatbox.Core.Configuration;
 using vrcosc_magicchatbox.Core.Services;
 using vrcosc_magicchatbox.Core.State;
+using vrcosc_magicchatbox.Core.Toast;
 using vrcosc_magicchatbox.Services;
 using vrcosc_magicchatbox.ViewModels.Models;
 using vrcosc_magicchatbox.ViewModels.State;
@@ -22,6 +23,7 @@ namespace vrcosc_magicchatbox.ViewModels
     public partial class StatusPageViewModel : ObservableObject
     {
         private const string DefaultGroupName = "Default";
+        private const int MaxGroupNameLength = 50;
         private const string BoxColorNormal = "#FF6B5F98";
         private const string BoxColorWarning = "#FFFF9393";
 
@@ -30,6 +32,7 @@ namespace vrcosc_magicchatbox.ViewModels
         private readonly IStatusListService _statusListService;
         private readonly IMenuNavigationService _menuNav;
         private readonly IUiDispatcher _dispatcher;
+        private readonly IToastService _toast;
 
         private ICollectionView? _filteredView;
         private readonly Dictionary<StatusSortField, bool> _sortDirections = new();
@@ -71,13 +74,15 @@ namespace vrcosc_magicchatbox.ViewModels
             IStatusListService statusListService,
             IMenuNavigationService menuNav,
             ISettingsProvider<AppSettings> appSettingsProvider,
-            IUiDispatcher dispatcher)
+            IUiDispatcher dispatcher,
+            IToastService toast)
         {
             _chatStatus = chatStatus;
             _appState = appState;
             _statusListService = statusListService;
             _menuNav = menuNav;
             _dispatcher = dispatcher;
+            _toast = toast;
             ChatStatus = chatStatus;
             AppSettings = appSettingsProvider.Value;
 
@@ -222,8 +227,9 @@ namespace vrcosc_magicchatbox.ViewModels
         [RelayCommand]
         private void ConfirmAddGroup()
         {
-            string trimmed = NewGroupName?.Trim() ?? "";
-            if (string.IsNullOrWhiteSpace(trimmed) || trimmed.Length > 50) return;
+            if (!TryNormalizeGroupName(NewGroupName, out string trimmed))
+                return;
+
             _statusListService.AddGroup(trimmed);
             NewGroupName = string.Empty;
         }
@@ -239,10 +245,32 @@ namespace vrcosc_magicchatbox.ViewModels
         [RelayCommand]
         private void ConfirmRenameGroup(StatusGroup? group)
         {
-            if (group == null || string.IsNullOrWhiteSpace(group.RenameBuffer)) return;
-            _statusListService.RenameGroup(group.GroupId, group.RenameBuffer);
+            if (group == null || !TryNormalizeGroupName(group.RenameBuffer, out string trimmed))
+                return;
+
+            _statusListService.RenameGroup(group.GroupId, trimmed);
             group.IsRenaming = false;
             OnPropertyChanged(nameof(SelectedGroupDisplayName));
+        }
+
+        private bool TryNormalizeGroupName(string? candidate, out string normalized)
+        {
+            normalized = candidate?.Trim() ?? string.Empty;
+            string? message = normalized.Length switch
+            {
+                0 => "Enter a group name.",
+                > MaxGroupNameLength => $"Group names can contain at most {MaxGroupNameLength} characters.",
+                _ => null,
+            };
+            if (message == null)
+                return true;
+
+            _toast.Show(
+                "Status groups",
+                message,
+                ToastType.Warning,
+                key: "status-group-name-invalid");
+            return false;
         }
 
         [RelayCommand]

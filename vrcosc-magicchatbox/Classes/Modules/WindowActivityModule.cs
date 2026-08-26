@@ -219,7 +219,7 @@ public class WindowActivityModule : vrcosc_magicchatbox.Services.IWindowActivity
         return showTitle1stCheck;
     }
 
-    private string ConstructReturnString(ProcessInfo existingProcessInfo, string processName, string windowTitle)
+    private string ConstructReturnString(ProcessInfo? existingProcessInfo, string processName, string windowTitle)
     {
         try
         {
@@ -610,7 +610,7 @@ public class WindowActivityModule : vrcosc_magicchatbox.Services.IWindowActivity
         {
             const int maxRetries = 3;
             IntPtr hwnd = IntPtr.Zero;
-            Process process = null;
+            Process? process = null;
             bool errorInhwnd = false;
             bool errorInProcess = false;
 
@@ -627,7 +627,7 @@ public class WindowActivityModule : vrcosc_magicchatbox.Services.IWindowActivity
                 GetWindowThreadProcessId(hwnd, out uint pid);
 
                 string processName;
-                string cachedProcessName = null;
+                string? cachedProcessName = null;
 
                 lock (_foregroundStateLock)
                 {
@@ -667,7 +667,7 @@ public class WindowActivityModule : vrcosc_magicchatbox.Services.IWindowActivity
 
                 string windowTitle = "";
 
-                ProcessInfo existingProcessInfo = _scannedAppsLookup.TryGetValue(processName, out ProcessInfo found)
+                ProcessInfo? existingProcessInfo = _scannedAppsLookup.TryGetValue(processName, out ProcessInfo? found)
                     ? found
                     : null;
 

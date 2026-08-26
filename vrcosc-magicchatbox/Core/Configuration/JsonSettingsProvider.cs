@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
 using System.Linq;
@@ -26,16 +27,37 @@ public sealed class JsonSettingsProvider<T> : ISettingsProvider<T>, IDisposable 
     private readonly string _filePath;
     private readonly object _lock = new();
     private readonly object _timerLock = new();
-    private Timer _debounceTimer;
+    private Timer? _debounceTimer;
     private DateTime? _firstDirtyChangeUtc;
     private const int DebounceDelayMs = 2000;
     private const int MaxSaveDelayMs = 30000;
+
+    /// <summary>Properties excluded from serialization, so a change to one is not a reason to save.</summary>
+    private static readonly HashSet<string> NonPersistedProperties =
+        new(
+            typeof(T)
+                .GetProperties(BindingFlags.Public | BindingFlags.Instance)
+                .Where(p => p.GetCustomAttribute<JsonIgnoreAttribute>() != null)
+                .Select(p => p.Name),
+            StringComparer.Ordinal);
+
+    /// <summary>
+    /// Resolved once per closed generic. Every settings load used to reflect over every public property
+    /// of T looking for an attribute that is applied to almost none of them.
+    /// </summary>
+    private static readonly (PropertyInfo Property, ResetAfterVersionAttribute Attribute)[] ResettableProperties =
+        typeof(T)
+            .GetProperties(BindingFlags.Public | BindingFlags.Instance)
+            .Where(p => p.CanRead && p.CanWrite)
+            .Select(p => (Property: p, Attribute: p.GetCustomAttribute<ResetAfterVersionAttribute>()!))
+            .Where(p => p.Attribute != null)
+            .ToArray();
     private volatile bool _loaded;
     private bool _disposed;
     private bool _loadFailed;
     private bool _saveFailureLogged;
 
-    public event EventHandler SettingsChanged;
+    public event EventHandler? SettingsChanged;
 
     public JsonSettingsProvider(IEnvironmentService environment)
     {
@@ -159,21 +181,19 @@ public sealed class JsonSettingsProvider<T> : ISettingsProvider<T>, IDisposable 
             return true;
         }
 
+        if (ResettableProperties.Length == 0)
+            return false;
+
         bool anyReset = false;
         T defaults = new();
 
-        foreach (var prop in type.GetProperties(BindingFlags.Public | BindingFlags.Instance))
+        foreach ((PropertyInfo prop, ResetAfterVersionAttribute attr) in ResettableProperties)
         {
-            if (!prop.CanRead || !prop.CanWrite) continue;
-
-            var attr = prop.GetCustomAttribute<ResetAfterVersionAttribute>();
-            if (attr == null) continue;
-
             if (AppVersion.IsOlderThan(loadedAppVersion, attr.MinVersion))
             {
                 try
                 {
-                    object defaultVal = prop.GetValue(defaults);
+                    object? defaultVal = prop.GetValue(defaults);
                     prop.SetValue(_settings, defaultVal);
                     anyReset = true;
                     Logging.WriteInfo(
@@ -223,6 +243,10 @@ public sealed class JsonSettingsProvider<T> : ISettingsProvider<T>, IDisposable 
                     new IOException($"Settings for {typeof(T).Name} could not be saved to '{_filePath}'; changes will not persist across restarts."),
                     MSGBox: false);
                 NotifySaveFailed();
+            }
+            else if (saved)
+            {
+                _saveFailureLogged = false;
             }
         }
     }
@@ -286,8 +310,13 @@ public sealed class JsonSettingsProvider<T> : ISettingsProvider<T>, IDisposable 
             npc.PropertyChanged -= OnSettingsPropertyChanged;
     }
 
-    private void OnSettingsPropertyChanged(object sender, PropertyChangedEventArgs e)
+    private void OnSettingsPropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
+        // A property that is never serialized cannot make the file dirty. Some modules write these at
+        // 1 Hz, which otherwise defeats the debounce and forces a byte-identical save every 30 seconds.
+        if (!string.IsNullOrEmpty(e.PropertyName) && NonPersistedProperties.Contains(e.PropertyName))
+            return;
+
         lock (_timerLock)
         {
             if (_disposed) return;

@@ -6,6 +6,7 @@ using System.Globalization;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using TwitchLib.Api.Core.Exceptions;
 using vrcosc_magicchatbox.Classes.DataAndSecurity;
 using vrcosc_magicchatbox.Classes.Modules.Twitch;
 using vrcosc_magicchatbox.Classes.Utilities;
@@ -715,7 +716,7 @@ public sealed partial class TwitchModule : ObservableObject, IModule
         string titleLabel = useSmallText ? ToSmallTextPreserveEmoji(titleLabelSource) : titleLabelSource;
         string titleWithLabel = BuildLabeledValue(titleLabel, title);
 
-        string channel = settings.ShowChannelName ? settings.ChannelName?.Trim() : string.Empty;
+        string channel = settings.ShowChannelName ? (settings.ChannelName?.Trim() ?? string.Empty) : string.Empty;
         string channelLabelSource = string.IsNullOrWhiteSpace(settings.ChannelPrefix) ? string.Empty : settings.ChannelPrefix.Trim();
         string channelLabel = useSmallText ? ToSmallTextPreserveEmoji(channelLabelSource) : channelLabelSource;
         string channelWithLabel = BuildLabeledValue(channelLabel, channel);
@@ -823,7 +824,7 @@ public sealed partial class TwitchModule : ObservableObject, IModule
         }
 
         string format = value >= 100 ? "0" : value >= 10 ? "0.#" : "0.##";
-        return $"{value.ToString(format, CultureInfo.CurrentCulture)}{suffix}";
+        return $"{value.ToString(format, CultureInfo.InvariantCulture)}{suffix}";
     }
 
     private static string ToSmallTextPreserveEmoji(string text)
@@ -936,13 +937,22 @@ public sealed partial class TwitchModule : ObservableObject, IModule
 
     private static bool IsUnauthorized(Exception ex)
     {
-        if (ex == null)
+        for (Exception? current = ex; current != null; current = current.InnerException)
         {
-            return false;
+            if (current is TokenExpiredException or BadTokenException)
+            {
+                return true;
+            }
+
+            string message = current.Message ?? string.Empty;
+            if (message.Contains("401", StringComparison.OrdinalIgnoreCase) ||
+                message.Contains("unauthorized", StringComparison.OrdinalIgnoreCase) ||
+                message.Contains("expired token", StringComparison.OrdinalIgnoreCase))
+            {
+                return true;
+            }
         }
 
-        string message = ex.Message ?? string.Empty;
-        return message.Contains("401", StringComparison.OrdinalIgnoreCase) ||
-               message.Contains("unauthorized", StringComparison.OrdinalIgnoreCase);
+        return false;
     }
 }

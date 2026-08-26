@@ -64,6 +64,16 @@ public static class ServiceRegistration
             utcNow: null,
             isUiThread: () => System.Windows.Application.Current?.Dispatcher?.CheckAccess() == true));
 
+        services.AddSingleton<Services.Vr.ISteamVrApplications>(sp => new Services.Vr.SteamVrApplications(
+            sp.GetRequiredService<Services.Vr.IOpenVrSessionService>()));
+        services.AddSingleton<Services.Vr.ISteamVrAutoStartService>(sp => new Services.Vr.SteamVrAutoStartService(
+            sp.GetRequiredService<Services.Vr.ISteamVrApplications>(),
+            sp.GetRequiredService<ISettingsProvider<AppSettings>>(),
+            sp.GetRequiredService<IAppState>(),
+            sp.GetRequiredService<IProcessPresenceService>(),
+            () => System.Windows.Application.Current?.Dispatcher?.BeginInvoke(
+                () => (System.Windows.Application.Current as App)?.ShutdownFromSteamVr())));
+
         services.AddSingleton<IPrivacyConsentService, PrivacyConsentService>();
         services.AddSingleton<PrivacySectionViewModel>();
 
@@ -174,7 +184,8 @@ public static class ServiceRegistration
             sp.GetRequiredService<IStatusListService>(),
             sp.GetRequiredService<IMenuNavigationService>(),
             sp.GetRequiredService<ISettingsProvider<AppSettings>>(),
-            sp.GetRequiredService<Core.State.IUiDispatcher>()));
+            sp.GetRequiredService<Core.State.IUiDispatcher>(),
+            sp.GetRequiredService<Core.Toast.IToastService>()));
         services.AddSingleton<ChattingPageViewModel>(sp => new ChattingPageViewModel(
             sp.GetRequiredService<ChatStatusDisplayState>(),
             sp.GetRequiredService<IAppState>(),
@@ -195,6 +206,7 @@ public static class ServiceRegistration
             new Lazy<IModuleHost>(() => sp.GetRequiredService<IModuleHost>()),
             new Lazy<OSCController>(() => sp.GetRequiredService<OSCController>()),
             sp.GetRequiredService<ISettingsProvider<IntegrationSettings>>(),
+            sp.GetRequiredService<ISettingsProvider<AppSettings>>(),
             sp.GetRequiredService<ISettingsProvider<MediaLinkSettings>>(),
             sp.GetRequiredService<ISettingsProvider<SpotifySettings>>(),
             sp.GetRequiredService<ISettingsProvider<WeatherSettings>>(),
@@ -306,7 +318,8 @@ public static class ServiceRegistration
         services.AddSingleton<ComponentStatsSectionViewModel>(sp => new ComponentStatsSectionViewModel(
             sp.GetRequiredService<ISettingsProvider<AppSettings>>(),
             new Lazy<ComponentStatsModule>(() => sp.GetRequiredService<ComponentStatsModule>(), LazyThreadSafetyMode.PublicationOnly),
-            new Lazy<ComponentStatsViewModel>(() => sp.GetRequiredService<ComponentStatsViewModel>(), LazyThreadSafetyMode.PublicationOnly)));
+            new Lazy<ComponentStatsViewModel>(() => sp.GetRequiredService<ComponentStatsViewModel>(), LazyThreadSafetyMode.PublicationOnly),
+            sp.GetRequiredService<IAppState>()));
         services.AddSingleton<StatusSectionViewModel>(sp => new StatusSectionViewModel(
             sp.GetRequiredService<ISettingsProvider<AppSettings>>(),
             sp.GetRequiredService<ISettingsProvider<TimeSettings>>(),
@@ -489,11 +502,18 @@ public static class ServiceRegistration
             sp.GetRequiredService<IUiDispatcher>()));
         services.AddSingleton<IStatusListService, StatusListService>();
         services.AddSingleton<IComponentStatsPersistenceService, ComponentStatsPersistenceService>();
+        services.AddSingleton<IAutoUpdateService>(sp => new AutoUpdateService(
+            sp.GetRequiredService<AppUpdateState>(),
+            sp.GetRequiredService<IHttpClientFactory>(),
+            sp.GetRequiredService<IUiDispatcher>(),
+            sp.GetRequiredService<ISettingsProvider<AppSettings>>(),
+            new Lazy<IToastService>(() => sp.GetRequiredService<IToastService>())));
         services.AddSingleton<IVersionService>(sp => new VersionService(
             sp.GetRequiredService<IHttpClientFactory>(),
             sp.GetRequiredService<AppUpdateState>(),
             sp.GetRequiredService<ISettingsProvider<AppSettings>>(),
-            sp.GetRequiredService<IUiDispatcher>()));
+            sp.GetRequiredService<IUiDispatcher>(),
+            sp.GetRequiredService<IAutoUpdateService>()));
         services.AddSingleton<IAudioService>(sp => new AudioService(
             sp.GetRequiredService<TtsAudioDisplayState>(),
             sp.GetRequiredService<ISettingsProvider<TtsSettings>>(),
@@ -543,9 +563,15 @@ public static class ServiceRegistration
         services.AddHttpClient(Constants.HttpClients.TikTok, client =>
         {
             client.BaseAddress = new Uri("https://www.tiktok.com/");
-            client.DefaultRequestHeaders.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) MagicChatbox/1.0");
-            client.DefaultRequestHeaders.Add("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8");
+            client.DefaultRequestHeaders.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36");
+            client.DefaultRequestHeaders.Add("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8");
+            client.DefaultRequestHeaders.Add("Accept-Language", "en-US,en;q=0.9");
+            client.DefaultRequestHeaders.Add("Upgrade-Insecure-Requests", "1");
             client.Timeout = Constants.DefaultApiTimeout;
+        })
+        .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler
+        {
+            AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate | DecompressionMethods.Brotli,
         })
         .AddPolicyHandler(request =>
             request.Method == HttpMethod.Get

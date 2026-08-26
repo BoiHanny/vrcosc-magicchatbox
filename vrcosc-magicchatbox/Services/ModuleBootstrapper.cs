@@ -475,7 +475,7 @@ public class ModuleBootstrapper
                 vrcRadar.OnVrcWorldStateChanged += OnVrcWorldStateChanged;
                 TrackSubscription(() => vrcRadar.OnVrcWorldStateChanged -= OnVrcWorldStateChanged);
 
-                void OnDiscordRichPresenceSettingsChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
+                void OnDiscordRichPresenceSettingsChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
                 {
                     if (e.PropertyName is nameof(DiscordSettings.EnableRichPresence)
                         or nameof(DiscordSettings.RichPresenceDetails)
@@ -545,7 +545,7 @@ public class ModuleBootstrapper
                     TrackSubscription(() => notifier.PropertyChanged -= vrcRadar.PropertyChangedHandler);
                 }
 
-                void OnMasterSwitchChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
+                void OnMasterSwitchChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
                 {
                     if (e.PropertyName == nameof(IAppState.MasterSwitch) && !_appState.MasterSwitch)
                     {

@@ -117,6 +117,17 @@ public class OpenAIModule : ITranscriptionService
 
     public async Task InitializeClient(string apiKey, string organizationID)
     {
+        if (!CreateClient(apiKey, organizationID))
+            return;
+
+        await VerifyConnectionAsync();
+    }
+
+    /// <summary>
+    /// Builds the client without contacting the API. Returns false when there is nothing to verify.
+    /// </summary>
+    public bool CreateClient(string apiKey, string organizationID)
+    {
         if (!_consent.IsApproved(PrivacyHook.InternetAccess))
         {
             OpenAIClient = null;
@@ -124,21 +135,23 @@ public class OpenAIModule : ITranscriptionService
             _openAI.AccessError = true;
             _openAI.AccessErrorTxt = "Internet Access permission required";
             _toast?.Show("🔒 OpenAI", "Internet Access permission required for OpenAI features.", ToastType.Privacy, key: "openai-privacy-denied");
-            return;
+            return false;
         }
 
-        if (string.IsNullOrEmpty(apiKey))
-        {
-            return;
-        }
-
-        if (string.IsNullOrEmpty(organizationID))
-        {
-            return;
-        }
+        if (string.IsNullOrEmpty(apiKey) || string.IsNullOrEmpty(organizationID))
+            return false;
 
         var options = new OpenAIClientOptions { OrganizationId = organizationID };
         OpenAIClient = new OpenAIClient(new System.ClientModel.ApiKeyCredential(apiKey), options);
+        return true;
+    }
+
+    /// <summary>Round-trips the API to confirm the credentials still work.</summary>
+    public async Task VerifyConnectionAsync()
+    {
+        if (OpenAIClient == null)
+            return;
+
         await TestConnection();
         _openAI.Connected = AuthChecked;
     }

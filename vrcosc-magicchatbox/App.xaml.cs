@@ -44,7 +44,8 @@ namespace vrcosc_magicchatbox
             Services.GetRequiredService<ISettingsProvider<WeatherSettings>>().Value);
         private static WeatherSettings _weatherSettings => _lazyWeatherSettings.Value;
 
-        public static IMediaLinkService ApplicationMediaController { get; private set; }
+        // Assigned during InitializeComponentsWithProgress, before any consumer can run.
+        public static IMediaLinkService ApplicationMediaController { get; private set; } = null!;
 
         private readonly Stopwatch _startupStopwatch = new();
         private static readonly TimeSpan StartupWatchdogTimeout = TimeSpan.FromSeconds(120);
@@ -62,13 +63,21 @@ namespace vrcosc_magicchatbox
         private const int MaxHandledDispatcherExceptionsInWindow = 3;
         private readonly System.Collections.Generic.Queue<DateTime> _handledDispatcherExceptionTimes = new();
 
-        public static MainWindow mainWindow;
+        public const string SteamVrLaunchArgument = "-steamvr";
+
+        public static MainWindow? mainWindow;
 
         protected override async void OnStartup(StartupEventArgs e)
         {
             base.OnStartup(e);
+
+            // Before any element exists: property metadata cannot be overridden once a type is in use.
+            UI.Controls.ReducedVisuals.Install();
+
             _startupStopwatch.Start();
             LogStartupPhase($"Process started. PID={Environment.ProcessId}, Args='{string.Join(" ", e.Args ?? Array.Empty<string>())}'.");
+
+            bool launchedBySteamVr = WasLaunchedBySteamVr(e.Args);
 
             if (!TryGetProfileNumberFromArgs(e.Args, out int startupProfileNumber, out string? invalidProfileNumber))
             {
@@ -83,6 +92,16 @@ namespace vrcosc_magicchatbox
 
             if (!ShouldSkipSingleInstanceGuard(e.Args) && !TryAcquireSingleInstance(startupProfileNumber))
             {
+                // SteamVR launches its startup apps without checking whether they are already
+                // there. Pulling a window to the front while someone is putting a headset on is
+                // the last thing they want, so this launch simply stands down.
+                if (launchedBySteamVr)
+                {
+                    LogStartupPhase("SteamVR started a copy that was already running. Leaving the running one alone.");
+                    Shutdown();
+                    return;
+                }
+
                 // Launching it again is how someone asks for the window back, not a mistake to be
                 // told off for. Wake the copy that already exists and leave quietly.
                 LogStartupPhase($"Second instance detected for profile {startupProfileNumber}. Waking the running one and exiting.");
@@ -137,6 +156,14 @@ namespace vrcosc_magicchatbox
                 ConfigureLogging(Services.GetRequiredService<IEnvironmentService>());
                 _loggingReady = true;
                 LogStartupPhase("Logging configured.");
+
+                if (Core.Diagnostics.PerfProbe.IsEnabled)
+                {
+                    Core.Diagnostics.PerfProbe.ReportDirectory =
+                        Services.GetRequiredService<IEnvironmentService>().LogPath;
+                    Core.Diagnostics.BindingErrorProbe.Start();
+                    Logging.WriteInfo("[Perf] Instrumentation enabled (--perf). Ctrl+Shift+F12 dumps a snapshot.");
+                }
 
                 Logging.Initialize(
                     Services.GetRequiredService<AppUpdateState>(),
@@ -198,6 +225,11 @@ namespace vrcosc_magicchatbox
                         {
                             continue;
                         }
+
+                        if (Core.Diagnostics.PerfProbe.IsEnableArgument(arg))
+                        {
+                            continue;
+                        }
                         else
                         {
                             switch (arg)
@@ -238,6 +270,8 @@ namespace vrcosc_magicchatbox
                                     loadingWindow.UpdateProgress("Rolling back and clearing the slate. Fresh start!", 50);
                                     await Task.Run(() => updater.ClearBackUp());
                                     break;
+                                case SteamVrLaunchArgument:
+                                    break;
                                 default:
                                     loadingWindow.CloseFromAnyThread();
                                     LogStartupPhase($"Invalid command line argument '{arg}'.");
@@ -246,6 +280,14 @@ namespace vrcosc_magicchatbox
                             }
                         }
                     }
+                }
+
+                if (Services.GetRequiredService<IAutoUpdateService>()
+                        .PrepareForStartup(launchedBySteamVr) == StartupUpdateOutcome.HandingOff)
+                {
+                    LogStartupPhase("Handing off to the updater; this process is on its way out.");
+                    loadingWindow.CloseFromAnyThread();
+                    return;
                 }
 
                 bool tosJustAccepted = false;
@@ -286,7 +328,7 @@ namespace vrcosc_magicchatbox
                 loadingWindow.UpdateProgress("Building the main window shell... Hammer, nails, UI!", 98.5, "Rolling out the red carpet... Here comes the UI!");
                 Logging.WriteInfo("Creating MainWindow instance.");
 
-                mainWindow = new MainWindow(
+                MainWindow mainWindow = new MainWindow(
                     Services.GetRequiredService<ScanLoopService>(),
                     Services.GetRequiredService<ModuleBootstrapper>(),
                     Services.GetRequiredService<Core.Services.IModuleHost>(),
@@ -294,6 +336,7 @@ namespace vrcosc_magicchatbox
                     Services.GetRequiredService<ITrayIconService>(),
                     Services.GetRequiredService<HotkeyManagement>(),
                     Services.GetRequiredService<Core.Configuration.ISettingsProvider<Classes.Modules.AppSettings>>());
+                App.mainWindow = mainWindow;
                 Logging.WriteInfo("MainWindow instance created.");
 
                 loadingWindow.UpdateProgress("Rolling out the red carpet... Here comes the UI!", 99, "Wiring up the final UI bits... Almost there!");
@@ -332,7 +375,9 @@ namespace vrcosc_magicchatbox
 
                 Services.GetRequiredService<ITrayIconService>().Initialize(mainWindow);
 
-                if (vm.AppSettingsInstance.StartInBackground)
+                // Being started by SteamVR means a headset is going on, not that someone wants a
+                // window. This never writes the preference back; it only applies to this launch.
+                if (vm.AppSettingsInstance.StartInBackground || launchedBySteamVr)
                 {
                     mainWindow.AbandonHiddenStart();
                     mainWindow.HideStartupOverlay(animate: false);
@@ -396,6 +441,11 @@ namespace vrcosc_magicchatbox
                 Logging.WriteInfo("[Startup] Starting background scan loop...");
                 mainWindow.StartBackgroundProcessing();
                 Logging.WriteInfo("[Startup] Background processing started.");
+
+                Services.GetRequiredService<IAutoUpdateService>().ReportStartupHealthy();
+                LogStartupPhase("Startup reached a working state.");
+
+                Services.GetRequiredService<Services.Vr.ISteamVrAutoStartService>().Start();
 
                 if (vm.AppSettingsInstance.CheckUpdateOnStartup && consentSvc.IsApproved(PrivacyHook.InternetAccess))
                 {
@@ -609,7 +659,7 @@ namespace vrcosc_magicchatbox
             string nlogConfigPath = Path.Combine(AppContext.BaseDirectory, "NLog.config");
             if (File.Exists(nlogConfigPath))
             {
-                LogManager.LoadConfiguration(nlogConfigPath);
+                LogManager.Setup().LoadConfigurationFromFile(nlogConfigPath);
             }
 
             try
@@ -794,6 +844,30 @@ namespace vrcosc_magicchatbox
                 return true;
             }
         }
+
+        public void ShutdownFromSteamVr()
+        {
+            try
+            {
+                // Takes the same route as Exit in the tray menu, so "keep running when you close
+                // the window" cannot quietly turn this into a hide.
+                if (mainWindow is not null)
+                {
+                    mainWindow._isTrayClosing = true;
+                    mainWindow.Close();
+                    return;
+                }
+            }
+            catch (Exception ex)
+            {
+                Logging.WriteException(ex, MSGBox: false);
+            }
+
+            Shutdown();
+        }
+
+        private static bool WasLaunchedBySteamVr(string[]? args)
+            => args != null && args.Any(arg => arg.Equals(SteamVrLaunchArgument, StringComparison.OrdinalIgnoreCase));
 
         private static bool ShouldSkipSingleInstanceGuard(string[]? args)
         {
@@ -1089,11 +1163,16 @@ namespace vrcosc_magicchatbox
                     Services.GetRequiredService<IModuleHost>().RegisterModule(netStats);
                     LogStep("NetworkStats");
                 }, cancellationToken),
-                RunOptionalStartupTaskAsync("OpenAI", async () =>
+                RunOptionalStartupTaskAsync("OpenAI", () =>
                 {
                     var openAIModule = Services.GetRequiredService<OpenAIModule>();
                     var openAISettings = Services.GetRequiredService<ISettingsProvider<OpenAISettings>>().Value;
-                    await openAIModule.InitializeClient(openAISettings.AccessToken, openAISettings.OrganizationID);
+
+                    // The client is usable the moment it is constructed. Confirming the credentials costs a
+                    // round-trip to the OpenAI API, which held the window back for about two seconds.
+                    if (openAIModule.CreateClient(openAISettings.AccessToken, openAISettings.OrganizationID))
+                        _ = openAIModule.VerifyConnectionAsync();
+
                     LogStep("OpenAI");
                 }, cancellationToken),
                 RunOptionalStartupTaskAsync("IntelliChat", () =>

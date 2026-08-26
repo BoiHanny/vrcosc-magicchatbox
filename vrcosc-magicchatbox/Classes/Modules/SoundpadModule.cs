@@ -415,7 +415,7 @@ public partial class SoundpadModule : ObservableObject, IModule
         }
     }
 
-    public bool IsRelevantPropertyChange(string propertyName)
+    public bool IsRelevantPropertyChange(string? propertyName)
     {
         return propertyName == nameof(_integrationSettings.IntgrSoundpad) ||
                propertyName == nameof(_appState.IsVRRunning) ||
@@ -437,7 +437,7 @@ public partial class SoundpadModule : ObservableObject, IModule
     public void PlaySoundFromCategory(int categoryIndex, int soundIndex)
         => _ = SendCommandAsync($"DoPlaySoundFromCategory({categoryIndex},{soundIndex})");
 
-    public void PropertyChangedHandler(object sender, PropertyChangedEventArgs e)
+    public void PropertyChangedHandler(object? sender, PropertyChangedEventArgs e)
     {
         if (IsRelevantPropertyChange(e.PropertyName))
         {

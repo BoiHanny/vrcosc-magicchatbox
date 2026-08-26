@@ -24,7 +24,7 @@ public class HotkeyManagement
     private readonly Lazy<ITrayIconService> _trayIconService;
 
     private Dictionary<string, HotkeyInfo> _hotkeyActions;
-    private Window _mainWindow;
+    private Window? _mainWindow;
     private readonly string HotkeyConfigFile;
     private bool _isInitialized;
 
@@ -68,7 +68,7 @@ public class HotkeyManagement
 
 
 
-    private Action GetActionForHotkey(string hotkeyName)
+    private Action? GetActionForHotkey(string hotkeyName)
     {
         return hotkeyName switch
         {
@@ -141,11 +141,11 @@ public class HotkeyManagement
         }
     }
 
-    private void OnGlobalHotkeyPressed(object sender, HotkeyEventArgs e)
+    private void OnGlobalHotkeyPressed(object? sender, HotkeyEventArgs e)
     {
         try
         {
-            if (_hotkeyActions.TryGetValue(e.Name, out HotkeyInfo hotkeyInfo))
+            if (_hotkeyActions.TryGetValue(e.Name, out HotkeyInfo? hotkeyInfo))
             {
                 _dispatcher.BeginInvoke(hotkeyInfo.Action);
             }
@@ -178,7 +178,7 @@ public class HotkeyManagement
 
     private void UpdateTrayHotkeyRegistration()
     {
-        if (!_hotkeyActions.TryGetValue("OpenTrayMenuGlobal", out HotkeyInfo hotkeyInfo))
+        if (!_hotkeyActions.TryGetValue("OpenTrayMenuGlobal", out HotkeyInfo? hotkeyInfo))
             return;
 
         if (_appSettings.OpenTrayWithAltX)
@@ -315,7 +315,7 @@ public class HotkeyManagement
     private class HotkeyInfo
     {
 
-        public HotkeyInfo(Key key, ModifierKeys modifiers, Action action = null)
+        public HotkeyInfo(Key key, ModifierKeys modifiers, Action action)
         {
             Key = key;
             Modifiers = modifiers;

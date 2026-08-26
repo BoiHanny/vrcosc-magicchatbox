@@ -24,7 +24,7 @@ namespace vrcosc_magicchatbox.Classes.Modules;
 
 public class ComponentStatsModule : IModule
 {
-    private string FileName = null;
+    private string? FileName = null;
     private readonly object _statsInitLock = new();
     private bool _statsLoaded;
     private bool _ddrVersionFetchStarted;
@@ -32,8 +32,8 @@ public class ComponentStatsModule : IModule
     private static readonly TimeSpan MinHardwareNameCacheTtl = TimeSpan.FromSeconds(1);
     private DateTime _gpuNameCachedAtUtc = DateTime.MinValue;
     private DateTime _cpuNameCachedAtUtc = DateTime.MinValue;
-    private string _cachedGpuName;
-    private string _cachedCpuName;
+    private string? _cachedGpuName;
+    private string? _cachedCpuName;
 
     private static readonly StatsComponentType[] StatDisplayOrder =
     {
@@ -57,14 +57,18 @@ public class ComponentStatsModule : IModule
     private readonly List<ComponentStatsItem> _componentStats = new List<ComponentStatsItem>();
     private readonly Dictionary<StatsComponentType, ComponentStatsItem> _statsByType = new();
 
-    private volatile IReadOnlyList<StatReading> _lastReadings;
+    private volatile IReadOnlyList<StatReading>? _lastReadings;
 
     private string _ramDDRVersion = "Unknown";
     public bool started = false;
 
     private readonly ISettingsProvider<ComponentStatsSettings> _settingsProvider;
     public ComponentStatsSettings Settings => _settingsProvider.Value;
-    public void SaveSettings() => _settingsProvider.Save();
+    public void SaveSettings()
+    {
+        _settingsProvider.Save();
+        SaveComponentStats();
+    }
 
     public string Name => "ComponentStats";
     public bool IsEnabled { get; set; } = true;
@@ -89,7 +93,8 @@ public class ComponentStatsModule : IModule
 
     private IntegrationDisplayState _integrationDisplay;
 
-    private ComponentStatsViewModel _statsVm;
+    // ServiceRegistration resolves ComponentStatsViewModel (which calls SetStatsViewModel) before StartModule ever runs.
+    private ComponentStatsViewModel _statsVm = null!;
     private ComponentStatsViewModel StatsVm => _statsVm;
 
     public void SetStatsViewModel(ComponentStatsViewModel vm)
@@ -161,7 +166,7 @@ public class ComponentStatsModule : IModule
 
     private void FetchAndStoreDDRVersion()
     {
-        string ddrVersion = GetDDRVersion();
+        string? ddrVersion = GetDDRVersion();
         if (string.IsNullOrWhiteSpace(ddrVersion))
             return;
 
@@ -196,7 +201,7 @@ public class ComponentStatsModule : IModule
     private bool ShouldFetchDdrVersion()
     {
         var ramItem = GetStat(StatsComponentType.RAM);
-        return ramItem?.IsEnabled == true && ramItem.ShowDDRVersion;
+        return ramItem != null && ramItem.IsEnabled && ramItem.ShowDDRVersion;
     }
 
     private void QueueDdrVersionFetchIfNeeded()
@@ -240,7 +245,7 @@ public class ComponentStatsModule : IModule
         try
         {
             float? load = _hwService.GetCpuLoad();
-            string name = GetCachedCpuName();
+            string? name = GetCachedCpuName();
             UpdateHardwareName(current, name);
             if (load == null) return "N/A";
             return current.RemoveNumberTrailing == true ? $"{(int)load}" : $"{load:F1}";
@@ -259,7 +264,7 @@ public class ComponentStatsModule : IModule
 
     private StatExtra? FetchGpuCoreClockStat(ComponentStatsItem item)
     {
-        float? mhz = _hwService.GetGpuCoreClock(GetDedicatedGPUName());
+        float? mhz = _hwService.GetGpuCoreClock(GetDedicatedGPUNameForHardwareCall());
         if (mhz == null) return null;
         string value = item.RemoveNumberTrailing ? $"{(int)mhz.Value}" : $"{mhz.Value:F0}";
         return Extra(item, "🔄", "core clk", value, "MHz");
@@ -267,7 +272,7 @@ public class ComponentStatsModule : IModule
 
     private StatExtra? FetchGpuFanSpeedStat(ComponentStatsItem item)
     {
-        float? fanPercent = _hwService.GetGpuFanSpeed(GetDedicatedGPUName());
+        float? fanPercent = _hwService.GetGpuFanSpeed(GetDedicatedGPUNameForHardwareCall());
         if (fanPercent == null) return null;
         string value = item.RemoveNumberTrailing ? $"{(int)fanPercent.Value}" : $"{fanPercent.Value:F0}";
         return Extra(item, "🌀", "fan", value, PercentUnit);
@@ -275,7 +280,7 @@ public class ComponentStatsModule : IModule
 
     private StatExtra? FetchGpuMemoryClockStat(ComponentStatsItem item)
     {
-        float? mhz = _hwService.GetGpuMemoryClock(GetDedicatedGPUName());
+        float? mhz = _hwService.GetGpuMemoryClock(GetDedicatedGPUNameForHardwareCall());
         if (mhz == null) return null;
         string value = item.RemoveNumberTrailing ? $"{(int)mhz.Value}" : $"{mhz.Value:F0}";
         return Extra(item, "💾", "mem clk", value, "MHz");
@@ -283,7 +288,7 @@ public class ComponentStatsModule : IModule
 
     private StatExtra? FetchGpuMemoryLoadStat(ComponentStatsItem item)
     {
-        float? load = _hwService.GetGpuMemoryLoad(GetDedicatedGPUName());
+        float? load = _hwService.GetGpuMemoryLoad(GetDedicatedGPUNameForHardwareCall());
         if (load == null) return null;
         string value = item.RemoveNumberTrailing ? $"{(int)load.Value}" : $"{load.Value:F1}";
         return Extra(item, "📊", "mem load", value, PercentUnit);
@@ -291,7 +296,7 @@ public class ComponentStatsModule : IModule
 
     private StatExtra? FetchGpuMemoryTemperatureStat(ComponentStatsItem item)
     {
-        float? rawCelsius = _hwService.GetGpuMemoryTemperature(GetDedicatedGPUName());
+        float? rawCelsius = _hwService.GetGpuMemoryTemperature(GetDedicatedGPUNameForHardwareCall());
         if (rawCelsius == null || rawCelsius == 0) return null;
         return Extra(item, "🧊", "mem temp", FormatTemperature(item, rawCelsius.Value, out string unitSymbol), unitSymbol);
     }
@@ -323,10 +328,10 @@ public class ComponentStatsModule : IModule
         if (current == null) return "N/A";
         try
         {
-            string gpuName = GetDedicatedGPUName();
+            string gpuName = GetDedicatedGPUNameForHardwareCall();
             string sensorName = StaticSettings.GPU3DHook ? "D3D 3D" : "GPU Core";
             float? load = _hwService.GetGpuLoad(gpuName, sensorName);
-            string resolvedName = _hwService.GetGpuName(gpuName);
+            string? resolvedName = _hwService.GetGpuName(gpuName);
             UpdateHardwareName(current, resolvedName);
             if (load == null) return "N/A";
             return current.RemoveNumberTrailing == true ? $"{(int)load}" : $"{load:F1}";
@@ -340,7 +345,7 @@ public class ComponentStatsModule : IModule
 
     private StatExtra? FetchHotspotTemperatureStat(ComponentStatsItem item)
     {
-        float? rawCelsius = _hwService.GetGpuHotspotTemperature(GetDedicatedGPUName());
+        float? rawCelsius = _hwService.GetGpuHotspotTemperature(GetDedicatedGPUNameForHardwareCall());
 
         if (rawCelsius == null || rawCelsius == 0)
         {
@@ -354,7 +359,7 @@ public class ComponentStatsModule : IModule
 
     private StatExtra? FetchPowerStat(ComponentStatsItem item)
     {
-        float? rawWatts = _hwService.GetGpuPower(GetDedicatedGPUName());
+        float? rawWatts = _hwService.GetGpuPower(GetDedicatedGPUNameForHardwareCall());
 
         if (rawWatts == null || rawWatts == 0)
         {
@@ -396,7 +401,7 @@ public class ComponentStatsModule : IModule
         return ("N/A", "N/A");
     }
 
-    private void UpdateHardwareName(ComponentStatsItem current, string hardwareName)
+    private void UpdateHardwareName(ComponentStatsItem current, string? hardwareName)
     {
         if (current == null || string.IsNullOrEmpty(hardwareName)) return;
         if (current.HardwareFriendlyName != hardwareName)
@@ -407,13 +412,13 @@ public class ComponentStatsModule : IModule
         }
         if (current.ReplaceWithHardwareName || string.IsNullOrEmpty(current.HardwareFriendlyNameSmall))
         {
-            current.CustomHardwarenameValueSmall = TextUtilities.TransformToSuperscript(current.CustomHardwarenameValue);
+            current.CustomHardwarenameValueSmall = TextUtilities.TransformToSuperscript(current.CustomHardwarenameValue ?? string.Empty);
         }
     }
 
     private StatExtra? FetchTemperatureStat(ComponentStatsItem item)
     {
-        float? rawCelsius = _hwService.GetGpuTemperature(GetDedicatedGPUName());
+        float? rawCelsius = _hwService.GetGpuTemperature(GetDedicatedGPUNameForHardwareCall());
 
         if (rawCelsius == null || rawCelsius == 0)
         {
@@ -431,10 +436,10 @@ public class ComponentStatsModule : IModule
         if (current == null) return "N/A";
         try
         {
-            string gpuName = GetDedicatedGPUName();
+            string gpuName = GetDedicatedGPUNameForHardwareCall();
             string sensorName = StaticSettings.GPU3DVRAMHook ? "D3D Dedicated Memory Total" : "GPU Memory Total";
             float? rawMb = _hwService.GetGpuVramTotal(gpuName, sensorName);
-            string resolvedName = _hwService.GetGpuName(gpuName);
+            string? resolvedName = _hwService.GetGpuName(gpuName);
             UpdateHardwareName(current, resolvedName);
             if (rawMb == null) return "N/A";
             double gb = rawMb.Value / 1024.0;
@@ -453,10 +458,10 @@ public class ComponentStatsModule : IModule
         if (current == null) return "N/A";
         try
         {
-            string gpuName = GetDedicatedGPUName();
+            string gpuName = GetDedicatedGPUNameForHardwareCall();
             string sensorName = StaticSettings.GPU3DVRAMHook ? "D3D Dedicated Memory Used" : "GPU Memory Used";
             float? rawMb = _hwService.GetGpuVramUsed(gpuName, sensorName);
-            string resolvedName = _hwService.GetGpuName(gpuName);
+            string? resolvedName = _hwService.GetGpuName(gpuName);
             UpdateHardwareName(current, resolvedName);
             if (rawMb == null) return "N/A";
             double gb = rawMb.Value / 1024.0;
@@ -478,7 +483,7 @@ public class ComponentStatsModule : IModule
         }
     }
 
-    private string GetCachedCpuName()
+    private string? GetCachedCpuName()
     {
         var now = DateTime.UtcNow;
         if (now - _cpuNameCachedAtUtc < HardwareNameCacheTtl)
@@ -489,7 +494,7 @@ public class ComponentStatsModule : IModule
         return _cachedCpuName;
     }
 
-    private string GetDedicatedGPUName()
+    private string? GetDedicatedGPUName()
     {
         var now = DateTime.UtcNow;
         if (now - _gpuNameCachedAtUtc < HardwareNameCacheTtl)
@@ -500,7 +505,12 @@ public class ComponentStatsModule : IModule
         return _cachedGpuName;
     }
 
-    private string ResolveDedicatedGPUName()
+    private string GetDedicatedGPUNameForHardwareCall() =>
+        // IHardwareMonitorService's per-GPU accessors declare a non-nullable name, but resolve
+        // an absent one to the primary adapter internally, same as GetDedicatedGPUName's own contract.
+        GetDedicatedGPUName()!;
+
+    private string? ResolveDedicatedGPUName()
     {
         try
         {
@@ -508,7 +518,7 @@ public class ComponentStatsModule : IModule
 
             if (string.IsNullOrEmpty(StaticSettings.SelectedGPU) || StaticSettings.AutoSelectGPU)
             {
-                string resolved = _hwService.GetGpuName(null);
+                string? resolved = _hwService.GetGpuName(string.Empty);
                 if (!string.IsNullOrEmpty(resolved) &&
                     !string.Equals(StaticSettings.SelectedGPU, resolved, StringComparison.Ordinal))
                 {
@@ -518,11 +528,11 @@ public class ComponentStatsModule : IModule
             }
             else
             {
-                string resolved = _hwService.GetGpuName(StaticSettings.SelectedGPU);
+                string? resolved = _hwService.GetGpuName(StaticSettings.SelectedGPU);
                 if (!string.IsNullOrEmpty(resolved))
                     return resolved;
 
-                string fallback = _hwService.GetGpuName(null);
+                string? fallback = _hwService.GetGpuName(string.Empty);
                 Logging.WriteInfo(
                     $"Selected GPU '{StaticSettings.SelectedGPU}' no longer matches any adapter; " +
                     $"falling back to '{fallback ?? "none"}'.");
@@ -677,7 +687,7 @@ public class ComponentStatsModule : IModule
         }
     }
 
-    private ComponentStatsItem GetStat(StatsComponentType type)
+    private ComponentStatsItem? GetStat(StatsComponentType type)
         => _statsByType.TryGetValue(type, out var item) ? item : null;
 
     private void RebuildStatsByType()
@@ -899,7 +909,7 @@ public class ComponentStatsModule : IModule
         IReadOnlyList<StatExtra> other)
     {
         bool custom = stat.ReplaceWithHardwareName && !string.IsNullOrWhiteSpace(stat.CustomHardwarenameValue);
-        string name = stat.ShowPrefixHardwareTitle
+        string? name = stat.ShowPrefixHardwareTitle
             ? custom ? stat.CustomHardwarenameValue : stat.HardwareFriendlyName
             : stat.SystemMainName;
 
@@ -929,20 +939,20 @@ public class ComponentStatsModule : IModule
         return _componentStats.AsReadOnly();
     }
 
-    public string GetCustomHardwareName(StatsComponentType type)
+    public string? GetCustomHardwareName(StatsComponentType type)
     {
         var item = GetStat(type);
         return item?.CustomHardwarenameValue;
     }
 
-    public string GetDDRVersion()
+    public string? GetDDRVersion()
     {
         EnsureComponentStatsLoaded();
-        string plain = _hwService.GetDdrVersion();
+        string? plain = _hwService.GetDdrVersion();
         return ToSuperscript(plain);
     }
 
-    private static string ToSuperscript(string text)
+    private static string? ToSuperscript(string? text)
     {
         if (string.IsNullOrEmpty(text)) return text;
         var sb = new System.Text.StringBuilder(text.Length);
@@ -963,7 +973,7 @@ public class ComponentStatsModule : IModule
         return sb.ToString();
     }
 
-    public string GetHardwareName(StatsComponentType type)
+    public string? GetHardwareName(StatsComponentType type)
     {
         var item = GetStat(type);
         return item?.HardwareFriendlyName;
@@ -1024,13 +1034,13 @@ public class ComponentStatsModule : IModule
         return item?.ShowSmallName ?? false;
     }
 
-    public string GetStatMaxValue(StatsComponentType type)
+    public string? GetStatMaxValue(StatsComponentType type)
     {
         var item = GetStat(type);
         return item?.ComponentValueMax;
     }
 
-    public string GetStatValue(StatsComponentType type)
+    public string? GetStatValue(StatsComponentType type)
     {
         var item = GetStat(type);
         return item?.ComponentValue;
@@ -1239,7 +1249,7 @@ public class ComponentStatsModule : IModule
         {
             if (_componentStats == null || _componentStats.Count == 0) return;
             var jsonData = JsonConvert.SerializeObject(_componentStats);
-            if (!AtomicFileWriter.WriteAllText(FileName, jsonData))
+            if (!AtomicFileWriter.WriteAllText(FileName ?? string.Empty, jsonData))
                 Logging.WriteInfo("Failed to save component stats.");
         }
         catch (Exception ex)
@@ -1248,7 +1258,7 @@ public class ComponentStatsModule : IModule
         }
     }
 
-    public void SetCustomHardwareName(StatsComponentType type, string name)
+    public void SetCustomHardwareName(StatsComponentType type, string? name)
     {
         var item = GetStat(type);
         if (item != null)
@@ -1459,13 +1469,13 @@ public class ComponentStatsModule : IModule
 
     public bool UpdateStats()
     {
-        void UpdateComponentStats(StatsComponentType type, Func<string> fetchStat, Func<string> fetchMaxStat = null)
+        void UpdateComponentStats(StatsComponentType type, Func<string> fetchStat, Func<string>? fetchMaxStat = null)
         {
             var statItem = GetStat(type);
             if (statItem == null || !statItem.IsEnabled) return;
 
             string value = fetchStat();
-            string maxValue = fetchMaxStat?.Invoke();
+            string? maxValue = fetchMaxStat?.Invoke();
 
             if (!value.Contains("N/A"))
             {

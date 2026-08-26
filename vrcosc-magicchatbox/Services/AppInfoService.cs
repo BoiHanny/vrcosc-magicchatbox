@@ -11,7 +11,12 @@ public class AppInfoService : IAppInfoService
         try
         {
             var assembly = Assembly.GetExecutingAssembly();
-            string versionString = assembly.GetName().Version.ToString();
+            string? versionString = assembly.GetName().Version?.ToString();
+            if (versionString == null)
+            {
+                Logging.WriteInfo("Error reading version: assembly version is unavailable.");
+                return "69.420.666";
+            }
             return new ViewModels.Models.Version(versionString).VersionNumber;
         }
         catch (Exception ex)

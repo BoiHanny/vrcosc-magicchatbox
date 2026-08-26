@@ -24,15 +24,15 @@ public sealed class PulsoidApiClient : IPulsoidClient
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly IPulsoidTokenValidator _tokenValidator;
     private readonly Random _jitter = new();
-    private ClientWebSocket _webSocket;
-    private HttpClient _statsClient;
+    private ClientWebSocket? _webSocket;
+    private HttpClient? _statsClient;
     private bool _disposed;
 
     private HttpClient StatsClient => _statsClient ??= _httpClientFactory.CreateClient("Pulsoid");
 
-    public event Action<int> HeartRateReceived;
-    public event Action<PulsoidConnectionError, string> ConnectionFailed;
-    public event Action<bool> ConnectionStateChanged;
+    public event Action<int>? HeartRateReceived;
+    public event Action<PulsoidConnectionError, string>? ConnectionFailed;
+    public event Action<bool>? ConnectionStateChanged;
 
     public bool IsConnected => _webSocket?.State == WebSocketState.Open;
 
@@ -54,13 +54,14 @@ public sealed class PulsoidApiClient : IPulsoidClient
 
             try
             {
-                _webSocket = new ClientWebSocket();
-                _webSocket.Options.KeepAliveInterval = KeepAliveInterval;
-                _webSocket.Options.CollectHttpResponseDetails = true;
+                var socket = new ClientWebSocket();
+                _webSocket = socket;
+                socket.Options.KeepAliveInterval = KeepAliveInterval;
+                socket.Options.CollectHttpResponseDetails = true;
 
                 var wsUri = new Uri(
                     $"wss://dev.pulsoid.net/api/v1/data/real_time?access_token={Uri.EscapeDataString(accessToken)}");
-                await _webSocket.ConnectAsync(wsUri, ct).ConfigureAwait(false);
+                await socket.ConnectAsync(wsUri, ct).ConfigureAwait(false);
 
                 handshakeSucceeded = true;
                 attempt = 0;
@@ -161,11 +162,11 @@ public sealed class PulsoidApiClient : IPulsoidClient
 
     public async Task DisconnectAsync()
     {
-        if (_webSocket != null && _webSocket.State == WebSocketState.Open)
+        if (_webSocket is { State: WebSocketState.Open } socket)
         {
             try
             {
-                await _webSocket.CloseAsync(
+                await socket.CloseAsync(
                     WebSocketCloseStatus.NormalClosure, "Closing", CancellationToken.None).ConfigureAwait(false);
             }
             catch (Exception ex)
@@ -178,7 +179,7 @@ public sealed class PulsoidApiClient : IPulsoidClient
         ConnectionStateChanged?.Invoke(false);
     }
 
-    public async Task<PulsoidStatisticsResponse> FetchStatisticsAsync(string accessToken, string timeRange)
+    public async Task<PulsoidStatisticsResponse?> FetchStatisticsAsync(string accessToken, string timeRange)
     {
         try
         {
@@ -238,8 +239,7 @@ public sealed class PulsoidApiClient : IPulsoidClient
     {
         var buffer = new byte[1024];
 
-        while (_webSocket != null &&
-               _webSocket.State == WebSocketState.Open &&
+        while (_webSocket is { State: WebSocketState.Open } socket &&
                !ct.IsCancellationRequested)
         {
             WebSocketReceiveResult result;
@@ -248,12 +248,12 @@ public sealed class PulsoidApiClient : IPulsoidClient
             {
                 do
                 {
-                    result = await _webSocket.ReceiveAsync(
+                    result = await socket.ReceiveAsync(
                         new ArraySegment<byte>(buffer), ct).ConfigureAwait(false);
 
                     if (result.MessageType == WebSocketMessageType.Close)
                     {
-                        await _webSocket.CloseAsync(
+                        await socket.CloseAsync(
                             WebSocketCloseStatus.NormalClosure, "Closing", ct).ConfigureAwait(false);
                         return;
                     }

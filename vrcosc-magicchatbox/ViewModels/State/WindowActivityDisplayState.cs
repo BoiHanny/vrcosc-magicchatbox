@@ -50,8 +50,8 @@ public partial class WindowActivityDisplayState : ObservableObject
     [ObservableProperty] private int _minimumFocusCount = 0;
     [ObservableProperty] private string _filteredAppsSummary = "Showing 0 / 0 apps";
 
-    private ProcessInfo _lastProcessFocused;
-    public ProcessInfo LastProcessFocused
+    private ProcessInfo? _lastProcessFocused;
+    public ProcessInfo? LastProcessFocused
     {
         get => _lastProcessFocused;
         set { if (SetProperty(ref _lastProcessFocused, value)) { } }
@@ -188,7 +188,7 @@ public partial class WindowActivityDisplayState : ObservableObject
             ApplySortDescription();
     }
 
-    private void ScannedApps_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
+    private void ScannedApps_CollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
     {
         Resort();
         if (e.OldItems != null)
@@ -205,7 +205,7 @@ public partial class WindowActivityDisplayState : ObservableObject
         RefreshScannedAppsView();
     }
 
-    private void ProcessInfo_PropertyChanged(object sender, PropertyChangedEventArgs e)
+    private void ProcessInfo_PropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
         if (IsScannedAppTextEditActive)
         {
@@ -242,7 +242,8 @@ public partial class WindowActivityDisplayState : ObservableObject
         void UpdateSource()
         {
             InitializeScannedAppsViewSource();
-            _scannedAppsViewSource.Source = ScannedApps;
+            // InitializeScannedAppsViewSource always assigns _scannedAppsViewSource before returning.
+            _scannedAppsViewSource!.Source = ScannedApps;
             OnPropertyChanged(nameof(ScannedAppsView));
             RefreshScannedAppsView();
         }

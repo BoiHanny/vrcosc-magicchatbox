@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-	<Version>0.9.222</Version>
+	<Version>0.9.226</Version>
     <TargetFramework>net10.0-windows10.0.26100.0</TargetFramework>
     <RootNamespace>vrcosc_magicchatbox</RootNamespace>
     <Nullable>enable</Nullable>
@@ -33,6 +33,18 @@
 		<Prefer32Bit>false</Prefer32Bit>
 		<SatelliteResourceLanguages>en</SatelliteResourceLanguages>
 		<AllowedReferenceRelatedFileExtensions>none</AllowedReferenceRelatedFileExtensions>
+	</PropertyGroup>
+
+	<PropertyGroup>
+		<PublishReadyToRun>true</PublishReadyToRun>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PublishReadyToRunExclude Include="SixLabors.ImageSharp.dll" />
+	</ItemGroup>
+
+	<PropertyGroup>		
+		<MvvmToolkitEnableINotifyPropertyChangingSupport>false</MvvmToolkitEnableINotifyPropertyChangingSupport>
 	</PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
@@ -239,7 +251,6 @@
     <PackageReference Include="TwitchLib.Api" Version="3.10.2" />
     <PackageReference Include="OpenVR.NET" Version="0.8.5" />
 	<PackageReference Include="SixLabors.ImageSharp" Version="2.1.13" />
-    <PackageReference Include="System.Security.Cryptography.ProtectedData" Version="10.0.11" />
     <PackageReference Include="TikTokLive_Sharp" Version="1.2.3" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.11" />
     <PackageReference Include="Microsoft.Extensions.Http" Version="10.0.11" />

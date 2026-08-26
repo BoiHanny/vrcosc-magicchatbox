@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using System.Windows;
 using System.Windows.Controls;
+using vrcosc_magicchatbox.UI.Controls;
 using vrcosc_magicchatbox.UI.Pages;
 using vrcosc_magicchatbox.UI.Pages.Options;
 using Xunit;
@@ -10,9 +11,9 @@ using Xunit;
 namespace MagicChatbox.Tests.UI;
 
 /// <summary>
-/// The options page shows every section's title immediately, with a "Loading…" placeholder standing
-/// in for the eighteen sections it builds in background chunks, so opening it does not hitch. This
-/// checks the placeholders get replaced and the deep link map is fully populated once they do.
+/// The options page shows every section's title immediately and leaves a "Loading…" placeholder in
+/// each section it has not built yet, realizing them as they approach the viewport. This checks that
+/// forcing full realization does replace every placeholder and fully populates the deep link map.
 /// </summary>
 /// <remarks>
 /// The only thing that reads the realized section references is the deep link from the tray menu -
@@ -77,12 +78,12 @@ public class OptionsPageSectionRealizationTests
                 Assert.NotNull(realize);
                 realize!.Invoke(page, null);
 
-                var pending = typeof(OptionsPage).GetField(
-                    "_pendingChunkKeys", BindingFlags.Instance | BindingFlags.NonPublic);
-                Assert.NotNull(pending);
-                var queue = (Queue<string>?)pending!.GetValue(page);
-                Assert.NotNull(queue);
-                Assert.Empty(queue!);
+                var realizerField = typeof(OptionsPage).GetField(
+                    "_realizer", BindingFlags.Instance | BindingFlags.NonPublic);
+                Assert.NotNull(realizerField);
+                var realizer = (SectionRealizer?)realizerField!.GetValue(page);
+                Assert.NotNull(realizer);
+                Assert.Equal(realizer!.TotalCount, realizer.RealizedCount);
 
                 spotifyContentAfter = spotifyWrapper.Content.GetType();
                 eggDevContentAfter = eggDevWrapper.Content.GetType();

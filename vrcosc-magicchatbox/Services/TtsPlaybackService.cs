@@ -79,7 +79,9 @@ public sealed class TtsPlaybackService : ITtsPlaybackService
 
                 await _tts.Value.PlayTikTokAudioAsSpeechAsync(
                     audioFromApi,
-                    _ttsAudio.SelectedPlaybackOutputDevice.ID,
+                    // Both call sites gate TTS on a prior successful PopulateOutputDevices(), which
+                    // assigns this before the API round-trip above has a chance to complete.
+                    _ttsAudio.SelectedPlaybackOutputDevice!.ID,
                     token);
 
                 _chatStatus.ChatFeedbackTxt = resent

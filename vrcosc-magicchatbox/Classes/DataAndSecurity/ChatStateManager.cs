@@ -35,7 +35,7 @@ public class ChatStateManager
         _dispatcher = dispatcher;
     }
 
-    public void ClearChat(ChatItem lastSendChat = null)
+    public void ClearChat(ChatItem? lastSendChat = null)
     {
         _chatStatus.ScanPause = false;
         _oscDisplay.OscToSent = string.Empty;

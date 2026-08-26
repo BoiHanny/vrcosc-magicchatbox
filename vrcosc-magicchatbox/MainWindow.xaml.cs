@@ -1,5 +1,4 @@
 ﻿using System;
-using System;
 using System.ComponentModel;
 using System.Threading.Tasks;
 using System.Windows;
@@ -10,6 +9,7 @@ using System.Windows.Media;
 using System.Windows.Media.Animation;
 using System.Windows.Shell;
 using System.Windows.Threading;
+using Microsoft.Extensions.DependencyInjection;
 using vrcosc_magicchatbox.Classes.DataAndSecurity;
 using vrcosc_magicchatbox.Classes.Modules;
 using vrcosc_magicchatbox.Core.Configuration;
@@ -190,7 +190,7 @@ namespace vrcosc_magicchatbox
             }
         }
 
-        private void MainWindow_StateChanged(object sender, EventArgs e)
+        private void MainWindow_StateChanged(object? sender, EventArgs e)
         {
             if (WindowState == WindowState.Maximized)
             {
@@ -288,6 +288,9 @@ namespace vrcosc_magicchatbox
             ContentRendered += OnFirstContentRendered;
             Loaded += MainWindow_Loaded;
             IsVisibleChanged += MainWindow_IsVisibleChanged;
+
+            if (Core.Diagnostics.PerfProbe.IsEnabled)
+                PreviewKeyDown += OnPerfDumpRequested;
         }
 
         public void ApplyIntegrationOrder()
@@ -368,7 +371,7 @@ namespace vrcosc_magicchatbox
             _ = _scanLoop.Scantick(true);
         }
 
-        public static event EventHandler ShadowOpacityChanged;
+        public static event EventHandler? ShadowOpacityChanged;
 
         private void Button_close_Click(object sender, RoutedEventArgs e)
         {
@@ -416,7 +419,7 @@ namespace vrcosc_magicchatbox
             return notificationText;
         }
 
-        private async void MainWindow_ClosingAsync(object sender, System.ComponentModel.CancelEventArgs e)
+        private async void MainWindow_ClosingAsync(object? sender, System.ComponentModel.CancelEventArgs e)
         {
             SaveWindowPlacement();
 
@@ -563,8 +566,181 @@ namespace vrcosc_magicchatbox
             ContentRendered -= OnFirstContentRendered;
             _hasRendered = true;
 
+            Core.Diagnostics.UiPerfMonitor.Start(this);
+            Core.Diagnostics.PerfProbe.Mark("MainWindow first content rendered");
+            StartPerfAutoDump();
+            ApplyReducedVisuals();
+
             if (_revealWanted)
                 Reveal();
+        }
+
+        /// <summary>Ctrl+Shift+F12 dumps a snapshot, Ctrl+Shift+F11 runs the navigation benchmark. --perf only.</summary>
+        private async void OnPerfDumpRequested(object sender, KeyEventArgs e)
+        {
+            if (!Core.Diagnostics.PerfProbe.IsEnabled
+                || Keyboard.Modifiers != (ModifierKeys.Control | ModifierKeys.Shift))
+            {
+                return;
+            }
+
+            if (e.Key == Key.F12)
+            {
+                e.Handled = true;
+                DumpPerfSnapshot("hotkey");
+                return;
+            }
+
+            if (e.Key != Key.F11 || DataContext is not ViewModel viewModel)
+                return;
+
+            e.Handled = true;
+            Logging.WriteInfo("[Perf] Navigation benchmark started; the window will cycle pages.");
+
+            string report = await Core.Diagnostics.NavigationBenchmark.RunAsync(
+                this,
+                index => viewModel.SelectedMenuIndex = index,
+                () => viewModel.SelectedMenuIndex);
+
+            Logging.WriteInfo(report);
+            DumpPerfSnapshot("nav-benchmark");
+        }
+
+        private void ApplyReducedVisuals()
+        {
+            var settings = _appSettingsProvider?.Value;
+            if (settings == null)
+                return;
+
+            bool forced = Environment.GetEnvironmentVariable("MAGICCHATBOX_REDUCED_VISUALS") == "1";
+            var appState = App.Services.GetRequiredService<IAppState>();
+
+            void Resolve() => UI.Controls.ReducedVisuals.IsEnabled =
+                forced
+                || settings.ReducedVisuals
+                || (settings.ReducedVisualsInVr && appState.IsVRRunning);
+
+            settings.PropertyChanged += (_, e) =>
+            {
+                if (e.PropertyName is nameof(AppSettings.ReducedVisuals) or nameof(AppSettings.ReducedVisualsInVr))
+                    Resolve();
+            };
+
+            if (appState is INotifyPropertyChanged observableState)
+            {
+                observableState.PropertyChanged += (_, e) =>
+                {
+                    if (e.PropertyName == nameof(IAppState.IsVRRunning))
+                        Dispatcher.BeginInvoke(Resolve);
+                };
+            }
+
+            UI.Controls.ReducedVisuals.Changed += () => Dispatcher.BeginInvoke(() => UI.Controls.ReducedVisuals.Refresh(this));
+            Resolve();
+            UI.Controls.ReducedVisuals.Refresh(this);
+        }
+
+        private void StartPerfAutoDump()
+        {
+            if (!Core.Diagnostics.PerfProbe.IsEnabled)
+                return;
+
+            // Periodic dumps make a soak run self-recording; without them a snapshot needs someone at the keyboard.
+            var timer = new DispatcherTimer(DispatcherPriority.ApplicationIdle, Dispatcher)
+            {
+                Interval = TimeSpan.FromSeconds(60),
+            };
+            timer.Tick += (_, _) => DumpPerfSnapshot("auto");
+            timer.Start();
+
+            Closed += (_, _) =>
+            {
+                timer.Stop();
+                DumpPerfSnapshot("shutdown");
+            };
+
+            if (Environment.GetEnvironmentVariable("MAGICCHATBOX_PERF_NAVBENCH") == "1")
+                RunNavigationBenchmarkAsync();
+
+            if (Environment.GetEnvironmentVariable("MAGICCHATBOX_PERF_SCENARIO") == "1")
+                RunUiScenarioAsync();
+        }
+
+        private async void RunUiScenarioAsync()
+        {
+            if (DataContext is not ViewModel viewModel)
+                return;
+
+            await Task.Delay(TimeSpan.FromSeconds(10));
+
+            var integrations = App.Services
+                .GetRequiredService<Core.Configuration.ISettingsProvider<IntegrationSettings>>().Value;
+
+            var runner = new Core.Diagnostics.UiScenarioRunner(
+                this,
+                integrations,
+                index => viewModel.SelectedMenuIndex = index);
+
+            Logging.WriteInfo(await runner.RunAsync());
+            DumpPerfSnapshot("ui-scenario");
+        }
+
+        private async void RunNavigationBenchmarkAsync()
+        {
+            if (DataContext is not ViewModel viewModel)
+                return;
+
+            // Let the first page settle so the benchmark measures switches and not the tail of startup.
+            await Task.Delay(TimeSpan.FromSeconds(10));
+
+            string report = await Core.Diagnostics.NavigationBenchmark.RunAsync(
+                this,
+                index => viewModel.SelectedMenuIndex = index,
+                () => viewModel.SelectedMenuIndex);
+
+            report += await SweepOptionsScrollAsync(viewModel);
+
+            Logging.WriteInfo(report);
+            DumpPerfSnapshot("nav-benchmark");
+        }
+
+        private async Task<string> SweepOptionsScrollAsync(ViewModel viewModel)
+        {
+            viewModel.SelectedMenuIndex = 3;
+            await Dispatcher.InvokeAsync(() => { }, DispatcherPriority.Loaded);
+            await Task.Delay(500);
+
+            var page = FindDescendant<UI.Pages.OptionsPage>(optionsHost);
+            ScrollViewer? scroll = page == null ? null : FindDescendant<ScrollViewer>(page);
+
+            return scroll == null
+                ? "[Perf] Scroll sweep skipped: Options scroll viewer not found.\n"
+                : await Core.Diagnostics.NavigationBenchmark.SweepScrollAsync(scroll, "options");
+        }
+
+        internal void DumpPerfSnapshot(string reason)
+        {
+            if (!Core.Diagnostics.PerfProbe.IsEnabled)
+                return;
+
+            Core.Diagnostics.VisualTreeCensus.Result census = Core.Diagnostics.VisualTreeCensus.Take(this);
+            Logging.WriteInfo(census.Describe("MainWindow"));
+            Logging.WriteInfo(Core.Diagnostics.BindingErrorProbe.Describe());
+            Logging.WriteInfo(
+                $"[Perf] Layout updates {Core.Diagnostics.UiPerfMonitor.LayoutUpdateCount}, "
+                + $"frames {Core.Diagnostics.UiPerfMonitor.FrameCount}");
+
+            foreach ((string name, Core.Diagnostics.PerfProbe.SampleSet.Snapshot sample)
+                in Core.Diagnostics.PerfProbe.Snapshot())
+            {
+                Logging.WriteInfo(
+                    $"[Perf] {name}: n={sample.Count} mean={sample.MeanMs:F2}ms "
+                    + $"p95={sample.P95Ms:F2}ms max={sample.MaxMs:F2}ms alloc={sample.AllocatedBytes / 1024}KB");
+            }
+
+            string? path = Core.Diagnostics.PerfProbe.WriteReport(reason);
+            if (path != null)
+                Logging.WriteInfo($"[Perf] Snapshot written to {path}");
         }
 
         public void FadeInAfterStartup(Action? onVisible = null)

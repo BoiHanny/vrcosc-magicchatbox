@@ -12,7 +12,7 @@ public sealed class PrivacyConsentService : IPrivacyConsentService
     private readonly object _stateLock = new();
     private PrivacySettings Settings => _provider.Value;
 
-    public event EventHandler<ConsentChangedEventArgs> ConsentChanged;
+    public event EventHandler<ConsentChangedEventArgs> ConsentChanged = delegate { };
 
     public PrivacyConsentService(ISettingsProvider<PrivacySettings> provider)
     {

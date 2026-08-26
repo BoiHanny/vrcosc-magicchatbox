@@ -5,11 +5,10 @@ using vrcosc_magicchatbox.Classes.Utilities;
 
 namespace vrcosc_magicchatbox.Classes.Modules.Lyrics;
 
-public static class LyricAsides
+public static partial class LyricAsides
 {
-    private static readonly Regex Aside = new(
-        @"\(([^()]+)\)",
-        RegexOptions.CultureInvariant | RegexOptions.Compiled);
+    [GeneratedRegex(@"\(([^()]+)\)", RegexOptions.CultureInvariant)]
+    private static partial Regex Aside();
 
     private const double MinimumRaisedShare = 0.7;
 
@@ -22,7 +21,7 @@ public static class LyricAsides
 
         string source = text;
 
-        return Aside.Replace(source, match =>
+        return Aside().Replace(source, match =>
         {
             string inner = match.Groups[1].Value.Trim();
             if (!TryRaise(inner, out string raised))

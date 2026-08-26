@@ -13,6 +13,8 @@
     <conv:CollectionContainsConverter x:Key="CollectionContainsConverter" />
     <conv:BoolToOpacityConverter x:Key="BoolToOpacityConverter" />
     <conv:EnumDescriptionConverter x:Key="EnumDescriptionConverter" />
+    <conv:EnumEqualsConverter x:Key="EnumEqualsConverter" />
+    <conv:AutoUpdateModeConverter x:Key="AutoUpdateModeConverter" />
     <conv:TwitchAnnouncementColorToBrushConverter x:Key="TwitchAnnouncementColorToBrushConverter" />
     <conv:IndexToVisibilityConverter x:Key="IndexToVisibilityConverter" />
     <conv:IndexToBoolConverter x:Key="IndexToBoolConverter" />

@@ -276,7 +276,7 @@ public sealed class MediaLinkPersistenceService : IMediaLinkPersistenceService, 
             nextAvailableID = 100;
         }
 
-        MediaLinkStyle template = _mediaLink.SelectedMediaLinkSeekbarStyle
+        MediaLinkStyle? template = _mediaLink.SelectedMediaLinkSeekbarStyle
             ?? _mediaLink.MediaLinkSeekbarStyles.FirstOrDefault(s => s.SystemDefault)
             ?? _mediaLink.MediaLinkSeekbarStyles.FirstOrDefault();
 
@@ -297,20 +297,21 @@ public sealed class MediaLinkPersistenceService : IMediaLinkPersistenceService, 
 
     public void DeleteSelectedSeekbarStyleAndSelectDefault()
     {
-        if (_mediaLink.SelectedMediaLinkSeekbarStyle == null)
+        var selectedStyle = _mediaLink.SelectedMediaLinkSeekbarStyle;
+        if (selectedStyle == null)
         {
             return;
         }
 
-        if (_mediaLink.SelectedMediaLinkSeekbarStyle.SystemDefault)
+        if (selectedStyle.SystemDefault)
         {
             Logging.WriteInfo("Cannot delete system default media link style.");
             return;
         }
 
-        int deletedId = _mediaLink.SelectedMediaLinkSeekbarStyle.ID;
+        int deletedId = selectedStyle.ID;
 
-        _mediaLink.MediaLinkSeekbarStyles.Remove(_mediaLink.SelectedMediaLinkSeekbarStyle);
+        _mediaLink.MediaLinkSeekbarStyles.Remove(selectedStyle);
         _mediaLink.SelectedMediaLinkSeekbarStyle = _mediaLink.MediaLinkSeekbarStyles.FirstOrDefault(s => s.SystemDefault)
             ?? _mediaLink.MediaLinkSeekbarStyles.FirstOrDefault();
 
@@ -323,12 +324,13 @@ public sealed class MediaLinkPersistenceService : IMediaLinkPersistenceService, 
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(filePath);
 
+        var selectedStyle = _mediaLink.SelectedMediaLinkSeekbarStyle;
         var data = new MediaLinkStylesData
         {
             CustomStyles = new ObservableCollection<MediaLinkStyle>(
                 _mediaLink.MediaLinkSeekbarStyles.Where(s => !s.SystemDefault)),
-            SelectedStyleId = _mediaLink.SelectedMediaLinkSeekbarStyle?.SystemDefault == false
-                ? _mediaLink.SelectedMediaLinkSeekbarStyle.ID
+            SelectedStyleId = selectedStyle != null && !selectedStyle.SystemDefault
+                ? selectedStyle.ID
                 : null
         };
 

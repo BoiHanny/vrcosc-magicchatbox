@@ -7,6 +7,7 @@ using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Web;
 using vrcosc_magicchatbox.Classes.DataAndSecurity;
@@ -16,15 +17,19 @@ namespace vrcosc_magicchatbox.Classes.Modules;
 
 public class PulsoidOAuthHandler : IDisposable, IPulsoidTokenValidator
 {
-    private bool disposed = false;
+    private const int MaxCallbackBodyChars = 16 * 1024;
+    private static readonly TimeSpan OAuthTimeout = TimeSpan.FromMinutes(2);
+    private static readonly TimeSpan CallbackReadTimeout = TimeSpan.FromSeconds(5);
+
+    private bool disposed;
 
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly INavigationService _nav;
-    private HttpClient _httpClient;
+    private HttpClient? _httpClient;
     private HttpClient OAuthHttpClient => _httpClient ??= _httpClientFactory.CreateClient("Pulsoid");
-    private HttpListener httpListener;
+    private HttpListener? httpListener;
     private readonly object listenerLock = new object();
-    private HttpListener secondListener;
+    private HttpListener? secondListener;
 
     public PulsoidOAuthHandler(IHttpClientFactory httpClientFactory, INavigationService nav)
     {
@@ -41,15 +46,17 @@ public class PulsoidOAuthHandler : IDisposable, IPulsoidTokenValidator
                 var fragment = window.location.hash.substring(1);
                 var xhttp = new XMLHttpRequest();
                 xhttp.open('POST', 'http://localhost:7385/', true);
+                xhttp.onloadend = function() {
+                    window.location.replace('https://pulsoid.net/ui/integrations');
+                };
                 xhttp.send(fragment);
-
-                window.location.replace('https://pulsoid.net/ui/integrations');
             </script>
         </head>
         <body></body>
     </html>";
 
         var buffer = Encoding.UTF8.GetBytes(responseString);
+        response.ContentType = "text/html; charset=utf-8";
         response.ContentLength64 = buffer.Length;
         await response.OutputStream.WriteAsync(buffer, 0, buffer.Length);
         response.OutputStream.Close();
@@ -67,45 +74,59 @@ public class PulsoidOAuthHandler : IDisposable, IPulsoidTokenValidator
         }
     }
 
-    public async Task<string> AuthenticateUserAsync(string authorizationEndpoint)
+    public async Task<string?> AuthenticateUserAsync(string authorizationEndpoint, string expectedState)
     {
+        if (string.IsNullOrWhiteSpace(expectedState))
+            throw new ArgumentException("An OAuth state value is required.", nameof(expectedState));
+
         try
         {
-            string token = null;
-
             if (httpListener == null || secondListener == null)
                 throw new InvalidOperationException("Listeners are not started");
 
             _nav.OpenUrl(authorizationEndpoint);
 
             var redirectTask = httpListener.GetContextAsync();
-            var timeoutTask = Task.Delay(TimeSpan.FromMinutes(2));
-            if (await Task.WhenAny(redirectTask, timeoutTask) == timeoutTask)
-            {
-                Logging.WriteInfo("Pulsoid OAuth timed out waiting for browser redirect.");
-                StopListeners();
-                return null;
-            }
-
-            var context1 = await redirectTask;
-            await SendBrowserCloseResponseAsync(context1.Response);
-
             var callbackTask = secondListener.GetContextAsync();
-            var callbackTimeoutTask = Task.Delay(TimeSpan.FromMinutes(2));
-            if (await Task.WhenAny(callbackTask, callbackTimeoutTask) == callbackTimeoutTask)
-            {
-                Logging.WriteInfo("Pulsoid OAuth timed out waiting for token callback.");
-                StopListeners();
-                return null;
-            }
+            var timeoutTask = Task.Delay(OAuthTimeout);
 
-            var context2 = await callbackTask;
-            using (var reader = new StreamReader(context2.Request.InputStream))
+            while (true)
             {
-                token = await reader.ReadToEndAsync();
-            }
+                Task completed = await Task.WhenAny(redirectTask, callbackTask, timeoutTask);
+                if (completed == timeoutTask)
+                {
+                    Logging.WriteInfo("Pulsoid OAuth timed out waiting for the browser callback.");
+                    return null;
+                }
 
-            return token;
+                if (completed == redirectTask)
+                {
+                    HttpListenerContext redirect = await redirectTask;
+                    redirectTask = httpListener.GetContextAsync();
+
+                    if (!string.Equals(redirect.Request.HttpMethod, "GET", StringComparison.OrdinalIgnoreCase))
+                    {
+                        CompleteResponse(redirect.Response, HttpStatusCode.MethodNotAllowed, "GET");
+                        continue;
+                    }
+
+                    try
+                    {
+                        await SendBrowserCloseResponseAsync(redirect.Response);
+                    }
+                    catch (Exception ex) when (ex is IOException or HttpListenerException)
+                    {
+                        Logging.WriteInfo($"Pulsoid OAuth bridge response failed: {ex.Message}");
+                    }
+                    continue;
+                }
+
+                HttpListenerContext callback = await callbackTask;
+                callbackTask = secondListener.GetContextAsync();
+                string? fragment = await ReadValidatedCallbackAsync(callback, expectedState);
+                if (fragment != null)
+                    return fragment;
+            }
         }
         catch (Exception ex)
         {
@@ -118,16 +139,123 @@ public class PulsoidOAuthHandler : IDisposable, IPulsoidTokenValidator
         }
     }
 
+    private static async Task<string?> ReadValidatedCallbackAsync(
+        HttpListenerContext context,
+        string expectedState)
+    {
+        HttpListenerRequest request = context.Request;
+        if (!string.Equals(request.HttpMethod, "POST", StringComparison.OrdinalIgnoreCase))
+        {
+            CompleteResponse(context.Response, HttpStatusCode.MethodNotAllowed, "POST");
+            return null;
+        }
+
+        string? origin = request.Headers["Origin"];
+        string expectedOrigin = new Uri(Core.Constants.PulsoidOAuthRedirectUri)
+            .GetLeftPart(UriPartial.Authority);
+        if (!string.IsNullOrWhiteSpace(origin) &&
+            !string.Equals(origin, expectedOrigin, StringComparison.OrdinalIgnoreCase))
+        {
+            CompleteResponse(context.Response, HttpStatusCode.Forbidden);
+            return null;
+        }
+
+        if (request.ContentLength64 > MaxCallbackBodyChars)
+        {
+            CompleteResponse(context.Response, HttpStatusCode.RequestEntityTooLarge);
+            return null;
+        }
+
+        string? fragment;
+        try
+        {
+            using var reader = new StreamReader(request.InputStream, Encoding.UTF8);
+            using var timeout = new CancellationTokenSource(CallbackReadTimeout);
+            var buffer = new char[MaxCallbackBodyChars + 1];
+            int total = 0;
+            while (total < buffer.Length)
+            {
+                int read = await reader.ReadAsync(
+                    buffer.AsMemory(total, buffer.Length - total),
+                    timeout.Token);
+                if (read == 0)
+                    break;
+
+                total += read;
+            }
+
+            fragment = total > MaxCallbackBodyChars
+                ? null
+                : new string(buffer, 0, total);
+        }
+        catch (OperationCanceledException)
+        {
+            CompleteResponse(context.Response, HttpStatusCode.RequestTimeout);
+            return null;
+        }
+        catch (Exception ex) when (ex is IOException or HttpListenerException)
+        {
+            Logging.WriteInfo($"Pulsoid OAuth callback body could not be read: {ex.Message}");
+            CompleteResponse(context.Response, HttpStatusCode.BadRequest);
+            return null;
+        }
+
+        if (fragment == null)
+        {
+            CompleteResponse(context.Response, HttpStatusCode.RequestEntityTooLarge);
+            return null;
+        }
+
+        if (!HasExpectedState(fragment, expectedState))
+        {
+            CompleteResponse(context.Response, HttpStatusCode.BadRequest);
+            return null;
+        }
+
+        CompleteResponse(context.Response, HttpStatusCode.NoContent);
+        return fragment;
+    }
+
+    private static void CompleteResponse(
+        HttpListenerResponse response,
+        HttpStatusCode statusCode,
+        string? allowedMethod = null)
+    {
+        response.StatusCode = (int)statusCode;
+        if (allowedMethod != null)
+            response.Headers["Allow"] = allowedMethod;
+        response.ContentLength64 = 0;
+        response.Close();
+    }
+
     public void Dispose()
     {
         Dispose(true);
         GC.SuppressFinalize(this);
     }
 
-    public static Dictionary<string, string> ParseQueryString(string queryString)
+    public static Dictionary<string, string?> ParseQueryString(string queryString)
     {
         var nvc = HttpUtility.ParseQueryString(queryString);
-        return nvc.AllKeys.ToDictionary(k => k, k => nvc[k]);
+        var result = new Dictionary<string, string?>();
+        foreach (var key in nvc.AllKeys)
+        {
+            if (key == null)
+                continue;
+
+            result[key] = nvc[key];
+        }
+        return result;
+    }
+
+    public static bool HasExpectedState(string fragmentString, string expectedState)
+    {
+        if (string.IsNullOrWhiteSpace(fragmentString) || string.IsNullOrWhiteSpace(expectedState))
+            return false;
+
+        Dictionary<string, string?> fragment = ParseQueryString(fragmentString);
+        return fragment.TryGetValue("state", out string? returnedState) &&
+               string.Equals(returnedState, expectedState, StringComparison.Ordinal);
     }
 
     public void StartListeners()
@@ -137,8 +265,8 @@ public class PulsoidOAuthHandler : IDisposable, IPulsoidTokenValidator
             if (httpListener != null && secondListener != null)
                 return;
 
-            HttpListener first = null;
-            HttpListener second = null;
+            HttpListener? first = null;
+            HttpListener? second = null;
             try
             {
                 first = new HttpListener { Prefixes = { Core.Constants.PulsoidOAuthRedirectUri } };
@@ -171,7 +299,7 @@ public class PulsoidOAuthHandler : IDisposable, IPulsoidTokenValidator
         }
     }
 
-    private static void CloseListenerSafely(HttpListener listener)
+    private static void CloseListenerSafely(HttpListener? listener)
     {
         if (listener == null)
             return;
@@ -273,7 +401,7 @@ public class PulsoidOAuthHandler : IDisposable, IPulsoidTokenValidator
     private class TokenInfo
     {
         [JsonProperty("scopes")]
-        public string[] Scopes { get; set; }
+        public string[]? Scopes { get; set; }
 
         [JsonProperty("expires_in")]
         public long ExpiresIn { get; set; }

@@ -18,6 +18,7 @@ public sealed class OscSenderService : IOscSender, IDisposable
     private const string INPUT_VOICE = "/input/Voice";
     private const int TYPING_DURATION = 2000;
     private static readonly TimeSpan DuplicateKeepAliveInterval = TimeSpan.FromSeconds(12);
+    private static readonly TimeSpan FailedEndpointRetryDelay = TimeSpan.FromSeconds(30);
 
     private readonly OscSettings _oscSettings;
     private readonly AppSettings _appSettings;
@@ -26,12 +27,14 @@ public sealed class OscSenderService : IOscSender, IDisposable
     private readonly ChatStatusDisplayState _chatStatus;
     private readonly OscDisplayState _oscDisplay;
     private readonly TtsAudioDisplayState _ttsAudio;
+    private readonly TimeProvider _timeProvider;
 
     private UDPSender? _oscSender;
     private UDPSender? _secOscSender;
     private UDPSender? _thirdOscSender;
     private bool _senderRebuildFailureLogged;
     private string? _lastFailedEndpoint;
+    private DateTimeOffset _lastFailedEndpointRetryAfterUtc;
     private readonly object _senderLock = new();
     private readonly object _typingLock = new();
 
@@ -49,7 +52,8 @@ public sealed class OscSenderService : IOscSender, IDisposable
         IAppState appState,
         ChatStatusDisplayState chatStatus,
         OscDisplayState oscDisplay,
-        TtsAudioDisplayState ttsAudio)
+        TtsAudioDisplayState ttsAudio,
+        TimeProvider? timeProvider = null)
     {
         _oscSettings = oscSettings.Value;
         _appSettings = appSettings.Value;
@@ -58,6 +62,7 @@ public sealed class OscSenderService : IOscSender, IDisposable
         _chatStatus = chatStatus;
         _oscDisplay = oscDisplay;
         _ttsAudio = ttsAudio;
+        _timeProvider = timeProvider ?? TimeProvider.System;
     }
 
     private OscSettings OS => _oscSettings;
@@ -431,7 +436,8 @@ public sealed class OscSenderService : IOscSender, IDisposable
             return current;
 
         string endpoint = $"{address}:{port}";
-        if (endpoint == _lastFailedEndpoint)
+        if (endpoint == _lastFailedEndpoint &&
+            _timeProvider.GetUtcNow() < _lastFailedEndpointRetryAfterUtc)
             return current;
 
         try
@@ -440,11 +446,14 @@ public sealed class OscSenderService : IOscSender, IDisposable
             current?.Close();
             _senderRebuildFailureLogged = false;
             _lastFailedEndpoint = null;
+            _lastFailedEndpointRetryAfterUtc = default;
             return replacement;
         }
         catch (Exception ex)
         {
             _lastFailedEndpoint = endpoint;
+            _lastFailedEndpointRetryAfterUtc =
+                _timeProvider.GetUtcNow().Add(FailedEndpointRetryDelay);
             if (!_senderRebuildFailureLogged)
             {
                 _senderRebuildFailureLogged = true;

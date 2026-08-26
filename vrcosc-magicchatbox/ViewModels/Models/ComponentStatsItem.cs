@@ -8,12 +8,12 @@ namespace vrcosc_magicchatbox.ViewModels.Models
         public DateTime LastUpdated { get; set; }
         public string SystemMainName { get; set; }
         public string SystemMailSmallName { get; set; }
-        public string HardwareFriendlyName { get; set; }
-        public string HardwareFriendlyNameSmall { get; set; }
+        public string? HardwareFriendlyName { get; set; }
+        public string? HardwareFriendlyNameSmall { get; set; }
         public bool ShowPrefixHardwareTitle { get; set; } = false;
         public bool ReplaceWithHardwareName { get; set; } = false;
-        public string CustomHardwarenameValue { get; set; }
-        public string CustomHardwarenameValueSmall { get; set; }
+        public string? CustomHardwarenameValue { get; set; }
+        public string? CustomHardwarenameValueSmall { get; set; }
         public StatsComponentType ComponentType { get; set; }
         public string Unit { get; set; }
         public bool ShowTemperature { get; set; } = false;
@@ -31,7 +31,7 @@ namespace vrcosc_magicchatbox.ViewModels.Models
         public bool IsEnabled { get; set; } = true;
         public bool ShowSmallName { get; set; } = true;
         public bool ShowDDRVersion { get; set; } = true;
-        public string DDRVersion { get; set; } = null;
+        public string? DDRVersion { get; set; } = null;
 
         public string GetFormattedValue() { return ShowUnit ? $"{ComponentValue}{Unit}" : ComponentValue; }
         public string GetFormattedMaxValue()
@@ -47,11 +47,11 @@ namespace vrcosc_magicchatbox.ViewModels.Models
 
         public string GetDescription()
         {
-            string name = ShowPrefixHardwareTitle
+            string? name = ShowPrefixHardwareTitle
                 ? ReplaceWithHardwareName && !string.IsNullOrEmpty(CustomHardwarenameValue) && !string.IsNullOrEmpty(CustomHardwarenameValueSmall) ? CustomHardwarenameValue : HardwareFriendlyName
                 : SystemMainName;
 
-            string smallName = ShowPrefixHardwareTitle
+            string? smallName = ShowPrefixHardwareTitle
                 ? ReplaceWithHardwareName && !string.IsNullOrEmpty(CustomHardwarenameValue) && !string.IsNullOrEmpty(CustomHardwarenameValueSmall)
                     ? CustomHardwarenameValueSmall
                     : HardwareFriendlyNameSmall
@@ -89,9 +89,9 @@ namespace vrcosc_magicchatbox.ViewModels.Models
 
         public class Gpu
         {
-            public string Name { get; set; }
-            public string Identifier { get; set; }
-            public string HardwareType { get; set; }
+            public string? Name { get; set; }
+            public string? Identifier { get; set; }
+            public string? HardwareType { get; set; }
         }
     }
 }

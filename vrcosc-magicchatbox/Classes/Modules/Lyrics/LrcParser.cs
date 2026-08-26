@@ -6,20 +6,20 @@ using System.Text.RegularExpressions;
 
 namespace vrcosc_magicchatbox.Classes.Modules.Lyrics;
 
-public static class LrcParser
+public static partial class LrcParser
 {
-    private static readonly Regex TimestampPattern =
-        new(@"\[(\d{1,3}):(\d{1,2})(?:[.:](\d{1,3}))?\]", RegexOptions.Compiled);
+    [GeneratedRegex(@"\[(\d{1,3}):(\d{1,2})(?:[.:](\d{1,3}))?\]")]
+    private static partial Regex TimestampPattern();
 
-    private static readonly Regex OffsetPattern =
-        new(@"^\s*\[offset:\s*([+-]?\d+)\s*\]", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+    [GeneratedRegex(@"^\s*\[offset:\s*([+-]?\d+)\s*\]", RegexOptions.IgnoreCase)]
+    private static partial Regex OffsetPattern();
 
-    private static readonly Regex MetadataPattern =
-        new(@"^\s*\[[a-zA-Z#]+:[^\]]*\]\s*$", RegexOptions.Compiled);
+    [GeneratedRegex(@"^\s*\[[a-zA-Z#]+:[^\]]*\]\s*$")]
+    private static partial Regex MetadataPattern();
 
-    private static readonly Regex StageDirectionPattern =
-        new(@"^\s*[\[\(](music|applause|laughter|instrumental|intro|outro|chorus|verse|bridge|hook|silence)[^\]\)]*[\]\)]\s*$",
-            RegexOptions.Compiled | RegexOptions.IgnoreCase);
+    [GeneratedRegex(@"^\s*[\[\(](music|applause|laughter|instrumental|intro|outro|chorus|verse|bridge|hook|silence)[^\]\)]*[\]\)]\s*$",
+        RegexOptions.IgnoreCase)]
+    private static partial Regex StageDirectionPattern();
 
     public const double MaxStageDirectionShare = 0.30;
 
@@ -34,7 +34,7 @@ public static class LrcParser
 
         foreach (string raw in content.Replace("\r\n", "\n").Split('\n'))
         {
-            var offsetMatch = OffsetPattern.Match(raw);
+            var offsetMatch = OffsetPattern().Match(raw);
             if (offsetMatch.Success &&
                 int.TryParse(offsetMatch.Groups[1].Value, NumberStyles.Integer, CultureInfo.InvariantCulture, out int ms))
             {
@@ -42,16 +42,16 @@ public static class LrcParser
                 continue;
             }
 
-            var stamps = TimestampPattern.Matches(raw);
+            var stamps = TimestampPattern().Matches(raw);
             if (stamps.Count == 0)
                 continue;
 
-            string text = TimestampPattern.Replace(raw, string.Empty).Trim();
+            string text = TimestampPattern().Replace(raw, string.Empty).Trim();
 
-            if (MetadataPattern.IsMatch(text) || IsCreditBlock(text))
+            if (MetadataPattern().IsMatch(text) || IsCreditBlock(text))
                 continue;
 
-            if (StageDirectionPattern.IsMatch(text))
+            if (StageDirectionPattern().IsMatch(text))
                 stageDirections++;
 
             foreach (Match stamp in stamps)

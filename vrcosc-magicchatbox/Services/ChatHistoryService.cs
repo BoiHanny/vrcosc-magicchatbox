@@ -72,7 +72,7 @@ public sealed class ChatHistoryService : IChatHistoryService
         {
             Logging.WriteException(ex, MSGBox: false);
 
-            if (_chatStatus?.LastMessages == null)
+            if (_chatStatus.LastMessages == null)
             {
                 _dispatcher.BeginInvoke(() => _chatStatus.LastMessages = new());
             }

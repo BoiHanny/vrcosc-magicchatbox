@@ -32,5 +32,5 @@ public interface IPulsoidClient : IDisposable
 
     Task DisconnectAsync();
 
-    Task<PulsoidStatisticsResponse> FetchStatisticsAsync(string accessToken, string timeRange);
+    Task<PulsoidStatisticsResponse?> FetchStatisticsAsync(string accessToken, string timeRange);
 }

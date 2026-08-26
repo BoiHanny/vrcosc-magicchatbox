@@ -8,7 +8,7 @@ public sealed partial class OpenAIDisplayState : ObservableObject
     private bool _connected = false;
 
     [ObservableProperty]
-    private string _accessErrorTxt;
+    private string _accessErrorTxt = string.Empty;
 
     [ObservableProperty]
     private bool _accessError = false;

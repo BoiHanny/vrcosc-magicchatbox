@@ -394,8 +394,8 @@
                                             Color="Black" />
                                     </Border.Effect>
                                 </Border>
-                                <ScrollViewer Margin="2,4" SnapsToDevicePixels="True">
-                                    <StackPanel IsItemsHost="True" KeyboardNavigation.DirectionalNavigation="Contained" />
+                                <ScrollViewer Margin="2,4" CanContentScroll="True" SnapsToDevicePixels="True">
+                                    <ItemsPresenter KeyboardNavigation.DirectionalNavigation="Contained" />
                                 </ScrollViewer>
                             </Grid>
                         </Popup>
@@ -502,8 +502,8 @@
                                             Color="Black" />
                                     </Border.Effect>
                                 </Border>
-                                <ScrollViewer Margin="2,4" SnapsToDevicePixels="True">
-                                    <StackPanel IsItemsHost="True" KeyboardNavigation.DirectionalNavigation="Contained" />
+                                <ScrollViewer Margin="2,4" CanContentScroll="True" SnapsToDevicePixels="True">
+                                    <ItemsPresenter KeyboardNavigation.DirectionalNavigation="Contained" />
                                 </ScrollViewer>
                             </Grid>
                         </Popup>
@@ -914,6 +914,84 @@
         BasedOn="{StaticResource {x:Type CheckBox}}"
         TargetType="{x:Type CheckBox}" />
 
+    <!--
+        For sitting beside something else on one line rather than in a list of settings, with the label
+        leading and the box trailing. The default checkbox carries a bottom margin, which is what stacks
+        a settings list evenly and what stops anything next to it from ever looking vertically centred.
+    -->
+    <Style
+        x:Key="CompactCheckBox"
+        BasedOn="{StaticResource {x:Type CheckBox}}"
+        TargetType="{x:Type CheckBox}">
+        <Setter Property="Margin" Value="0" />
+        <Setter Property="Padding" Value="0" />
+        <Setter Property="FontSize" Value="11" />
+        <Setter Property="VerticalAlignment" Value="Center" />
+        <Setter Property="VerticalContentAlignment" Value="Center" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type CheckBox}">
+                    <Border Padding="{TemplateBinding Padding}" Background="Transparent">
+                        <!--
+                            A star column, so the box is pushed to the far edge when the checkbox is
+                            stretched across a row, and sits right after the label when it is not.
+                        -->
+                        <Grid VerticalAlignment="Center">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <ContentPresenter
+                                Grid.Column="0"
+                                Margin="0,0,6,0"
+                                HorizontalAlignment="Left"
+                                VerticalAlignment="Center"
+                                RecognizesAccessKey="True" />
+                            <Border
+                                x:Name="CheckBorder"
+                                Grid.Column="1"
+                                Width="14"
+                                Height="14"
+                                VerticalAlignment="Center"
+                                Background="#FF3A2F54"
+                                BorderBrush="#FF6555A0"
+                                BorderThickness="1"
+                                CornerRadius="3">
+                                <Path
+                                    x:Name="CheckMark"
+                                    Width="8"
+                                    Height="6"
+                                    HorizontalAlignment="Center"
+                                    VerticalAlignment="Center"
+                                    Data="M 1,4.5 L 3.5,7 L 9,1.5"
+                                    Stretch="Uniform"
+                                    Stroke="White"
+                                    StrokeEndLineCap="Round"
+                                    StrokeLineJoin="Round"
+                                    StrokeStartLineCap="Round"
+                                    StrokeThickness="2"
+                                    Visibility="Collapsed" />
+                            </Border>
+                        </Grid>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsChecked" Value="True">
+                            <Setter TargetName="CheckMark" Property="Visibility" Value="Visible" />
+                            <Setter TargetName="CheckBorder" Property="Background" Value="#FF7C5CBF" />
+                            <Setter TargetName="CheckBorder" Property="BorderBrush" Value="#FF9B7DE8" />
+                        </Trigger>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="CheckBorder" Property="BorderBrush" Value="#FF6B5CA0" />
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter Property="Opacity" Value="0.5" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
     <Style x:Key="OptionCardStyle" TargetType="{x:Type Border}">
         <Setter Property="Margin" Value="0,0,0,5" />
         <Setter Property="Padding" Value="8" />
@@ -1308,6 +1386,67 @@
     <Style x:Key="OptionActionRowStyle" TargetType="{x:Type StackPanel}">
         <Setter Property="Margin" Value="0,6,0,0" />
         <Setter Property="Orientation" Value="Horizontal" />
+    </Style>
+
+    <!--
+        A row of mutually exclusive choices where a dropdown would hide the alternatives. Every
+        option stays on screen, so the cost of each one is readable without opening anything.
+        Put the buttons in a bordered container and give them a shared GroupName.
+    -->
+    <Style x:Key="SegmentedChoiceContainerStyle" TargetType="{x:Type Border}">
+        <Setter Property="Background" Value="{StaticResource SurfaceDarkBrush}" />
+        <Setter Property="BorderBrush" Value="#5B4A86" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="5" />
+        <Setter Property="Padding" Value="2" />
+        <Setter Property="HorizontalAlignment" Value="Left" />
+        <Setter Property="SnapsToDevicePixels" Value="True" />
+    </Style>
+
+    <Style x:Key="SegmentedChoiceStyle" TargetType="{x:Type RadioButton}">
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="FontFamily" Value="{StaticResource FontPrimary}" />
+        <Setter Property="FontSize" Value="{StaticResource FontSizeCompact}" />
+        <Setter Property="FontWeight" Value="Medium" />
+        <Setter Property="Foreground" Value="{StaticResource TextMutedBrush}" />
+        <Setter Property="Padding" Value="12,5" />
+        <Setter Property="SnapsToDevicePixels" Value="True" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type RadioButton}">
+                    <Border
+                        x:Name="segment"
+                        Background="Transparent"
+                        CornerRadius="3">
+                        <ContentPresenter
+                            Margin="{TemplateBinding Padding}"
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Center"
+                            RecognizesAccessKey="True"
+                            TextOptions.TextRenderingMode="ClearType" />
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="segment" Property="Background" Value="#3A2F5C" />
+                            <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
+                        </Trigger>
+                        <Trigger Property="IsChecked" Value="True">
+                            <Setter TargetName="segment" Property="Background" Value="{StaticResource AccentLightPurpleBrush}" />
+                            <Setter Property="Foreground" Value="#FF241243" />
+                            <Setter Property="FontWeight" Value="SemiBold" />
+                        </Trigger>
+                        <Trigger Property="IsKeyboardFocused" Value="True">
+                            <Setter TargetName="segment" Property="BorderBrush" Value="{StaticResource TextPrimaryBrush}" />
+                            <Setter TargetName="segment" Property="BorderThickness" Value="1" />
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter Property="Opacity" Value="0.45" />
+                            <Setter Property="Cursor" Value="Arrow" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
     </Style>
 
 
@@ -2414,13 +2553,15 @@
         template's parts, so inheriting would leave the base hover trigger fighting this one.
     -->
     <Style x:Key="TileHideButton" TargetType="Button">
-        <Setter Property="Width" Value="26" />
         <Setter Property="Height" Value="22" />
         <Setter Property="Margin" Value="0,0,4,0" />
         <Setter Property="Background" Value="{StaticResource DeckSurfaceBrush}" />
+        <!--  Muted where CUSTOMIZE is not: both sit in this row, but hiding is the lesser action.  -->
         <Setter Property="Foreground" Value="{StaticResource DeckTextMutedBrush}" />
-        <Setter Property="FontSize" Value="10" />
-        <Setter Property="Content" Value="👁" />
+        <Setter Property="FontFamily" Value="{StaticResource FontPrimary}" />
+        <Setter Property="FontSize" Value="{StaticResource FontSizeMicro}" />
+        <Setter Property="Padding" Value="11,0,10,0" />
+        <Setter Property="Content" Value="HIDE" />
         <Setter Property="Cursor" Value="Hand" />
         <Setter Property="SnapsToDevicePixels" Value="True" />
         <Setter Property="Template">
@@ -2428,6 +2569,7 @@
                 <ControlTemplate TargetType="Button">
                     <Border
                         x:Name="eye"
+                        Padding="{TemplateBinding Padding}"
                         Background="{TemplateBinding Background}"
                         CornerRadius="6"
                         SnapsToDevicePixels="True">

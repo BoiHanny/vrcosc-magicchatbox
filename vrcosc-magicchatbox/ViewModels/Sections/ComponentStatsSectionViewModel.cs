@@ -5,6 +5,7 @@ using System.ComponentModel;
 using System.Windows.Threading;
 using vrcosc_magicchatbox.Classes.Modules;
 using vrcosc_magicchatbox.Core.Configuration;
+using vrcosc_magicchatbox.Core.State;
 using vrcosc_magicchatbox.Core.Units;
 using static vrcosc_magicchatbox.Classes.Modules.ComponentStatsModule;
 
@@ -166,6 +167,8 @@ public partial class ComponentStatsSectionViewModel : ObservableObject
 
     private readonly DispatcherTimer? _temperatureTimer;
 
+    private readonly IAppState _appState;
+
     public AppSettings AppSettings { get; }
     public ComponentStatsModule StatsManager { get; }
     public ComponentStatsViewModel ComponentStats { get; }
@@ -175,15 +178,20 @@ public partial class ComponentStatsSectionViewModel : ObservableObject
     public ComponentStatsSectionViewModel(
         ISettingsProvider<AppSettings> appSettingsProvider,
         Lazy<ComponentStatsModule> statsManager,
-        Lazy<ComponentStatsViewModel> componentStats)
+        Lazy<ComponentStatsViewModel> componentStats,
+        IAppState appState)
     {
         AppSettings = appSettingsProvider.Value;
         StatsManager = statsManager.Value;
         ComponentStats = componentStats.Value;
+        _appState = appState;
 
         StatsManager.Settings.PropertyChanged += OnAnythingChanged;
         ComponentStats.PropertyChanged += OnAnythingChanged;
         AppSettings.PropertyChanged += OnAppSettingsChanged;
+
+        if (_appState is INotifyPropertyChanged observable)
+            observable.PropertyChanged += OnAppStateChanged;
 
         var dispatcher = System.Windows.Application.Current?.Dispatcher;
         if (dispatcher != null)
@@ -277,12 +285,26 @@ public partial class ComponentStatsSectionViewModel : ObservableObject
             UpdateTemperatureTimer();
     }
 
+    private void OnAppStateChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName is nameof(IAppState.IsWindowOnScreen)
+            or nameof(IAppState.IsTrayMenuOpen)
+            or nameof(IAppState.IsUiObservable))
+        {
+            UpdateTemperatureTimer();
+        }
+    }
+
     private void UpdateTemperatureTimer()
     {
         if (_temperatureTimer == null)
             return;
 
-        bool wanted = AppSettings.Settings_ComponentStats && StatsManager.Settings.TemperatureRotates;
+        // The tick only rewrites a preview string on the Options page. This view model is a singleton, so
+        // without the visibility gate it keeps rendering that string while the app sits in the tray.
+        bool wanted = _appState.IsUiObservable
+            && AppSettings.Settings_ComponentStats
+            && StatsManager.Settings.TemperatureRotates;
         if (wanted == _temperatureTimer.IsEnabled)
             return;
 

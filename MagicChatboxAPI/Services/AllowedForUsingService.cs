@@ -14,7 +14,7 @@ namespace MagicChatboxAPI.Services
     {
         void StartUserMonitoring(TimeSpan interval);
         void StopUserMonitoring();
-        event EventHandler<BanDetectedEventArgs> BanDetected;
+        event EventHandler<BanDetectedEventArgs>? BanDetected;
     }
 
     public class AllowedForUsingService : IAllowedForUsingService
@@ -26,18 +26,18 @@ namespace MagicChatboxAPI.Services
         private static readonly TimeSpan InitialCheckDelay = TimeSpan.FromSeconds(5);
 
         private readonly HttpClient _httpClient;
-        private Timer _timer;
+        private Timer? _timer;
         private bool _isMonitoring;
         private readonly object _monitorLock = new();
 
-        private List<string> _allUserIds;
+        private List<string>? _allUserIds;
         private readonly Dictionary<string, bool> _userAllowedCache = new();
 
         #endregion
 
         #region Events
 
-        public event EventHandler<BanDetectedEventArgs> BanDetected;
+        public event EventHandler<BanDetectedEventArgs>? BanDetected;
 
         #endregion
 
@@ -249,7 +249,7 @@ namespace MagicChatboxAPI.Services
         private class ApiResponse
         {
             public bool isBanned { get; set; }
-            public string reason { get; set; }
+            public string reason { get; set; } = string.Empty;
         }
 
         #endregion

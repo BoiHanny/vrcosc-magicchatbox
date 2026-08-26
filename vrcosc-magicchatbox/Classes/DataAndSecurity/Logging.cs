@@ -80,7 +80,7 @@ internal static class Logging
             if (ex != null)
                 msgboxtext = ex.Message;
             new ApplicationError(
-                ex, autoClose, msgboxtimeout, _appUpdateState!,
+                ex ?? new Exception(msgboxtext), autoClose, msgboxtimeout, _appUpdateState!,
                 _env!, _httpClientFactory!, _dispatcher!, _versionService!, _nav!).ShowDialog();
         }
         catch (Exception e)

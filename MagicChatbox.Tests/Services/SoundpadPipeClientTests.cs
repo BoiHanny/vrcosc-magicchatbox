@@ -119,8 +119,8 @@ public sealed class SoundpadPipeClientTests
         var serverTask = Task.Run(async () =>
         {
             await server.WaitForConnectionAsync();
-            var buffer = new byte[1024];
-            await server.ReadAsync(buffer);
+            var buffer = new byte[Encoding.UTF8.GetByteCount("GetPlayStatus()")];
+            await server.ReadExactlyAsync(buffer);
             await server.DisposeAsync();
         });
 
@@ -141,8 +141,8 @@ public sealed class SoundpadPipeClientTests
         var serverTask = Task.Run(async () =>
         {
             await server.WaitForConnectionAsync();
-            var buffer = new byte[1024];
-            await server.ReadAsync(buffer);
+            var buffer = new byte[Encoding.UTF8.GetByteCount("GetPlayStatus()")];
+            await server.ReadExactlyAsync(buffer);
         });
 
         var reply = await client.SendRequestAsync("GetPlayStatus()", timeoutMs: 500);

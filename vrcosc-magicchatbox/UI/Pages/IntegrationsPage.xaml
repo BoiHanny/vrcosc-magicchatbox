@@ -2905,7 +2905,17 @@
                         BorderThickness="1"
                         CornerRadius="6"
                         Visibility="{Binding IntegrationSettings.IntgrVoicemod, Converter={StaticResource BoolToVisibilityConverter}}">
-                        <controls:VoicemodControlPanel ViewModel="{Binding Voicemod}" />
+                        <!--  Declared as a template, not a child: a direct child is built when the page's
+                              BAML loads even though the Border above it is collapsed, while a
+                              ContentPresenter builds its template during Measure, which a collapsed
+                              subtree never gets. Switching the integration on is what builds the panel.  -->
+                        <ContentControl Content="{Binding}">
+                            <ContentControl.ContentTemplate>
+                                <DataTemplate>
+                                    <controls:VoicemodControlPanel ViewModel="{Binding Voicemod}" />
+                                </DataTemplate>
+                            </ContentControl.ContentTemplate>
+                        </ContentControl>
                     </Border>
                 </Grid>
             </ListBoxItem>

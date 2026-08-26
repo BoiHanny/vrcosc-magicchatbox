@@ -108,7 +108,7 @@ public partial class ModelTokenUsage : ObservableObject
     private int completionTokens;
 
     [ObservableProperty]
-    private string modelName;
+    private string modelName = string.Empty;
 
     [ObservableProperty]
     private int promptTokens;
@@ -136,7 +136,7 @@ public partial class DailyTokenUsage : ObservableObject
 
 public class TokenUsageData : ObservableObject
 {
-    private string _lastRequestModelName;
+    private string _lastRequestModelName = string.Empty;
     private int _lastRequestTotalTokens;
 
     public TokenUsageData()
@@ -196,7 +196,7 @@ public partial class SupportedIntelliChatLanguage : ObservableObject
     private bool isFavorite = false;
 
     [ObservableProperty]
-    private string language;
+    private string language = string.Empty;
 }
 
 public partial class IntelliChatWritingStyle : ObservableObject
@@ -211,10 +211,10 @@ public partial class IntelliChatWritingStyle : ObservableObject
     private bool isFavorite = false;
 
     [ObservableProperty]
-    private string styleDescription;
+    private string styleDescription = string.Empty;
 
     [ObservableProperty]
-    private string styleName;
+    private string styleName = string.Empty;
 
     [ObservableProperty]
     private double temperature;

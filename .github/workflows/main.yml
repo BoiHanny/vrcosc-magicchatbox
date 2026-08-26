@@ -241,7 +241,7 @@ jobs:
     # ---- Build ----
     - name: Restore dependencies
       if: steps.resolve_release.outputs.is_tag_release != 'true' || steps.check_release.outputs.release_exists == 'false'
-      run: dotnet restore ${{ env.SOLUTION_PATH }} -r win-x64
+      run: dotnet restore ${{ env.SOLUTION_PATH }} -r win-x64 -p:Configuration=Release
 
     - name: Publish the application
       if: steps.resolve_release.outputs.is_tag_release != 'true' || steps.check_release.outputs.release_exists == 'false'

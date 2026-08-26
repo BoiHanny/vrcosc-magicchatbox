@@ -7,6 +7,19 @@ namespace vrcosc_magicchatbox.UI.Controls;
 
 public partial class SegmentPreview : UserControl
 {
+    private static readonly Brush FullFill = Frozen(Color.FromRgb(0x7A, 0x2E, 0x3E));
+
+    private static readonly Brush TightFill = Frozen(Color.FromRgb(0x6B, 0x54, 0x22));
+
+    private static readonly Brush RoomFill = Frozen(Color.FromArgb(0x26, 0xFF, 0xFF, 0xFF));
+
+    private static Brush Frozen(Color color)
+    {
+        var brush = new SolidColorBrush(color);
+        brush.Freeze();
+        return brush;
+    }
+
     public static readonly DependencyProperty CaptionProperty = DependencyProperty.Register(
         nameof(Caption), typeof(string), typeof(SegmentPreview), new PropertyMetadata(string.Empty, OnCaptionChanged));
 
@@ -60,11 +73,15 @@ public partial class SegmentPreview : UserControl
         int length = Line?.Length ?? 0;
         CostText = $"{length}/{OscBuildContext.MaxOscLength}";
 
-        CostChip.Background = OscPreviewFillLevel.Classify(length) switch
+        // Three fixed colours, so they are built and frozen once rather than per keystroke.
+        Brush fill = OscPreviewFillLevel.Classify(length) switch
         {
-            OscPreviewFill.Full => new SolidColorBrush(Color.FromRgb(0x7A, 0x2E, 0x3E)),
-            OscPreviewFill.Tight => new SolidColorBrush(Color.FromRgb(0x6B, 0x54, 0x22)),
-            _ => new SolidColorBrush(Color.FromArgb(0x26, 0xFF, 0xFF, 0xFF)),
+            OscPreviewFill.Full => FullFill,
+            OscPreviewFill.Tight => TightFill,
+            _ => RoomFill,
         };
+
+        if (!ReferenceEquals(CostChip.Background, fill))
+            CostChip.Background = fill;
     }
 }

@@ -114,7 +114,7 @@ public sealed class PulsoidModuleAuthRestoreTests : IDisposable
         }
 
         public Task DisconnectAsync() => Task.CompletedTask;
-        public Task<PulsoidStatisticsResponse> FetchStatisticsAsync(string accessToken, string timeRange) => Task.FromResult<PulsoidStatisticsResponse>(null!);
+        public Task<PulsoidStatisticsResponse?> FetchStatisticsAsync(string accessToken, string timeRange) => Task.FromResult<PulsoidStatisticsResponse?>(null);
         public void Dispose() { }
 
         public void RaiseConnectionFailed(PulsoidConnectionError error, string message)

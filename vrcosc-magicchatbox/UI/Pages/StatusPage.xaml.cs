@@ -128,7 +128,43 @@ namespace vrcosc_magicchatbox.UI.Pages
         private void BeginRenameGroup_Click(object sender, RoutedEventArgs e)
         {
             if (sender is Button btn && btn.Tag is StatusGroup group)
+            {
                 VM.BeginRenameGroupCommand.Execute(group);
+                Dispatcher.BeginInvoke(
+                    () => FocusRenameTextBox(group),
+                    DispatcherPriority.Input);
+            }
+        }
+
+        private void FocusRenameTextBox(StatusGroup group)
+        {
+            TextBox? textBox = FindVisualChild<TextBox>(
+                GroupListControl,
+                candidate => ReferenceEquals(candidate.Tag, group));
+            if (textBox == null)
+                return;
+
+            textBox.Focus();
+            Keyboard.Focus(textBox);
+            textBox.SelectAll();
+        }
+
+        private static T? FindVisualChild<T>(DependencyObject parent, Func<T, bool> predicate)
+            where T : DependencyObject
+        {
+            int childCount = VisualTreeHelper.GetChildrenCount(parent);
+            for (int index = 0; index < childCount; index++)
+            {
+                DependencyObject child = VisualTreeHelper.GetChild(parent, index);
+                if (child is T match && predicate(match))
+                    return match;
+
+                T? descendant = FindVisualChild(child, predicate);
+                if (descendant != null)
+                    return descendant;
+            }
+
+            return null;
         }
 
         private void RenameGroupTextBox_KeyDown(object sender, KeyEventArgs e)

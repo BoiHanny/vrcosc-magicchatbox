@@ -130,15 +130,16 @@ public sealed class AudioService : IAudioService
         }
     }
 
-    public List<Voice> ReadTikTokTTSVoices()
+    public List<Voice>? ReadTikTokTTSVoices()
     {
         try
         {
-            string currentrunningAppdir = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+            // Not published single-file, so the executing assembly's location always has a directory.
+            string currentrunningAppdir = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)!;
 
             string voicesFilePath = Path.Combine(currentrunningAppdir, "Json", "voices.json");
             string json = File.ReadAllText(voicesFilePath);
-            List<Voice> ConfirmList = JsonConvert.DeserializeObject<List<Voice>>(json);
+            List<Voice> ConfirmList = JsonConvert.DeserializeObject<List<Voice>>(json)!;
 
             var ttsSettings = _ttsSettingsProvider.Value;
 
@@ -148,7 +149,7 @@ public sealed class AudioService : IAudioService
             }
             if (!string.IsNullOrEmpty(ttsSettings.RecentTikTokTTSVoice) || ConfirmList.Count == 0)
             {
-                Voice selectedVoice = ConfirmList.FirstOrDefault(v => v.ApiName == ttsSettings.RecentTikTokTTSVoice);
+                Voice? selectedVoice = ConfirmList.FirstOrDefault(v => v.ApiName == ttsSettings.RecentTikTokTTSVoice);
                 if (selectedVoice != null)
                 {
                     _dispatcher.BeginInvoke(() => _ttsAudio.SelectedTikTokTTSVoice = selectedVoice);
@@ -166,8 +167,8 @@ public sealed class AudioService : IAudioService
 
     public void EnsureLogDirectoryExists(string filePath)
     {
-        string directory = Path.GetDirectoryName(filePath);
-        if (!Directory.Exists(directory))
+        string? directory = Path.GetDirectoryName(filePath);
+        if (!string.IsNullOrEmpty(directory) && !Directory.Exists(directory))
         {
             Directory.CreateDirectory(directory);
         }

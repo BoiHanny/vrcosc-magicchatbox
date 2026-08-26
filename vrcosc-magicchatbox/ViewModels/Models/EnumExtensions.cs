@@ -8,9 +8,9 @@ namespace vrcosc_magicchatbox.ViewModels.Models
     {
         public static string GetDescription(this Enum value)
         {
-            FieldInfo field = value.GetType().GetField(value.ToString());
+            FieldInfo? field = value.GetType().GetField(value.ToString());
 
-            DescriptionAttribute attribute = field.GetCustomAttribute<DescriptionAttribute>(false);
+            DescriptionAttribute? attribute = field?.GetCustomAttribute<DescriptionAttribute>(false);
 
             return attribute != null ? attribute.Description : value.ToString();
         }

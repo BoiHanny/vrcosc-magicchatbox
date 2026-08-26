@@ -89,7 +89,7 @@ public sealed class MediaLinkOscProvider : IOscProvider
         if (ShouldSuppressSpotifySessions(context.IsVRRunning))
             sessions = sessions.Where(s => !IsSpotifySession(s));
 
-        MediaSessionInfo session = sessions.FirstOrDefault();
+        MediaSessionInfo? session = sessions.FirstOrDefault();
         if (session == null)
             return BuildNoSessionText();
 
@@ -292,7 +292,7 @@ public sealed class MediaLinkOscProvider : IOscProvider
         }
     }
 
-    private static SeekbarStyleOptions ToSeekbarOptions(MediaLinkStyle style)
+    private static SeekbarStyleOptions ToSeekbarOptions(MediaLinkStyle? style)
     {
         if (style == null)
         {

@@ -136,7 +136,7 @@ namespace vrcosc_magicchatbox.ViewModels
             bool confirmed = ConfirmationDialog.Show(
                 "Reset section",
                 "Reset this section to default settings?",
-                "Saved tokens and client IDs are preserved where possible. Running modules are restarted only when the reset service can do that safely.",
+                "Saved tokens, client IDs and the integration's on/off switch are kept. A module that is running is stopped, reset, and started again.",
                 "Reset");
 
             if (!confirmed)

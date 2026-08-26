@@ -30,15 +30,15 @@ public sealed partial class TtsAudioDisplayState : ObservableObject
         set { _TTSBtnShadow = value; OnPropertyChanged(); }
     }
 
-    private List<Voice> _tikTokTTSVoices;
-    public List<Voice> TikTokTTSVoices
+    private List<Voice>? _tikTokTTSVoices = new();
+    public List<Voice>? TikTokTTSVoices
     {
         get => _tikTokTTSVoices;
         set { _tikTokTTSVoices = value; OnPropertyChanged(); }
     }
 
-    private Voice _selectedTikTokTTSVoice;
-    public Voice SelectedTikTokTTSVoice
+    private Voice? _selectedTikTokTTSVoice;
+    public Voice? SelectedTikTokTTSVoice
     {
         get => _selectedTikTokTTSVoice;
         set
@@ -65,15 +65,15 @@ public sealed partial class TtsAudioDisplayState : ObservableObject
         set { _playbackOutputDevices = value; OnPropertyChanged(); }
     }
 
-    private AudioDevice _selectedAuxOutputDevice;
-    public AudioDevice SelectedAuxOutputDevice
+    private AudioDevice? _selectedAuxOutputDevice;
+    public AudioDevice? SelectedAuxOutputDevice
     {
         get => _selectedAuxOutputDevice;
         set { _selectedAuxOutputDevice = value; OnPropertyChanged(); }
     }
 
-    private AudioDevice _selectedPlaybackOutputDevice;
-    public AudioDevice SelectedPlaybackOutputDevice
+    private AudioDevice? _selectedPlaybackOutputDevice;
+    public AudioDevice? SelectedPlaybackOutputDevice
     {
         get => _selectedPlaybackOutputDevice;
         set

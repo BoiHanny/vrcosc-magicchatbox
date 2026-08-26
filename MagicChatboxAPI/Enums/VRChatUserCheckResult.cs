@@ -8,6 +8,6 @@ namespace MagicChatboxAPI.Enums
 
         public bool AnyUserAllowed { get; set; }
 
-        public string ErrorMessage { get; set; }
+        public string ErrorMessage { get; set; } = string.Empty;
     }
 }

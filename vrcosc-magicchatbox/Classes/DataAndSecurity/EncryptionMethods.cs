@@ -6,7 +6,7 @@ namespace vrcosc_magicchatbox.Classes.DataAndSecurity;
 
 internal static class EncryptionMethods
 {
-    public static string DecryptString(string cipherText)
+    public static string? DecryptString(string cipherText)
     {
         try
         {
@@ -35,7 +35,7 @@ internal static class EncryptionMethods
         }
     }
 
-    public static string EncryptString(string plainText)
+    public static string? EncryptString(string plainText)
     {
         try
         {
@@ -65,17 +65,21 @@ internal static class EncryptionMethods
         {
             if (string.IsNullOrEmpty(source))
             {
-                destination = null;
+                destination = string.Empty;
                 return true;
             }
 
-            destination = isEncryption ? EncryptString(source) : DecryptString(source);
-            return destination != null;
+            string? result = isEncryption ? EncryptString(source) : DecryptString(source);
+            destination = result ?? string.Empty;
+
+            // Success is decided by the result, not by the coalesced destination:
+            // a value that legitimately round-trips to an empty string still succeeded.
+            return result != null;
         }
         catch (Exception ex)
         {
             Logging.WriteException(ex, MSGBox: false);
-            destination = null;
+            destination = string.Empty;
             return false;
         }
     }

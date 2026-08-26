@@ -132,12 +132,12 @@ public partial class HookItem : ObservableObject
     public PrivacyHook Hook { get; }
     public string Title { get; }
     public string Description { get; }
-    public string Warning { get; }
+    public string? Warning { get; }
     public Visibility WarningVisibility => string.IsNullOrEmpty(Warning) ? Visibility.Collapsed : Visibility.Visible;
 
     [ObservableProperty] private bool _isApproved;
 
-    public HookItem(PrivacyHook hook, string title, string description, string warning, bool isApproved)
+    public HookItem(PrivacyHook hook, string title, string description, string? warning, bool isApproved)
     {
         Hook = hook;
         Title = title;

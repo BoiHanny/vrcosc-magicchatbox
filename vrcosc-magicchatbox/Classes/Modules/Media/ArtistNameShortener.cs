@@ -5,19 +5,20 @@ using System.Text.RegularExpressions;
 
 namespace vrcosc_magicchatbox.Classes.Modules.Media;
 
-public static class ArtistNameShortener
+public static partial class ArtistNameShortener
 {
-    private static readonly Regex TopicSuffix = new(
+    [GeneratedRegex(
         @"\s*-\s*Topic\s*$",
-        RegexOptions.IgnoreCase | RegexOptions.CultureInvariant | RegexOptions.Compiled);
+        RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)]
+    private static partial Regex TopicSuffix();
 
-    private static readonly Regex FeaturedTail = new(
+    [GeneratedRegex(
         @"\s*[\(\[]?\s*\b(?:feat\.?|ft\.?|featuring)\s+.*$",
-        RegexOptions.IgnoreCase | RegexOptions.CultureInvariant | RegexOptions.Compiled);
+        RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)]
+    private static partial Regex FeaturedTail();
 
-    private static readonly Regex AmpersandJoin = new(
-        @"\s+&\s+",
-        RegexOptions.CultureInvariant | RegexOptions.Compiled);
+    [GeneratedRegex(@"\s+&\s+", RegexOptions.CultureInvariant)]
+    private static partial Regex AmpersandJoin();
 
     private static readonly char[] CreditSeparators = [',', ';'];
 
@@ -26,7 +27,7 @@ public static class ArtistNameShortener
         if (string.IsNullOrWhiteSpace(artist))
             return string.Empty;
 
-        return TopicSuffix.Replace(artist.Trim(), string.Empty).Trim();
+        return TopicSuffix().Replace(artist.Trim(), string.Empty).Trim();
     }
 
     public static IReadOnlyList<string> SplitCredits(string? artist)
@@ -41,7 +42,7 @@ public static class ArtistNameShortener
 
         if (parts.Count > 1)
         {
-            string[] tail = AmpersandJoin.Split(parts[^1]);
+            string[] tail = AmpersandJoin().Split(parts[^1]);
             if (tail.Length > 1)
             {
                 parts.RemoveAt(parts.Count - 1);
@@ -68,7 +69,7 @@ public static class ArtistNameShortener
 
         Add(cleaned);
 
-        string withoutFeat = FeaturedTail.Replace(cleaned, string.Empty)
+        string withoutFeat = FeaturedTail().Replace(cleaned, string.Empty)
             .Trim()
             .TrimEnd(',', ';', '(', '[')
             .Trim();

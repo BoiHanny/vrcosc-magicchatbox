@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 
 namespace vrcosc_magicchatbox.Classes.Modules;
@@ -76,7 +77,7 @@ public static class IntegrationTileCatalog
     private static readonly Dictionary<string, IntegrationTile> ByMasterProperty =
         Tiles.ToDictionary(t => t.MasterProperty, StringComparer.Ordinal);
 
-    public static bool TryGet(string key, out IntegrationTile tile)
+    public static bool TryGet(string? key, [NotNullWhen(true)] out IntegrationTile? tile)
     {
         tile = null;
         return !string.IsNullOrWhiteSpace(key) && ByKey.TryGetValue(key.Trim(), out tile);
@@ -85,7 +86,7 @@ public static class IntegrationTileCatalog
     public static string DisplayNameFor(string key)
         => TryGet(key, out var tile) ? tile.DisplayName : key;
 
-    public static bool TryKeyForMasterProperty(string propertyName, out string key)
+    public static bool TryKeyForMasterProperty(string propertyName, [NotNullWhen(true)] out string? key)
     {
         key = null;
         if (string.IsNullOrEmpty(propertyName)) return false;
@@ -94,7 +95,7 @@ public static class IntegrationTileCatalog
         return true;
     }
 
-    public static HashSet<string> ResolveHidden(IEnumerable<string> stored)
+    public static HashSet<string> ResolveHidden(IEnumerable<string?>? stored)
     {
         var resolved = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         if (stored == null) return resolved;

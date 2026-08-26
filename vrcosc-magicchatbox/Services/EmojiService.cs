@@ -21,7 +21,7 @@ public partial class EmojiService : ObservableObject
     private IReadOnlyList<string> _emojiSnapshot = Array.Empty<string>();
 
     [ObservableProperty]
-    private string _currentEmoji;
+    private string _currentEmoji = string.Empty;
 
     public string EmojiListString
     {

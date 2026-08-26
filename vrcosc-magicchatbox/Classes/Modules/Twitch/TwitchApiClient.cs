@@ -17,7 +17,7 @@ public sealed class TwitchApiClient : ITwitchApiClient
     private readonly TwitchAPI _api = new();
     private readonly IHttpClientFactory _httpClientFactory;
 
-    private HttpClient _helixClient;
+    private HttpClient? _helixClient;
     private HttpClient HelixClient => _helixClient ??= _httpClientFactory.CreateClient("Twitch");
 
     private string _configuredClientId = string.Empty;

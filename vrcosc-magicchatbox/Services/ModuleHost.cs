@@ -14,22 +14,22 @@ public partial class ModuleHost : ObservableObject, IModuleHost
     private readonly List<IModule> _modules = new();
     private readonly object _modulesLock = new();
 
-    [ObservableProperty] private ComponentStatsModule _componentStats;
+    [ObservableProperty] private ComponentStatsModule? _componentStats;
 
-    [ObservableProperty] private IntelliChatModule _intelliChat;
-    [ObservableProperty] private TwitchModule _twitch;
-    [ObservableProperty] private TikTokLiveModule _tikTokLive;
-    [ObservableProperty] private DiscordModule _discord;
-    [ObservableProperty] private SpotifyModule _spotify;
-    [ObservableProperty] private VrcLogModule _vrcRadar;
-    [ObservableProperty] private PulsoidModule _pulsoid;
-    [ObservableProperty] private SoundpadModule _soundpad;
-    [ObservableProperty] private VoicemodModule _voicemod;
-    [ObservableProperty] private TrackerBatteryModule _trackerBattery;
-    [ObservableProperty] private vrcosc_magicchatbox.Classes.Modules.Vr.VrPerformanceModule _vrPerformance;
-    [ObservableProperty] private vrcosc_magicchatbox.Classes.Modules.Lyrics.LyricsModule _lyrics;
-    [ObservableProperty] private WhisperModule _whisper;
-    [ObservableProperty] private AfkModule _afk;
+    [ObservableProperty] private IntelliChatModule? _intelliChat;
+    [ObservableProperty] private TwitchModule? _twitch;
+    [ObservableProperty] private TikTokLiveModule? _tikTokLive;
+    [ObservableProperty] private DiscordModule? _discord;
+    [ObservableProperty] private SpotifyModule? _spotify;
+    [ObservableProperty] private VrcLogModule? _vrcRadar;
+    [ObservableProperty] private PulsoidModule? _pulsoid;
+    [ObservableProperty] private SoundpadModule? _soundpad;
+    [ObservableProperty] private VoicemodModule? _voicemod;
+    [ObservableProperty] private TrackerBatteryModule? _trackerBattery;
+    [ObservableProperty] private vrcosc_magicchatbox.Classes.Modules.Vr.VrPerformanceModule? _vrPerformance;
+    [ObservableProperty] private vrcosc_magicchatbox.Classes.Modules.Lyrics.LyricsModule? _lyrics;
+    [ObservableProperty] private WhisperModule? _whisper;
+    [ObservableProperty] private AfkModule? _afk;
 
     public IReadOnlyList<IModule> AllModules
     {
