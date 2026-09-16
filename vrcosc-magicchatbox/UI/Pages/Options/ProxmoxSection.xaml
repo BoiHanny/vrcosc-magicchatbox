@@ -1,0 +1,50 @@
+<UserControl
+    x:Class="vrcosc_magicchatbox.UI.Pages.Options.ProxmoxSection"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:controls="clr-namespace:vrcosc_magicchatbox.UI.Controls"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:sections="clr-namespace:vrcosc_magicchatbox.ViewModels.Sections"
+    d:DataContext="{d:DesignInstance Type=sections:ProxmoxSectionViewModel, IsDesignTimeCreatable=False}"
+    mc:Ignorable="d">
+    <Grid Margin="0,5,0,0">
+        <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
+        <Grid.Background>
+            <LinearGradientBrush StartPoint="1,1" EndPoint="0,0">
+                <GradientStop Color="{StaticResource SurfaceGradientStartColor}" />
+                <GradientStop Offset="1" Color="{StaticResource SurfaceGradientEndColor}" />
+            </LinearGradientBrush>
+        </Grid.Background>
+        <ToggleButton
+            Height="30"
+            HorizontalAlignment="Left"
+            IsChecked="{Binding AppSettings.Settings_Proxmox, Mode=TwoWay}"
+            Style="{StaticResource ExpandCollapseToggleButtonStyle}"
+            Tag="Proxmox options" />
+        <StackPanel Grid.Row="1" Margin="34,10,0,0" Visibility="{Binding AppSettings.Settings_Proxmox, Converter={StaticResource InverseBoolToHiddenConverter}}">
+            <Border Style="{StaticResource OptionCardStyle}">
+                <StackPanel>
+                    <TextBlock Style="{StaticResource OptionSubsectionHeaderStyle}" Text="What goes in the chatbox" />
+                    <controls:SegmentPreview Line="{Binding PreviewLine}" />
+                </StackPanel>
+            </Border>
+            <Border Style="{StaticResource OptionCardStyle}">
+                <StackPanel>
+                    <TextBlock Style="{StaticResource OptionSubsectionHeaderStyle}" Text="Connection" />
+                    <TextBlock Style="{StaticResource OptionHelpTextStyle}" Text="Create a Proxmox API token with read-only permissions, then paste it here as user@realm!token=secret or the full PVEAPIToken value." />
+                    <TextBox Margin="5" Text="{Binding Proxmox.Settings.Endpoint, UpdateSourceTrigger=PropertyChanged}" ToolTip="Proxmox URL, for example https://192.168.1.23:8006" />
+                    <TextBox Margin="5" Text="{Binding Proxmox.Settings.ApiToken, UpdateSourceTrigger=PropertyChanged}" ToolTip="PVE API token" />
+                    <TextBox Margin="5" Text="{Binding Proxmox.Settings.NodeNames, UpdateSourceTrigger=PropertyChanged}" ToolTip="Comma-separated node names, for example pve01,pve02" />
+                    <StackPanel Margin="5" Orientation="Horizontal">
+                        <TextBlock VerticalAlignment="Center" Text="Poll every seconds" />
+                        <TextBox Width="45" Margin="8,0" Text="{Binding Proxmox.Settings.PollIntervalSeconds, UpdateSourceTrigger=PropertyChanged}" />
+                    </StackPanel>
+                    <CheckBox Margin="5" IsChecked="{Binding Proxmox.Settings.AllowInvalidCertificate, Mode=TwoWay}">Allow self-signed HTTPS certificates</CheckBox>
+                    <CheckBox Margin="5" IsChecked="{Binding IntegrationSettings.IntgrProxmox, Mode=TwoWay}">Send Proxmox specs to the chatbox</CheckBox>
+                    <TextBlock Margin="5" Foreground="{StaticResource TextMutedBrush}" Text="{Binding Proxmox.LastError}" TextWrapping="Wrap" />
+                </StackPanel>
+            </Border>
+        </StackPanel>
+    </Grid>
+</UserControl>

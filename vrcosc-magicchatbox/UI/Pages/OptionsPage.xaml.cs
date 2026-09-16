@@ -110,6 +110,7 @@ public partial class OptionsPage : UserControl
         _realizer.Add("weather", OptionsWrapper_Weather, () => new WeatherSection(), nameof(OptionsPageViewModel.WeatherSection));
         _realizer.Add("pulsoid", OptionsWrapper_Pulsoid, () => new PulsoidSection(), nameof(OptionsPageViewModel.PulsoidSection));
         _realizer.Add("componentstats", OptionsWrapper_ComponentStats, () => new ComponentStatsSection(), nameof(OptionsPageViewModel.ComponentStatsSection));
+        _realizer.Add("proxmox", OptionsWrapper_Proxmox, () => new ProxmoxSection(), nameof(OptionsPageViewModel.ProxmoxSection));
         _realizer.Add("networkstatistics", OptionsWrapper_NetworkStatistics, () => new NetworkStatisticsSection(), nameof(OptionsPageViewModel.NetworkStatisticsSection));
         _realizer.Add("windowactivity", OptionsWrapper_WindowActivity, () => new WindowActivitySection(), nameof(OptionsPageViewModel.WindowActivitySection));
         _realizer.Add("vrperformance", OptionsWrapper_VrPerformance, () => new VrPerformanceSection(), nameof(OptionsPageViewModel.VrPerformanceSection));
@@ -145,6 +146,7 @@ public partial class OptionsPage : UserControl
             ["Settings_OpenAI"] = OptionsWrapper_OpenAI,
             ["Settings_Voicemod"] = OptionsWrapper_Voicemod,
             ["Settings_ComponentStats"] = OptionsWrapper_ComponentStats,
+            ["Settings_Proxmox"] = OptionsWrapper_Proxmox,
             ["Settings_NetworkStatistics"] = OptionsWrapper_NetworkStatistics,
             ["Settings_Chatting"] = OptionsWrapper_Chatting,
             ["Settings_TTS"] = OptionsWrapper_Tts,

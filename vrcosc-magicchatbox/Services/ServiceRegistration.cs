@@ -320,6 +320,10 @@ public static class ServiceRegistration
             new Lazy<ComponentStatsModule>(() => sp.GetRequiredService<ComponentStatsModule>(), LazyThreadSafetyMode.PublicationOnly),
             new Lazy<ComponentStatsViewModel>(() => sp.GetRequiredService<ComponentStatsViewModel>(), LazyThreadSafetyMode.PublicationOnly),
             sp.GetRequiredService<IAppState>()));
+           services.AddSingleton<ProxmoxSectionViewModel>(sp => new ProxmoxSectionViewModel(
+               sp.GetRequiredService<ISettingsProvider<AppSettings>>(),
+               sp.GetRequiredService<ISettingsProvider<IntegrationSettings>>(),
+               sp.GetRequiredService<ProxmoxModule>()));
         services.AddSingleton<StatusSectionViewModel>(sp => new StatusSectionViewModel(
             sp.GetRequiredService<ISettingsProvider<AppSettings>>(),
             sp.GetRequiredService<ISettingsProvider<TimeSettings>>(),
@@ -374,6 +378,7 @@ public static class ServiceRegistration
             sp.GetRequiredService<NetworkStatisticsSectionViewModel>(),
             sp.GetRequiredService<ChattingOptionsSectionViewModel>(),
             sp.GetRequiredService<ComponentStatsSectionViewModel>(),
+               sp.GetRequiredService<ProxmoxSectionViewModel>(),
             sp.GetRequiredService<StatusSectionViewModel>(),
             sp.GetRequiredService<AppOptionsSectionViewModel>(),
             sp.GetRequiredService<EggDevSectionViewModel>(),
@@ -636,6 +641,11 @@ public static class ServiceRegistration
             1000,
             sp.GetRequiredService<IToastService>()));
 
+        services.AddSingleton<ProxmoxModule>(sp => new ProxmoxModule(
+            sp.GetRequiredService<ISettingsProvider<ProxmoxSettings>>(),
+            sp.GetRequiredService<IUiDispatcher>(),
+            sp.GetRequiredService<IHardwareMonitorService>()));
+
         services.AddSingleton<TTSModule>(sp => new TTSModule(
             sp.GetRequiredService<ISettingsProvider<TtsSettings>>().Value,
             sp.GetRequiredService<TtsAudioDisplayState>(),
@@ -680,6 +690,9 @@ public static class ServiceRegistration
             new Lazy<IModuleHost>(() => sp.GetRequiredService<IModuleHost>()),
             sp.GetRequiredService<ISettingsProvider<IntegrationSettings>>(),
             sp.GetRequiredService<IntegrationDisplayState>()));
+           services.AddSingleton<IOscProvider>(sp => new ProxmoxOscProvider(
+               new Lazy<IModuleHost>(() => sp.GetRequiredService<IModuleHost>()),
+               sp.GetRequiredService<ISettingsProvider<IntegrationSettings>>()));
         services.AddSingleton<IOscProvider>(sp => new NetworkStatsOscProvider(
             new Lazy<NetworkStatisticsModule>(() => sp.GetRequiredService<NetworkStatisticsModule>()),
             sp.GetRequiredService<ISettingsProvider<IntegrationSettings>>()));

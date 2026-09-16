@@ -15,6 +15,7 @@ public partial class ModuleHost : ObservableObject, IModuleHost
     private readonly object _modulesLock = new();
 
     [ObservableProperty] private ComponentStatsModule? _componentStats;
+    [ObservableProperty] private ProxmoxModule? _proxmox;
 
     [ObservableProperty] private IntelliChatModule? _intelliChat;
     [ObservableProperty] private TwitchModule? _twitch;

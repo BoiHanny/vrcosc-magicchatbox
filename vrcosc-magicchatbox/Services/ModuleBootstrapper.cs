@@ -63,6 +63,7 @@ public class ModuleBootstrapper
     private readonly IPrivacyConsentService _consentService;
     private readonly IToastService _toast;
     private readonly ISettingsProvider<VoicemodSettings> _voicemodSettingsProvider;
+    private readonly ProxmoxModule _proxmoxModule;
     private readonly VoicemodDisplayState _voicemodDisplay;
     private readonly IVoicemodClientKeyProvider _voicemodClientKeyProvider;
     private readonly IVoicemodSocketFactory _voicemodSocketFactory;
@@ -147,7 +148,8 @@ public class ModuleBootstrapper
         VoicemodDisplayState voicemodDisplay,
         IVoicemodClientKeyProvider voicemodClientKeyProvider,
         IVoicemodSocketFactory voicemodSocketFactory,
-        IVoicemodArtworkCache voicemodArtwork)
+        IVoicemodArtworkCache voicemodArtwork,
+        ProxmoxModule proxmoxModule)
     {
         _host = host;
         _appState = appState;
@@ -192,6 +194,7 @@ public class ModuleBootstrapper
         _voicemodClientKeyProvider = voicemodClientKeyProvider;
         _voicemodSocketFactory = voicemodSocketFactory;
         _voicemodArtwork = voicemodArtwork;
+        _proxmoxModule = proxmoxModule;
     }
 
     public Task RegisterComponentStatsAsync(ComponentStatsModule statsModule)
@@ -312,6 +315,7 @@ public class ModuleBootstrapper
             _dispatcher,
             _consentService,
             _toast));
+        ProxmoxModule proxmox = _proxmoxModule;
 
         await _dispatcher.InvokeAsync(() =>
         {
@@ -449,6 +453,27 @@ public class ModuleBootstrapper
                 _host.RegisterModule(vrcRadar);
                 integrationSettings.PropertyChanged += vrcRadar.PropertyChangedHandler;
                 TrackSubscription(() => integrationSettings.PropertyChanged -= vrcRadar.PropertyChangedHandler);
+            }
+
+            if (proxmox != null)
+            {
+                _host.Proxmox = proxmox;
+                _host.RegisterModule(proxmox);
+                void OnProxmoxSettingChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+                {
+                    if (e.PropertyName != nameof(IntegrationSettings.IntgrProxmox))
+                        return;
+
+                    if (integrationSettings.IntgrProxmox)
+                        _ = proxmox.StartAsync();
+                    else
+                        _ = proxmox.StopAsync();
+                }
+
+                integrationSettings.PropertyChanged += OnProxmoxSettingChanged;
+                TrackSubscription(() => integrationSettings.PropertyChanged -= OnProxmoxSettingChanged);
+                if (integrationSettings.IntgrProxmox)
+                    _ = proxmox.StartAsync();
             }
 
             if (vrcRadar != null)

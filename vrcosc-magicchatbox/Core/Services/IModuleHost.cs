@@ -8,6 +8,7 @@ namespace vrcosc_magicchatbox.Core.Services;
 public interface IModuleHost : INotifyPropertyChanged
 {
     ComponentStatsModule ComponentStats { get; set; }
+    ProxmoxModule Proxmox { get; set; }
     IntelliChatModule IntelliChat { get; set; }
     TwitchModule Twitch { get; set; }
     TikTokLiveModule TikTokLive { get; set; }

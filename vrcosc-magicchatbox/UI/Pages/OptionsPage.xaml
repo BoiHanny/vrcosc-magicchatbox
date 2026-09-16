@@ -172,6 +172,16 @@
             </ContentControl>
 
             <ContentControl
+                x:Name="OptionsWrapper_Proxmox"
+                Style="{StaticResource OptionSectionWithResetStyle}"
+                Tag="proxmox">
+                <StackPanel>
+                    <TextBlock Style="{StaticResource OptionSectionPlaceholderTitle}" Text="Proxmox options" />
+                    <TextBlock Style="{StaticResource OptionSectionPlaceholderStatus}" Text="Loading…" />
+                </StackPanel>
+            </ContentControl>
+
+            <ContentControl
                 x:Name="OptionsWrapper_NetworkStatistics"
                 Style="{StaticResource OptionSectionWithResetStyle}"
                 Tag="network-statistics">

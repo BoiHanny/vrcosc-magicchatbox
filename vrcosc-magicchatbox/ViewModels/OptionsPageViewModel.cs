@@ -39,6 +39,7 @@ namespace vrcosc_magicchatbox.ViewModels
         public NetworkStatisticsSectionViewModel NetworkStatisticsSection { get; }
         public ChattingOptionsSectionViewModel ChattingOptionsSection { get; }
         public ComponentStatsSectionViewModel ComponentStatsSection { get; }
+        public ProxmoxSectionViewModel ProxmoxSection { get; }
         public StatusSectionViewModel StatusSection { get; }
         public AppOptionsSectionViewModel AppOptionsSection { get; }
         public EggDevSectionViewModel EggDevSection { get; }
@@ -71,6 +72,7 @@ namespace vrcosc_magicchatbox.ViewModels
             NetworkStatisticsSectionViewModel networkStatisticsSection,
             ChattingOptionsSectionViewModel chattingOptionsSection,
             ComponentStatsSectionViewModel componentStatsSection,
+            ProxmoxSectionViewModel proxmoxSection,
             StatusSectionViewModel statusSection,
             AppOptionsSectionViewModel appOptionsSection,
             EggDevSectionViewModel eggDevSection,
@@ -102,6 +104,7 @@ namespace vrcosc_magicchatbox.ViewModels
             NetworkStatisticsSection = networkStatisticsSection;
             ChattingOptionsSection = chattingOptionsSection;
             ComponentStatsSection = componentStatsSection;
+            ProxmoxSection = proxmoxSection;
             StatusSection = statusSection;
             AppOptionsSection = appOptionsSection;
             EggDevSection = eggDevSection;

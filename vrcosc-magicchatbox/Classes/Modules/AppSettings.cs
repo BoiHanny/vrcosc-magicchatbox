@@ -112,6 +112,7 @@ public partial class AppSettings : VersionedSettings
     [ObservableProperty] private bool _settings_Discord = false;
     [ObservableProperty] private bool _settings_Spotify = false;
     [ObservableProperty] private bool _settings_ComponentStats = false;
+    [ObservableProperty] private bool _settings_Proxmox = false;
     [ObservableProperty] private bool _settings_NetworkStatistics = false;
     [ObservableProperty] private bool _settings_Chatting = false;
     [ObservableProperty] private bool _settings_TTS = false;

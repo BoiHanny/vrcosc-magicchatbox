@@ -17,6 +17,7 @@ public partial class IntegrationSettings : VersionedSettings
     [ObservableProperty] private bool _intgrNetworkStatistics = false;
     [ObservableProperty] private bool _intgrScanMediaLink = true;
     [ObservableProperty] private bool _intgrComponentStats = false;
+    [ObservableProperty] private bool _intgrProxmox = false;
     [ObservableProperty] private bool _intgrSoundpad = false;
     [ObservableProperty] private bool _intgrVoicemod = false;
     [ObservableProperty] private bool _intgrTwitch = false;
